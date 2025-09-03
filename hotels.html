@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Explore – Cosy Hotels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="index.html">Cosy Hotels</a>
+        <nav class="nav">
+          <a class="active" href="hotels.html">Explore</a>
+          <a href="#" aria-disabled="true">Collections</a>
+          <a href="#" aria-disabled="true">Guides</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container layout">
+      <aside class="sidebar">
+        <form id="filters" class="filters" method="get" action="hotels.html">
+          <h3>Filters</h3>
+          <label>
+            <span class="label">Destination</span>
+            <input type="text" name="city" placeholder="City" />
+          </label>
+          <label>
+            <span class="label">Min rating</span>
+            <select name="minRating">
+              <option value="">Any</option>
+              <option value="8.5">8.5+</option>
+              <option value="9.0">9.0+</option>
+              <option value="9.5">9.5+</option>
+            </select>
+          </label>
+          <fieldset class="amenities">
+            <legend class="label">Amenities</legend>
+            <label><input type="checkbox" name="amenity" value="Spa">Spa</label>
+            <label><input type="checkbox" name="amenity" value="Pool">Pool</label>
+            <label><input type="checkbox" name="amenity" value="Rooftop">Rooftop</label>
+            <label><input type="checkbox" name="amenity" value="Pet-friendly">Pet-friendly</label>
+            <label><input type="checkbox" name="amenity" value="Gym">Gym</label>
+            <label><input type="checkbox" name="amenity" value="Bar">Bar</label>
+          </fieldset>
+          <label>
+            <span class="label">Sort</span>
+            <select name="sort">
+              <option value="relevance">Relevance</option>
+              <option value="rating-desc">Rating (high → low)</option>
+              <option value="price-asc">Price (low → high)</option>
+              <option value="price-desc">Price (high → low)</option>
+            </select>
+          </label>
+          <button type="submit">Apply</button>
+        </form>
+      </aside>
+
+      <section class="content">
+        <div id="results-summary" class="muted"></div>
+        <div id="results" class="grid grid-3"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <strong>Cosy Hotels</strong><br />
+          Curated boutique stays.
+        </div>
+        <div class="muted">© <span id="year"></span> Cosy Hotels</div>
+      </div>
+    </footer>
+
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+      renderListingsPage();
+    </script>
+  </body>
+  </html>
+
