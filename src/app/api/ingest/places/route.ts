@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     if (!body?.source || !Array.isArray(body.items)) {
       return NextResponse.json({ error: "Expected { source, items[] }" }, { status: 400 });
     }
-    const results: any[] = [];
+    let upserted = 0;
     for (const p of body.items) {
       const slug = slugify(p.name, { lower: true, strict: true });
       const { data: hotel, error } = await supabase
@@ -60,11 +60,11 @@ export async function POST(req: Request) {
         const imgs = p.images.map((i) => ({ hotel_id: hotel.id, url: i.url, width: i.width ?? null, height: i.height ?? null, attributions: i.attributions ?? null }));
         await supabase.from("hotel_images").insert(imgs).throwOnError();
       }
-      results.push(hotel);
+      upserted++;
     }
-    return NextResponse.json({ upserted: results.length });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Bad Request" }, { status: 400 });
+    return NextResponse.json({ upserted });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Bad Request";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
-

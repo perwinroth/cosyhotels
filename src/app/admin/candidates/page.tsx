@@ -1,15 +1,28 @@
 import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
 
+type CandidateRow = {
+  id: string;
+  slug: string;
+  name: string;
+  city: string | null;
+  country: string | null;
+  rating: number | null;
+  rooms_count: number | null;
+  curated: boolean;
+  amenities?: string[] | null;
+  cosy_scores?: { score: number | null }[] | null;
+};
+
 export default async function CandidatesPage() {
   const supabase = getServerSupabase();
   const list = supabase
-    ? (await supabase
+    ? ((await supabase
         .from("hotels")
         .select("id, slug, name, city, country, rating, rooms_count, amenities, curated, cosy_scores:cosy_scores(score)")
         .order("curated", { ascending: true })
-        .limit(100)).data || []
-    : [];
+        .limit(100)).data || []) as CandidateRow[]
+    : ([] as CandidateRow[]);
 
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: 24 }}>
@@ -27,7 +40,7 @@ export default async function CandidatesPage() {
           </tr>
         </thead>
         <tbody>
-          {list.map((h: any) => (
+          {list.map((h) => (
             <tr key={h.id}>
               <td style={{ padding: 8 }}>
                 <Link href={`/en/hotels/${h.slug}`}>{h.name}</Link>
@@ -35,7 +48,7 @@ export default async function CandidatesPage() {
               <td style={{ padding: 8 }}>{h.city}, {h.country}</td>
               <td style={{ padding: 8 }}>{h.rating ?? "-"}</td>
               <td style={{ padding: 8 }}>{h.rooms_count ?? "-"}</td>
-              <td style={{ padding: 8 }}>{h.cosy_scores?.score?.toFixed?.(1) ?? "-"}</td>
+              <td style={{ padding: 8 }}>{h.cosy_scores?.[0]?.score != null ? h.cosy_scores[0].score.toFixed(1) : "-"}</td>
               <td style={{ padding: 8 }}>
                 <form action="/api/admin/curate" method="post">
                   <input type="hidden" name="hotel_id" value={h.id} />
@@ -49,4 +62,3 @@ export default async function CandidatesPage() {
     </main>
   );
 }
-
