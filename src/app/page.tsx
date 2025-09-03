@@ -1,2 +1,4 @@
-import { redirect } from 'next/navigation';
-export default function Root() { redirect('/en'); }
+import React from 'react';
+export default function Home() {
+    return <main style={{ padding: 24 }}>Welcome to Get Cosy</main>;
+}
