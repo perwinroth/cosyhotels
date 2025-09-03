@@ -72,3 +72,19 @@ export function cosyScore(features: HotelFeatures) {
   return Math.max(0, Math.min(10, blended));
 }
 
+// Ad-hoc cosy score for Google Places results without persistence
+export function adhocCosyScore({
+  rating,
+  summary,
+  name,
+}: {
+  rating?: number; // 0..5 from Places
+  summary?: string;
+  name?: string;
+}) {
+  const base = ((rating ?? 4) / 5); // normalize 0..1
+  const desc = keywordSentiment(`${name || ""}. ${summary || ""}`);
+  // Blend with stronger emphasis on rating for lack of amenities/rooms
+  const blended = base * 7 + desc * 3; // 0..10 scale
+  return Math.max(0, Math.min(10, blended));
+}

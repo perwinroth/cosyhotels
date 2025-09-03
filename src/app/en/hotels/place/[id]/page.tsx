@@ -21,18 +21,21 @@ export default async function PlaceDetail({ params }: { params: { id: string } }
         <span>•</span>
         <span>{d.user_ratings_total ?? 0} reviews</span>
       </div>
-      {d.editorial_summary?.overview ? (
-        <p style={{ marginTop: 12, color: "#444", lineHeight: 1.6 }}>{d.editorial_summary.overview}</p>
-      ) : null}
-      <div style={{ marginTop: 16 }}>
-        <a href={website} target="_blank" rel="noopener nofollow" style={{ display: "inline-block", background: "#111", color: "#fff", padding: "10px 14px", borderRadius: 8, textDecoration: "none" }}>
-          Visit website →
-        </a>
-      </div>
-      <div style={{ marginTop: 16 }}>
-        <Link href="/en/hotels" style={{ color: "#2563eb" }}>← Back to results</Link>
-      </div>
+  {d.editorial_summary?.overview ? (
+    <p style={{ marginTop: 12, color: "#444", lineHeight: 1.6 }}>{d.editorial_summary.overview}</p>
+  ) : null}
+  <div style={{ marginTop: 16 }}>
+    <a href={website} target="_blank" rel="noopener nofollow" style={{ display: "inline-block", background: "#111", color: "#fff", padding: "10px 14px", borderRadius: 8, textDecoration: "none" }}>
+      Visit website →
+    </a>
+  </div>
+  <form action="/api/places/save" method="post" style={{ marginTop: 8 }}>
+    <input type="hidden" name="place_id" value={d.place_id} />
+    <button type="submit" style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #e5e5e5", background: "#fff" }}>Save to shortlist</button>
+  </form>
+  <div style={{ marginTop: 16 }}>
+    <Link href="/en/hotels" style={{ color: "#2563eb" }}>← Back to results</Link>
+  </div>
     </div>
   );
 }
-

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { searchText, photoUrl } from "@/lib/places";
+import { adhocCosyScore } from "@/lib/scoring/cosy";
 
 export const metadata = {
   title: "Explore hotels",
@@ -10,7 +11,13 @@ export default async function HotelsPage({ searchParams }: { searchParams: { [k:
   const cityQ = typeof searchParams.city === "string" ? searchParams.city : "";
   const query = cityQ ? `cosy boutique hotel in ${cityQ}` : "cosy boutique hotel";
   const data = await searchText(query);
-  const results = data.results;
+  // Compute an ad-hoc cosy score and sort
+  const results = data.results
+    .map(r => ({
+      ...r,
+      _cosy: adhocCosyScore({ rating: r.rating, summary: r.formatted_address, name: r.name }),
+    }))
+    .sort((a, b) => b._cosy - a._cosy);
   return (
     <div style={{ maxWidth: 960, margin: "0 auto", padding: 24 }}>
       <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>Explore hotels</h1>
@@ -29,9 +36,13 @@ export default async function HotelsPage({ searchParams }: { searchParams: { [k:
               <div style={{ padding: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ fontWeight: 600 }}>{h.name}</div>
-                  <span style={{ fontSize: 12, background: "#dcfce7", color: "#14532d", borderRadius: 6, padding: "2px 6px" }}>{h.rating?.toFixed?.(1) ?? "-"}</span>
+                  <span style={{ fontSize: 12, background: "#dcfce7", color: "#14532d", borderRadius: 6, padding: "2px 6px" }}>Cosy {h._cosy.toFixed(1)}</span>
                 </div>
                 <div style={{ fontSize: 14, color: "#666" }}>{h.formatted_address}</div>
+                <form action="/api/places/save" method="post" style={{ marginTop: 8 }}>
+                  <input type="hidden" name="place_id" value={h.place_id} />
+                  <button type="submit" style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #e5e5e5", background: "#fff" }}>Save to shortlist</button>
+                </form>
               </div>
             </div>
           </Link>
