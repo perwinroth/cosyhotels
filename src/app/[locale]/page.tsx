@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FeaturedHotels, PopularDestinations, SearchBar } from "@/components/HomeSections";
+import Filters from "@/components/Filters";
 import { site } from "@/config/site";
 import { messages } from "@/i18n/messages";
 import type { Metadata } from "next";
@@ -36,9 +37,17 @@ export default function Home({ params }: { params: { locale: string } }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
-        <h2 className="text-xl font-semibold">Popular destinations</h2>
-        <PopularDestinations className="mt-4" locale={locale} />
+      <section className="mx-auto max-w-6xl px-4 py-10 grid md:grid-cols-[16rem_1fr] gap-6">
+        <div>
+          <h2 className="text-xl font-semibold">Refine your search</h2>
+          <div className="mt-4">
+            <Filters basePath={`/${locale}/hotels`} />
+          </div>
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold">Popular destinations</h2>
+          <PopularDestinations className="mt-4" locale={locale} />
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-14">

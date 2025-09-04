@@ -8,7 +8,7 @@ function setParam(sp: URLSearchParams, key: string, value?: string) {
   else sp.set(key, value);
 }
 
-export default function Filters() {
+export default function Filters({ basePath }: { basePath?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -31,7 +31,8 @@ export default function Filters() {
       sp.delete("amenity");
       (next.amenities || []).forEach((a) => sp.append("amenity", a));
     }
-    router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
+    const target = basePath || pathname;
+    router.replace(`${target}?${sp.toString()}`, { scroll: false });
   }
 
   const amenityOptions = [
