@@ -27,14 +27,14 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.svg" },
 };
 
-export default function LocaleLayout({
+export default async function LocaleLayout({
   children,
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }>) {
-  const locale = params.locale;
+  const { locale } = await params;
   const m = messages[locale as keyof typeof messages] ?? messages.en;
   return (
     <html lang={locale}>
