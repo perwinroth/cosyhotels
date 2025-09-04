@@ -1,4 +1,4 @@
-import { hotels, type Hotel } from "@/data/hotels";
+import type { Hotel } from "@/data/hotels";
 
 export type Collection = {
   slug: string;
@@ -37,4 +37,3 @@ export const collections: Collection[] = [
 export function getCollection(slug: string) {
   return collections.find((c) => c.slug === slug);
 }
-

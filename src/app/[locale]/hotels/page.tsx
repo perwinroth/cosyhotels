@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
-import { filterHotels, hotels as baseHotels } from "@/data/hotels";
+import { hotels as baseHotels } from "@/data/hotels";
 import Filters from "@/components/Filters";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import type { Metadata } from "next";
@@ -55,10 +55,13 @@ async function Results({
     : typeof params.amenity === "string"
     ? [params.amenity]
     : undefined;
-  const sort = (params.sort as any) || "cosy-desc";
+  type Sort = "cosy-desc" | "cosy-asc" | "rating-desc" | "price-asc" | "price-desc" | "relevance";
+  const allowedSort: ReadonlyArray<Sort> = ["cosy-desc","cosy-asc","rating-desc","price-asc","price-desc","relevance"];
+  const isSort = (v: unknown): v is Sort => typeof v === "string" && allowedSort.includes(v as Sort);
+  const sortCandidate = typeof params.sort === "string" ? params.sort : undefined;
+  const sort: Sort = isSort(sortCandidate) ? sortCandidate : "cosy-desc";
 
-  const results = filterHotels.call({ hotels }, { city, minRating, amenities, sort } as any) || filterHotels({ city, minRating, amenities, sort });
-  // If filterHotels references module hotels, compute from our merged list
+  // Compute results from merged list
   const mergedResults = hotels
     .filter((h) => (city ? h.city.toLowerCase().includes(city.toLowerCase()) : true))
     .filter((h) => (minRating ? h.rating >= minRating : true))

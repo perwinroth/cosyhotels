@@ -26,7 +26,8 @@ export async function POST(req: Request) {
     const { error } = await supabase.from("affiliate_overrides").upsert(rows, { onConflict: "slug,hotel_id" });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ results: merged, persisted: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Bad Request" }, { status: 400 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Bad Request";
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 }

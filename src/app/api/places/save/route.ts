@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDetails } from "@/lib/places";
-import { cosyScore, keywordSentiment } from "@/lib/scoring/cosy";
+import { cosyScore } from "@/lib/scoring/cosy";
 import { getServerSupabase } from "@/lib/supabase/server";
 import slugify from "slugify";
 
@@ -83,4 +83,3 @@ export async function POST(req: Request) {
   // Redirect back to candidates page
   return NextResponse.redirect("/admin/candidates");
 }
-

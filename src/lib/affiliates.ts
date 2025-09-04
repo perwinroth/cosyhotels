@@ -27,7 +27,7 @@ export function mergeAffiliateData(base: Hotel[], records: AffiliateHotelRecord[
 }
 
 // Provider config (expand per network as needed)
-type Provider = "generic" | "awin" | "cj" | "impact";
+export type Provider = "generic" | "awin" | "cj" | "impact";
 
 const providerParams: Record<Provider, { subIdParam?: string }> = {
   generic: { subIdParam: "subid" },
@@ -50,4 +50,3 @@ export function buildAffiliateUrl(baseUrl: string, opts?: { provider?: Provider;
 export function hotelAffiliateUrl(hotel: Hotel, opts?: { provider?: Provider; campaign?: string; content?: string; clickId?: string }) {
   return buildAffiliateUrl(hotel.affiliateUrl, opts);
 }
-

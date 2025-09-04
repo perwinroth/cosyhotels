@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hotels } from "@/data/hotels";
-import { hotelAffiliateUrl } from "@/lib/affiliates";
+import { hotelAffiliateUrl, type Provider } from "@/lib/affiliates";
 import { getServerSupabase } from "@/lib/supabase/server";
 
 export async function GET(
@@ -12,7 +12,9 @@ export async function GET(
 
   // Optional: Accept provider and clickId
   const url = new URL(_req.url);
-  const provider = (url.searchParams.get("provider") as any) || undefined;
+  const providerParam = url.searchParams.get("provider");
+  const isProvider = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact"].includes(p);
+  const provider: Provider | undefined = isProvider(providerParam) ? providerParam : undefined;
   const clickId = url.searchParams.get("clickId") || undefined;
   const target = hotelAffiliateUrl(hotel, {
     provider,

@@ -8,7 +8,11 @@ export function GET(request: Request) {
     ? Number(searchParams.get("minRating"))
     : undefined;
   const amenities = searchParams.getAll("amenity") || undefined;
-  const sort = (searchParams.get("sort") as any) || "relevance";
+  const sortParam = searchParams.get("sort");
+  const sort: "relevance" | "rating-desc" | "price-asc" | "price-desc" | undefined =
+    sortParam === "relevance" || sortParam === "rating-desc" || sortParam === "price-asc" || sortParam === "price-desc"
+      ? sortParam
+      : "relevance";
   const id = searchParams.get("id") || undefined;
 
   if (id) {
@@ -20,4 +24,3 @@ export function GET(request: Request) {
   const results = filterHotels({ city, minRating, amenities, sort });
   return NextResponse.json({ results });
 }
-

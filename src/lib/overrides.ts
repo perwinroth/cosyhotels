@@ -1,4 +1,4 @@
-import { hotels as baseHotels, type Hotel } from "@/data/hotels";
+import type { Hotel } from "@/data/hotels";
 import { getServerSupabase } from "@/lib/supabase/server";
 
 export type AffiliateOverride = {
@@ -58,4 +58,3 @@ export function applyOverride(base: Hotel, override: AffiliateOverride | null) {
     price: typeof override.price === "number" ? override.price : base.price,
   };
 }
-
