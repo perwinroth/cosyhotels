@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { FeaturedHotels, PopularDestinations, SearchBar } from "@/components/HomeSections";
 import Filters from "@/components/Filters";
+import HomeGrid from "@/components/HomeGrid";
 import { messages } from "@/i18n/messages";
 
 export default function RootHome() {
@@ -22,24 +23,8 @@ export default function RootHome() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 grid md:grid-cols-[16rem_1fr] gap-6">
-        <div>
-          <h2 className="text-xl font-semibold">Refine your search</h2>
-          <div className="mt-4">
-            <Suspense fallback={<div className="text-sm text-zinc-500">Loading filters…</div>}>
-              <Filters basePath={`/${locale}/hotels`} />
-            </Suspense>
-          </div>
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold">Popular destinations</h2>
-          <PopularDestinations className="mt-4" locale={locale} />
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-14">
-        <h2 className="text-xl font-semibold">Featured stays</h2>
-        <FeaturedHotels className="mt-4" locale={locale} />
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <HomeGrid locale={locale} />
       </section>
     </div>
   );
