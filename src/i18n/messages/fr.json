@@ -1,0 +1,9 @@
+{
+  "brand": {
+    "name": "Get Cosy",
+    "tagline": "Trouvez des chambres d'hôtel cosy",
+    "description": "Évasions cosy sélectionnées."
+  },
+  "nav": {"explore": "Explorer", "collections": "Collections", "guides": "Guides"},
+  "home": {"browseAll": "Voir tous les hôtels"}
+}

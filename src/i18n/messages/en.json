@@ -1,0 +1,15 @@
+{
+  "brand": {
+    "name": "Get Cosy",
+    "tagline": "Find cosy hotel rooms",
+    "description": "Curated cosy getaways."
+  },
+  "nav": {
+    "explore": "Explore",
+    "collections": "Collections",
+    "guides": "Guides"
+  },
+  "home": {
+    "browseAll": "Browse all hotels"
+  }
+}

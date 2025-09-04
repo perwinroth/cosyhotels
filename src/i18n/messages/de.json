@@ -1,0 +1,9 @@
+{
+  "brand": {
+    "name": "Get Cosy",
+    "tagline": "Finde gemütliche Hotelzimmer",
+    "description": "Kuratiert gemütliche Auszeiten."
+  },
+  "nav": {"explore": "Entdecken", "collections": "Kollektionen", "guides": "Guides"},
+  "home": {"browseAll": "Alle Hotels ansehen"}
+}

@@ -1,0 +1,9 @@
+{
+  "brand": {
+    "name": "Get Cosy",
+    "tagline": "Trova camere d'hotel accoglienti",
+    "description": "Fughe accoglienti curate."
+  },
+  "nav": {"explore": "Esplora", "collections": "Collezioni", "guides": "Guide"},
+  "home": {"browseAll": "Vedi tutti gli hotel"}
+}

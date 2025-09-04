@@ -1,0 +1,9 @@
+{
+  "brand": {
+    "name": "Get Cosy",
+    "tagline": "Encontre quartos de hotel aconchegantes",
+    "description": "Escapadelas aconchegantes selecionadas."
+  },
+  "nav": {"explore": "Explorar", "collections": "Coleções", "guides": "Guias"},
+  "home": {"browseAll": "Ver todos os hotéis"}
+}
