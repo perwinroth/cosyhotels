@@ -12,10 +12,6 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   };
 }
 
-export const metadata: Metadata = {
-  title: "Collections",
-  description: "Curated themes to explore cosy boutique stays.",
-};
 
 export default function CollectionsIndex({ params }: { params: { locale: string } }) {
   return (

@@ -3,11 +3,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { site } from "@/config/site";
 import "../globals.css";
-import dynamic from "next/dynamic";
 import { messages } from "@/i18n/messages";
-
-const Analytics = dynamic(() => import("@/components/Analytics"), { ssr: false });
-const LanguageSwitcher = dynamic(() => import("@/components/LanguageSwitcher"), { ssr: false });
+import Analytics from "@/components/Analytics";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),

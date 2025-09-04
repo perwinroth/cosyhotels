@@ -12,10 +12,6 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   };
 }
 
-export const metadata: Metadata = {
-  title: "Guides",
-  description: "Practical tips and curated advice for planning cosy stays.",
-};
 
 export default function GuidesIndex({ params }: { params: { locale: string } }) {
   return (
