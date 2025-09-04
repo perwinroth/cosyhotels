@@ -1,6 +1,5 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export function middleware(_req: NextRequest) {
-  // No redirects here to avoid loops; domain enforcement handled in Vercel.
+export function middleware() {
   return NextResponse.next();
 }

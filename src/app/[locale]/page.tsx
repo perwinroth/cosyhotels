@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { FeaturedHotels, PopularDestinations, SearchBar } from "@/components/HomeSections";
 import Filters from "@/components/Filters";
 import { site } from "@/config/site";
@@ -41,7 +42,9 @@ export default function Home({ params }: { params: { locale: string } }) {
         <div>
           <h2 className="text-xl font-semibold">Refine your search</h2>
           <div className="mt-4">
-            <Filters basePath={`/${locale}/hotels`} />
+            <Suspense fallback={<div className="text-sm text-zinc-500">Loading filters…</div>}>
+              <Filters basePath={`/${locale}/hotels`} />
+            </Suspense>
           </div>
         </div>
         <div>
