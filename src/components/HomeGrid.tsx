@@ -3,49 +3,59 @@ import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { hotels, destinations } from "@/data/hotels";
 import { SearchBar } from "@/components/HomeSections";
+import { Suspense } from "react";
+import Filters from "@/components/Filters";
 
 type Props = { locale: string };
 
-function Tile({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Tile({ children, className = "", style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
-    <div className={`rounded-xl border border-zinc-200 overflow-hidden ${className}`}>{children}</div>
+    <div className={`rounded-xl border border-zinc-200 overflow-hidden bg-white hover:shadow-sm transition-shadow ${className}`} style={style}>
+      {children}
+    </div>
   );
 }
 
 export default function HomeGrid({ locale }: Props) {
-  const featured = hotels.filter(h => h.featured).concat(hotels).slice(0, 6);
+  const featured = hotels.filter(h => h.featured).concat(hotels).slice(0, 8);
   const topDest = destinations.slice(0, 6);
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[1fr]">
-      {/* Search tile (large) */}
-      <Tile className="col-span-2 md:col-span-4 p-4 bg-white">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold">Find cosy hotel rooms</h2>
-            <p className="text-sm text-zinc-600 mt-1">Discover warm, characterful boutique stays worldwide.</p>
-          </div>
-        </div>
-        <div className="mt-4">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 [--row:120px] md:auto-rows-[var(--row)]">
+      {/* HERO: big headline + search (span 8x3 on md) */}
+      <Tile className="p-6 md:p-8" style={{ gridColumn: 'span 12', gridRow: 'span 3' }}>
+        <h1 className="text-3xl md:text-5xl font-semibold tracking-tight">Find cosy hotel rooms</h1>
+        <p className="mt-3 text-zinc-600 max-w-2xl">Discover warm, characterful boutique stays worldwide — handpicked for comfort.</p>
+        <div className="mt-6 max-w-3xl">
           <SearchBar locale={locale} />
         </div>
-        <div className="mt-2 text-xs text-zinc-500">
-          <Link className="underline" href={`/${locale}/hotels`}>Browse all</Link>
+        <div className="mt-3 text-sm text-zinc-600">
+          <Link href={`/${locale}/hotels`} className="underline">Browse all</Link>
         </div>
       </Tile>
 
-      {/* Destination tiles */}
-      {topDest.map((d) => (
-        <Tile key={d.slug} className="bg-white">
+      {/* FILTERS: dedicated tile (span 4x3 on md) */}
+      <Tile className="p-4 md:p-5" style={{ gridColumn: 'span 12', gridRow: 'span 3' }}>
+        <h2 className="text-lg font-medium">Refine your search</h2>
+        <div className="mt-3">
+          <Suspense fallback={<div className="text-sm text-zinc-500">Loading filters…</div>}>
+            <Filters basePath={`/${locale}/hotels`} />
+          </Suspense>
+        </div>
+      </Tile>
+
+      {/* DESTINATIONS: three tiles (span 4x2 each) */}
+      {topDest.slice(0, 3).map((d) => (
+        <Tile key={d.slug} style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
           <Link href={`/${locale}/hotels?city=${encodeURIComponent(d.city)}`} className="block">
-            <div className="aspect-[4/3] bg-zinc-100 flex items-end p-3">
+            <div className="aspect-[4/3] md:aspect-auto md:h-[calc(var(--row)*2-1rem)] bg-zinc-100 flex items-end p-3">
               <div className="text-sm font-medium">{d.city}</div>
             </div>
           </Link>
         </Tile>
       ))}
 
-      {/* Cosy explainer tile */}
-      <Tile className="col-span-2 md:col-span-2 p-4 bg-zinc-50">
+      {/* COSY EXPLAINER (span 6x2) */}
+      <Tile className="p-5 bg-zinc-50" style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
         <h3 className="font-medium">What is the Cosy score?</h3>
         <p className="text-sm text-zinc-600 mt-1">
           A transparent blend of rating, amenities warmth, language, and scale to estimate how cosy a place feels.
@@ -53,19 +63,12 @@ export default function HomeGrid({ locale }: Props) {
         <Link href={`/${locale}/cosy-score`} className="inline-block mt-3 text-sm underline">Learn more</Link>
       </Tile>
 
-      {/* Featured hotels */}
-      {featured.map((h) => (
-        <Tile key={h.slug} className="bg-white">
+      {/* FEATURED BIG (span 6x3) */}
+      {featured.slice(0,1).map((h) => (
+        <Tile key={h.slug} style={{ gridColumn: 'span 12', gridRow: 'span 3' }}>
           <Link href={`/${locale}/hotels/${h.slug}`} className="block">
-            <div className="relative aspect-[4/3] bg-zinc-100">
-              <Image
-                src="/hotel-placeholder.svg"
-                alt={`${h.name} – ${h.city}`}
-                fill
-                className="object-cover"
-                placeholder="blur"
-                blurDataURL={shimmer(1200, 800)}
-              />
+            <div className="relative md:h-[calc(var(--row)*2)] bg-zinc-100">
+              <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between">
@@ -79,8 +82,37 @@ export default function HomeGrid({ locale }: Props) {
         </Tile>
       ))}
 
-      {/* CTA tile */}
-      <Tile className="col-span-2 md:col-span-4 p-4 bg-white">
+      {/* FEATURED SMALL (span 3x2 each) */}
+      {featured.slice(1,5).map((h) => (
+        <Tile key={h.slug} style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
+          <Link href={`/${locale}/hotels/${h.slug}`} className="block">
+            <div className="relative md:h-[calc(var(--row)*1.2)] bg-zinc-100">
+              <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+            </div>
+            <div className="p-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium line-clamp-1">{h.name}</h3>
+                <span className="text-xs rounded bg-zinc-100 text-zinc-700 px-2 py-0.5">{h.rating.toFixed(1)}</span>
+              </div>
+              <div className="text-sm text-zinc-600">{h.city}</div>
+            </div>
+          </Link>
+        </Tile>
+      ))}
+
+      {/* SECOND DESTINATION ROW (optional) */}
+      {topDest.slice(3,6).map((d) => (
+        <Tile key={d.slug} style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
+          <Link href={`/${locale}/hotels?city=${encodeURIComponent(d.city)}`} className="block">
+            <div className="aspect-[4/3] md:aspect-auto md:h-[calc(var(--row)*2-1rem)] bg-zinc-100 flex items-end p-3">
+              <div className="text-sm font-medium">{d.city}</div>
+            </div>
+          </Link>
+        </Tile>
+      ))}
+
+      {/* COLLECTIONS CTA (span full) */}
+      <Tile className="p-5" style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">Explore curated collections</h3>
@@ -92,4 +124,3 @@ export default function HomeGrid({ locale }: Props) {
     </div>
   );
 }
-
