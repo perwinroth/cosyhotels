@@ -72,6 +72,14 @@ export function cosyScore(features: HotelFeatures) {
   return Math.max(0, Math.min(10, blended));
 }
 
+// Helper for UI: map cosy score to brand color classes
+export function cosyBadgeClass(score: number) {
+  if (score >= 8.5) return "bg-emerald-100 text-emerald-800"; // green
+  if (score >= 7.0) return "bg-amber-100 text-amber-900"; // yellow
+  if (score >= 5.0) return "bg-orange-100 text-orange-800"; // orange
+  return "bg-zinc-100 text-zinc-700"; // neutral
+}
+
 // Ad-hoc cosy score for Google Places results without persistence
 export function adhocCosyScore({
   rating,

@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur">
           <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
             <Link href={`/${locale}`} className="flex items-center gap-2 font-semibold tracking-tight">
-              <Image src="/logo.svg" alt={site.name} width={112} height={28} priority />
+              <Image src="/logo-seal.svg" alt={site.name} width={140} height={36} priority />
             </Link>
             <nav className="flex gap-4 text-sm items-center">
               <Link href={`/${locale}/hotels`} className="hover:underline">{m.nav.explore}</Link>

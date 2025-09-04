@@ -6,7 +6,7 @@ import Filters from "@/components/Filters";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import type { Metadata } from "next";
 import { locales } from "@/i18n/locales";
-import { cosyScore } from "@/lib/scoring/cosy";
+import { cosyScore, cosyBadgeClass } from "@/lib/scoring/cosy";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/hotels`]));
@@ -71,12 +71,7 @@ async function Results({
     _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
   }));
 
-  function cosyBadgeClass(score: number) {
-    if (score >= 8.5) return "bg-emerald-100 text-emerald-800";
-    if (score >= 7.0) return "bg-green-100 text-green-800";
-    if (score >= 5.0) return "bg-amber-100 text-amber-800";
-    return "bg-zinc-100 text-zinc-700";
-  }
+  // badge colors provided by cosyBadgeClass
 
   switch (sort) {
     case "rating-desc":

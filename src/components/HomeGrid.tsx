@@ -43,9 +43,9 @@ export default function HomeGrid({ locale }: Props) {
         </div>
       </Tile>
 
-      {/* DESTINATIONS: three tiles (span 4x2 each) */}
+      {/* DESTINATIONS: three tiles (span 4x2 each on md) */}
       {topDest.slice(0, 3).map((d) => (
-        <Tile key={d.slug} style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
+        <Tile key={d.slug} className="md:col-span-4" style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
           <Link href={`/${locale}/hotels?city=${encodeURIComponent(d.city)}`} className="block">
             <div className="aspect-[4/3] md:aspect-auto md:h-[calc(var(--row)*2-1rem)] bg-zinc-100 flex items-end p-3">
               <div className="text-sm font-medium">{d.city}</div>
@@ -55,7 +55,7 @@ export default function HomeGrid({ locale }: Props) {
       ))}
 
       {/* COSY EXPLAINER (span 6x2) */}
-      <Tile className="p-5 bg-zinc-50" style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
+      <Tile className="p-5 bg-zinc-50 md:col-span-6" style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
         <h3 className="font-medium">What is the Cosy score?</h3>
         <p className="text-sm text-zinc-600 mt-1">
           A transparent blend of rating, amenities warmth, language, and scale to estimate how cosy a place feels.
@@ -65,7 +65,7 @@ export default function HomeGrid({ locale }: Props) {
 
       {/* FEATURED BIG (span 6x3) */}
       {featured.slice(0,1).map((h) => (
-        <Tile key={h.slug} style={{ gridColumn: 'span 12', gridRow: 'span 3' }}>
+        <Tile key={h.slug} className="md:col-span-6" style={{ gridColumn: 'span 12', gridRow: 'span 3' }}>
           <Link href={`/${locale}/hotels/${h.slug}`} className="block">
             <div className="relative md:h-[calc(var(--row)*2)] bg-zinc-100">
               <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
@@ -84,7 +84,7 @@ export default function HomeGrid({ locale }: Props) {
 
       {/* FEATURED SMALL (span 3x2 each) */}
       {featured.slice(1,5).map((h) => (
-        <Tile key={h.slug} style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
+        <Tile key={h.slug} className="md:col-span-3" style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
           <Link href={`/${locale}/hotels/${h.slug}`} className="block">
             <div className="relative md:h-[calc(var(--row)*1.2)] bg-zinc-100">
               <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
@@ -102,7 +102,7 @@ export default function HomeGrid({ locale }: Props) {
 
       {/* SECOND DESTINATION ROW (optional) */}
       {topDest.slice(3,6).map((d) => (
-        <Tile key={d.slug} style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
+        <Tile key={d.slug} className="md:col-span-4" style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
           <Link href={`/${locale}/hotels?city=${encodeURIComponent(d.city)}`} className="block">
             <div className="aspect-[4/3] md:aspect-auto md:h-[calc(var(--row)*2-1rem)] bg-zinc-100 flex items-end p-3">
               <div className="text-sm font-medium">{d.city}</div>
