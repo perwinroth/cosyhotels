@@ -62,6 +62,8 @@ export default async function LocaleLayout({
               <Link href={`/${locale}/cosy-score`} className="hover:underline">Cosy score</Link>
               <Link href={`/${locale}/disclosure`} className="hover:underline">Affiliate disclosure</Link>
               <Link href={`/${locale}/privacy`} className="hover:underline">Privacy</Link>
+              <Link href={`/${locale}/about`} className="hover:underline">About</Link>
+              <Link href={`/${locale}/contact`} className="hover:underline">Contact</Link>
             </nav>
             <div>© {new Date().getFullYear()} {site.name}</div>
           </div>
