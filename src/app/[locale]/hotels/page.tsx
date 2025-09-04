@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { hotels as baseHotels } from "@/data/hotels";
-import Filters from "@/components/Filters";
+import FiltersBar from "@/components/FiltersBar";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import type { Metadata } from "next";
 import { locales } from "@/i18n/locales";
@@ -30,8 +30,10 @@ export default function HotelsPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">Explore hotels</h1>
-      <div className="mt-6 grid md:grid-cols-[16rem_1fr] gap-6">
-        <Filters />
+      <div className="mt-4">
+        <FiltersBar />
+      </div>
+      <div className="mt-6">
         <Results searchParams={searchParams} locale={params.locale} />
       </div>
     </div>
@@ -105,33 +107,21 @@ async function Results({
         <Link
           key={h.slug}
           href={`/${locale}/hotels/${h.slug}`}
-          className="block overflow-hidden rounded-xl border border-zinc-200 hover:shadow-sm"
+          className="block overflow-hidden rounded-2xl border border-zinc-200 hover:shadow-md bg-white"
           aria-label={`${h.name}, cosy score ${h._cosy.toFixed(1)} out of 10`}
           data-cosy={h._cosy.toFixed(1)}
         >
           <div className="relative aspect-[4/3] bg-zinc-100">
             <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+            <div className="absolute left-2 top-2 flex gap-2">
+              <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>Cosy {h._cosy.toFixed(1)}</span>
+            </div>
+            <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5">★ {h.rating.toFixed(1)}</div>
           </div>
           <div className="p-3">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="font-medium line-clamp-1">{h.name}</h3>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`} title="Cosy score">
-                  Cosy {h._cosy.toFixed(1)}
-                </span>
-                <span className="text-xs rounded bg-zinc-100 text-zinc-700 px-2 py-0.5" title="Guest rating">
-                  {h.rating.toFixed(1)}
-                </span>
-              </div>
-            </div>
+            <h3 className="font-medium line-clamp-1">{h.name}</h3>
             <div className="text-sm text-zinc-600">{h.city}</div>
-            <div className="mt-2 text-sm text-zinc-700">From ${h.price}/night</div>
-            <div className="mt-2 h-1.5 rounded bg-zinc-100">
-              <div className="h-1.5 rounded bg-emerald-500" style={{ width: `${Math.min(100, (h._cosy/10)*100)}%` }} aria-hidden />
-            </div>
-            <div className="mt-1 text-[11px] text-zinc-500">
-              <a className="hover:underline" href={`/${locale}/cosy-score`} onClick={(e) => e.stopPropagation()}>What is Cosy?</a>
-            </div>
+            <div className="mt-2 text-sm font-medium text-orange-700">From ${h.price}/night</div>
           </div>
         </Link>
       ))}
