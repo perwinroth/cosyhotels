@@ -7,6 +7,7 @@ import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import type { Metadata } from "next";
 import { locales } from "@/i18n/locales";
 import { cosyScore, cosyBadgeClass, cosyRankLabel } from "@/lib/scoring/cosy";
+import { getImageForHotel } from "@/lib/hotelImages";
 import SaveToShortlistButton from "@/components/SaveToShortlistButton";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
@@ -68,10 +69,11 @@ async function Results({
   const mergedResults = hotels
     .filter((h) => (city ? h.city.toLowerCase().includes(city.toLowerCase()) : true))
     .filter((h) => (amenities && amenities.length ? amenities.every((a) => h.amenities.includes(a)) : true));
-  const withCosy = mergedResults.map((h) => ({
+  const withCosy = await Promise.all(mergedResults.map(async (h) => ({
     ...h,
     _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
-  }));
+    _img: h.image || (await getImageForHotel(h.name, h.city, 1200)) || "/hotel-placeholder.svg",
+  })));
 
   // Optional rank filter based on cosy
   const filtered = withCosy.filter((h) => {
@@ -111,7 +113,7 @@ async function Results({
       data-cosy={h._cosy.toFixed(1)}
     >
       <div className="relative aspect-[4/3] bg-zinc-100">
-        <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
+        <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
         {h._cosy >= 6.5 ? (
           <div className="absolute -left-3 top-4 rotate-[-15deg]">
             <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">

@@ -6,7 +6,6 @@ import "../globals.css";
 import { messages } from "@/i18n/messages";
 import Analytics from "@/components/Analytics";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import Toaster from "@/components/Toaster";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -54,22 +53,7 @@ export default async function LocaleLayout({
           </div>
         </header>
         <main className="min-h-[75vh]">{children}</main>
-        <footer className="border-t brand-border">
-          <div className="mx-auto max-w-6xl px-4 py-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm text-black">
-            <div>
-              <strong className="text-black">{site.name}</strong> · {site.description}
-            </div>
-            <nav className="flex gap-4">
-              <Link href={`/${locale}/cosy-score`} className="hover:underline">Cosy score</Link>
-              <Link href={`/${locale}/disclosure`} className="hover:underline">Affiliate disclosure</Link>
-              <Link href={`/${locale}/privacy`} className="hover:underline">Privacy</Link>
-              <Link href={`/${locale}/about`} className="hover:underline">About</Link>
-              <Link href={`/${locale}/contact`} className="hover:underline">Contact</Link>
-            </nav>
-            <div>© {new Date().getFullYear()} {site.name}</div>
-          </div>
-        </footer>
-        <Toaster />
+        {/* Footer is rendered globally in root layout to avoid duplicates */}
         <Analytics />
       </body>
     </html>

@@ -3,6 +3,7 @@ import { FeaturedHotels, PopularDestinations, SearchBar } from "@/components/Hom
 import Image from "next/image";
 import Link from "next/link";
 import { shimmer } from "@/lib/image";
+import { getImageForHotel } from "@/lib/hotelImages";
 import { hotels as baseHotels } from "@/data/hotels";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import { cosyBadgeClass, cosyRankLabel, cosyScore } from "@/lib/scoring/cosy";
@@ -58,7 +59,11 @@ export default function RootHome() {
 async function TopCosy({ locale }: { locale: string }) {
   const overrides = await fetchOverrides();
   const hotels = applyOverrides(baseHotels, overrides);
-  const withCosy = hotels.map((h) => ({ ...h, _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }) }));
+  const withCosy = await Promise.all(hotels.map(async (h) => ({
+    ...h,
+    _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
+    _img: h.image || (await getImageForHotel(h.name, h.city, 1200)) || "/hotel-placeholder.svg",
+  })));
   withCosy.sort((a, b) => b._cosy - a._cosy);
   const top = withCosy.slice(0, 12);
   return (
@@ -71,7 +76,7 @@ async function TopCosy({ locale }: { locale: string }) {
           aria-label={`${h.name}, cosy score ${h._cosy.toFixed(1)} out of 10`}
         >
           <div className="relative aspect-[4/3] bg-zinc-100">
-            <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
+            <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
             {h._cosy >= 6.5 ? (
               <div className="absolute -left-3 top-4 rotate-[-15deg]">
                 <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">

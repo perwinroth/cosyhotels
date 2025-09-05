@@ -2,6 +2,7 @@ import { hotels } from "@/data/hotels";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
+import { getImageForHotel } from "@/lib/hotelImages";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { fetchOverrideFor, applyOverride } from "@/lib/overrides";
@@ -53,7 +54,7 @@ export default async function HotelDetail({ params }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
-        <Image src="/hotel-placeholder.svg" alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
+        <Image src={(await getImageForHotel(hotel.name, hotel.city, 1200)) || "/hotel-placeholder.svg"} alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{hotel.name}</h1>
       <div className="mt-1 text-zinc-600">
