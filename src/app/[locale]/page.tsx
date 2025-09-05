@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { FeaturedHotels, PopularDestinations, SearchBar } from "@/components/HomeSections";
-import Filters from "@/components/Filters";
-import HomeGrid from "@/components/HomeGrid";
+import FiltersBar from "@/components/FiltersBar";
 import { site } from "@/config/site";
 import { messages } from "@/i18n/messages";
 import type { Metadata } from "next";
@@ -39,8 +38,23 @@ export default function Home({ params }: { params: { locale: string } }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
-        <HomeGrid locale={locale} />
+      <section className="mx-auto max-w-6xl px-4 py-8">
+        <h2 className="text-xl font-semibold">Refine your search</h2>
+        <div className="mt-3">
+          <Suspense fallback={<div className="text-sm text-zinc-500">Loading filters…</div>}>
+            <FiltersBar />
+          </Suspense>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-6">
+        <h2 className="text-xl font-semibold">Popular destinations</h2>
+        <PopularDestinations className="mt-4" locale={locale} />
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-14">
+        <h2 className="text-xl font-semibold">Featured stays</h2>
+        <FeaturedHotels className="mt-4" locale={locale} />
       </section>
     </div>
   );
