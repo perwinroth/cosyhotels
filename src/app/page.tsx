@@ -40,7 +40,6 @@ export default function RootHome() {
       <section className="mx-auto max-w-6xl px-4 pb-10">
         <h2 className="text-xl font-semibold">Top cosy stays worldwide</h2>
         <Suspense fallback={<div className="mt-4 text-sm text-black/60">Loading top stays…</div>}>
-          {/* @ts-expect-error Async Server Component */}
           <TopCosy locale={locale} />
         </Suspense>
       </section>
