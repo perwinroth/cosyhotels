@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { hotels, destinations, Hotel } from "@/data/hotels";
+import { cosyScore } from "@/lib/scoring/cosy";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -80,21 +81,34 @@ export function FeaturedHotels({ className = "", locale = "en" }: { className?: 
 }
 
 export function HotelCard({ hotel, locale = "en" }: { hotel: Hotel; locale?: string }) {
+  const cosy = cosyScore({ rating: hotel.rating, amenities: hotel.amenities, description: hotel.description });
   return (
     <Link
       href={`/${locale}/hotels/${hotel.slug}`}
-      className="block overflow-hidden rounded-xl border border-zinc-200 hover:shadow-sm transition-shadow"
+      className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md transition-shadow bg-white"
     >
       <div className="relative aspect-[4/3] bg-zinc-100">
-        <Image src="/hotel-placeholder.svg" alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+        <Image src={hotel.image || "/seal.svg"} alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+        {cosy >= 7 ? (
+          <div className="absolute -left-3 top-4 rotate-[-15deg]">
+            <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
+              <Image src="/seal.svg" alt="seal" width={14} height={14} />
+              <span>Seal of approval</span>
+            </div>
+          </div>
+        ) : null}
       </div>
       <div className="p-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium">{hotel.name}</h3>
-          <span className="text-xs rounded bg-emerald-100 text-emerald-700 px-2 py-0.5">{hotel.rating.toFixed(1)}</span>
+          <h3 className="font-medium line-clamp-1">{hotel.name}</h3>
+          <span className="text-xs rounded bg-black/80 text-white px-2 py-0.5">★ {hotel.rating.toFixed(1)}</span>
         </div>
-        <div className="text-sm text-zinc-600">{hotel.city}</div>
-        <div className="mt-2 text-sm text-zinc-700">From ${hotel.price}/night</div>
+        <div className="text-sm text-black">{hotel.city}</div>
+        <div className="mt-2 text-sm font-medium brand-price">From ${hotel.price}/night</div>
+        <div className="mt-4" />
+        <div className="mt-2 flex justify-end">
+          <button type="button" className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50">Save to shortlist</button>
+        </div>
       </div>
     </Link>
   );
