@@ -52,9 +52,7 @@ async function Results({
   const overrides = await fetchOverrides();
   const hotels = applyOverrides(baseHotels, overrides);
   const city = typeof params.city === "string" ? params.city : undefined;
-  const rank = typeof params.rank === "string" ? params.rank : ""; // high|mid|low
-  const thresholds: Record<string, number | undefined> = { high: 9.2, mid: 8.8, low: undefined };
-  const minRating = thresholds[rank] ?? (typeof params.minRating === "string" ? Number(params.minRating) : undefined);
+  const rank = typeof params.rank === "string" ? params.rank : ""; // high|mid|low (by cosy)
   const amenities = Array.isArray(params.amenity)
     ? (params.amenity as string[])
     : typeof params.amenity === "string"
@@ -69,44 +67,51 @@ async function Results({
   // Compute results from merged list
   const mergedResults = hotels
     .filter((h) => (city ? h.city.toLowerCase().includes(city.toLowerCase()) : true))
-    .filter((h) => (minRating ? h.rating >= minRating : true))
     .filter((h) => (amenities && amenities.length ? amenities.every((a) => h.amenities.includes(a)) : true));
   const withCosy = mergedResults.map((h) => ({
     ...h,
     _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
   }));
 
+  // Optional rank filter based on cosy
+  const filtered = withCosy.filter((h) => {
+    if (rank === "high") return h._cosy >= 7.5;
+    if (rank === "mid") return h._cosy >= 6.5 && h._cosy < 7.5;
+    if (rank === "low") return h._cosy < 6.5;
+    return true;
+  });
+
   // badge colors provided by cosyBadgeClass
 
   switch (sort) {
     case "rating-desc":
-      withCosy.sort((a, b) => b.rating - a.rating);
+      filtered.sort((a, b) => b.rating - a.rating);
       break;
     case "price-asc":
-      withCosy.sort((a, b) => a.price - b.price);
+      filtered.sort((a, b) => a.price - b.price);
       break;
     case "price-desc":
-      withCosy.sort((a, b) => b.price - a.price);
+      filtered.sort((a, b) => b.price - a.price);
       break;
     case "cosy-asc":
-      withCosy.sort((a, b) => a._cosy - b._cosy);
+      filtered.sort((a, b) => a._cosy - b._cosy);
       break;
     case "cosy-desc":
     default:
-      withCosy.sort((a, b) => b._cosy - a._cosy);
+      filtered.sort((a, b) => b._cosy - a._cosy);
       break;
   }
 
   return (
     <div className="grid md:grid-cols-3 gap-4 auto-rows-fr">
-      <div className="col-span-full text-sm text-black">
-        {withCosy.length} result{withCosy.length === 1 ? "" : "s"}
+      <div className="col-span-full text-sm text-black" aria-live="polite">
+        {filtered.length} result{filtered.length === 1 ? "" : "s"}
         {city ? ` in ${city}` : ""}
       </div>
-      {withCosy.length === 0 && (
+      {filtered.length === 0 && (
         <div className="col-span-full text-zinc-600">No hotels found. Try broadening your filters.</div>
       )}
-      {withCosy.map((h) => (
+      {filtered.map((h) => (
         <Link
           key={h.slug}
           href={`/${locale}/hotels/${h.slug}`}
@@ -115,7 +120,7 @@ async function Results({
           data-cosy={h._cosy.toFixed(1)}
         >
           <div className="relative aspect-[4/3] bg-zinc-100">
-            <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+            <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
             {h._cosy >= 6.5 ? (
               <div className="absolute -left-3 top-4 rotate-[-15deg]">
                 <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">

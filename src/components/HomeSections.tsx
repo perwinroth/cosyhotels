@@ -89,7 +89,7 @@ export function HotelCard({ hotel, locale = "en" }: { hotel: Hotel; locale?: str
       className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md transition-shadow bg-white h-full"
     >
       <div className="relative aspect-[4/3] bg-zinc-100">
-        <Image src={hotel.image || "/seal.svg"} alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+        <Image src={hotel.image || "/seal.svg"} alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
         {cosy >= 6.5 ? (
           <div className="absolute -left-3 top-4 rotate-[-15deg]">
             <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">

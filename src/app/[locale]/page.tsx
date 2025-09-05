@@ -55,9 +55,7 @@ export default function Home({ params }: { params: { locale: string } }) {
 
       <section className="mx-auto max-w-6xl px-4 pb-10">
         <h2 className="text-xl font-semibold">Top cosy stays worldwide</h2>
-        <Suspense fallback={<div className="mt-4 text-sm text-zinc-600">Loading top stays…</div>}>
-          <TopCosy locale={locale} />
-        </Suspense>
+        <TopCosy locale={locale} />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-6">
@@ -89,7 +87,7 @@ async function TopCosy({ locale }: { locale: string }) {
           aria-label={`${h.name}, cosy score ${h._cosy.toFixed(1)} out of 10`}
         >
           <div className="relative aspect-[4/3] bg-zinc-100">
-            <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+            <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
             {h._cosy >= 6.5 ? (
               <div className="absolute -left-3 top-4 rotate-[-15deg]">
                 <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
