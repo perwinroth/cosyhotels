@@ -16,7 +16,7 @@ export default function FiltersBar() {
   const values = useMemo(() => {
     return {
       city: searchParams.get("city") || "",
-      minRating: searchParams.get("minRating") || "",
+      rank: searchParams.get("rank") || "",
       sort: searchParams.get("sort") || "cosy-desc",
       amenities: searchParams.getAll("amenity"),
     };
@@ -25,7 +25,7 @@ export default function FiltersBar() {
   function update(next: Partial<typeof values>) {
     const sp = new URLSearchParams(searchParams.toString());
     if ("city" in next) setParam(sp, "city", next.city);
-    if ("minRating" in next) setParam(sp, "minRating", next.minRating);
+    if ("rank" in next) setParam(sp, "rank", next.rank);
     if ("sort" in next) setParam(sp, "sort", next.sort);
     if ("amenities" in next) {
       sp.delete("amenity");
@@ -65,13 +65,13 @@ export default function FiltersBar() {
         </div>
         <select
           className="w-full border border-zinc-300 rounded-lg px-3 py-2"
-          value={values.minRating}
-          onChange={(e) => update({ minRating: e.target.value })}
+          value={values.rank}
+          onChange={(e) => update({ rank: e.target.value })}
         >
-          <option value="">Min rating</option>
-          <option value="8.5">8.5+</option>
-          <option value="9.0">9.0+</option>
-          <option value="9.5">9.5+</option>
+          <option value="">Any rank</option>
+          <option value="high">High</option>
+          <option value="mid">Mid</option>
+          <option value="low">Low</option>
         </select>
         <select
           className="w-full border border-zinc-300 rounded-lg px-3 py-2"

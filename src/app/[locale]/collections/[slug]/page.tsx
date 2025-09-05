@@ -48,7 +48,7 @@ export default function CollectionPage({ params }: Props) {
       ) : (
         <div className="mt-6 grid md:grid-cols-3 gap-4">
           {results.map((h) => (
-            <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border border-zinc-200 overflow-hidden hover:shadow-md bg-white">
+            <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border brand-border overflow-hidden hover:shadow-md bg-white">
               <div className="relative aspect-[4/3] bg-zinc-100">
                 <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" />
                 <div className="absolute left-2 top-2"><span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>Cosy {h._cosy.toFixed(1)}</span></div>
@@ -57,6 +57,10 @@ export default function CollectionPage({ params }: Props) {
               <div className="p-3">
                 <h3 className="font-medium line-clamp-1">{h.name}</h3>
                 <div className="text-sm text-zinc-600">{h.city}</div>
+                <div className="mt-4" />
+                <div className="mt-2 flex justify-end">
+                  <button type="button" className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50">Save to shortlist</button>
+                </div>
               </div>
             </Link>
           ))}

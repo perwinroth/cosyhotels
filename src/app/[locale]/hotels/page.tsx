@@ -51,7 +51,9 @@ async function Results({
   const overrides = await fetchOverrides();
   const hotels = applyOverrides(baseHotels, overrides);
   const city = typeof params.city === "string" ? params.city : undefined;
-  const minRating = typeof params.minRating === "string" ? Number(params.minRating) : undefined;
+  const rank = typeof params.rank === "string" ? params.rank : ""; // high|mid|low
+  const thresholds: Record<string, number | undefined> = { high: 9.2, mid: 8.8, low: undefined };
+  const minRating = thresholds[rank] ?? (typeof params.minRating === "string" ? Number(params.minRating) : undefined);
   const amenities = Array.isArray(params.amenity)
     ? (params.amenity as string[])
     : typeof params.amenity === "string"
@@ -107,7 +109,7 @@ async function Results({
         <Link
           key={h.slug}
           href={`/${locale}/hotels/${h.slug}`}
-          className="block overflow-hidden rounded-2xl border border-zinc-200 hover:shadow-md bg-white"
+          className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white"
           aria-label={`${h.name}, cosy score ${h._cosy.toFixed(1)} out of 10`}
           data-cosy={h._cosy.toFixed(1)}
         >
@@ -122,6 +124,10 @@ async function Results({
             <h3 className="font-medium line-clamp-1">{h.name}</h3>
             <div className="text-sm text-black">{h.city}</div>
             <div className="mt-2 text-sm font-medium brand-price">From ${h.price}/night</div>
+            <div className="mt-4" />
+            <div className="mt-2 flex justify-end">
+              <button type="button" className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50">Save to shortlist</button>
+            </div>
           </div>
         </Link>
       ))}

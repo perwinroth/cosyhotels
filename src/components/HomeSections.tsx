@@ -8,15 +8,17 @@ import { useRouter } from "next/navigation";
 
 export function SearchBar({ locale = "en" }: { locale?: string }) {
   const [city, setCity] = useState("");
-  const [minRating, setMinRating] = useState("");
+  const [rank, setRank] = useState(""); // high|mid|low
   const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         const params = new URLSearchParams();
         if (city) params.set("city", city);
-        if (minRating) params.set("minRating", minRating);
+        if (rank) params.set("rank", rank);
+        setSubmitting(true);
         router.push(`/${locale}/hotels?${params.toString()}`);
       }}
       className="grid md:grid-cols-[1fr_200px_auto] gap-3"
@@ -29,15 +31,21 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
       />
       <select
         className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-400"
-        value={minRating}
-        onChange={(e) => setMinRating(e.target.value)}
+        value={rank}
+        onChange={(e) => setRank(e.target.value)}
+        aria-label="Quality rank"
       >
-        <option value="">Any rating</option>
-        <option value="8.5">8.5+</option>
-        <option value="9.0">9.0+</option>
-        <option value="9.5">9.5+</option>
+        <option value="">Any rank</option>
+        <option value="high">High</option>
+        <option value="mid">Mid</option>
+        <option value="low">Low</option>
       </select>
-      <button className="rounded-lg bg-zinc-900 text-white px-4 py-2 hover:bg-zinc-800">Search</button>
+      <button
+        className="rounded-lg bg-black text-white px-4 py-2 hover:bg-black/90 active:translate-y-[1px] active:bg-black/80 disabled:opacity-60 disabled:cursor-not-allowed"
+        disabled={submitting}
+      >
+        {submitting ? "Searching…" : "Search"}
+      </button>
     </form>
   );
 }
