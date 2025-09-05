@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { getCollection } from "@/data/collections";
 import { hotels } from "@/data/hotels";
+import { cosyScore, cosyBadgeClass } from "@/lib/scoring/cosy";
 import { locales } from "@/i18n/locales";
 
 type Props = { params: { slug: string; locale: string } };
@@ -24,30 +25,43 @@ export function generateMetadata({ params }: Props): Metadata {
   };
 }
 
+type WithCosy<T> = T & { _cosy: number };
+
 export default function CollectionPage({ params }: Props) {
   const c = getCollection(params.slug);
   if (!c) return <div className="mx-auto max-w-6xl px-4 py-8">Collection not found.</div>;
-  const results = hotels.filter(c.filter);
+  const base = hotels.filter(c.filter);
+  const results: WithCosy<typeof hotels[number]>[] = base.map((h) => ({
+    ...h,
+    _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
+  }));
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{c.title}</h1>
       <p className="mt-2 text-zinc-600 max-w-2xl">{c.description}</p>
-      <div className="mt-6 grid md:grid-cols-3 gap-4">
-        {results.map((h) => (
-          <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-xl border border-zinc-200 overflow-hidden hover:shadow-sm">
-            <div className="relative aspect-[4/3] bg-zinc-100">
-              <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" />
-            </div>
-            <div className="p-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">{h.name}</h3>
-                <span className="text-xs rounded bg-emerald-100 text-emerald-700 px-2 py-0.5">{h.rating.toFixed(1)}</span>
+      {results.length === 0 ? (
+        <div className="mt-6 rounded-xl border border-zinc-200 p-4 bg-white">
+          <div className="font-medium">We’re curating this collection.</div>
+          <p className="text-sm text-zinc-600 mt-1">No hotels match yet. Explore all hotels or check back soon.</p>
+          <div className="mt-3"><Link className="underline" href={`/${params.locale}/hotels`}>Browse all hotels</Link></div>
+        </div>
+      ) : (
+        <div className="mt-6 grid md:grid-cols-3 gap-4">
+          {results.map((h) => (
+            <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border border-zinc-200 overflow-hidden hover:shadow-md bg-white">
+              <div className="relative aspect-[4/3] bg-zinc-100">
+                <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" />
+                <div className="absolute left-2 top-2"><span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>Cosy {h._cosy.toFixed(1)}</span></div>
+                <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5">★ {h.rating.toFixed(1)}</div>
               </div>
-              <div className="text-sm text-zinc-600">{h.city}</div>
-            </div>
-          </Link>
-        ))}
-      </div>
+              <div className="p-3">
+                <h3 className="font-medium line-clamp-1">{h.name}</h3>
+                <div className="text-sm text-zinc-600">{h.city}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
