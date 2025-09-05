@@ -38,11 +38,11 @@ export default function CollectionPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{c.title}</h1>
-      <p className="mt-2 text-zinc-600 max-w-2xl">{c.description}</p>
+      <p className="mt-2 text-black max-w-2xl">{c.description}</p>
       {results.length === 0 ? (
-        <div className="mt-6 rounded-xl border border-zinc-200 p-4 bg-white">
+        <div className="mt-6 rounded-xl border brand-border p-4 bg-white">
           <div className="font-medium">We’re curating this collection.</div>
-          <p className="text-sm text-zinc-600 mt-1">No hotels match yet. Explore all hotels or check back soon.</p>
+          <p className="text-sm text-black mt-1">No hotels match yet. Explore all hotels or check back soon.</p>
           <div className="mt-3"><Link className="underline" href={`/${params.locale}/hotels`}>Browse all hotels</Link></div>
         </div>
       ) : (

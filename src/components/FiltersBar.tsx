@@ -94,7 +94,7 @@ export default function FiltersBar() {
                   if (active) next.delete(a); else next.add(a);
                   update({ amenities: Array.from(next) });
                 }}
-                className={`px-3 py-2 text-sm rounded-full border ${active ? 'border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-zinc-300 text-zinc-700 bg-white'}`}
+                className={`px-3 py-2 text-sm rounded-full border ${active ? 'border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-zinc-300 text-black bg-white'}`}
                 type="button"
               >
                 {a}
@@ -106,4 +106,3 @@ export default function FiltersBar() {
     </div>
   );
 }
-

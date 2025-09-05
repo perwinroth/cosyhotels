@@ -28,11 +28,11 @@ export default function Home({ params }: { params: { locale: string } }) {
       <section className="bg-zinc-50 border-b border-zinc-200">
         <div className="mx-auto max-w-6xl px-4 py-16">
           <h1 className="text-3xl md:text-5xl font-semibold tracking-tight">{m.brand.tagline}</h1>
-          <p className="mt-3 text-zinc-600 max-w-2xl">{m.brand.description}</p>
+          <p className="mt-3 text-black max-w-2xl">{m.brand.description}</p>
           <div className="mt-6">
             <SearchBar locale={locale} />
           </div>
-          <div className="mt-4 text-sm text-zinc-600">
+          <div className="mt-4 text-sm text-black">
             <Link href={`/${locale}/hotels`} className="underline">{m.home.browseAll}</Link>
           </div>
         </div>

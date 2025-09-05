@@ -96,7 +96,7 @@ async function Results({
 
   return (
     <div className="grid md:grid-cols-3 gap-4">
-      <div className="col-span-full text-sm text-zinc-600">
+      <div className="col-span-full text-sm text-black">
         {withCosy.length} result{withCosy.length === 1 ? "" : "s"}
         {city ? ` in ${city}` : ""}
       </div>
@@ -120,8 +120,8 @@ async function Results({
           </div>
           <div className="p-3">
             <h3 className="font-medium line-clamp-1">{h.name}</h3>
-            <div className="text-sm text-zinc-600">{h.city}</div>
-            <div className="mt-2 text-sm font-medium text-orange-700">From ${h.price}/night</div>
+            <div className="text-sm text-black">{h.city}</div>
+            <div className="mt-2 text-sm font-medium brand-price">From ${h.price}/night</div>
           </div>
         </Link>
       ))}

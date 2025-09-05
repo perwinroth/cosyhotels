@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ffffff; /* white */
+  --foreground: #000000; /* black */
 }
 
 @theme inline {
@@ -12,15 +12,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Disable dark inversion; always use brand light theme */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+a { color: inherit; text-decoration-color: currentColor; }
+a:hover { text-decoration: underline; }
+
+/* Brand helpers */
+.brand-price { color: #b45309; /* orange-700 */ }
+.brand-border { border-color: #e5e5e5; }

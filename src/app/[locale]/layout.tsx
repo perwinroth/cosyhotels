@@ -53,10 +53,10 @@ export default async function LocaleLayout({
           </div>
         </header>
         <main className="min-h-[75vh]">{children}</main>
-        <footer className="border-t border-zinc-200">
-          <div className="mx-auto max-w-6xl px-4 py-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm text-zinc-500">
+        <footer className="border-t brand-border">
+          <div className="mx-auto max-w-6xl px-4 py-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm text-black">
             <div>
-              <strong className="text-zinc-800">{site.name}</strong> · {site.description}
+              <strong className="text-black">{site.name}</strong> · {site.description}
             </div>
             <nav className="flex gap-4">
               <Link href={`/${locale}/cosy-score`} className="hover:underline">Cosy score</Link>
