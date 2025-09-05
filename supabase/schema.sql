@@ -1,4 +1,5 @@
--- Run this SQL in your Supabase project's SQL editor
+-- Enable UUID generation helpers (needed for gen_random_uuid())
+create extension if not exists pgcrypto;
 
 -- Affiliate overrides for hotel data coming from partner feeds
 create table if not exists public.affiliate_overrides (
@@ -34,3 +35,13 @@ alter table public.affiliate_overrides enable row level security;
 alter table public.affiliate_clicks enable row level security;
 -- Service key bypasses RLS. For anon, create explicit policies if needed.
 
+-- Public shortlists (no auth). Always public for SEO.
+create table if not exists public.shortlists (
+  slug text primary key,
+  title text,
+  items jsonb default '[]'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_shortlists_updated on public.shortlists (updated_at desc);
+alter table public.shortlists enable row level security;

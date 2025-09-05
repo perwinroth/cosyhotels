@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { getCollection } from "@/data/collections";
 import { hotels } from "@/data/hotels";
-import { cosyScore, cosyBadgeClass } from "@/lib/scoring/cosy";
+import { cosyScore, cosyBadgeClass, cosyRankLabel } from "@/lib/scoring/cosy";
 import { locales } from "@/i18n/locales";
 
 type Props = { params: { slug: string; locale: string } };
@@ -51,15 +51,14 @@ export default function CollectionPage({ params }: Props) {
             <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border brand-border overflow-hidden hover:shadow-md bg-white">
               <div className="relative aspect-[4/3] bg-zinc-100">
                 <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" />
-                {h._cosy >= 7 ? (
+                {h._cosy >= 6.5 ? (
                   <div className="absolute -left-3 top-4 rotate-[-15deg]">
                     <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
-                      <Image src="/seal.svg" alt="seal" width={14} height={14} />
                       <span>Seal of approval</span>
                     </div>
                   </div>
                 ) : null}
-                <div className="absolute left-2 top-2"><span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>Cosy {h._cosy.toFixed(1)}</span></div>
+                <div className="absolute left-2 top-2"><span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>Cosy {h._cosy.toFixed(1)} · {cosyRankLabel(h._cosy)}</span></div>
                 <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5">★ {h.rating.toFixed(1)}</div>
               </div>
               <div className="p-3">
