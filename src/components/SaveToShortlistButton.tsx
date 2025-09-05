@@ -26,8 +26,15 @@ export default function SaveToShortlistButton({ itemSlug, className = "" }: { it
       } else {
         const res = await fetch(`/api/shortlists/${s}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ add: itemSlug }) });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to update shortlist");
+        if (!res.ok) console.warn(data.error || "Failed to update shortlist (will use local fallback)");
       }
+      // Maintain a local fallback list for this shortlist slug
+      try {
+        const key = `shortlistItems:${s}`;
+        const arr = JSON.parse(window.localStorage.getItem(key) || '[]');
+        const next = Array.isArray(arr) ? Array.from(new Set([...arr, itemSlug])) : [itemSlug];
+        window.localStorage.setItem(key, JSON.stringify(next));
+      } catch {}
       router.push(`/shortlists/${s}`);
     } catch (e) {
       console.error(e);
@@ -43,4 +50,3 @@ export default function SaveToShortlistButton({ itemSlug, className = "" }: { it
     </button>
   );
 }
-

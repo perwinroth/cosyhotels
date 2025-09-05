@@ -31,7 +31,7 @@ export default function HotelsPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">Explore hotels</h1>
-      <div className="mt-4">
+      <div className="mt-4 sticky top-16 z-20">
         <FiltersBar />
       </div>
       <div className="mt-6">
@@ -102,6 +102,52 @@ async function Results({
       break;
   }
 
+  const renderCard = (h: typeof filtered[number]) => (
+    <Link
+      key={h.slug}
+      href={`/${locale}/hotels/${h.slug}`}
+      className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full"
+      aria-label={`${h.name}, cosy score ${h._cosy.toFixed(1)} out of 10`}
+      data-cosy={h._cosy.toFixed(1)}
+    >
+      <div className="relative aspect-[4/3] bg-zinc-100">
+        <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
+        {h._cosy >= 6.5 ? (
+          <div className="absolute -left-3 top-4 rotate-[-15deg]">
+            <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
+              <Image src="/seal.svg" alt="seal" width={14} height={14} />
+              <span>Seal of approval</span>
+            </div>
+          </div>
+        ) : null}
+        <div className="absolute left-2 top-2 flex gap-2">
+          <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>
+            Cosy {h._cosy.toFixed(1)} · {cosyRankLabel(h._cosy)}
+          </span>
+        </div>
+        <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5">★ {h.rating.toFixed(1)}</div>
+      </div>
+      <div className="p-3 flex flex-col h-[188px]">
+        <div>
+          <h3 className="font-medium line-clamp-1">{h.name}</h3>
+          <div className="text-sm text-black">{h.city}</div>
+          <div className="mt-3 text-sm font-medium brand-price">From ${h.price}/night</div>
+        </div>
+        <div className="mt-auto pt-4 flex justify-end">
+          <SaveToShortlistButton itemSlug={h.slug} className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50" />
+        </div>
+      </div>
+    </Link>
+  );
+
+  const groups = sort === "cosy-desc"
+    ? {
+        high: filtered.filter((h) => h._cosy >= 7.5),
+        mid: filtered.filter((h) => h._cosy >= 6.5 && h._cosy < 7.5),
+        low: filtered.filter((h) => h._cosy < 6.5),
+      }
+    : null;
+
   return (
     <div className="grid md:grid-cols-3 gap-4 auto-rows-fr">
       <div className="col-span-full text-sm text-black" aria-live="polite">
@@ -111,43 +157,31 @@ async function Results({
       {filtered.length === 0 && (
         <div className="col-span-full text-zinc-600">No hotels found. Try broadening your filters.</div>
       )}
-      {filtered.map((h) => (
-        <Link
-          key={h.slug}
-          href={`/${locale}/hotels/${h.slug}`}
-          className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full"
-          aria-label={`${h.name}, cosy score ${h._cosy.toFixed(1)} out of 10`}
-          data-cosy={h._cosy.toFixed(1)}
-        >
-          <div className="relative aspect-[4/3] bg-zinc-100">
-            <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
-            {h._cosy >= 6.5 ? (
-              <div className="absolute -left-3 top-4 rotate-[-15deg]">
-                <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
-                  <Image src="/seal.svg" alt="seal" width={14} height={14} />
-                  <span>Seal of approval</span>
-                </div>
-              </div>
-            ) : null}
-            <div className="absolute left-2 top-2 flex gap-2">
-              <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>
-                Cosy {h._cosy.toFixed(1)} · {cosyRankLabel(h._cosy)}
-              </span>
-            </div>
-            <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5">★ {h.rating.toFixed(1)}</div>
-          </div>
-          <div className="p-3 flex flex-col h-[188px]">
-            <div>
-              <h3 className="font-medium line-clamp-1">{h.name}</h3>
-              <div className="text-sm text-black">{h.city}</div>
-              <div className="mt-3 text-sm font-medium brand-price">From ${h.price}/night</div>
-            </div>
-            <div className="mt-auto pt-4 flex justify-end">
-              <SaveToShortlistButton itemSlug={h.slug} className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50" />
-            </div>
-          </div>
-        </Link>
-      ))}
+
+      {groups ? (
+        <>
+          {groups.high.length > 0 && (
+            <>
+              <div className="col-span-full sticky top-16 z-10 bg-white/90 backdrop-blur px-1 py-1 text-sm font-medium">High cosy</div>
+              {groups.high.map(renderCard)}
+            </>
+          )}
+          {groups.mid.length > 0 && (
+            <>
+              <div className="col-span-full sticky top-16 z-10 bg-white/90 backdrop-blur px-1 py-1 text-sm font-medium">Mid cosy</div>
+              {groups.mid.map(renderCard)}
+            </>
+          )}
+          {groups.low.length > 0 && (
+            <>
+              <div className="col-span-full sticky top-16 z-10 bg-white/90 backdrop-blur px-1 py-1 text-sm font-medium">Low cosy</div>
+              {groups.low.map(renderCard)}
+            </>
+          )}
+        </>
+      ) : (
+        filtered.map(renderCard)
+      )}
     </div>
   );
 }

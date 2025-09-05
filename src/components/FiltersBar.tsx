@@ -47,7 +47,7 @@ export default function FiltersBar() {
   ];
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-3 md:p-4">
+    <div className="rounded-xl border border-zinc-200 bg-white p-3 md:p-4 shadow-sm">
       <div className="grid md:grid-cols-[1fr_140px_200px_auto] gap-2 md:gap-3">
         <div>
           <input
@@ -83,18 +83,19 @@ export default function FiltersBar() {
           <option value="price-asc">Price (low → high)</option>
           <option value="price-desc">Price (high → low)</option>
         </select>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 overflow-x-auto py-1 -mx-1 px-1">
           {amenityOptions.map((a) => {
             const active = values.amenities.includes(a);
             return (
               <button
                 key={a}
+                aria-pressed={active}
                 onClick={() => {
                   const next = new Set(values.amenities);
                   if (active) next.delete(a); else next.add(a);
                   update({ amenities: Array.from(next) });
                 }}
-                className={`px-3 py-2 text-sm rounded-full border ${active ? 'border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-zinc-300 text-black bg-white'}`}
+                className={`shrink-0 px-3 py-2 text-sm rounded-full border focus:outline-none focus:ring-2 focus:ring-zinc-300 ${active ? 'border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-zinc-300 text-black bg-white'}`}
                 type="button"
               >
                 {a}
