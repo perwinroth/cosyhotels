@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { Hotel } from "@/data/hotels";
 
@@ -22,8 +23,7 @@ export default function ShortlistLocalFallback({ slug, hotels }: { slug: string;
       {picked.map((h) => (
         <Link key={h.slug} href={`/en/hotels/${h.slug}`} className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full">
           <div className="relative aspect-[4/3] bg-zinc-100">
-            {/* Use plain img to avoid needing next/image configuration in client-only fallback */}
-            <img src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} className="object-cover w-full h-full" />
+            <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
           </div>
           <div className="p-3">
             <h3 className="font-medium line-clamp-1">{h.name}</h3>
@@ -34,4 +34,3 @@ export default function ShortlistLocalFallback({ slug, hotels }: { slug: string;
     </div>
   );
 }
-

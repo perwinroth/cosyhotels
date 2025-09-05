@@ -13,14 +13,15 @@ export default function Toaster() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   useEffect(() => {
     let idSeq = 1;
-    function onToast(e: Event) {
-      const detail = (e as CustomEvent).detail || {};
+    type ToastDetail = { message?: string; actionUrl?: string; actionLabel?: string; type?: "info" | "success" | "error" };
+    const onToast = (e: Event) => {
+      const detail = (e as CustomEvent<ToastDetail>).detail || {};
       const t: Toast = { id: idSeq++, message: String(detail.message || ""), actionUrl: detail.actionUrl, actionLabel: detail.actionLabel, type: detail.type || "info" };
       setToasts((prev) => [...prev, t]);
       setTimeout(() => setToasts((prev) => prev.filter((x) => x.id !== t.id)), 3500);
-    }
-    window.addEventListener("toast", onToast as any);
-    return () => window.removeEventListener("toast", onToast as any);
+    };
+    window.addEventListener("toast", onToast as EventListener);
+    return () => window.removeEventListener("toast", onToast as EventListener);
   }, []);
 
   if (!toasts.length) return null;
@@ -41,4 +42,3 @@ export default function Toaster() {
     </div>
   );
 }
-
