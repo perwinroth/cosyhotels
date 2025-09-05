@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { FeaturedHotels, PopularDestinations, SearchBar } from "@/components/HomeSections";
 import Image from "next/image";
