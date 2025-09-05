@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/components/Footer";
+import Toaster from "@/components/Toaster";
 
 export const metadata: Metadata = {
   title: "Get Cosy – Find cosy hotel rooms",
@@ -12,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="antialiased bg-white text-black">
         {children}
+        <Toaster />
         <Footer locale="en" />
       </body>
     </html>

@@ -5,6 +5,7 @@ import { hotels as baseHotels } from "@/data/hotels";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import { cosyBadgeClass, cosyRankLabel, cosyScore } from "@/lib/scoring/cosy";
 import SaveToShortlistButton from "@/components/SaveToShortlistButton";
+import ShareButton from "@/components/ShareButton";
 import EditShortlistMeta from "@/components/EditShortlistMeta";
 
 async function getShortlist(slug: string) {
@@ -26,7 +27,10 @@ export default async function ShortlistPage({ params }: { params: { slug: string
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Shortlist: {sl?.title || params.slug}</h1>
-        <EditShortlistMeta slug={params.slug} title={sl?.title} />
+        <div className="flex gap-2 items-center">
+          <ShareButton className="text-sm px-3 py-1.5 rounded border brand-border hover:bg-zinc-50" />
+          <EditShortlistMeta slug={params.slug} title={sl?.title} />
+        </div>
       </div>
       {!sl && (
         <div className="mt-4 text-sm text-zinc-600">Shortlist not found on server. Checking your device…</div>

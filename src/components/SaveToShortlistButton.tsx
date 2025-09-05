@@ -6,12 +6,19 @@ export default function SaveToShortlistButton({ itemSlug, className = "" }: { it
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [slug, setSlug] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   useEffect(() => {
     try {
       const s = window.localStorage.getItem("shortlistSlug");
       if (s) setSlug(s);
+      // Check local saved state for this item
+      const key = s ? `shortlistItems:${s}` : null;
+      if (key) {
+        const arr = JSON.parse(window.localStorage.getItem(key) || '[]');
+        if (Array.isArray(arr) && arr.includes(itemSlug)) setSaved(true);
+      }
     } catch {}
-  }, []);
+  }, [itemSlug]);
 
   async function save() {
     setBusy(true);
@@ -35,6 +42,11 @@ export default function SaveToShortlistButton({ itemSlug, className = "" }: { it
         const next = Array.isArray(arr) ? Array.from(new Set([...arr, itemSlug])) : [itemSlug];
         window.localStorage.setItem(key, JSON.stringify(next));
       } catch {}
+      // Toast + saved state
+      try {
+        window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Saved to Shortlist', actionUrl: `/shortlists/${s}`, actionLabel: 'View', type: 'success' } }));
+      } catch {}
+      setSaved(true);
       router.push(`/shortlists/${s}`);
     } catch (e) {
       console.error(e);
@@ -45,8 +57,8 @@ export default function SaveToShortlistButton({ itemSlug, className = "" }: { it
   }
 
   return (
-    <button onClick={save} disabled={busy} type="button" className={className}>
-      {busy ? "Saving…" : "Save to shortlist"}
+    <button onClick={save} disabled={busy || saved} type="button" className={className}>
+      {busy ? "Saving…" : saved ? "Saved" : "Save to shortlist"}
     </button>
   );
 }

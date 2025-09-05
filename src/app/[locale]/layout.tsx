@@ -6,6 +6,7 @@ import "../globals.css";
 import { messages } from "@/i18n/messages";
 import Analytics from "@/components/Analytics";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import Toaster from "@/components/Toaster";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -68,6 +69,7 @@ export default async function LocaleLayout({
             <div>© {new Date().getFullYear()} {site.name}</div>
           </div>
         </footer>
+        <Toaster />
         <Analytics />
       </body>
     </html>

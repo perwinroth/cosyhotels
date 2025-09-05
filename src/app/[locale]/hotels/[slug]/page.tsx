@@ -53,7 +53,7 @@ export default async function HotelDetail({ params }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
-        <Image src="/hotel-placeholder.svg" alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+        <Image src="/hotel-placeholder.svg" alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{hotel.name}</h1>
       <div className="mt-1 text-zinc-600">
