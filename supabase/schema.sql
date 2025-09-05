@@ -45,3 +45,18 @@ create table if not exists public.shortlists (
 );
 create index if not exists idx_shortlists_updated on public.shortlists (updated_at desc);
 alter table public.shortlists enable row level security;
+
+-- Cached hotel images (resolved once and reused)
+create table if not exists public.hotel_images (
+  id uuid primary key default gen_random_uuid(),
+  hotel_id text,
+  slug text,
+  url text not null,
+  width int,
+  height int,
+  attributions text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_hotel_images_slug on public.hotel_images (slug);
+create index if not exists idx_hotel_images_hid on public.hotel_images (hotel_id);
+alter table public.hotel_images enable row level security;
