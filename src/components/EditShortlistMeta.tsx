@@ -18,8 +18,9 @@ export default function EditShortlistMeta({ slug, title }: { slug: string; title
       } else {
         window.location.reload();
       }
-    } catch (e: any) {
-      alert(e?.message || "Could not save");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Could not save";
+      alert(message);
     } finally {
       setBusy(false);
     }
@@ -33,4 +34,3 @@ export default function EditShortlistMeta({ slug, title }: { slug: string; title
     </div>
   );
 }
-

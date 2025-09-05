@@ -29,8 +29,8 @@ export async function POST(req: Request) {
     const { error } = await supabase.from("shortlists").insert({ slug, title, items, created_at: now, updated_at: now });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ slug });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
