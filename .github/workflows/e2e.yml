@@ -1,0 +1,64 @@
+name: E2E + Accessibility
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "URL to test (default: local server)"
+        required: false
+        type: string
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_URL: ${{ inputs.target_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        if: ${{ !inputs.target_url }}
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
+          NEXT_PUBLIC_GA_ID: ${{ vars.NEXT_PUBLIC_GA_ID || '' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || '' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || '' }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY || '' }}
+        run: npm run build
+
+      - name: Start server (only if local)
+        if: ${{ !inputs.target_url }}
+        run: |
+          nohup npm run start -- -p 3000 > .next-start.log 2>&1 &
+          for i in {1..60}; do
+            if curl -sSf http://localhost:3000 > /dev/null; then echo "Server is up"; break; fi
+            echo "Waiting for server..."; sleep 1;
+          done
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run functional tests
+        env:
+          TARGET_URL: ${{ inputs.target_url }}
+        run: npx playwright test tests/e2e/functional.spec.ts --reporter=line
+
+      - name: Run accessibility tests (axe)
+        env:
+          TARGET_URL: ${{ inputs.target_url }}
+        run: npx playwright test tests/e2e/a11y.spec.ts --reporter=line
+

@@ -3,7 +3,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 
 const cache = new Map<string, string>();
 
-export async function getImageForHotel(name: string, city?: string, maxWidth = 1200, slug?: string, hotelId?: string): Promise<string | null> {
+export async function getImageForHotel(name: string, city?: string, maxWidth = 800, slug?: string, hotelId?: string): Promise<string | null> {
   const key = `${name}|${city || ""}|${maxWidth}`.toLowerCase();
   if (cache.has(key)) return cache.get(key)!;
   // Try Supabase cache first
