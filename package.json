@@ -7,7 +7,10 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "ship": "bash scripts/git-ship.sh"
+    "ship": "bash scripts/git-ship.sh",
+    "model:high": "bash scripts/set-model.sh gpt-5",
+    "model:fast": "bash scripts/set-model.sh o4-mini",
+    "model:balanced": "bash scripts/set-model.sh gpt-4o"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
