@@ -5,7 +5,7 @@ import { SearchBar } from "@/components/HomeSections";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import type { Metadata } from "next";
 import { locales } from "@/i18n/locales";
-import { cosyScore } from "@/lib/scoring/cosy";
+import { cosyScore, adhocCosyScore } from "@/lib/scoring/cosy";
 import { getImageForHotel } from "@/lib/hotelImages";
 import HotelTile from "@/components/HotelTile";
 import { searchText, photoUrl } from "@/lib/places";
@@ -89,11 +89,7 @@ async function Results({
     amenities: [],
     description: r.formatted_address || "",
     affiliateUrl: "",
-    _cosy: (() => {
-      const base10 = (r.rating || 4) * 2; // approx 0..10 from 0..5
-      const desc = `${r.name}. ${r.formatted_address || ""}`;
-      return Math.min(10, Math.max(0, base10 * 0.7 + (desc.toLowerCase().includes('cozy') || desc.toLowerCase().includes('cosy') ? 1.0 : 0)));
-    })(),
+    _cosy: adhocCosyScore({ rating: r.rating, summary: r.formatted_address, name: r.name }),
     _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/hotel-placeholder.svg",
   });
   if (city) {

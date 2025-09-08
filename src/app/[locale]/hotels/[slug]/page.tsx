@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { fetchOverrideFor, applyOverride } from "@/lib/overrides";
 import { locales } from "@/i18n/locales";
-import { cosyScore, amenitiesScore, keywordSentiment, scalePenalty } from "@/lib/scoring/cosy";
+import { cosyScore, amenitiesScore, keywordSentiment, scalePenalty, adhocCosyScore } from "@/lib/scoring/cosy";
 
 type Props = { params: { slug: string; locale: string } };
 
@@ -41,7 +41,7 @@ export default async function HotelDetail({ params }: Props) {
     if (!d) return notFound();
     const ref = d.photos?.[0]?.photo_reference;
     const img = ref ? photoUrl(ref, 1200) : "/hotel-placeholder.svg";
-    const cosy = cosyScore({ rating: (d.rating || 4) * 2, amenities: [], description: `${d.name}. ${d.formatted_address || ""}` });
+    const cosy = adhocCosyScore({ rating: d.rating, name: d.name, summary: d.formatted_address });
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
