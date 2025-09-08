@@ -33,12 +33,9 @@ export default function HotelsPage({
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">Explore hotels</h1>
       <div className="mt-4">
-        <SearchBar locale={params.locale} />
+        <FiltersBar prepend={<SearchBar locale={params.locale} />} />
       </div>
-      <div className="mt-3">
-        <FiltersBar />
-      </div>
-      <div className="mt-6">
+      <div className="mt-4">
         <Results searchParams={searchParams} locale={params.locale} />
       </div>
     </div>

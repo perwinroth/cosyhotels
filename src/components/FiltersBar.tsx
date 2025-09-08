@@ -8,7 +8,7 @@ function setParam(sp: URLSearchParams, key: string, value?: string) {
   else sp.set(key, value);
 }
 
-export default function FiltersBar() {
+export default function FiltersBar({ prepend }: { prepend?: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -48,7 +48,8 @@ export default function FiltersBar() {
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-3 md:p-4 shadow-sm">
-      <div className="grid md:grid-cols-[1fr_140px_200px_auto] gap-2 md:gap-3">
+      {prepend ? <div className="mb-2">{prepend}</div> : null}
+      <div className="grid md:grid-cols-[1fr_140px_200px_auto] gap-2 md:gap-3 items-start">
         <div>
           <input
             className="w-full border border-zinc-300 rounded-lg px-3 py-2"
