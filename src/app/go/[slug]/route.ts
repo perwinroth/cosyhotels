@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { hotels } from "@/data/hotels";
 import { applyOverride, fetchOverrideFor } from "@/lib/overrides";
+import { getDetails } from "@/lib/places";
 
 export async function GET(
   _req: NextRequest,
@@ -12,7 +13,17 @@ export async function GET(
     const override = await fetchOverrideFor(slug);
     const h = applyOverride(base, override);
     if (h.affiliateUrl) return NextResponse.redirect(h.affiliateUrl, 302);
+    // Fallback for curated without affiliate: try a search to official site via Google
+    const q = encodeURIComponent(`${h.name} ${h.city} official website`);
+    return NextResponse.redirect(`https://www.google.com/search?q=${q}`, 302);
   }
-  // Not found or no affiliate URL; go to homepage
+  // Not curated: treat slug as Google Place ID and try to resolve website
+  try {
+    const d = await getDetails(slug);
+    if (d?.website) return NextResponse.redirect(d.website, 302);
+    // Fallback to Google Maps place by ID
+    return NextResponse.redirect(`https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(slug)}` , 302);
+  } catch {}
+  // Last resort
   return NextResponse.redirect("/", 302);
 }

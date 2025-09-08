@@ -140,7 +140,9 @@ async function Results({
 
   const renderCard = (h: typeof filtered[number]) => {
     const detailsHref = `/${locale}/hotels/${h.slug}`;
-    const goHref = ("affiliateUrl" in h && (h as { affiliateUrl?: string }).affiliateUrl) ? `/go/${h.slug}` : undefined;
+    const hasAffiliate = ("affiliateUrl" in h && (h as { affiliateUrl?: string }).affiliateUrl);
+    const isPlace = !(typeof h.price === "number" && isFinite(h.price as number));
+    const goHref = (hasAffiliate || isPlace) ? `/go/${h.slug}` : undefined;
     return (
       <HotelTile
         key={`${h.slug}-${h._img}`}
