@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { getCollection } from "@/data/collections";
 import { hotels } from "@/data/hotels";
-import { cosyScore, cosyBadgeClass, cosyRankLabel } from "@/lib/scoring/cosy";
+import { cosyScore, cosyBadgeClass } from "@/lib/scoring/cosy";
 import { locales } from "@/i18n/locales";
 
 type Props = { params: { slug: string; locale: string } };

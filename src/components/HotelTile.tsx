@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
-import { cosyBadgeClass, cosyRankLabel } from "@/lib/scoring/cosy";
+import { cosyBadgeClass } from "@/lib/scoring/cosy";
 import SaveToShortlistButton from "@/components/SaveToShortlistButton";
 
 export type TileHotel = {

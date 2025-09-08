@@ -3,7 +3,7 @@ import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { hotels as baseHotels } from "@/data/hotels";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
-import { cosyBadgeClass, cosyRankLabel, cosyScore } from "@/lib/scoring/cosy";
+import { cosyBadgeClass, cosyScore } from "@/lib/scoring/cosy";
 import SaveToShortlistButton from "@/components/SaveToShortlistButton";
 import ShareButton from "@/components/ShareButton";
 import ShortlistLocalFallback from "@/components/ShortlistLocalFallback";

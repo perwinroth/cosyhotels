@@ -9,6 +9,7 @@ import { cosyScore } from "@/lib/scoring/cosy";
 import { getImageForHotel } from "@/lib/hotelImages";
 import HotelTile from "@/components/HotelTile";
 import { searchText, photoUrl } from "@/lib/places";
+import type { PlaceSearchResult } from "@/lib/places";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/hotels`]));
@@ -77,7 +78,7 @@ async function Results({
 
   // Google Places augmentation
   let places: typeof curated = [];
-  const makePlace = (r: any, cityName?: string) => ({
+  const makePlace = (r: PlaceSearchResult, cityName?: string) => ({
     id: r.place_id,
     slug: r.place_id,
     name: r.name,
