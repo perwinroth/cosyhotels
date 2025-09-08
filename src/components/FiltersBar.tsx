@@ -47,9 +47,9 @@ export default function FiltersBar({ prepend }: { prepend?: React.ReactNode }) {
   ];
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-3 md:p-4 shadow-sm">
-      {prepend ? <div className="mb-2">{prepend}</div> : null}
-      <div className="grid md:grid-cols-[1fr_140px_200px_auto] gap-2 md:gap-3 items-start">
+    <div className="rounded-xl border border-zinc-200 bg-white p-2 md:p-3 shadow-sm">
+      {prepend ? <div className="mb-1">{prepend}</div> : null}
+      <div className="grid md:grid-cols-[1fr_140px_200px_auto] gap-2 md:gap-2 items-start">
         <div>
           <input
             className="w-full border border-zinc-300 rounded-lg px-3 py-2"
