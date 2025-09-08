@@ -16,29 +16,31 @@ export type TileHotel = {
 
 export default function HotelTile({ hotel, href }: { hotel: TileHotel; href: string }) {
   const h = hotel;
+  const cosyText = h.cosy.toFixed(1);
+  const ratingText = h.rating.toFixed(1);
   return (
     <Link
       href={href}
       className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full"
-      aria-label={`${h.name}, cosy score ${h.cosy.toFixed(1)} out of 10`}
-      data-cosy={h.cosy.toFixed(1)}
+      aria-label={`${h.name}, Cosy ${cosyText} and Guest ${ratingText}`}
+      data-cosy={cosyText}
     >
       <div className="relative aspect-[4/3] bg-zinc-100">
         <Image src={h.image || "/hotel-placeholder.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
-        {h.cosy >= 6.5 ? (
-          <div className="absolute -left-3 top-4 rotate-[-15deg]">
+        {h.cosy >= 7.0 ? (
+          <div className="absolute left-2 bottom-2">
             <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
-              <Image src="/seal.svg" alt="seal" width={14} height={14} />
+              <Image src="/seal.svg" alt="Seal of approval" width={14} height={14} />
               <span>Seal of approval</span>
             </div>
           </div>
         ) : null}
         <div className="absolute left-2 top-2 flex gap-2">
-          <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h.cosy)}`}>
-            Cosy {h.cosy.toFixed(1)} · {cosyRankLabel(h.cosy)}
+          <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h.cosy)}`} title={`Cosy ${cosyText}`}>
+            Cosy {cosyText} · {cosyRankLabel(h.cosy)}
           </span>
         </div>
-        <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5">★ {h.rating.toFixed(1)}</div>
+        <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5" title="Guest rating">Guest {ratingText}</div>
       </div>
       <div className="p-3 flex flex-col h-[188px]">
         <div>
@@ -53,4 +55,3 @@ export default function HotelTile({ hotel, href }: { hotel: TileHotel; href: str
     </Link>
   );
 }
-
