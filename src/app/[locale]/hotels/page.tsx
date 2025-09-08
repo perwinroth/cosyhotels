@@ -138,9 +138,26 @@ async function Results({
       break;
   }
 
-  const renderCard = (h: typeof filtered[number]) => (
-    <HotelTile key={`${h.slug}-${h._img}`} hotel={{ slug: String(h.slug), name: h.name, city: h.city, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }} href={`/${locale}/hotels/${h.slug}`} />
-  );
+  const renderCard = (h: typeof filtered[number]) => {
+    const detailsHref = `/${locale}/hotels/${h.slug}`;
+    const goHref = ("affiliateUrl" in h && (h as { affiliateUrl?: string }).affiliateUrl) ? `/go/${h.slug}` : undefined;
+    return (
+      <HotelTile
+        key={`${h.slug}-${h._img}`}
+        hotel={{
+          slug: String(h.slug),
+          name: h.name,
+          city: h.city,
+          rating: h.rating,
+          price: isFinite(h.price as number) ? (h.price as number) : undefined,
+          image: h._img,
+          cosy: h._cosy,
+        }}
+        href={detailsHref}
+        goHref={goHref}
+      />
+    );
+  };
 
   // For the very first page (no city), always cap to top 9 by cosy
   if (!city) filtered.sort((a, b) => b._cosy - a._cosy);
