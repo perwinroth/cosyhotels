@@ -137,18 +137,18 @@ async function Results({
   if (filtered.length === 0) {
     const fallback = [...curated].sort((a, b) => b._cosy - a._cosy).slice(0, 24);
     return (
-      <div className="grid md:grid-cols-3 gap-4 auto-rows-fr">
-        <div className="col-span-full text-sm text-black" aria-live="polite">
-          0 results{city ? ` in ${city}` : ""}. Showing top cosy stays worldwide.
-        </div>
+    <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+      <div className="col-span-full sr-only" aria-live="polite">
+        0 results{city ? ` in ${city}` : ""}. Showing top cosy stays worldwide.
+      </div>
         {fallback.map(renderCard)}
       </div>
     );
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-4 auto-rows-fr">
-      <div className="col-span-full text-sm text-black" aria-live="polite">
+    <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+      <div className="col-span-full sr-only" aria-live="polite">
         {filtered.length} result{filtered.length === 1 ? "" : "s"}
         {city ? ` in ${city}` : ""}
       </div>
