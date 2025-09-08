@@ -37,3 +37,17 @@ test('shortlist: save -> toast -> page shows item', async ({ page }) => {
   await expect(cards.first()).toBeVisible();
 });
 
+test('tiles: details and visit site actions work', async ({ page, context }) => {
+  await page.goto(new URL('/en/hotels?sort=cosy-desc', BASE).toString(), { waitUntil: 'networkidle' });
+  // Prefer a curated tile (has price and Visit site button)
+  const visitBtn = page.getByRole('link', { name: /visit site/i }).first();
+  await expect(visitBtn).toBeVisible();
+  const [popup] = await Promise.all([
+    context.waitForEvent('page'),
+    visitBtn.click(),
+  ]);
+  await popup.waitForLoadState('domcontentloaded');
+  // Should go to partner.example (sample data) or Google domain fallback
+  const href = popup.url();
+  expect(/partner\.example|google\./.test(href)).toBeTruthy();
+});

@@ -43,9 +43,10 @@ export default async function LocaleLayout({
           <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
             <Link href={`/${locale}`} className="flex items-center gap-2 font-semibold tracking-tight">
               <Image src="/seal.svg" alt={site.name} width={40} height={40} priority />
+              <span className="sr-only">{site.name}</span>
+              <span aria-hidden className="text-sm font-medium text-emerald-700">Get cosy</span>
             </Link>
             <nav className="flex gap-4 text-sm items-center">
-              <Link href={`/${locale}/hotels`} className="hover:underline">{m.nav.explore}</Link>
               <Link href={`/${locale}/collections`} className="hover:underline">{m.nav.collections}</Link>
               <Link href={`/${locale}/guides`} className="hover:underline">{m.nav.guides}</Link>
               <LanguageSwitcher current={locale} />

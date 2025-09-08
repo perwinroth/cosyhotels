@@ -25,15 +25,29 @@ export default function SaveToShortlistButton({ itemSlug, className = "" }: { it
     try {
       let s = slug;
       if (!s) {
-        const res = await fetch("/api/shortlists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemSlug }) });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to create shortlist");
-        s = data.slug;
-        try { window.localStorage.setItem("shortlistSlug", s!); } catch {}
+        // Try server API; if unavailable, fall back to a client-generated slug
+        try {
+          const res = await fetch("/api/shortlists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ itemSlug }) });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data?.slug) {
+            s = data.slug as string;
+          } else {
+            throw new Error(typeof data?.error === 'string' ? data.error : 'Shortlist API not available');
+          }
+        } catch {
+          // Generate a stable local slug
+          s = (Math.random().toString(36).slice(2, 6) + Math.random().toString(36).slice(2, 6)).toLowerCase();
+        }
+        try { if (s) window.localStorage.setItem("shortlistSlug", s); } catch {}
       } else {
-        const res = await fetch(`/api/shortlists/${s}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ add: itemSlug }) });
-        const data = await res.json();
-        if (!res.ok) console.warn(data.error || "Failed to update shortlist (will use local fallback)");
+        // Best effort server update; continue on failure
+        try {
+          const res = await fetch(`/api/shortlists/${s}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ add: itemSlug }) });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            console.warn(data.error || "Failed to update shortlist (will use local fallback)");
+          }
+        } catch {}
       }
       // Maintain a local fallback list for this shortlist slug
       try {
@@ -47,10 +61,10 @@ export default function SaveToShortlistButton({ itemSlug, className = "" }: { it
         window.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Saved to Shortlist', actionUrl: `/shortlists/${s}`, actionLabel: 'View', type: 'success' } }));
       } catch {}
       setSaved(true);
-      router.push(`/shortlists/${s}`);
+      if (s) router.push(`/shortlists/${s}`);
     } catch (e) {
       console.error(e);
-      alert("Could not save to shortlist. Is the server configured?");
+      alert("Could not save to shortlist. Please try again.");
     } finally {
       setBusy(false);
     }

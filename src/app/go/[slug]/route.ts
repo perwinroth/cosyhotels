@@ -21,9 +21,7 @@ export async function GET(
   try {
     const d = await getDetails(slug);
     if (d?.website) return NextResponse.redirect(d.website, 302);
-    // Fallback to Google Maps place by ID
-    return NextResponse.redirect(`https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(slug)}` , 302);
   } catch {}
-  // Last resort
-  return NextResponse.redirect("/", 302);
+  // Fallback to Google Maps place by ID even if details unavailable (e.g., missing API key)
+  return NextResponse.redirect(`https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(slug)}` , 302);
 }
