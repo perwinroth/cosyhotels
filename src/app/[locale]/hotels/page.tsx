@@ -75,32 +75,44 @@ async function Results({
     _img: h.image || (await getImageForHotel(h.name, h.city, 800, h.slug, h.id)) || "/hotel-placeholder.svg",
   })));
 
-  // Google Places augmentation for broader coverage when searching by city
+  // Google Places augmentation
   let places: typeof curated = [];
+  const makePlace = (r: any, cityName?: string) => ({
+    id: r.place_id,
+    slug: r.place_id,
+    name: r.name,
+    city: cityName || (r.formatted_address || "").split(",")[0] || "",
+    country: "",
+    rating: r.rating || 0,
+    price: NaN,
+    amenities: [],
+    description: r.formatted_address || "",
+    affiliateUrl: "",
+    _cosy: (() => {
+      const base10 = (r.rating || 4) * 2; // approx 0..10 from 0..5
+      const desc = `${r.name}. ${r.formatted_address || ""}`;
+      return Math.min(10, Math.max(0, base10 * 0.7 + (desc.toLowerCase().includes('cozy') || desc.toLowerCase().includes('cosy') ? 1.0 : 0)));
+    })(),
+    _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/hotel-placeholder.svg",
+  });
   if (city) {
     const data = await searchText(`cosy boutique hotel in ${city}`);
-    places = (data.results || []).slice(0, 24).map((r) => ({
-      id: r.place_id,
-      slug: r.place_id,
-      name: r.name,
-      city,
-      country: "",
-      rating: r.rating || 0,
-      price: NaN,
-      amenities: [],
-      description: r.formatted_address || "",
-      affiliateUrl: "",
-      _cosy: (() => {
-        const base10 = (r.rating || 4) * 2; // approx 0..10 from 0..5
-        const desc = `${r.name}. ${r.formatted_address || ""}`;
-        return Math.min(10, Math.max(0, base10 * 0.7 + (desc.toLowerCase().includes('cozy') || desc.toLowerCase().includes('cosy') ? 1.0 : 0)));
-      })(),
-      _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/hotel-placeholder.svg",
-    }));
+    places = (data.results || []).slice(0, 24).map((r) => makePlace(r, city));
+  } else {
+    // First page: show the 9 highest cosy ranked worldwide (augment curated with a generic Places query)
+    const data = await searchText("cosy boutique hotel");
+    places = (data.results || []).slice(0, 24).map((r) => makePlace(r));
   }
 
-  // Optional rank filter based on cosy
-  const withCosy = [...curated, ...places];
+  // Merge curated + places, de-duplicate by name+city, then optionally filter by rank
+  const merged = [...curated, ...places];
+  const seen = new Set<string>();
+  const withCosy = merged.filter((h) => {
+    const key = `${h.name.toLowerCase()}|${(h.city || "").toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   const filtered = withCosy.filter((h) => {
     if (rank === "high") return h._cosy >= 7.5;
     if (rank === "mid") return h._cosy >= 6.5 && h._cosy < 7.5;
@@ -133,14 +145,18 @@ async function Results({
     <HotelTile key={`${h.slug}-${h._img}`} hotel={{ slug: String(h.slug), name: h.name, city: h.city, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }} href={`/${locale}/hotels/${h.slug}`} />
   );
 
-  // Flat list; if empty, show fallback top cosy curated
-  if (filtered.length === 0) {
+  // For the very first page (no city), always cap to top 9 by cosy
+  if (!city) filtered.sort((a, b) => b._cosy - a._cosy);
+  const limited = !city ? filtered.slice(0, 9) : filtered;
+
+  // Flat list; if empty (with city), show fallback top cosy curated
+  if (limited.length === 0) {
     const fallback = [...curated].sort((a, b) => b._cosy - a._cosy).slice(0, 24);
     return (
-    <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
-      <div className="col-span-full sr-only" aria-live="polite">
-        0 results{city ? ` in ${city}` : ""}. Showing top cosy stays worldwide.
-      </div>
+      <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+        <div className="col-span-full sr-only" aria-live="polite">
+          0 results{city ? ` in ${city}` : ""}. Showing top cosy stays worldwide.
+        </div>
         {fallback.map(renderCard)}
       </div>
     );
@@ -149,10 +165,10 @@ async function Results({
   return (
     <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
       <div className="col-span-full sr-only" aria-live="polite">
-        {filtered.length} result{filtered.length === 1 ? "" : "s"}
+        {limited.length} result{limited.length === 1 ? "" : "s"}
         {city ? ` in ${city}` : ""}
       </div>
-      {filtered.map(renderCard)}
+      {limited.map(renderCard)}
     </div>
   );
 }
