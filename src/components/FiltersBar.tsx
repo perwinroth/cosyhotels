@@ -1,7 +1,6 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { destinations } from "@/data/hotels";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 function setParam(sp: URLSearchParams, key: string, value?: string) {
   if (!value) sp.delete(key);
@@ -46,34 +45,70 @@ export default function FiltersBar({ prepend }: { prepend?: React.ReactNode }) {
     "Gym",
   ];
 
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-2 md:p-3 shadow-sm">
       {prepend ? <div className="mb-1">{prepend}</div> : null}
-      <div className="grid md:grid-cols-[1fr_140px_200px_auto] gap-2 md:gap-2 items-start">
-        <div>
-          <input
-            className="w-full border border-zinc-300 rounded-lg px-3 py-2"
-            list="destinations"
-            value={values.city}
-            onChange={(e) => update({ city: e.target.value })}
-            placeholder="Where to? (e.g., Paris)"
-          />
-          <datalist id="destinations">
-            {destinations.map((d) => (
-              <option key={d.slug} value={d.city} />
-            ))}
-          </datalist>
+      <div className="grid md:grid-cols-[140px_200px] gap-2 md:gap-2 items-start relative">
+        <div className="relative">
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="w-full border border-zinc-300 rounded-lg px-3 py-2 text-left"
+          >
+            Filter
+          </button>
+          {open && (
+            <div className="absolute z-30 mt-1 w-[280px] rounded-lg border border-zinc-200 bg-white shadow p-3">
+              <div className="text-sm font-medium mb-2">Cosy rank</div>
+              <div className="flex flex-col gap-1 text-sm mb-3">
+                {[
+                  { label: "Any", value: "" },
+                  { label: "High", value: "high" },
+                  { label: "Mid", value: "mid" },
+                  { label: "Low", value: "low" },
+                ].map((r) => (
+                  <label key={r.value} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="rank"
+                      checked={values.rank === r.value}
+                      onChange={() => update({ rank: r.value })}
+                    />
+                    <span>{r.label}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="text-sm font-medium mb-2">Amenities</div>
+              <div className="flex flex-wrap gap-2">
+                {amenityOptions.map((a) => {
+                  const active = values.amenities.includes(a);
+                  return (
+                    <button
+                      key={a}
+                      aria-pressed={active}
+                      onClick={() => {
+                        const next = new Set(values.amenities);
+                        if (active) next.delete(a); else next.add(a);
+                        update({ amenities: Array.from(next) });
+                      }}
+                      className={`px-3 py-1.5 text-sm rounded-full border focus:outline-none focus:ring-2 focus:ring-zinc-300 ${active ? 'border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-zinc-300 text-black bg-white'}`}
+                      type="button"
+                    >
+                      {a}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex justify-between">
+                <button type="button" className="text-sm underline" onClick={() => { update({ rank: "", amenities: [] }); }}>Clear all</button>
+                <button type="button" className="text-sm px-3 py-1.5 rounded border brand-border hover:bg-zinc-50" onClick={() => setOpen(false)}>Close</button>
+              </div>
+            </div>
+          )}
         </div>
-        <select
-          className="w-full border border-zinc-300 rounded-lg px-3 py-2"
-          value={values.rank}
-          onChange={(e) => update({ rank: e.target.value })}
-        >
-          <option value="">Any rank</option>
-          <option value="high">High</option>
-          <option value="mid">Mid</option>
-          <option value="low">Low</option>
-        </select>
         <select
           className="w-full border border-zinc-300 rounded-lg px-3 py-2"
           value={values.sort}
@@ -84,26 +119,6 @@ export default function FiltersBar({ prepend }: { prepend?: React.ReactNode }) {
           <option value="price-asc">Price (low → high)</option>
           <option value="price-desc">Price (high → low)</option>
         </select>
-        <div className="flex gap-2 overflow-x-auto py-1 -mx-1 px-1">
-          {amenityOptions.map((a) => {
-            const active = values.amenities.includes(a);
-            return (
-              <button
-                key={a}
-                aria-pressed={active}
-                onClick={() => {
-                  const next = new Set(values.amenities);
-                  if (active) next.delete(a); else next.add(a);
-                  update({ amenities: Array.from(next) });
-                }}
-                className={`shrink-0 px-3 py-2 text-sm rounded-full border focus:outline-none focus:ring-2 focus:ring-zinc-300 ${active ? 'border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-zinc-300 text-black bg-white'}`}
-                type="button"
-              >
-                {a}
-              </button>
-            );
-          })}
-        </div>
       </div>
     </div>
   );
