@@ -32,8 +32,7 @@ export default function HotelsPage({
 }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">Explore hotels</h1>
-      <div className="mt-2">
+      <div>
         <FiltersBar prepend={<SearchBar locale={params.locale} />} />
       </div>
       <div className="mt-2">

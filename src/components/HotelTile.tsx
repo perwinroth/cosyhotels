@@ -47,7 +47,7 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
           <div className="absolute left-2 bottom-2">
             <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
               <Image src="/seal.svg" alt="Seal of approval" width={14} height={14} />
-              <span>Seal of approval</span>
+              <span>Get cosy</span>
             </div>
           </div>
         ) : null}
