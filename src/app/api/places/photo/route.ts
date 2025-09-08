@@ -1,7 +1,5 @@
 import { NextRequest } from "next/server";
 
-export const revalidate = 60 * 60 * 24; // 24h cache on edge/CDN
-
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const ref = searchParams.get("ref");
@@ -25,4 +23,3 @@ export async function GET(req: NextRequest) {
   headers.set("cache-control", "public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400");
   return new Response(res.body, { status: 200, headers });
 }
-
