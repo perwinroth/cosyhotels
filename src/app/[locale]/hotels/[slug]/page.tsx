@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { getImageForHotel } from "@/lib/hotelImages";
+import { getDetails, photoUrl } from "@/lib/places";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { fetchOverrideFor, applyOverride } from "@/lib/overrides";
@@ -11,37 +12,60 @@ import { cosyScore, amenitiesScore, keywordSentiment, scalePenalty } from "@/lib
 
 type Props = { params: { slug: string; locale: string } };
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/hotels/${params.slug}`]));
   const hotel = hotels.find((h) => h.slug === params.slug);
-  if (!hotel) return {};
-  const title = `${hotel.name} – ${hotel.city} | ${site.name}`;
-  const description = hotel.description;
-  const url = `/${params.locale}/hotels/${hotel.slug}`;
-  const ogImg = "/hotel-placeholder.svg";
-  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/hotels/${hotel.slug}`]));
-  return {
-    title,
-    description,
-    alternates: { canonical: url, languages },
-    openGraph: {
-      title,
-      description,
-      type: "article",
-      url,
-      images: [{ url: ogImg, width: 1200, height: 800, alt: `${hotel.name} in ${hotel.city}` }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [ogImg],
-    },
-  };
+  if (hotel) {
+    const title = `${hotel.name} – ${hotel.city} | ${site.name}`;
+    const description = hotel.description;
+    const url = `/${params.locale}/hotels/${hotel.slug}`;
+    const ogImg = "/hotel-placeholder.svg";
+    return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: ogImg, width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description, images: [ogImg] } };
+  }
+  const d = await getDetails(params.slug);
+  if (d) {
+    const title = `${d.name} | ${site.name}`;
+    const description = d.formatted_address || "Cosy boutique stay.";
+    const url = `/${params.locale}/hotels/${params.slug}`;
+    const ref = d.photos?.[0]?.photo_reference;
+    const ogImg = ref ? photoUrl(ref, 1200) : "/hotel-placeholder.svg";
+    return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: ogImg, width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description, images: [ogImg] } };
+  }
+  return {};
 }
 
 export default async function HotelDetail({ params }: Props) {
   const base = hotels.find((h) => h.slug === params.slug);
-  if (!base) return notFound();
+  if (!base) {
+    const d = await getDetails(params.slug);
+    if (!d) return notFound();
+    const ref = d.photos?.[0]?.photo_reference;
+    const img = ref ? photoUrl(ref, 1200) : "/hotel-placeholder.svg";
+    const cosy = cosyScore({ rating: (d.rating || 4) * 2, amenities: [], description: `${d.name}. ${d.formatted_address || ""}` });
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-8">
+        <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
+          <Image src={img} alt={`${d.name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
+        </div>
+        <h1 className="mt-4 text-3xl font-semibold tracking-tight">{d.name}</h1>
+        <div className="mt-1 text-zinc-600">{d.formatted_address}</div>
+        <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy.toFixed(1)} out of 10`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-zinc-600">Cosy score</div>
+              <div className="text-2xl font-semibold">{cosy.toFixed(1)}<span className="text-base text-zinc-500">/10</span></div>
+            </div>
+            <a href={`/${params.locale}/cosy-score`} className="text-sm text-zinc-600 hover:underline">How it’s calculated</a>
+          </div>
+        </div>
+        <div className="mt-5">
+          <a className="inline-flex items-center justify-center rounded-lg bg-zinc-900 text-white px-4 py-2 hover:bg-zinc-800" href={`/${params.locale}/hotels`}>
+            Back to results
+          </a>
+        </div>
+      </div>
+    );
+  }
   const override = await fetchOverrideFor(params.slug);
   const hotel = applyOverride(base, override);
   const cosy = cosyScore({ rating: hotel.rating, amenities: hotel.amenities, description: hotel.description });
