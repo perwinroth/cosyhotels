@@ -1,0 +1,24 @@
+name: Precache Images
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Site base URL (default: prod)'
+        required: false
+        type: string
+
+jobs:
+  precache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call precache endpoint
+        env:
+          BASE: ${{ inputs.target_url || 'https://www.cosyhotelroom.com' }}
+        run: |
+          echo "Hitting $BASE/api/cron/precache-images"
+          curl -sSf "$BASE/api/cron/precache-images" -H "Accept: application/json" -o out.json
+          cat out.json
+

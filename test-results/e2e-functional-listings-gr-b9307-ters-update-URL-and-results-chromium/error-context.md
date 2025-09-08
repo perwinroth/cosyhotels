@@ -1,0 +1,142 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Get Cosy" [ref=e4] [cursor=pointer]:
+        - /url: /en
+        - img "Get Cosy" [ref=e5] [cursor=pointer]
+      - navigation [ref=e6]:
+        - link "Explore" [ref=e7] [cursor=pointer]:
+          - /url: /en/hotels
+        - link "Collections" [ref=e8] [cursor=pointer]:
+          - /url: /en/collections
+        - link "Guides" [ref=e9] [cursor=pointer]:
+          - /url: /en/guides
+        - group [ref=e11]
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - heading "Explore hotels" [level=1] [ref=e15]
+      - generic [ref=e18]:
+        - combobox "Where to? (e.g., Paris)" [ref=e20]
+        - combobox [ref=e21]:
+          - option "Any rank" [selected]
+          - option "High"
+          - option "Mid"
+          - option "Low"
+        - combobox [ref=e22]:
+          - option "Cosy (high → low)" [selected]
+          - option "Rating (high → low)"
+          - option "Price (low → high)"
+          - option "Price (high → low)"
+        - generic [ref=e23]:
+          - button "Spa" [ref=e24]
+          - button "Sauna" [ref=e25]
+          - button "Rooftop" [ref=e26]
+          - button "Garden" [ref=e27]
+          - button "Bar" [ref=e28]
+          - button "Restaurant" [ref=e29]
+          - button "Pool" [ref=e30]
+          - button "Pet-friendly" [ref=e31]
+          - button "Gym" [ref=e32]
+      - generic [ref=e34]:
+        - generic [ref=e35]: 6 results
+        - generic [ref=e36]: Mid cosy
+        - link "Harbor Nook, cosy score 6.6 out of 10" [ref=e37] [cursor=pointer]:
+          - /url: /en/hotels/harbor-nook-copenhagen
+          - generic [ref=e38] [cursor=pointer]:
+            - img "Harbor Nook – Copenhagen" [ref=e39] [cursor=pointer]
+            - generic [ref=e41] [cursor=pointer]:
+              - img "seal" [ref=e42] [cursor=pointer]
+              - generic [ref=e43] [cursor=pointer]: Seal of approval
+            - generic [ref=e45] [cursor=pointer]: Cosy 6.6 · Mid
+            - generic [ref=e46] [cursor=pointer]: ★ 7.0
+          - generic [ref=e47] [cursor=pointer]:
+            - generic [ref=e48] [cursor=pointer]:
+              - heading "Harbor Nook" [level=3] [ref=e49] [cursor=pointer]
+              - generic [ref=e50] [cursor=pointer]: Copenhagen
+              - generic [ref=e51] [cursor=pointer]: From $230/night
+            - button "Save to shortlist" [ref=e53]
+        - generic [ref=e54]: Low cosy
+        - link "Ringstrasse Residence, cosy score 5.9 out of 10" [ref=e55] [cursor=pointer]:
+          - /url: /en/hotels/ringstrasse-vienna
+          - generic [ref=e56] [cursor=pointer]:
+            - img "Ringstrasse Residence – Vienna" [ref=e57] [cursor=pointer]
+            - generic [ref=e59] [cursor=pointer]: Cosy 5.9 · Low
+            - generic [ref=e60] [cursor=pointer]: ★ 7.4
+          - generic [ref=e61] [cursor=pointer]:
+            - generic [ref=e62] [cursor=pointer]:
+              - heading "Ringstrasse Residence" [level=3] [ref=e63] [cursor=pointer]
+              - generic [ref=e64] [cursor=pointer]: Vienna
+              - generic [ref=e65] [cursor=pointer]: From $285/night
+            - button "Save to shortlist" [ref=e67]
+        - link "Atelier Rivoli, cosy score 5.4 out of 10" [ref=e68] [cursor=pointer]:
+          - /url: /en/hotels/atelier-rivoli-paris
+          - generic [ref=e69] [cursor=pointer]:
+            - img "Atelier Rivoli – Paris" [ref=e70] [cursor=pointer]
+            - generic [ref=e72] [cursor=pointer]: Cosy 5.4 · Low
+            - generic [ref=e73] [cursor=pointer]: ★ 7.1
+          - generic [ref=e74] [cursor=pointer]:
+            - generic [ref=e75] [cursor=pointer]:
+              - heading "Atelier Rivoli" [level=3] [ref=e76] [cursor=pointer]
+              - generic [ref=e77] [cursor=pointer]: Paris
+              - generic [ref=e78] [cursor=pointer]: From $240/night
+            - button "Save to shortlist" [ref=e80]
+        - link "Villa Aurora, cosy score 4.8 out of 10" [ref=e81] [cursor=pointer]:
+          - /url: /en/hotels/villa-aurora-rome
+          - generic [ref=e82] [cursor=pointer]:
+            - img "Villa Aurora – Rome" [ref=e83] [cursor=pointer]
+            - generic [ref=e85] [cursor=pointer]: Cosy 4.8 · Low
+            - generic [ref=e86] [cursor=pointer]: ★ 6.9
+          - generic [ref=e87] [cursor=pointer]:
+            - generic [ref=e88] [cursor=pointer]:
+              - heading "Villa Aurora" [level=3] [ref=e89] [cursor=pointer]
+              - generic [ref=e90] [cursor=pointer]: Rome
+              - generic [ref=e91] [cursor=pointer]: From $210/night
+            - button "Save to shortlist" [ref=e93]
+        - link "Casa Luz, cosy score 4.7 out of 10" [ref=e94] [cursor=pointer]:
+          - /url: /en/hotels/casa-luz-lisbon
+          - generic [ref=e95] [cursor=pointer]:
+            - img "Casa Luz – Lisbon" [ref=e96] [cursor=pointer]
+            - generic [ref=e98] [cursor=pointer]: Cosy 4.7 · Low
+            - generic [ref=e99] [cursor=pointer]: ★ 7.3
+          - generic [ref=e100] [cursor=pointer]:
+            - generic [ref=e101] [cursor=pointer]:
+              - heading "Casa Luz" [level=3] [ref=e102] [cursor=pointer]
+              - generic [ref=e103] [cursor=pointer]: Lisbon
+              - generic [ref=e104] [cursor=pointer]: From $180/night
+            - button "Save to shortlist" [ref=e106]
+        - link "Canal Quartet, cosy score 4.4 out of 10" [ref=e107] [cursor=pointer]:
+          - /url: /en/hotels/canal-quartet-amsterdam
+          - generic [ref=e108] [cursor=pointer]:
+            - img "Canal Quartet – Amsterdam" [ref=e109] [cursor=pointer]
+            - generic [ref=e111] [cursor=pointer]: Cosy 4.4 · Low
+            - generic [ref=e112] [cursor=pointer]: ★ 6.6
+          - generic [ref=e113] [cursor=pointer]:
+            - generic [ref=e114] [cursor=pointer]:
+              - heading "Canal Quartet" [level=3] [ref=e115] [cursor=pointer]
+              - generic [ref=e116] [cursor=pointer]: Amsterdam
+              - generic [ref=e117] [cursor=pointer]: From $210/night
+            - button "Save to shortlist" [ref=e119]
+  - contentinfo [ref=e120]:
+    - generic [ref=e121]:
+      - generic [ref=e122]:
+        - strong [ref=e123]: Get Cosy
+        - text: · Curated cosy getaways.
+      - navigation [ref=e124]:
+        - link "Cosy score" [ref=e125] [cursor=pointer]:
+          - /url: /en/cosy-score
+        - link "Affiliate disclosure" [ref=e126] [cursor=pointer]:
+          - /url: /en/disclosure
+        - link "Privacy" [ref=e127] [cursor=pointer]:
+          - /url: /en/privacy
+        - link "About" [ref=e128] [cursor=pointer]:
+          - /url: /en/about
+        - link "Contact" [ref=e129] [cursor=pointer]:
+          - /url: /en/contact
+        - link "Shortlists" [ref=e130] [cursor=pointer]:
+          - /url: /shortlists
+      - generic [ref=e131]: © 2025 Get Cosy
+  - alert [ref=e132]
+```

@@ -68,7 +68,7 @@ async function TopCosy({ locale }: { locale: string }) {
   const top = withCosy.slice(0, 12);
   return (
     <div className="mt-4 grid md:grid-cols-3 gap-4 auto-rows-fr">
-      {top.map((h) => (
+      {top.map((h, i) => (
         <Link
           key={h.slug}
           href={`/${locale}/hotels/${h.slug}`}
@@ -76,7 +76,7 @@ async function TopCosy({ locale }: { locale: string }) {
           aria-label={`${h.name}, cosy score ${h._cosy.toFixed(1)} out of 10`}
         >
           <div className="relative aspect-[4/3] bg-zinc-100">
-            <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
+            <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" priority={i === 0} />
             {h._cosy >= 6.5 ? (
               <div className="absolute -left-3 top-4 rotate-[-15deg]">
                 <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">

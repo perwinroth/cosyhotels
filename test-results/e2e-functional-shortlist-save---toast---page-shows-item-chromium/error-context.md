@@ -1,0 +1,78 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Get Cosy" [ref=e4] [cursor=pointer]:
+        - /url: /en
+        - img "Get Cosy" [ref=e5] [cursor=pointer]
+      - navigation [ref=e6]:
+        - link "Explore" [ref=e7] [cursor=pointer]:
+          - /url: /en/hotels
+        - link "Collections" [ref=e8] [cursor=pointer]:
+          - /url: /en/collections
+        - link "Guides" [ref=e9] [cursor=pointer]:
+          - /url: /en/guides
+        - group [ref=e11]
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - img "Harbor Nook – Copenhagen" [ref=e16]
+      - heading "Harbor Nook" [level=1] [ref=e17]
+      - generic [ref=e18]: Copenhagen, Denmark
+      - generic [ref=e19]:
+        - generic "Guest rating" [ref=e20]: "7.0"
+        - generic [ref=e21]: ·
+        - generic [ref=e22]: From $230/night
+      - generic "Cosy score 6.6 out of 10" [ref=e23]:
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: Cosy score
+            - generic [ref=e27]:
+              - text: "6.6"
+              - generic [ref=e28]: /10
+          - link "How it’s calculated" [ref=e29] [cursor=pointer]:
+            - /url: /en/cosy-score
+        - generic [ref=e30]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: Overall rating
+            - generic [ref=e34]: 3.5/5
+          - generic [ref=e38]:
+            - generic [ref=e39]: Amenities warmth
+            - generic [ref=e40]: 2.4/3
+          - generic [ref=e44]:
+            - generic [ref=e45]: Description keywords
+            - generic [ref=e46]: 0.3/2
+          - generic [ref=e50]:
+            - generic [ref=e51]: Scale penalty
+            - generic [ref=e52]: "0.0"
+      - link "Check availability →" [ref=e56] [cursor=pointer]:
+        - /url: /go/harbor-nook-copenhagen
+      - paragraph [ref=e57]: Nordic minimalism meets hygge comfort by the canals, complete with sauna and spa.
+      - generic [ref=e58]:
+        - heading "Amenities" [level=2] [ref=e59]
+        - generic [ref=e60]:
+          - generic [ref=e61]: Spa
+          - generic [ref=e62]: Sauna
+          - generic [ref=e63]: Bicycles
+  - contentinfo [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - strong [ref=e67]: Get Cosy
+        - text: · Curated cosy getaways.
+      - navigation [ref=e68]:
+        - link "Cosy score" [ref=e69] [cursor=pointer]:
+          - /url: /en/cosy-score
+        - link "Affiliate disclosure" [ref=e70] [cursor=pointer]:
+          - /url: /en/disclosure
+        - link "Privacy" [ref=e71] [cursor=pointer]:
+          - /url: /en/privacy
+        - link "About" [ref=e72] [cursor=pointer]:
+          - /url: /en/about
+        - link "Contact" [ref=e73] [cursor=pointer]:
+          - /url: /en/contact
+        - link "Shortlists" [ref=e74] [cursor=pointer]:
+          - /url: /shortlists
+      - generic [ref=e75]: © 2025 Get Cosy
+  - alert [ref=e76]: Harbor Nook – Copenhagen | Get Cosy | Get Cosy
+```
