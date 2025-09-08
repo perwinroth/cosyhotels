@@ -44,16 +44,16 @@ export default async function ShortlistPage({ params }: { params: { slug: string
           <Link key={h.slug} href={`/en/hotels/${h.slug}`} className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full">
             <div className="relative aspect-[4/3] bg-zinc-100">
               <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
-              {h._cosy >= 6.5 ? (
-                <div className="absolute -left-3 top-4 rotate-[-15deg]">
+              {h._cosy >= 7 ? (
+                <div className="absolute left-2 bottom-2">
                   <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
                     <Image src="/seal.svg" alt="seal" width={14} height={14} />
                     <span>Seal of approval</span>
                   </div>
                 </div>
               ) : null}
-              <div className="absolute left-2 top-2 flex gap-2">
-                <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>Cosy {h._cosy.toFixed(1)} · {cosyRankLabel(h._cosy)}</span>
+              <div className="absolute right-2 top-2 flex gap-2">
+                <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>Cosy {h._cosy.toFixed(1)}</span>
               </div>
               
             </div>

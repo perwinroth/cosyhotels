@@ -34,9 +34,9 @@ export default function HotelTile({ hotel, href }: { hotel: TileHotel; href: str
             </div>
           </div>
         ) : null}
-        <div className="absolute left-2 top-2 flex gap-2">
+        <div className="absolute right-2 top-2 flex gap-2">
           <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h.cosy)}`} title={`Cosy ${cosyText}`}>
-            Cosy {cosyText} · {cosyRankLabel(h.cosy)}
+            Cosy {cosyText}
           </span>
         </div>
       </div>
