@@ -1,6 +1,4 @@
-import Link from "next/link";
-import Image from "next/image";
-import { shimmer } from "@/lib/image";
+// unified listings page
 import { hotels as baseHotels } from "@/data/hotels";
 import FiltersBar from "@/components/FiltersBar";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
@@ -33,7 +31,7 @@ export default function HotelsPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">Explore hotels</h1>
-      <div className="mt-4 sticky top-16 z-20">
+      <div className="mt-4">
         <FiltersBar />
       </div>
       <div className="mt-6">
@@ -134,13 +132,18 @@ async function Results({
     <HotelTile key={`${h.slug}-${h._img}`} hotel={{ slug: String(h.slug), name: h.name, city: h.city, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }} href={`/${locale}/hotels/${h.slug}`} />
   );
 
-  const groups = sort === "cosy-desc"
-    ? {
-        high: filtered.filter((h) => h._cosy >= 7.5),
-        mid: filtered.filter((h) => h._cosy >= 6.5 && h._cosy < 7.5),
-        low: filtered.filter((h) => h._cosy < 6.5),
-      }
-    : null;
+  // Flat list; if empty, show fallback top cosy curated
+  if (filtered.length === 0) {
+    const fallback = [...curated].sort((a, b) => b._cosy - a._cosy).slice(0, 24);
+    return (
+      <div className="grid md:grid-cols-3 gap-4 auto-rows-fr">
+        <div className="col-span-full text-sm text-black" aria-live="polite">
+          0 results{city ? ` in ${city}` : ""}. Showing top cosy stays worldwide.
+        </div>
+        {fallback.map(renderCard)}
+      </div>
+    );
+  }
 
   return (
     <div className="grid md:grid-cols-3 gap-4 auto-rows-fr">
@@ -148,34 +151,7 @@ async function Results({
         {filtered.length} result{filtered.length === 1 ? "" : "s"}
         {city ? ` in ${city}` : ""}
       </div>
-      {filtered.length === 0 && (
-        <div className="col-span-full text-zinc-600">No hotels found. Try broadening your filters.</div>
-      )}
-
-      {groups ? (
-        <>
-          {groups.high.length > 0 && (
-            <>
-              <div className="col-span-full sticky top-16 z-10 bg-white/90 backdrop-blur px-1 py-1 text-sm font-medium">High cosy</div>
-              {groups.high.map(renderCard)}
-            </>
-          )}
-          {groups.mid.length > 0 && (
-            <>
-              <div className="col-span-full sticky top-16 z-10 bg-white/90 backdrop-blur px-1 py-1 text-sm font-medium">Mid cosy</div>
-              {groups.mid.map(renderCard)}
-            </>
-          )}
-          {groups.low.length > 0 && (
-            <>
-              <div className="col-span-full sticky top-16 z-10 bg-white/90 backdrop-blur px-1 py-1 text-sm font-medium">Low cosy</div>
-              {groups.low.map(renderCard)}
-            </>
-          )}
-        </>
-      ) : (
-        filtered.map(renderCard)
-      )}
+      {filtered.map(renderCard)}
     </div>
   );
 }
