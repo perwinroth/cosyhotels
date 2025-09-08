@@ -106,10 +106,7 @@ export function HotelCard({ hotel, locale = "en" }: { hotel: Hotel; locale?: str
       </div>
       <div className="p-3 flex flex-col h-[188px]">
         <div>
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium line-clamp-1">{hotel.name}</h3>
-            <span className="text-xs rounded bg-black/80 text-white px-2 py-0.5">★ {hotel.rating.toFixed(1)}</span>
-          </div>
+        <h3 className="font-medium line-clamp-1">{hotel.name}</h3>
           <div className="text-sm text-black">{hotel.city}</div>
           <div className="mt-3 text-sm font-medium brand-price">From ${hotel.price}/night</div>
         </div>

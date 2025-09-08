@@ -61,8 +61,6 @@ export default async function HotelDetail({ params }: Props) {
         {hotel.city}, {hotel.country}
       </div>
       <div className="mt-3 flex items-center gap-2 text-sm">
-        <span className="rounded bg-emerald-100 text-emerald-700 px-2 py-0.5" title="Guest rating">{hotel.rating.toFixed(1)}</span>
-        <span className="text-zinc-500">·</span>
         <span>From ${hotel.price}/night</span>
       </div>
       <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy.toFixed(1)} out of 10`}>

@@ -17,12 +17,11 @@ export type TileHotel = {
 export default function HotelTile({ hotel, href }: { hotel: TileHotel; href: string }) {
   const h = hotel;
   const cosyText = h.cosy.toFixed(1);
-  const ratingText = h.rating.toFixed(1);
   return (
     <Link
       href={href}
       className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full"
-      aria-label={`${h.name}, Cosy ${cosyText} and Guest ${ratingText}`}
+      aria-label={`${h.name}, Cosy ${cosyText}`}
       data-cosy={cosyText}
     >
       <div className="relative aspect-[4/3] bg-zinc-100">
@@ -40,7 +39,6 @@ export default function HotelTile({ hotel, href }: { hotel: TileHotel; href: str
             Cosy {cosyText} · {cosyRankLabel(h.cosy)}
           </span>
         </div>
-        <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5" title="Guest rating">Guest {ratingText}</div>
       </div>
       <div className="p-3 flex flex-col h-[188px]">
         <div>

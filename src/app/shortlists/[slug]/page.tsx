@@ -55,7 +55,7 @@ export default async function ShortlistPage({ params }: { params: { slug: string
               <div className="absolute left-2 top-2 flex gap-2">
                 <span className={`text-xs rounded px-2 py-0.5 ${cosyBadgeClass(h._cosy)}`}>Cosy {h._cosy.toFixed(1)} · {cosyRankLabel(h._cosy)}</span>
               </div>
-              <div className="absolute right-2 top-2 text-xs rounded bg-black/70 text-white px-2 py-0.5">★ {h.rating.toFixed(1)}</div>
+              
             </div>
             <div className="p-3 flex flex-col h-[188px]">
               <div>
