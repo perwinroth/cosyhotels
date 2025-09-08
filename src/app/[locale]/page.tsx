@@ -7,10 +7,7 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   const { locale } = params;
   const languages = Object.fromEntries(locales.map((l) => [l, `/${l}`]));
   return {
-    alternates: {
-      canonical: `/${locale}`,
-      languages,
-    },
+    alternates: { canonical: `/${locale}`, languages },
     title: `${site.name} – ${site.tagline}`,
     description: site.description,
   };
@@ -20,3 +17,4 @@ export default function Home({ params }: { params: { locale: string } }) {
   const { locale } = params;
   redirect(`/${locale}/hotels`);
 }
+
