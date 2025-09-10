@@ -62,7 +62,7 @@ export default function CollectionPage({ params }: Props) {
               </div>
               <div className="p-3">
                 <h3 className="font-medium line-clamp-1">{h.name}</h3>
-                <div className="text-sm text-zinc-600">{h.city}</div>
+                <div className="text-sm text-zinc-600">{h.city}, {h.country}</div>
                 <div className="mt-4" />
                 <div className="mt-2 flex justify-end">
                   <button type="button" className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50">Save to shortlist</button>

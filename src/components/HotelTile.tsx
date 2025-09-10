@@ -9,6 +9,7 @@ export type TileHotel = {
   slug: string;
   name: string;
   city: string;
+  country?: string;
   rating: number;
   price?: number;
   image?: string; // resolved URL
@@ -59,7 +60,7 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
       <div className="p-3 flex flex-col h-[188px]">
         <div>
           <h3 className="font-medium line-clamp-1">{h.name}</h3>
-          <div className="text-sm text-black">{h.city}</div>
+          <div className="text-sm text-black">{h.city}{h.country ? `, ${h.country}` : ""}</div>
           {h.price != null && <div className="mt-3 text-sm font-medium brand-price">From ${h.price}/night</div>}
         </div>
         <div className="mt-auto pt-4 flex items-center justify-between gap-2">

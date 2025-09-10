@@ -78,8 +78,11 @@ async function Results({
     id: r.place_id,
     slug: r.place_id,
     name: r.name,
-    city: cityName || (r.formatted_address || "").split(",")[0] || "",
-    country: "",
+    city: cityName || (r.formatted_address || "").split(",")[0]?.trim() || "",
+    country: (() => {
+      const parts = (r.formatted_address || "").split(",").map(s => s.trim()).filter(Boolean);
+      return parts.length ? parts[parts.length - 1] : "";
+    })(),
     rating: r.rating || 0,
     price: NaN,
     amenities: [],
@@ -137,6 +140,7 @@ async function Results({
           slug: String(h.slug),
           name: h.name,
           city: h.city,
+          country: ("country" in h ? (h as { country?: string }).country : undefined) || undefined,
           rating: h.rating,
           price: isFinite(h.price as number) ? (h.price as number) : undefined,
           image: h._img,
@@ -148,9 +152,9 @@ async function Results({
     );
   };
 
-  // For the very first page (no city), always cap to top 9 by cosy
+  // For the very first page (no city), only show Seal of approval entries (cosy >= 7)
   if (!city) filtered.sort((a, b) => b._cosy - a._cosy);
-  const limited = !city ? filtered.slice(0, 9) : filtered;
+  const limited = !city ? filtered.filter(h => h._cosy >= 7.0).slice(0, 12) : filtered;
 
   // Flat list; if empty (with city), show fallback top cosy curated
   if (limited.length === 0) {

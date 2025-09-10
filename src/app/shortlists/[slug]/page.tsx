@@ -59,7 +59,7 @@ export default async function ShortlistPage({ params }: { params: { slug: string
             <div className="p-3 flex flex-col h-[188px]">
               <div>
                 <h3 className="font-medium line-clamp-1">{h.name}</h3>
-                <div className="text-sm text-black">{h.city}</div>
+                <div className="text-sm text-black">{h.city}, {h.country}</div>
                 <div className="mt-3 text-sm font-medium brand-price">From ${h.price}/night</div>
               </div>
               <div className="mt-auto pt-4 flex justify-end"></div>

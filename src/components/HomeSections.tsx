@@ -196,7 +196,7 @@ export function HotelCard({ hotel, locale = "en" }: { hotel: Hotel; locale?: str
       <div className="p-3 flex flex-col h-[188px]">
         <div>
         <h3 className="font-medium line-clamp-1">{hotel.name}</h3>
-          <div className="text-sm text-black">{hotel.city}</div>
+          <div className="text-sm text-black">{hotel.city}, {hotel.country}</div>
           <div className="mt-3 text-sm font-medium brand-price">From ${hotel.price}/night</div>
         </div>
         <div className="mt-auto pt-4" />

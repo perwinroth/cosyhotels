@@ -42,13 +42,16 @@ export default async function HotelDetail({ params }: Props) {
     const ref = d.photos?.[0]?.photo_reference;
     const img = ref ? photoUrl(ref, 1200) : "/logo-seal.svg";
     const cosy = adhocCosyScore({ rating: d.rating, name: d.name, summary: d.formatted_address });
+    const addrParts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
+    const city = addrParts[addrParts.length - 2] || "";
+    const country = addrParts[addrParts.length - 1] || "";
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
           <Image src={img} alt={`${d.name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
         </div>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight">{d.name}</h1>
-        <div className="mt-1 text-zinc-600">{d.formatted_address}</div>
+        <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
         <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy.toFixed(1)} out of 10`}>
           <div className="flex items-center justify-between">
             <div>
