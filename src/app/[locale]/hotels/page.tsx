@@ -152,9 +152,9 @@ async function Results({
     );
   };
 
-  // For the very first page (no city), only show Seal of approval entries (cosy >= 7)
+  // Front page: show the top 9 worldwide by cosy (no extra filters)
   if (!city) filtered.sort((a, b) => b._cosy - a._cosy);
-  const limited = !city ? filtered.filter(h => h._cosy >= 7.0).slice(0, 12) : filtered;
+  const limited = !city ? filtered.slice(0, 9) : filtered;
 
   // Flat list; if empty (with city), show fallback top cosy curated
   if (limited.length === 0) {
