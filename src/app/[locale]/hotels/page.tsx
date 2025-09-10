@@ -59,8 +59,8 @@ async function Results({
     : typeof params.amenity === "string"
     ? [params.amenity]
     : undefined;
-  type Sort = "cosy-desc" | "cosy-asc" | "rating-desc" | "price-asc" | "price-desc" | "relevance";
-  const allowedSort: ReadonlyArray<Sort> = ["cosy-desc","cosy-asc","rating-desc","price-asc","price-desc","relevance"];
+  type Sort = "cosy-desc" | "cosy-asc";
+  const allowedSort: ReadonlyArray<Sort> = ["cosy-desc","cosy-asc"];
   const isSort = (v: unknown): v is Sort => typeof v === "string" && allowedSort.includes(v as Sort);
   const sortCandidate = typeof params.sort === "string" ? params.sort : undefined;
   const sort: Sort = isSort(sortCandidate) ? sortCandidate : "cosy-desc";
@@ -119,15 +119,6 @@ async function Results({
   // badge colors provided by cosyBadgeClass
 
   switch (sort) {
-    case "rating-desc":
-      filtered.sort((a, b) => b.rating - a.rating);
-      break;
-    case "price-asc":
-      filtered.sort((a, b) => a.price - b.price);
-      break;
-    case "price-desc":
-      filtered.sort((a, b) => b.price - a.price);
-      break;
     case "cosy-asc":
       filtered.sort((a, b) => a._cosy - b._cosy);
       break;

@@ -115,9 +115,7 @@ export default function FiltersBar({ prepend }: { prepend?: React.ReactNode }) {
           onChange={(e) => update({ sort: e.target.value })}
         >
           <option value="cosy-desc">Cosy (high → low)</option>
-          <option value="rating-desc">Rating (high → low)</option>
-          <option value="price-asc">Price (low → high)</option>
-          <option value="price-desc">Price (high → low)</option>
+          <option value="cosy-asc">Cosy (low → high)</option>
         </select>
       </div>
     </div>

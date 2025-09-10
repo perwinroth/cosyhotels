@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 
 export function SearchBar({ locale = "en" }: { locale?: string }) {
   const [city, setCity] = useState("");
-  const [rank, setRank] = useState(""); // high|mid|low
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   return (
@@ -18,11 +17,10 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         e.preventDefault();
         const params = new URLSearchParams();
         if (city) params.set("city", city);
-        if (rank) params.set("rank", rank);
         setSubmitting(true);
         router.push(`/${locale}/hotels?${params.toString()}`);
       }}
-      className="grid md:grid-cols-[1fr_200px_auto] gap-3"
+      className="grid md:grid-cols-[1fr_auto] gap-3"
     >
       <input
         className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-400"
@@ -30,17 +28,6 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         value={city}
         onChange={(e) => setCity(e.target.value)}
       />
-      <select
-        className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-400"
-        value={rank}
-        onChange={(e) => setRank(e.target.value)}
-        aria-label="Quality rank"
-      >
-        <option value="">Any rank</option>
-        <option value="high">High</option>
-        <option value="mid">Mid</option>
-        <option value="low">Low</option>
-      </select>
       <button
         className="rounded-lg bg-[#0EA5A4] text-white px-4 py-2 hover:bg-[#0B807F] active:translate-y-[1px] active:bg-[#0B807F] disabled:opacity-60 disabled:cursor-not-allowed"
         disabled={submitting}
