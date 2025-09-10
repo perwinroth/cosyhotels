@@ -1,6 +1,5 @@
 // unified listings page
 import { hotels as baseHotels } from "@/data/hotels";
-import FiltersBar from "@/components/FiltersBar";
 import { SearchBar } from "@/components/HomeSections";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import type { Metadata } from "next";
@@ -32,9 +31,7 @@ export default function HotelsPage({
 }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div>
-        <FiltersBar prepend={<SearchBar locale={params.locale} />} />
-      </div>
+      <SearchBar locale={params.locale} />
       <div className="mt-2">
         <Results searchParams={searchParams} locale={params.locale} />
       </div>
