@@ -71,7 +71,7 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
                 onClick={(e) => e.stopPropagation()}
                 target="_blank"
                 rel="noopener nofollow sponsored"
-                className="text-sm px-3 py-1.5 rounded-full bg-[#0EA5A6] text-white hover:bg-[#0EA5A6] border border-transparent"
+                className="text-sm px-3 py-1.5 rounded-full bg-[#0EA5A6] text-white !text-white no-underline hover:bg-[#0EA5A6] border border-transparent"
               >
                 Visit site
               </a>
