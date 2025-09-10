@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     url: "/",
     title: `${site.name} – ${site.tagline}`,
     description: site.description,
-    images: [{ url: "/hotel-placeholder.svg", width: 1200, height: 800 }],
+    images: [{ url: "/logo-seal.svg", width: 1200, height: 800 }],
   },
   robots: { index: true, follow: true },
   twitter: { card: "summary_large_image" },

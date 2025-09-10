@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = `${hotel.name} – ${hotel.city} | ${site.name}`;
     const description = hotel.description;
     const url = `/${params.locale}/hotels/${hotel.slug}`;
-    const ogImg = "/hotel-placeholder.svg";
+    const ogImg = "/logo-seal.svg";
     return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: ogImg, width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description, images: [ogImg] } };
   }
   const d = await getDetails(params.slug);
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const description = d.formatted_address || "Cosy boutique stay.";
     const url = `/${params.locale}/hotels/${params.slug}`;
     const ref = d.photos?.[0]?.photo_reference;
-    const ogImg = ref ? photoUrl(ref, 1200) : "/hotel-placeholder.svg";
+    const ogImg = ref ? photoUrl(ref, 1200) : "/logo-seal.svg";
     return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: ogImg, width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description, images: [ogImg] } };
   }
   return {};
@@ -40,7 +40,7 @@ export default async function HotelDetail({ params }: Props) {
     const d = await getDetails(params.slug);
     if (!d) return notFound();
     const ref = d.photos?.[0]?.photo_reference;
-    const img = ref ? photoUrl(ref, 1200) : "/hotel-placeholder.svg";
+    const img = ref ? photoUrl(ref, 1200) : "/logo-seal.svg";
     const cosy = adhocCosyScore({ rating: d.rating, name: d.name, summary: d.formatted_address });
     return (
       <div className="mx-auto max-w-3xl px-4 py-8">
@@ -78,7 +78,7 @@ export default async function HotelDetail({ params }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
-        <Image src={(await getImageForHotel(hotel.name, hotel.city, 1200)) || "/hotel-placeholder.svg"} alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
+        <Image src={(await getImageForHotel(hotel.name, hotel.city, 1200)) || "/logo-seal.svg"} alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{hotel.name}</h1>
       <div className="mt-1 text-zinc-600">
@@ -149,7 +149,7 @@ export default async function HotelDetail({ params }: Props) {
             aggregateRating: { '@type': 'AggregateRating', ratingValue: hotel.rating, reviewCount: 120 },
             priceRange: `$${hotel.price}+`,
             amenityFeature: hotel.amenities.map((a) => ({ '@type': 'LocationFeatureSpecification', name: a, value: true })),
-            image: ['/hotel-placeholder.svg'],
+            image: ['/logo-seal.svg'],
             additionalProperty: [{ '@type': 'PropertyValue', name: 'CosyScore', value: cosy.toFixed(1), unitText: 'out of 10' }],
           }),
         }}

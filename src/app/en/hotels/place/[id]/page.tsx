@@ -13,7 +13,7 @@ export default async function PlaceDetail({ params }: { params: { id: string } }
   const website = d.website || `https://www.google.com/maps/place/?q=place_id:${d.place_id}`;
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: 24 }}>
-      <div style={{ aspectRatio: "4 / 3", background: "#f4f4f5", backgroundSize: "cover", borderRadius: 12, border: "1px solid #e5e5e5", backgroundImage: `url(${photoRef ? photoUrl(photoRef, 1200) : '/hotel-placeholder.svg'})` }} />
+      <div style={{ aspectRatio: "4 / 3", background: "#f4f4f5", backgroundSize: "cover", borderRadius: 12, border: "1px solid #e5e5e5", backgroundImage: `url(${photoRef ? photoUrl(photoRef, 1200) : '/logo-seal.svg'})` }} />
       <h1 style={{ marginTop: 16, fontSize: 28, fontWeight: 600 }}>{d.name}</h1>
       <div style={{ color: "#666", marginTop: 4 }}>{d.formatted_address}</div>
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, fontSize: 14 }}>

@@ -23,7 +23,7 @@ export default function ShortlistLocalFallback({ slug, hotels }: { slug: string;
       {picked.map((h) => (
         <Link key={h.slug} href={`/en/hotels/${h.slug}`} className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full">
           <div className="relative aspect-[4/3] bg-zinc-100">
-            <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
+            <Image src={h.image || "/logo-seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
           </div>
           <div className="p-3">
             <h3 className="font-medium line-clamp-1">{h.name}</h3>

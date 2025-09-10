@@ -41,12 +41,12 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
       onKeyDown={keyOpen}
     >
       <div className="relative aspect-[4/3] bg-zinc-100">
-        <Image src={h.image || "/hotel-placeholder.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
+        <Image src={h.image || "/logo-seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
         {h.cosy >= 7.0 ? (
           <div className="absolute left-2 bottom-2">
             <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
               <Image src="/seal.svg" alt="Seal of approval" width={14} height={14} />
-              <span>Get cosy</span>
+              <span>Seal of approval</span>
             </div>
           </div>
         ) : null}

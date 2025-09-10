@@ -20,7 +20,7 @@ export function generateMetadata({ params }: Props): Metadata {
       title: c.title,
       description: c.description,
       type: "website",
-      images: [{ url: "/hotel-placeholder.svg", width: 1200, height: 800 }],
+      images: [{ url: "/logo-seal.svg", width: 1200, height: 800 }],
     },
   };
 }
@@ -50,11 +50,11 @@ export default function CollectionPage({ params }: Props) {
           {results.map((h) => (
             <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border brand-border overflow-hidden hover:shadow-md bg-white">
               <div className="relative aspect-[4/3] bg-zinc-100">
-                <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" />
+                <Image src={h.image || "/logo-seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" />
                 {h._cosy >= 7 ? (
                   <div className="absolute left-2 bottom-2">
                     <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
-                      <span>Get cosy</span>
+                      <span>Seal of approval</span>
                     </div>
                   </div>
                 ) : null}

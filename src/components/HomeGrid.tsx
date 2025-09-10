@@ -68,7 +68,7 @@ export default function HomeGrid({ locale }: Props) {
         <Tile key={h.slug} className="md:col-span-6" style={{ gridColumn: 'span 12', gridRow: 'span 3' }}>
           <Link href={`/${locale}/hotels/${h.slug}`} className="block">
             <div className="relative md:h-[calc(var(--row)*2)] bg-zinc-100">
-              <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+              <Image src="/logo-seal.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between">
@@ -87,7 +87,7 @@ export default function HomeGrid({ locale }: Props) {
         <Tile key={h.slug} className="md:col-span-3" style={{ gridColumn: 'span 12', gridRow: 'span 2' }}>
           <Link href={`/${locale}/hotels/${h.slug}`} className="block">
             <div className="relative md:h-[calc(var(--row)*1.2)] bg-zinc-100">
-              <Image src="/hotel-placeholder.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
+              <Image src="/logo-seal.svg" alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
             </div>
             <div className="p-3">
               <div className="flex items-center justify-between">

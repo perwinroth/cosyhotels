@@ -72,7 +72,7 @@ async function Results({
   const curated = await Promise.all(mergedResults.map(async (h) => ({
     ...h,
     _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
-    _img: h.image || (await getImageForHotel(h.name, h.city, 800, h.slug, h.id)) || "/hotel-placeholder.svg",
+    _img: h.image || (await getImageForHotel(h.name, h.city, 800, h.slug, h.id)) || "/logo-seal.svg",
   })));
 
   // Google Places augmentation
@@ -89,7 +89,7 @@ async function Results({
     description: r.formatted_address || "",
     affiliateUrl: "",
     _cosy: adhocCosyScore({ rating: r.rating, summary: r.formatted_address, name: r.name }),
-    _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/hotel-placeholder.svg",
+    _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/logo-seal.svg",
   });
   if (city) {
     const data = await searchText(`cosy boutique hotel in ${city}`);
