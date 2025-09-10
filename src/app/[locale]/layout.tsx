@@ -44,7 +44,7 @@ export default async function LocaleLayout({
             <Link href={`/${locale}`} className="flex items-center gap-2 font-semibold tracking-tight">
               <Image src="/seal.svg" alt={site.name} width={40} height={40} priority />
               <span className="sr-only">{site.name}</span>
-              <span aria-hidden className="text-sm font-medium text-emerald-700">Get cosy</span>
+              <span aria-hidden className="text-lg font-semibold uppercase tracking-wide text-emerald-700">Get cosy</span>
             </Link>
             <nav className="flex gap-4 text-sm items-center">
               <Link href={`/${locale}/collections`} className="hover:underline">{m.nav.collections}</Link>

@@ -66,7 +66,15 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
           <div className="flex gap-2">
             <Link href={href} onClick={(e) => e.stopPropagation()} className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50">Details</Link>
             {goHref && (
-              <a href={goHref} onClick={(e) => e.stopPropagation()} target="_blank" rel="noopener nofollow sponsored" className="text-sm px-3 py-1.5 rounded-full border brand-border bg-zinc-900 text-white hover:bg-zinc-800">Visit site</a>
+              <a
+                href={goHref}
+                onClick={(e) => e.stopPropagation()}
+                target="_blank"
+                rel="noopener nofollow sponsored"
+                className="text-sm px-3 py-1.5 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 border border-transparent"
+              >
+                Visit site
+              </a>
             )}
           </div>
           <div />
