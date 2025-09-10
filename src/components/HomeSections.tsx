@@ -69,24 +69,6 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         </button>
         {open && (
           <div className="absolute right-0 mt-1 z-30 w-[300px] rounded-lg border border-zinc-200 bg-white shadow p-3">
-            <div className="text-sm font-medium mb-2">Cosy rank</div>
-            <div className="flex flex-col gap-1 text-sm mb-3">
-              {[
-                { label: "High", value: "high" },
-                { label: "Mid", value: "mid" },
-                { label: "Low", value: "low" },
-              ].map((r) => (
-                <label key={r.value} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="rank"
-                    checked={values.rank === r.value}
-                    onChange={() => update({ rank: r.value })}
-                  />
-                  <span>{r.label}</span>
-                </label>
-              ))}
-            </div>
             <div className="text-sm font-medium mb-2">Sort by</div>
             <div className="flex flex-col gap-1 text-sm mb-3">
               {[
