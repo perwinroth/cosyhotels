@@ -2,11 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { hotels } from "@/data/hotels";
 import { hotelAffiliateUrl, type Provider } from "@/lib/affiliates";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getDetails } from "@/lib/places";
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const hotel = hotels.find((h) => h.slug === id || h.id === id);
-  if (!hotel) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!hotel) {
+    // Treat id as Google Place ID: try to resolve website; fallback to Google Maps place URL
+    try {
+      const d = await getDetails(id);
+      if (d?.website) return NextResponse.redirect(d.website, { status: 302 });
+    } catch {}
+    return NextResponse.redirect(`https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(id)}`, { status: 302 });
+  }
 
   // Optional: Accept provider and clickId
   const url = new URL(req.url);
