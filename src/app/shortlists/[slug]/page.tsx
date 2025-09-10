@@ -45,7 +45,7 @@ export default async function ShortlistPage({ params }: { params: { slug: string
               <Image src={h.image || "/logo-seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} />
               {h._cosy >= 7 ? (
                 <div className="absolute left-2 bottom-2">
-                  <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
+                  <div className="flex items-center gap-1 bg-[#0EA5A4] text-white text-xs px-3 py-1 rounded-full shadow">
                     <Image src="/seal.svg" alt="seal" width={14} height={14} />
                     <span>Seal of approval</span>
                   </div>

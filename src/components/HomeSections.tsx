@@ -5,7 +5,6 @@ import { shimmer } from "@/lib/image";
 import { hotels, destinations, Hotel } from "@/data/hotels";
 import { cosyScore, cosyRankLabel, cosyBadgeClass } from "@/lib/scoring/cosy";
 import { useState } from "react";
-import SaveToShortlistButton from "@/components/SaveToShortlistButton";
 import { useRouter } from "next/navigation";
 
 export function SearchBar({ locale = "en" }: { locale?: string }) {
@@ -43,7 +42,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         <option value="low">Low</option>
       </select>
       <button
-        className="rounded-lg bg-black text-white px-4 py-2 hover:bg-black/90 active:translate-y-[1px] active:bg-black/80 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="rounded-lg bg-[#0EA5A4] text-white px-4 py-2 hover:bg-[#0B807F] active:translate-y-[1px] active:bg-[#0B807F] disabled:opacity-60 disabled:cursor-not-allowed"
         disabled={submitting}
       >
         {submitting ? "Searching…" : "Search"}
@@ -92,7 +91,7 @@ export function HotelCard({ hotel, locale = "en" }: { hotel: Hotel; locale?: str
         <Image src={hotel.image || "/logo-seal.svg"} alt={`${hotel.name} – ${hotel.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
         {cosy >= 6.5 ? (
           <div className="absolute -left-3 top-4 rotate-[-15deg]">
-            <div className="flex items-center gap-1 bg-emerald-600 text-white text-xs px-3 py-1 rounded-full shadow">
+            <div className="flex items-center gap-1 bg-[#0EA5A4] text-white text-xs px-3 py-1 rounded-full shadow">
               <Image src="/seal.svg" alt="seal" width={14} height={14} />
               <span>Seal of approval</span>
             </div>
@@ -110,9 +109,7 @@ export function HotelCard({ hotel, locale = "en" }: { hotel: Hotel; locale?: str
           <div className="text-sm text-black">{hotel.city}</div>
           <div className="mt-3 text-sm font-medium brand-price">From ${hotel.price}/night</div>
         </div>
-        <div className="mt-auto pt-4 flex justify-end">
-          <SaveToShortlistButton itemSlug={hotel.slug} className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50" />
-        </div>
+        <div className="mt-auto pt-4" />
       </div>
     </Link>
   );

@@ -55,11 +55,11 @@ export default async function HotelDetail({ params }: Props) {
               <div className="text-sm text-zinc-600">Cosy score</div>
               <div className="text-2xl font-semibold">{cosy.toFixed(1)}<span className="text-base text-zinc-500">/10</span></div>
             </div>
-            <a href={`/${params.locale}/cosy-score`} className="text-sm text-zinc-600 hover:underline">How it’s calculated</a>
+            <span />
           </div>
         </div>
         <div className="mt-5">
-          <a className="inline-flex items-center justify-center rounded-lg bg-zinc-900 text-white px-4 py-2 hover:bg-zinc-800" href={`/${params.locale}/hotels`}>
+          <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
             Back to results
           </a>
         </div>
@@ -93,7 +93,7 @@ export default async function HotelDetail({ params }: Props) {
             <div className="text-sm text-zinc-600">Cosy score</div>
             <div className="text-2xl font-semibold">{cosy.toFixed(1)}<span className="text-base text-zinc-500">/10</span></div>
           </div>
-          <a href={`/${params.locale}/cosy-score`} className="text-sm text-zinc-600 hover:underline">How it’s calculated</a>
+          <span />
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
           <div>
