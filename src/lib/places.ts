@@ -91,6 +91,8 @@ export async function getDetails(placeId: string): Promise<PlaceDetails | null> 
 }
 
 export function photoUrl(ref: string, maxwidth = 800) {
+  // If no API key, return placeholder to avoid broken images in production
+  if (!process.env.GOOGLE_MAPS_API_KEY) return "/hotel-placeholder.svg";
   // Use our proxy endpoint so the API key stays server-side
   return `/api/places/photo?ref=${encodeURIComponent(ref)}&maxwidth=${maxwidth}`;
 }

@@ -4,7 +4,6 @@ import { shimmer } from "@/lib/image";
 import { hotels as baseHotels } from "@/data/hotels";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import { cosyBadgeClass, cosyScore } from "@/lib/scoring/cosy";
-import SaveToShortlistButton from "@/components/SaveToShortlistButton";
 import ShareButton from "@/components/ShareButton";
 import ShortlistLocalFallback from "@/components/ShortlistLocalFallback";
 import EditShortlistMeta from "@/components/EditShortlistMeta";
@@ -63,9 +62,7 @@ export default async function ShortlistPage({ params }: { params: { slug: string
                 <div className="text-sm text-black">{h.city}</div>
                 <div className="mt-3 text-sm font-medium brand-price">From ${h.price}/night</div>
               </div>
-              <div className="mt-auto pt-4 flex justify-end">
-                <SaveToShortlistButton itemSlug={h.slug} className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50" />
-              </div>
+              <div className="mt-auto pt-4 flex justify-end"></div>
             </div>
           </Link>
         ))}

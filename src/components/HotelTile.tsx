@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { cosyBadgeClass } from "@/lib/scoring/cosy";
-import SaveToShortlistButton from "@/components/SaveToShortlistButton";
 import { useRouter } from "next/navigation";
 
 export type TileHotel = {
@@ -70,9 +69,7 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
               <a href={goHref} onClick={(e) => e.stopPropagation()} target="_blank" rel="noopener nofollow sponsored" className="text-sm px-3 py-1.5 rounded-full border brand-border bg-zinc-900 text-white hover:bg-zinc-800">Visit site</a>
             )}
           </div>
-          <span onClick={(e) => e.stopPropagation()}>
-            <SaveToShortlistButton itemSlug={h.slug} className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50" />
-          </span>
+          <div />
         </div>
       </div>
     </div>
