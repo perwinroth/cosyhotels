@@ -6,7 +6,7 @@ import { hotels, destinations, Hotel } from "@/data/hotels";
 import { cosyScore, cosyRankLabel, cosyBadgeClass } from "@/lib/scoring/cosy";
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+/* removed duplicate useRouter import */
 
 export function SearchBar({ locale = "en" }: { locale?: string }) {
   const [city, setCity] = useState("");
