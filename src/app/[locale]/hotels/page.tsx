@@ -136,14 +136,17 @@ async function Results({
             goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
           />
         );
-        return (
-          <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
-            <div className="col-span-full sr-only" aria-live="polite">
-              Top 9 cosy places worldwide (weekly)
+        if (top.length >= 9) {
+          return (
+            <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+              <div className="col-span-full sr-only" aria-live="polite">
+                Top 9 cosy places worldwide (weekly)
+              </div>
+              {top.map(renderTop)}
             </div>
-            {top.map(renderTop)}
-          </div>
-        );
+          );
+        }
+        // If fewer than 9 found in Supabase, fall back to dynamic build below
       }
     }
   }

@@ -94,3 +94,8 @@ export async function POST() {
 
   return NextResponse.json({ scanned, upserted });
 }
+
+export async function GET() {
+  // Convenience: allow triggering from browser for testing
+  return POST();
+}
