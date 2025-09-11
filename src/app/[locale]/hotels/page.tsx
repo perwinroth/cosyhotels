@@ -85,8 +85,20 @@ async function Results({
         .order("score", { ascending: false })
         .limit(9);
       if (!error && data && data.length) {
+        // Ensure we return exactly 9: fill from next-best if <9 meet ≥7
+        let rows = (data as unknown as DBRow[]);
+        if (rows.length < 9) {
+          const { data: fill } = await supabase
+            .from("cosy_scores")
+            .select("score, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)")
+            .lt("score", 7)
+            .order("score", { ascending: false })
+            .limit(9 - rows.length);
+          if (fill) rows = rows.concat(fill as unknown as DBRow[]);
+        }
+
         const top = (await Promise.all(
-          (data as unknown as DBRow[])
+          rows
             .map(async (r) => {
               const h = (Array.isArray(r.hotel) ? r.hotel[0] : r.hotel) as DBHotel | null;
               if (!h) return null;

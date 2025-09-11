@@ -4,10 +4,23 @@ import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
 import slugify from "slugify";
 
-const CITIES = [
-  "Paris","London","New York","Tokyo","Rome","Barcelona","Lisbon","Copenhagen","Amsterdam","Vienna",
-  "Berlin","Prague","Budapest","Stockholm","Oslo","Helsinki","Zurich","Milan","Madrid","Seoul",
-  "Sydney","Melbourne","Auckland","Cape Town","Istanbul","Athens","Dublin","Edinburgh","Reykjavik","Toronto",
+// A diverse set of seed queries across languages to cast a wide global net
+const QUERIES = [
+  "cosy boutique hotel",
+  "cozy boutique hotel",
+  "charming hotel",
+  "romantic hotel",
+  "hygge hotel",
+  "boutique hotel cosy",
+  // Localized synonyms
+  "hôtel de charme",
+  "hotel con encanto",
+  "hotel romantico",
+  "hotel romântico",
+  "gemütliches hotel",
+  "koseligt hotel",
+  "mysigt hotell",
+  "hyggelig hotel",
 ];
 
 export async function POST() {
@@ -18,22 +31,26 @@ export async function POST() {
   const seen = new Set<string>();
   let upserted = 0;
   let scanned = 0;
-  for (const city of CITIES) {
-    const data = await searchText(`cosy boutique hotel in ${city}`);
-    for (const r of data.results.slice(0, 20)) {
-      if (seen.has(r.place_id)) continue;
-      seen.add(r.place_id);
-      scanned++;
-      const d = await getDetails(r.place_id);
-      if (!d) continue;
-      const slug = slugify(d.name || r.place_id, { lower: true, strict: true });
-      const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
-      const cityName = parts.length >= 2 ? parts[parts.length - 2] : city;
-      const country = parts.length ? parts[parts.length - 1] : '';
-      const summary = d.editorial_summary?.overview || d.formatted_address || '';
-      const am: string[] = [];
-      const sLower = summary.toLowerCase();
-      if (sLower.includes("spa")) am.push("Spa");
+  for (const q of QUERIES) {
+    let page: string | undefined = undefined;
+    for (let i = 0; i < 3; i++) {
+      const data = await searchText(q, page);
+      page = data.next_page_token;
+      const batch = (data.results || []).slice(0, 20);
+      for (const r of batch) {
+        if (seen.has(r.place_id)) continue;
+        seen.add(r.place_id);
+        scanned++;
+        const d = await getDetails(r.place_id);
+        if (!d) continue;
+        const slug = slugify(d.name || r.place_id, { lower: true, strict: true });
+        const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
+        const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
+        const country = parts.length ? parts[parts.length - 1] : '';
+        const summary = d.editorial_summary?.overview || d.formatted_address || '';
+        const am: string[] = [];
+        const sLower = summary.toLowerCase();
+        if (sLower.includes("spa")) am.push("Spa");
       if (sLower.includes("sauna")) am.push("Sauna");
       if (sLower.includes("fireplace")) am.push("Fireplace");
       if (sLower.includes("bath")) am.push("Bathtub");
@@ -70,6 +87,8 @@ export async function POST() {
       const score = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${summary}` });
       await supabase.from("cosy_scores").upsert({ hotel_id: hotel.id, score, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
       upserted++;
+      }
+      if (!page) break;
     }
   }
 
