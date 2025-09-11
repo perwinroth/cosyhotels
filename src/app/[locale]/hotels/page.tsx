@@ -67,19 +67,17 @@ async function Results({
   if (!city) {
     const supabase = getServerSupabase();
     if (supabase) {
-      type TopRow = {
-        score: number;
-        hotel: {
-          id: string;
-          slug: string;
-          name: string;
-          city: string;
-          country: string | null;
-          rating: number | null;
-          price: number | null;
-          affiliate_url: string | null;
-        } | null;
+      type DBHotel = {
+        id: string;
+        slug: string;
+        name: string;
+        city: string;
+        country: string | null;
+        rating: number | null;
+        price: number | null;
+        affiliate_url: string | null;
       };
+      type DBRow = { score: number; hotel: DBHotel | DBHotel[] | null };
       const { data, error } = await supabase
         .from("cosy_scores")
         .select("score, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)")
@@ -87,24 +85,27 @@ async function Results({
         .order("score", { ascending: false })
         .limit(9);
       if (!error && data && data.length) {
-        const top = await Promise.all(
-          (data as TopRow[])
-            .filter((r) => r.hotel)
+        const top = (await Promise.all(
+          (data as unknown as DBRow[])
             .map(async (r) => {
-              const h = r.hotel!;
+              const h = (Array.isArray(r.hotel) ? r.hotel[0] : r.hotel) as DBHotel | null;
+              if (!h) return null;
               return {
-                slug: h.slug,
-                name: h.name,
-                city: h.city,
-                country: h.country || "",
-                rating: h.rating ?? 0,
-                price: typeof h.price === "number" ? h.price : NaN,
-                _cosy: r.score,
-                _img: (await getImageForHotel(h.name, h.city, 800, h.slug, h.id)) || "/logo-seal.svg",
-                affiliateUrl: h.affiliate_url || "",
+                slug: String(h.slug),
+                name: String(h.name),
+                city: String(h.city || ''),
+                country: (h.country as string | null) || "",
+                rating: typeof h.rating === 'number' ? h.rating : 0,
+                price: typeof h.price === 'number' ? h.price : NaN,
+                _cosy: Number(r.score) || 0,
+                _img: (await getImageForHotel(h.name as string, h.city as string, 800, h.slug as string, h.id as string)) || "/logo-seal.svg",
+                affiliateUrl: (h.affiliate_url as string | null) || "",
               };
             })
-        );
+        ))
+        .filter(Boolean) as Array<{
+          slug: string; name: string; city: string; country: string; rating: number; price: number; _cosy: number; _img: string; affiliateUrl: string;
+        }>;
         const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
         const renderTop = (h: typeof top[number]) => (
           <HotelTile
