@@ -36,10 +36,31 @@ const REGIONS = [
   "Pacific Northwest","Yucatán","Yosemite","Dolomites","Tatra","Cotswolds","Lake District","Highlands","Sicily","Sardinia",
 ];
 
-// Limits to avoid exhausting API quotas in a single run
-const MAX_SCANNED = 900; // total place ids to evaluate per run
-const PAGES_GENERAL = 3; // pages to fetch for each general query
-const PAGES_REGION = 2;  // pages to fetch for each region-qualified query
+// Limits to avoid exhausting API quotas in a single run (raised per request)
+const MAX_SCANNED = 5000; // total place ids to evaluate per run
+const PAGES_GENERAL = 4;  // pages to fetch for each general query
+const PAGES_REGION = 3;   // pages to fetch for each region-qualified query
+const PAGES_COUNTRY = 2;  // pages to fetch for each country-qualified query
+
+// Broad country list to increase global coverage
+const COUNTRIES = [
+  // Europe
+  "France","Spain","Italy","Portugal","Germany","United Kingdom","Ireland","Netherlands","Belgium","Luxembourg",
+  "Switzerland","Austria","Denmark","Sweden","Norway","Finland","Iceland","Czechia","Poland","Hungary",
+  "Slovakia","Slovenia","Croatia","Bosnia and Herzegovina","Serbia","Montenegro","Albania","Greece","Turkey",
+  "Romania","Bulgaria","Moldova","Ukraine","Lithuania","Latvia","Estonia","Malta","Cyprus",
+  // Americas
+  "United States","Canada","Mexico","Costa Rica","Panama","Jamaica","Dominican Republic","Brazil","Argentina","Chile",
+  "Peru","Colombia","Ecuador","Uruguay",
+  // Africa
+  "Morocco","Tunisia","Egypt","South Africa","Kenya","Tanzania","Namibia",
+  // Middle East & Asia
+  "United Arab Emirates","Israel","Jordan","Lebanon","Saudi Arabia",
+  "Japan","South Korea","China","Taiwan","Thailand","Vietnam","Cambodia","Laos","Malaysia","Singapore","Indonesia","Philippines",
+  "India","Sri Lanka","Nepal",
+  // Oceania
+  "Australia","New Zealand",
+];
 
 export async function POST() {
   const supabase = getServerSupabase();
@@ -128,6 +149,14 @@ export async function POST() {
     for (const q of QUERIES.slice(0, 4)) { // top few to limit permutations
       if (shouldStop()) break;
       await fetchQuery(`${q} in ${region}`, PAGES_REGION);
+    }
+  }
+  // 3) Country-qualified queries (e.g., "cozy boutique hotel in Japan")
+  for (const country of COUNTRIES) {
+    if (shouldStop()) break;
+    for (const q of QUERIES.slice(0, 3)) { // most productive variants
+      if (shouldStop()) break;
+      await fetchQuery(`${q} in ${country}`, PAGES_COUNTRY);
     }
   }
 
