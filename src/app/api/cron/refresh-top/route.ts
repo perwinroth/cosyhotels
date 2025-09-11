@@ -6,22 +6,40 @@ import slugify from "slugify";
 
 // A diverse set of seed queries across languages to cast a wide global net
 const QUERIES = [
+  // English
   "cosy boutique hotel",
   "cozy boutique hotel",
-  "charming hotel",
-  "romantic hotel",
-  "hygge hotel",
-  "boutique hotel cosy",
+  "charming boutique hotel",
+  "romantic boutique hotel",
+  "small cosy hotel",
+  "intimate boutique hotel",
   // Localized synonyms
   "hôtel de charme",
+  "hôtel cosy",
   "hotel con encanto",
   "hotel romantico",
   "hotel romântico",
   "gemütliches hotel",
+  "kleines gemütliches hotel",
   "koseligt hotel",
   "mysigt hotell",
   "hyggelig hotel",
+  "accogliente hotel",
+  "boutique hotel acogedor",
 ];
+
+// Regions and areas to expand coverage beyond major cities
+const REGIONS = [
+  "Europe","Asia","North America","South America","Africa","Oceania","Caribbean","Mediterranean","Alps",
+  "Scandinavia","Baltics","Balkans","Iberia","British Isles","Middle East","Southeast Asia","East Asia","Central Europe",
+  "Benelux","Andes","Patagonia","Riviera","Tuscany","Provence","Peloponnese","Aegean","Adriatic","New England",
+  "Pacific Northwest","Yucatán","Yosemite","Dolomites","Tatra","Cotswolds","Lake District","Highlands","Sicily","Sardinia",
+];
+
+// Limits to avoid exhausting API quotas in a single run
+const MAX_SCANNED = 900; // total place ids to evaluate per run
+const PAGES_GENERAL = 3; // pages to fetch for each general query
+const PAGES_REGION = 2;  // pages to fetch for each region-qualified query
 
 export async function POST() {
   const supabase = getServerSupabase();
@@ -31,13 +49,18 @@ export async function POST() {
   const seen = new Set<string>();
   let upserted = 0;
   let scanned = 0;
-  for (const q of QUERIES) {
+  const shouldStop = () => scanned >= MAX_SCANNED;
+
+  // Helper to fetch several pages for a query
+  async function fetchQuery(q: string, pages: number) {
     let page: string | undefined = undefined;
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < pages; i++) {
+      if (shouldStop()) return;
       const data = await searchText(q, page);
       page = data.next_page_token;
       const batch = (data.results || []).slice(0, 20);
       for (const r of batch) {
+        if (shouldStop()) break;
         if (seen.has(r.place_id)) continue;
         seen.add(r.place_id);
         scanned++;
@@ -86,9 +109,25 @@ export async function POST() {
 
       const score = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${summary}` });
       await supabase.from("cosy_scores").upsert({ hotel_id: hotel.id, score, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
-      upserted++;
+        upserted++;
       }
       if (!page) break;
+      // Small delay helps next_page_token activate and spreads out API usage
+      await new Promise((res) => setTimeout(res, 1500));
+    }
+  }
+
+  // 1) Broad global queries
+  for (const q of QUERIES) {
+    if (shouldStop()) break;
+    await fetchQuery(q, PAGES_GENERAL);
+  }
+  // 2) Region-qualified queries (e.g., "cosy boutique hotel in Alps")
+  for (const region of REGIONS) {
+    if (shouldStop()) break;
+    for (const q of QUERIES.slice(0, 4)) { // top few to limit permutations
+      if (shouldStop()) break;
+      await fetchQuery(`${q} in ${region}`, PAGES_REGION);
     }
   }
 
