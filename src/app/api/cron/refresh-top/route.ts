@@ -71,6 +71,7 @@ export async function POST() {
   const seen = new Set<string>();
   let upserted = 0;
   let scanned = 0;
+  let skipped = 0;
   const shouldStop = () => scanned >= MAX_SCANNED;
 
   // Helper to fetch several pages for a query
@@ -87,7 +88,7 @@ export async function POST() {
         seen.add(r.place_id);
         scanned++;
         const d = await getDetails(r.place_id);
-        if (!d) continue;
+        if (!d) { skipped++; continue; }
         const slug = slugify(d.name || r.place_id, { lower: true, strict: true });
         const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
         const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
@@ -131,7 +132,7 @@ export async function POST() {
 
       const score = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${summary}` });
       await db.from("cosy_scores").upsert({ hotel_id: hotel.id, score, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
-        upserted++;
+      upserted++;
       }
       if (!page) break;
       // Small delay helps next_page_token activate and spreads out API usage
@@ -161,7 +162,9 @@ export async function POST() {
     }
   }
 
-  return NextResponse.json({ scanned, upserted });
+  // Log useful totals to server logs for Vercel
+  try { console.info(JSON.stringify({ refreshTop: { scanned, upserted, skipped } })); } catch {}
+  return NextResponse.json({ scanned, upserted, skipped });
 }
 
 export async function GET() {
