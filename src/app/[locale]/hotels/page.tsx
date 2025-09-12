@@ -184,9 +184,34 @@ async function Results({
     const data = await searchText(`cosy boutique hotel in ${city}`);
     places = (data.results || []).slice(0, 24).map((r) => makePlace(r, city));
   } else {
-    // First page: show the 9 highest cosy ranked worldwide (augment curated with a generic Places query)
-    const data = await searchText("cosy boutique hotel");
-    places = (data.results || []).slice(0, 24).map((r) => makePlace(r));
+    // Front page: broaden queries to avoid regional bias and fetch a diverse global pool
+    const queries = [
+      "cosy boutique hotel",
+      "cozy boutique hotel",
+      "romantic boutique hotel",
+      "hôtel de charme",
+      "hotel con encanto",
+      "gemütliches hotel",
+      "cosy boutique hotel in Europe",
+      "cosy boutique hotel in Asia",
+      "cosy boutique hotel in Japan",
+      "cosy boutique hotel in Italy",
+      "cosy boutique hotel in France",
+      "cosy boutique hotel in Greece",
+      "cosy boutique hotel in Mexico",
+      "cosy boutique hotel in Morocco",
+    ];
+    const batches = await Promise.all(queries.map((q) => searchText(q)));
+    const results = batches.flatMap((b) => (b.results || []));
+    const seenPlace = new Set<string>();
+    const picked: PlaceSearchResult[] = [];
+    for (const r of results) {
+      if (!r.place_id || seenPlace.has(r.place_id)) continue;
+      seenPlace.add(r.place_id);
+      picked.push(r);
+      if (picked.length >= 120) break; // safety cap
+    }
+    places = picked.map((r) => makePlace(r));
   }
 
   // Merge curated + places, de-duplicate by name+city, then optionally filter by rank
