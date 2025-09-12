@@ -7,7 +7,7 @@ import { locales } from "@/i18n/locales";
 import { cosyScore, adhocCosyScore } from "@/lib/scoring/cosy";
 import { getImageForHotel } from "@/lib/hotelImages";
 import HotelTile from "@/components/HotelTile";
-import { searchText, photoUrl } from "@/lib/places";
+import { searchText, photoUrl, getDetails } from "@/lib/places";
 import type { PlaceSearchResult } from "@/lib/places";
 import { getServerSupabase } from "@/lib/supabase/server";
 
