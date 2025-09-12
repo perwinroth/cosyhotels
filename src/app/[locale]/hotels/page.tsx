@@ -186,32 +186,66 @@ async function Results({
   } else {
     // Front page: broaden queries to avoid regional bias and fetch a diverse global pool
     const queries = [
+      // English and localized synonyms
       "cosy boutique hotel",
       "cozy boutique hotel",
+      "charming boutique hotel",
       "romantic boutique hotel",
       "hôtel de charme",
       "hotel con encanto",
       "gemütliches hotel",
+      "koseligt hotel",
+      "mysigt hotell",
+      "hyggelig hotel",
+      // Regional and country qualifiers
       "cosy boutique hotel in Europe",
       "cosy boutique hotel in Asia",
       "cosy boutique hotel in Japan",
       "cosy boutique hotel in Italy",
       "cosy boutique hotel in France",
       "cosy boutique hotel in Greece",
+      "cosy boutique hotel in Spain",
+      "cosy boutique hotel in Portugal",
+      "cosy boutique hotel in Thailand",
+      "cosy boutique hotel in Indonesia",
       "cosy boutique hotel in Mexico",
       "cosy boutique hotel in Morocco",
     ];
+    // Fetch first page for all queries
     const batches = await Promise.all(queries.map((q) => searchText(q)));
-    const results = batches.flatMap((b) => (b.results || []));
+    let results = batches.flatMap((b) => (b.results || []));
+    // If still light on candidates, try a second page for the first few queries
+    if (results.length < 60) {
+      const nexts = await Promise.all(
+        batches
+          .slice(0, 5)
+          .map((b) => (b.next_page_token ? searchText("", b.next_page_token) : Promise.resolve({ results: [] } as { results: PlaceSearchResult[] })))
+      );
+      results = results.concat(nexts.flatMap((n) => n.results || []));
+    }
     const seenPlace = new Set<string>();
     const picked: PlaceSearchResult[] = [];
     for (const r of results) {
       if (!r.place_id || seenPlace.has(r.place_id)) continue;
       seenPlace.add(r.place_id);
       picked.push(r);
-      if (picked.length >= 120) break; // safety cap
+      if (picked.length >= 150) break; // safety cap
     }
-    places = picked.map((r) => makePlace(r));
+    let tmp = picked.map((r) => makePlace(r));
+    // Enrich missing images by fetching details for those without photos
+    tmp = await Promise.all(
+      tmp.map(async (p) => {
+        if (p._img === "/logo-seal.svg") {
+          try {
+            const d = await getDetails(String(p.slug));
+            const ref = d?.photos?.[0]?.photo_reference;
+            if (ref) return { ...p, _img: photoUrl(ref, 800) } as typeof tmp[number];
+          } catch {}
+        }
+        return p;
+      })
+    );
+    places = tmp;
   }
 
   // Merge curated + places, de-duplicate by name+city, then optionally filter by rank
