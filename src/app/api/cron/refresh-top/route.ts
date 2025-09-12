@@ -65,6 +65,7 @@ const COUNTRIES = [
 export async function POST() {
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const db = supabase; // non-null beyond this point
   if (!process.env.GOOGLE_MAPS_API_KEY) return NextResponse.json({ error: "GOOGLE_MAPS_API_KEY not set" }, { status: 500 });
 
   const seen = new Set<string>();
@@ -103,7 +104,7 @@ export async function POST() {
       if (sLower.includes("bar")) am.push("Bar");
       if (sLower.includes("restaurant")) am.push("Restaurant");
 
-      const { data: hotel, error } = await supabase
+      const { data: hotel, error } = await db
         .from("hotels")
         .upsert({
           source: "google-places",
@@ -129,7 +130,7 @@ export async function POST() {
       if (error || !hotel) continue;
 
       const score = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${summary}` });
-      await supabase.from("cosy_scores").upsert({ hotel_id: hotel.id, score, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
+      await db.from("cosy_scores").upsert({ hotel_id: hotel.id, score, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
         upserted++;
       }
       if (!page) break;
