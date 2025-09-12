@@ -4,7 +4,7 @@ import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { hotels, destinations, Hotel } from "@/data/hotels";
 import { cosyScore, cosyRankLabel, cosyBadgeClass } from "@/lib/scoring/cosy";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 /* removed duplicate useRouter import */
 
@@ -15,6 +15,10 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [submitting, setSubmitting] = useState(false);
+  // Reset submitting state whenever URL changes (search completes)
+  useEffect(() => {
+    setSubmitting(false);
+  }, [pathname, searchParams]);
 
   const values = {
     rank: searchParams.get("rank") || "",
@@ -49,6 +53,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         if (city) sp.set("city", city); else sp.delete("city");
         setSubmitting(true);
         router.push(`/${locale}/hotels?${sp.toString()}`);
+        setOpen(false);
       }}
       className="relative grid md:grid-cols-[1fr_auto_auto] gap-3"
     >
