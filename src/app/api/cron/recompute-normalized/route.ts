@@ -4,16 +4,17 @@ import { getServerSupabase } from "@/lib/supabase/server";
 export async function POST() {
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  const db = supabase; // non-null thereafter
 
   // Count all
-  const { count } = await supabase.from("cosy_scores").select("hotel_id", { count: "exact", head: true });
+  const { count } = await db.from("cosy_scores").select("hotel_id", { count: "exact", head: true });
   const n = count || 0;
   if (n === 0) return NextResponse.json({ ok: true, updated: 0 });
 
   // Helper to fetch a single row at an offset (score asc)
   async function getAt(p: number) {
     const off = Math.max(0, Math.min(n - 1, Math.floor(p * (n - 1))));
-    const { data, error } = await supabase.from("cosy_scores").select("raw_score").order("raw_score", { ascending: true }).range(off, off).limit(1);
+    const { data, error } = await db.from("cosy_scores").select("raw_score").order("raw_score", { ascending: true }).range(off, off).limit(1);
     if (error || !data || !data.length) return null;
     const row = data[0] as { raw_score: number | null };
     return row.raw_score;
@@ -28,7 +29,7 @@ export async function POST() {
   let updated = 0;
   for (let off = 0; off < n; off += pageSize) {
     const to = Math.min(n - 1, off + pageSize - 1);
-    const { data, error } = await supabase.from("cosy_scores").select("hotel_id, raw_score").order("raw_score", { ascending: true }).range(off, to);
+    const { data, error } = await db.from("cosy_scores").select("hotel_id, raw_score").order("raw_score", { ascending: true }).range(off, to);
     if (error || !data) continue;
     const ups = (data as Array<{ hotel_id: string; raw_score: number | null }>).map(({ hotel_id, raw_score }) => {
       const raw = typeof raw_score === 'number' ? raw_score : 0;
@@ -46,7 +47,7 @@ export async function POST() {
       return { hotel_id, calibrated_score: calibrated, score: calibrated } as { hotel_id: string; calibrated_score: number; score: number };
     });
     if (ups.length) {
-      const { error: upErr } = await supabase.from("cosy_scores").upsert(ups, { onConflict: "hotel_id" });
+      const { error: upErr } = await db.from("cosy_scores").upsert(ups, { onConflict: "hotel_id" });
       if (!upErr) updated += ups.length;
     }
   }
