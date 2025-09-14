@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
@@ -22,7 +22,7 @@ const COUNTRIES = [
 const MAX_SCANNED = 2000;
 const PAGES = 3;
 
-export async function POST() {
+async function runJob() {
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   if (!process.env.GOOGLE_MAPS_API_KEY) return NextResponse.json({ error: "GOOGLE_MAPS_API_KEY not set" }, { status: 500 });
@@ -111,7 +111,18 @@ export async function POST() {
   }
 
   try { console.info(JSON.stringify({ refreshTopDaily: { scanned, upserted, skipped, day } })); } catch {}
-  return NextResponse.json({ scanned, upserted, skipped, day });
+  return { scanned, upserted, skipped, day };
+}
+
+export async function POST() {
+  after(async () => {
+    try {
+      await runJob();
+    } catch (err) {
+      try { console.error("refresh-top-daily background error", err); } catch {}
+    }
+  });
+  return NextResponse.json({ scheduled: true }, { status: 202 });
 }
 
 export async function GET() { return POST(); }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
@@ -62,7 +62,7 @@ const COUNTRIES = [
   "Australia","New Zealand",
 ];
 
-export async function POST() {
+async function runJob() {
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   const db = supabase; // non-null beyond this point
@@ -164,7 +164,19 @@ export async function POST() {
 
   // Log useful totals to server logs for Vercel
   try { console.info(JSON.stringify({ refreshTop: { scanned, upserted, skipped } })); } catch {}
-  return NextResponse.json({ scanned, upserted, skipped });
+  return { scanned, upserted, skipped };
+}
+
+export async function POST() {
+  // Kick work to background so we return quickly to the caller (Cron)
+  after(async () => {
+    try {
+      await runJob();
+    } catch (err) {
+      try { console.error("refresh-top background error", err); } catch {}
+    }
+  });
+  return NextResponse.json({ scheduled: true }, { status: 202 });
 }
 
 export async function GET() {
