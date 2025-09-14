@@ -59,3 +59,8 @@ export async function POST() {
 
   return NextResponse.json({ processed: updates.length, ms: Date.now() - start });
 }
+
+// Allow triggering from the browser for convenience during setup
+export async function GET() { return POST(); }
+export const runtime = 'nodejs';
+export const maxDuration = 120;

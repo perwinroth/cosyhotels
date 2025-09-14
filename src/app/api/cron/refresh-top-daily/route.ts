@@ -115,4 +115,5 @@ export async function POST() {
 }
 
 export async function GET() { return POST(); }
-
+export const runtime = 'nodejs';
+export const maxDuration = 180; // shorter daily batches

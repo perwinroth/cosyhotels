@@ -103,6 +103,8 @@ async function Results({
             .map(async (r) => {
               const h = (Array.isArray(r.hotel) ? r.hotel[0] : r.hotel) as DBHotel | null;
               if (!h) return null;
+              const staticImg = baseHotels.find((b) => b.slug === h.slug)?.image;
+              const resolvedImg = staticImg || (await getImageForHotel(h.name as string, h.city as string, 800, h.slug as string, h.id as string));
               return {
                 slug: String(h.slug),
                 name: String(h.name),
@@ -111,7 +113,7 @@ async function Results({
                 rating: typeof h.rating === 'number' ? h.rating : 0,
                 price: typeof h.price === 'number' ? h.price : NaN,
                 _cosy: Number(r.score) || 0,
-                _img: (await getImageForHotel(h.name as string, h.city as string, 800, h.slug as string, h.id as string)) || "/seal.svg",
+                _img: resolvedImg || "/seal.svg",
                 affiliateUrl: (h.affiliate_url as string | null) || "",
               };
             })
@@ -340,9 +342,36 @@ async function Results({
     );
   };
 
-  // Front page: show the top 9 worldwide with Seal of approval (cosy >= 7)
+  // Front page: show the top 9 worldwide with Seal of approval (cosy >= 7) and apply diversity guard
   if (!city) filtered.sort((a, b) => b._cosy - a._cosy);
-  const limited = !city ? filtered.filter((h) => h._cosy >= 7.0).slice(0, 9) : filtered;
+  let limited = filtered;
+  if (!city) {
+    const eligible = filtered.filter((h) => h._cosy >= 7.0);
+    const chains = [
+      "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge",
+    ];
+    const brandOf = (name: string) => {
+      const hay = name.toLowerCase();
+      for (const c of chains) if (hay.includes(c)) return c;
+      return "independent";
+    };
+    const perCountry: Record<string, number> = {};
+    const perBrand: Record<string, number> = {};
+    const maxCountry = 3, maxBrand = 2;
+    const pick: typeof eligible = [];
+    for (const h of eligible) {
+      const country = ("country" in h ? (h as { country?: string }).country : undefined) || '';
+      const brand = brandOf(h.name);
+      const cCount = perCountry[country] || 0;
+      const bCount = perBrand[brand] || 0;
+      if (cCount >= maxCountry || bCount >= maxBrand) continue;
+      pick.push(h);
+      perCountry[country] = cCount + 1;
+      perBrand[brand] = bCount + 1;
+      if (pick.length >= 9) break;
+    }
+    limited = pick.length >= 9 ? pick : eligible.slice(0, 9);
+  }
 
   // Flat list; if empty (with city), show fallback top cosy curated
   if (limited.length === 0) {

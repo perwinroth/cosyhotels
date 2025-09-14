@@ -171,3 +171,5 @@ export async function GET() {
   // Convenience: allow triggering from browser for testing
   return POST();
 }
+export const runtime = 'nodejs';
+export const maxDuration = 300; // allow up to 5 minutes for broad sweeps
