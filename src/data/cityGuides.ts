@@ -26,12 +26,12 @@ export const cityGuides: CityGuide[] = [
   { city: 'Queenstown', region: 'Asia-Pacific', slug: toSlug('Queenstown') },
   { city: 'Sydney', region: 'Asia-Pacific', slug: toSlug('Sydney') },
   { city: 'Tokyo', region: 'Asia-Pacific', slug: toSlug('Tokyo') },
-  // Other romantic/boutique spots
-  { city: 'Reykjavik', region: 'Other', slug: toSlug('Reykjavik') },
-  { city: 'Lucerne', region: 'Other', slug: toSlug('Lucerne') },
-  { city: 'Salzburg', region: 'Other', slug: toSlug('Salzburg') },
-  { city: 'Porto', region: 'Other', slug: toSlug('Porto') },
-  { city: 'Dubrovnik', region: 'Other', slug: toSlug('Dubrovnik') },
+  // Additional romantic/boutique spots in Europe
+  { city: 'Reykjavik', region: 'Europe', slug: toSlug('Reykjavik') },
+  { city: 'Lucerne', region: 'Europe', slug: toSlug('Lucerne') },
+  { city: 'Salzburg', region: 'Europe', slug: toSlug('Salzburg') },
+  { city: 'Porto', region: 'Europe', slug: toSlug('Porto') },
+  { city: 'Dubrovnik', region: 'Europe', slug: toSlug('Dubrovnik') },
 ];
 
 export function getCityGuide(slug: string): CityGuide | undefined {
