@@ -51,6 +51,9 @@ export default async function HotelDetail({ params }: Props) {
         </div>
       </div>
       <div className="mt-5 flex items-center gap-3">
+        <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
+          Back to results
+        </a>
         <a
           className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-4 py-2 hover:bg-zinc-50"
           href={`/go/${params.slug}`}
@@ -58,9 +61,6 @@ export default async function HotelDetail({ params }: Props) {
           rel="noopener nofollow sponsored"
         >
           Visit website →
-        </a>
-        <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
-          Back to results
         </a>
       </div>
     </div>
