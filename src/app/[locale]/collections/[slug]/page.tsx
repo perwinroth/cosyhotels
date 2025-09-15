@@ -25,7 +25,7 @@ export function generateMetadata({ params }: Props): Metadata {
   };
 }
 
-type WithCosy<T> = T & { _cosy: number };
+// Using explicit row types from Supabase queries
 
 export default async function CollectionPage({ params }: Props) {
   const c = getCollection(params.slug);
@@ -51,16 +51,20 @@ export default async function CollectionPage({ params }: Props) {
   }
   const { data: rows, error } = await query.limit(60);
   if (error) return <div className="mx-auto max-w-6xl px-4 py-8">Error loading collection.</div>;
-  const ids = (rows || []).map((r) => r.id);
+  type HotelRow = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; amenities?: string[] | null };
+  type ScoreRow = { hotel_id: string; score: number | null };
+  const typedRows = (rows || []) as unknown as HotelRow[];
+  const ids = typedRows.map((r) => r.id);
   let scoreMap = new Map<string, number>();
   if (ids.length) {
     const { data: scores } = await supabase
       .from("cosy_scores")
       .select("hotel_id,score")
       .in("hotel_id", ids);
-    scoreMap = new Map((scores || []).map((s: any) => [String(s.hotel_id), Number(s.score) || 0]));
+    const typedScores = (scores || []) as unknown as ScoreRow[];
+    scoreMap = new Map(typedScores.map((s) => [String(s.hotel_id), Number(s.score || 0)]));
   }
-  const results = (rows || []).map((h: any) => ({
+  const results = typedRows.map((h) => ({
     slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: scoreMap.get(String(h.id)) || 0,
   }));
   return (

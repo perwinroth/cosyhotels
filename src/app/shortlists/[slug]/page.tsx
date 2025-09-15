@@ -23,16 +23,20 @@ export default async function ShortlistPage({ params }: { params: { slug: string
       .from("hotels")
       .select("id,slug,name,city,country,rating,price")
       .in("slug", items);
-    const ids = (rows || []).map((r) => r.id);
+    type HotelRow = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null };
+    type ScoreRow = { hotel_id: string; score: number | null };
+    const typedRows = (rows || []) as unknown as HotelRow[];
+    const ids = typedRows.map((r) => r.id);
     let scoreMap = new Map<string, number>();
     if (ids.length) {
       const { data: scores } = await supabase
         .from("cosy_scores")
         .select("hotel_id,score")
         .in("hotel_id", ids);
-      scoreMap = new Map((scores || []).map((s) => [String((s as any).hotel_id), Number((s as any).score) || 0]));
+      const typedScores = (scores || []) as unknown as ScoreRow[];
+      scoreMap = new Map(typedScores.map((s) => [String(s.hotel_id), Number(s.score || 0)]));
     }
-    withCosy = (rows || []).map((h) => ({
+    withCosy = typedRows.map((h) => ({
       slug: String(h.slug),
       name: String(h.name),
       city: String(h.city || ''),
