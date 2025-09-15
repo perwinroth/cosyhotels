@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { guides } from "@/data/guides";
+import { cityGuides } from "@/data/cityGuides";
 import { locales } from "@/i18n/locales";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
@@ -23,6 +24,12 @@ export default function GuidesIndex({ params }: { params: { locale: string } }) 
           <Link key={g.slug} href={`/${params.locale}/guides/${g.slug}`} className="block rounded-xl border border-zinc-200 p-4 hover:shadow-sm">
             <h2 className="font-medium">{g.title}</h2>
             <p className="text-sm text-zinc-600 mt-1">{g.excerpt}</p>
+          </Link>
+        ))}
+        {cityGuides.map((c) => (
+          <Link key={c.slug} href={`/${params.locale}/guides/${c.slug}`} className="block rounded-xl border border-zinc-200 p-4 hover:shadow-sm">
+            <h2 className="font-medium">{c.city} cosy hotels</h2>
+            <p className="text-sm text-zinc-600 mt-1">9 handpicked cosy and romantic stays in {c.city}.</p>
           </Link>
         ))}
       </div>
