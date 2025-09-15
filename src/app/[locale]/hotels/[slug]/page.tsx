@@ -9,7 +9,6 @@ import { site } from "@/config/site";
 import { fetchOverrideFor, applyOverride } from "@/lib/overrides";
 import { locales } from "@/i18n/locales";
 import { cosyScore, amenitiesScore, keywordSentiment, scalePenalty, adhocCosyScore } from "@/lib/scoring/cosy";
-import { getServerSupabase } from "@/lib/supabase/server";
 
 type Props = { params: { slug: string; locale: string } };
 
@@ -23,24 +22,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const ogImg = "/logo-seal.svg";
     return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: ogImg, width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description, images: [ogImg] } };
   }
-  // Prefer Supabase hotel metadata when available
-  try {
-    const supabase = getServerSupabase();
-    if (supabase) {
-      const { data: dbHotel } = await supabase
-        .from("hotels")
-        .select("id,slug,name,city,country,rating,price,affiliate_url,website")
-        .eq("slug", params.slug)
-        .single();
-      if (dbHotel) {
-        const title = `${dbHotel.name} – ${dbHotel.city || ''} | ${site.name}`;
-        const description = `${dbHotel.city || ''}${dbHotel.country ? ', ' + dbHotel.country : ''}`.trim() || "Cosy boutique stay.";
-        const url = `/${params.locale}/hotels/${params.slug}`;
-        const ogImg = "/logo-seal.svg";
-        return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: ogImg, width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description, images: [ogImg] } };
-      }
-    }
-  } catch {}
   const d = await getDetails(params.slug);
   if (d) {
     const title = `${d.name} | ${site.name}`;
@@ -56,79 +37,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function HotelDetail({ params }: Props) {
   const base = hotels.find((h) => h.slug === params.slug);
   if (!base) {
-    // Prefer Supabase hotel content before falling back to Google Places
-    try {
-      const supabase = getServerSupabase();
-      if (supabase) {
-        const { data: dbHotel } = await supabase
-          .from("hotels")
-          .select("id,slug,name,city,country,rating,price,affiliate_url,amenities,description")
-          .eq("slug", params.slug)
-          .single();
-        if (dbHotel) {
-          const cosy = cosyScore({ rating: typeof dbHotel.rating === 'number' ? dbHotel.rating : undefined, amenities: (dbHotel.amenities as string[]) || [], description: (dbHotel.description as string) || '' });
-          const img = (await getImageForHotel(String(dbHotel.name), String(dbHotel.city || ''), 1200, String(dbHotel.slug), String(dbHotel.id))) || "/logo-seal.svg";
-          const parts = {
-            rating: Math.min(5, ((typeof dbHotel.rating === 'number' ? dbHotel.rating : 8) / 10) * 5),
-            amen: amenitiesScore(((dbHotel.amenities as string[]) || [])),
-            desc: keywordSentiment(((dbHotel.description as string) || '')) * 2,
-            scale: scalePenalty(undefined),
-          };
-          return (
-            <div className="mx-auto max-w-3xl px-4 py-8">
-              <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
-                <Image src={img} alt={`${dbHotel.name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
-              </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight">{dbHotel.name}</h1>
-              <div className="mt-1 text-zinc-600">{[dbHotel.city, dbHotel.country].filter(Boolean).join(', ')}</div>
-              <div className="mt-3 flex items-center gap-2 text-sm">
-                {typeof dbHotel.price === 'number' && <span>From ${dbHotel.price}/night</span>}
-              </div>
-              <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy.toFixed(1)} out of 10`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm text-zinc-600">Cosy score</div>
-                    <div className="text-2xl font-semibold">{cosy.toFixed(1)}<span className="text-base text-zinc-500">/10</span></div>
-                  </div>
-                  <span />
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <div className="flex justify-between"><span>Overall rating</span><span>{parts.rating.toFixed(1)}/5</span></div>
-                    <div className="h-1.5 bg-zinc-100 rounded"><div className="h-1.5 bg-emerald-500 rounded" style={{ width: `${(parts.rating/5)*100}%` }} /></div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between"><span>Amenities warmth</span><span>{parts.amen.toFixed(1)}/3</span></div>
-                    <div className="h-1.5 bg-zinc-100 rounded"><div className="h-1.5 bg-green-500 rounded" style={{ width: `${(parts.amen/3)*100}%` }} /></div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between"><span>Description keywords</span><span>{(parts.desc).toFixed(1)}/2</span></div>
-                    <div className="h-1.5 bg-zinc-100 rounded"><div className="h-1.5 bg-amber-500 rounded" style={{ width: `${(parts.desc/2)*100}%` }} /></div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between"><span>Scale penalty</span><span>{parts.scale.toFixed(1)}</span></div>
-                    <div className="h-1.5 bg-zinc-100 rounded"><div className="h-1.5 bg-zinc-400 rounded" style={{ width: `${Math.max(0, (parts.scale + 1)/2)*100}%` }} /></div>
-                  </div>
-                </div>
-              </div>
-              {dbHotel.affiliate_url && (
-                <div className="mt-5">
-                  <a
-                    className="inline-flex items-center justify-center rounded-lg bg-zinc-900 text-white px-4 py-2 hover:bg-zinc-800"
-                    href={`/go/${dbHotel.slug}`}
-                    target="_blank"
-                    rel="noopener nofollow sponsored"
-                  >
-                    Check availability →
-                  </a>
-                </div>
-              )}
-              {dbHotel.description && <p className="mt-4 text-zinc-700 leading-relaxed">{dbHotel.description}</p>}
-            </div>
-          );
-        }
-      }
-    } catch {}
     const d = await getDetails(params.slug);
     if (!d) return notFound();
     const ref = d.photos?.[0]?.photo_reference;
