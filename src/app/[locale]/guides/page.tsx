@@ -26,13 +26,39 @@ export default function GuidesIndex({ params }: { params: { locale: string } }) 
             <p className="text-sm text-zinc-600 mt-1">{g.excerpt}</p>
           </Link>
         ))}
-        {cityGuides.map((c) => (
-          <Link key={c.slug} href={`/${params.locale}/guides/${c.slug}`} className="block rounded-xl border border-zinc-200 p-4 hover:shadow-sm">
-            <h2 className="font-medium">{c.city} cosy hotels</h2>
-            <p className="text-sm text-zinc-600 mt-1">9 handpicked cosy and romantic stays in {c.city}.</p>
-          </Link>
-        ))}
       </div>
+
+      {/* Curated city lists grouped by region */}
+      {(() => {
+        const groups: Record<string, typeof cityGuides> = {
+          Europe: [],
+          "North America": [],
+          "Asia-Pacific": [],
+          Other: [],
+        };
+        for (const c of cityGuides) {
+          (groups[c.region] ||= []).push(c);
+        }
+        return (
+          <div className="mt-10 space-y-8">
+            {Object.entries(groups).map(([region, items]) => (
+              items.length ? (
+                <section key={region}>
+                  <h2 className="text-lg font-medium">{region}</h2>
+                  <div className="mt-3 grid md:grid-cols-2 gap-4">
+                    {items.map((c) => (
+                      <Link key={c.slug} href={`/${params.locale}/guides/${c.slug}`} className="block rounded-xl border border-zinc-200 p-4 hover:shadow-sm">
+                        <h3 className="font-medium">{c.city} cosy hotels</h3>
+                        <p className="text-sm text-zinc-600 mt-1">9 handpicked cosy and romantic stays in {c.city}.</p>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ) : null
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }
