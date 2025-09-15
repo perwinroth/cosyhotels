@@ -13,13 +13,7 @@ export function GET(request: Request) {
     sortParam === "relevance" || sortParam === "rating-desc" || sortParam === "price-asc" || sortParam === "price-desc"
       ? sortParam
       : "relevance";
-  const id = searchParams.get("id") || undefined;
-
-  if (id) {
-    const hotel = hotels.find((h) => h.id === id || h.slug === id);
-    if (!hotel) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json(hotel);
-  }
+  // Curated dataset removed; id lookup not supported here anymore
 
   const results = filterHotels({ city, minRating, amenities, sort });
   return NextResponse.json({ results });

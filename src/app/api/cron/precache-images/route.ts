@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 // Curated hotels removed; rely on Supabase image cache and Places
-import { getImageForHotel } from "@/lib/hotelImages";
+// import { getImageForHotel } from "@/lib/hotelImages";
 
 export async function GET() {
   const hasKey = !!process.env.GOOGLE_MAPS_API_KEY;
