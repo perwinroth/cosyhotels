@@ -2,8 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { getCollection } from "@/data/collections";
-import { hotels } from "@/data/hotels";
-import { cosyScore, cosyBadgeClass } from "@/lib/scoring/cosy";
+import { cosyBadgeClass } from "@/lib/scoring/cosy";
+import { getServerSupabase } from "@/lib/supabase/server";
 import { locales } from "@/i18n/locales";
 
 type Props = { params: { slug: string; locale: string } };
@@ -27,13 +27,41 @@ export function generateMetadata({ params }: Props): Metadata {
 
 type WithCosy<T> = T & { _cosy: number };
 
-export default function CollectionPage({ params }: Props) {
+export default async function CollectionPage({ params }: Props) {
   const c = getCollection(params.slug);
   if (!c) return <div className="mx-auto max-w-6xl px-4 py-8">Collection not found.</div>;
-  const base = hotels.filter(c.filter);
-  const results: WithCosy<typeof hotels[number]>[] = base.map((h) => ({
-    ...h,
-    _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
+  const supabase = getServerSupabase();
+  if (!supabase) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
+  let query = supabase
+    .from("hotels")
+    .select("id,slug,name,city,country,rating,price,amenities");
+  switch (c.slug) {
+    case "city-rooftops":
+      query = query.contains("amenities", ["Rooftop"]);
+      break;
+    case "spa-retreats":
+      query = query.or("amenities.cs.{Spa},amenities.cs.{Sauna}");
+      break;
+    case "pet-friendly":
+      query = query.contains("amenities", ["Pet-friendly"]);
+      break;
+    case "romantic-paris":
+      query = query.ilike("city", "%Paris%");
+      break;
+  }
+  const { data: rows, error } = await query.limit(60);
+  if (error) return <div className="mx-auto max-w-6xl px-4 py-8">Error loading collection.</div>;
+  const ids = (rows || []).map((r) => r.id);
+  let scoreMap = new Map<string, number>();
+  if (ids.length) {
+    const { data: scores } = await supabase
+      .from("cosy_scores")
+      .select("hotel_id,score")
+      .in("hotel_id", ids);
+    scoreMap = new Map((scores || []).map((s: any) => [String(s.hotel_id), Number(s.score) || 0]));
+  }
+  const results = (rows || []).map((h: any) => ({
+    slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: scoreMap.get(String(h.id)) || 0,
   }));
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -50,7 +78,7 @@ export default function CollectionPage({ params }: Props) {
           {results.map((h) => (
             <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border brand-border overflow-hidden hover:shadow-md bg-white">
               <div className="relative aspect-[4/3] bg-zinc-100">
-                <Image src={h.image || "/logo-seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" />
+                <Image src={"/logo-seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" />
                 {h._cosy >= 7 ? (
                   <div className="absolute left-2 bottom-2">
                     <div className="flex items-center gap-1 bg-[#0EA5A4] text-white text-xs px-3 py-1 rounded-full shadow">

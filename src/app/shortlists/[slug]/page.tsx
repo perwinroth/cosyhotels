@@ -1,9 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
-import { hotels as baseHotels } from "@/data/hotels";
-import { applyOverrides, fetchOverrides } from "@/lib/overrides";
-import { cosyBadgeClass, cosyScore } from "@/lib/scoring/cosy";
+import { cosyBadgeClass } from "@/lib/scoring/cosy";
+import { getServerSupabase } from "@/lib/supabase/server";
 import ShareButton from "@/components/ShareButton";
 import ShortlistLocalFallback from "@/components/ShortlistLocalFallback";
 import EditShortlistMeta from "@/components/EditShortlistMeta";
@@ -16,12 +15,33 @@ async function getShortlist(slug: string) {
 
 export default async function ShortlistPage({ params }: { params: { slug: string } }) {
   const sl = await getShortlist(params.slug);
-  const overrides = await fetchOverrides();
-  const hotels = applyOverrides(baseHotels, overrides);
-  const map = new Map(hotels.map((h) => [h.slug, h]));
   const items: string[] = sl?.items || [];
-  const picked = items.map((s) => map.get(s)).filter(Boolean) as typeof hotels;
-  const withCosy = picked.map((h) => ({ ...h, _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }) }));
+  const supabase = getServerSupabase();
+  let withCosy: Array<{ slug: string; name: string; city: string; country: string; price?: number; rating: number; image?: string; _cosy: number }>=[];
+  if (supabase && items.length) {
+    const { data: rows } = await supabase
+      .from("hotels")
+      .select("id,slug,name,city,country,rating,price")
+      .in("slug", items);
+    const ids = (rows || []).map((r) => r.id);
+    let scoreMap = new Map<string, number>();
+    if (ids.length) {
+      const { data: scores } = await supabase
+        .from("cosy_scores")
+        .select("hotel_id,score")
+        .in("hotel_id", ids);
+      scoreMap = new Map((scores || []).map((s) => [String((s as any).hotel_id), Number((s as any).score) || 0]));
+    }
+    withCosy = (rows || []).map((h) => ({
+      slug: String(h.slug),
+      name: String(h.name),
+      city: String(h.city || ''),
+      country: String(h.country || ''),
+      price: typeof h.price === 'number' ? h.price : undefined,
+      rating: typeof h.rating === 'number' ? h.rating : 0,
+      _cosy: scoreMap.get(String(h.id)) || 0,
+    }));
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -35,7 +55,7 @@ export default async function ShortlistPage({ params }: { params: { slug: string
       {!sl && (
         <>
           <div className="mt-4 text-sm text-zinc-600">Shortlist not found on server. Checking your device…</div>
-          <ShortlistLocalFallback slug={params.slug} hotels={hotels} />
+          <ShortlistLocalFallback slug={params.slug} hotels={[]} />
         </>
       )}
       <div className="mt-6 grid md:grid-cols-3 gap-4 auto-rows-fr">

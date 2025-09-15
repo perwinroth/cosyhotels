@@ -345,6 +345,10 @@ async function Results({
   // Front page: show the top 9 worldwide with Seal of approval (cosy >= 7) and apply diversity guard
   if (!city) filtered.sort((a, b) => b._cosy - a._cosy);
   let limited = filtered;
+  // Limit search results to 21 for a tidy 3-column grid
+  if (city) {
+    limited = filtered.slice(0, 21);
+  }
   if (!city) {
     const eligible = filtered.filter((h) => h._cosy >= 7.0);
     const chains = [
