@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hotels } from "@/data/hotels";
+// Curated hotels removed; this endpoint remains for Supabase-backed overrides
 import { mergeAffiliateData, type AffiliateHotelRecord } from "@/lib/affiliates";
 import { getServerSupabase } from "@/lib/supabase/server";
 
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     if (!payload || !Array.isArray(payload.records)) {
       return NextResponse.json({ error: "Expected { records: AffiliateHotelRecord[] }" }, { status: 400 });
     }
-    const merged = mergeAffiliateData(hotels, payload.records);
+    const merged = mergeAffiliateData([], payload.records);
 
     const supabase = getServerSupabase();
     if (!supabase) {

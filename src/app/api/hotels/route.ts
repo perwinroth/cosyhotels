@@ -1,4 +1,4 @@
-import { filterHotels, hotels } from "@/data/hotels";
+import { filterHotels } from "@/data/hotels";
 import { NextResponse } from "next/server";
 
 export function GET(request: Request) {

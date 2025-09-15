@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { hotels } from "@/data/hotels";
+// Removed curated hotels from sitemap; dynamic hotels are discovered at runtime
 import { collections } from "@/data/collections";
 import { guides } from "@/data/guides";
 import { locales } from "@/i18n/locales";
@@ -11,9 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const locale of locales) {
     routes.push({ url: `${base}/${locale}`, lastModified: now, changeFrequency: "weekly", priority: 0.8 });
     routes.push({ url: `${base}/${locale}/hotels`, lastModified: now, changeFrequency: "weekly", priority: 0.7 });
-    for (const h of hotels) {
-      routes.push({ url: `${base}/${locale}/hotels/${h.slug}`, lastModified: now, changeFrequency: "weekly", priority: 0.6 });
-    }
+    // Hotel detail pages are dynamic; omit static hotel URLs here
     for (const c of collections) {
       routes.push({ url: `${base}/${locale}/collections/${c.slug}`, lastModified: now, changeFrequency: "weekly", priority: 0.6 });
     }
