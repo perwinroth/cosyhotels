@@ -73,9 +73,10 @@ async function Results({
         .select("position, score, image_url, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)")
         .order("position", { ascending: true })
         .limit(9);
-      if (!error && data && data.length) {
+      if (!error && data) {
         const rows = (data as unknown as FT[]).filter((r) => r.hotel).slice(0, 9);
-        const chosen = await Promise.all(rows.map(async (r) => {
+        // Build initial list from featured
+        let chosen = await Promise.all(rows.map(async (r) => {
           const h = r.hotel!;
           const resolvedImg = r.image_url || (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || "/seal.svg";
           return {
@@ -90,6 +91,37 @@ async function Results({
             affiliateUrl: (h.affiliate_url as string | null) || "",
           };
         }));
+
+        // If fewer than 9 featured rows, top up from Supabase cosy_scores (score_final first)
+        if (chosen.length < 9) {
+          type MS = { score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null } | null };
+          const excludeSlugs = new Set(chosen.map((c) => c.slug));
+          const { data: more } = await supabase
+            .from("cosy_scores")
+            .select("score, score_final, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)")
+            .order("score_final", { ascending: false, nullsFirst: false })
+            .order("score", { ascending: false })
+            .limit(50);
+          const moreRows = ((more || []) as unknown as MS[])
+            .filter((r) => r.hotel && !excludeSlugs.has(String(r.hotel!.slug)))
+            .slice(0, 9 - chosen.length);
+          const moreChosen = await Promise.all(moreRows.map(async (r) => {
+            const h = r.hotel!;
+            const resolvedImg = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || "/seal.svg";
+            return {
+              slug: String(h.slug),
+              name: String(h.name),
+              city: String(h.city || ''),
+              country: String(h.country || ''),
+              rating: typeof h.rating === 'number' ? h.rating : 0,
+              price: typeof h.price === 'number' ? h.price : NaN,
+              _cosy: typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0),
+              _img: resolvedImg,
+              affiliateUrl: (h.affiliate_url as string | null) || "",
+            };
+          }));
+          chosen = chosen.concat(moreChosen).slice(0, 9);
+        }
         const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
         const renderTop = (h: typeof chosen[number]) => (
           <HotelTile

@@ -98,3 +98,13 @@ create table if not exists public.normalizer_stats (
   primary key (scope, key)
 );
 alter table public.normalizer_stats enable row level security;
+
+-- Featured front page picks (persisted top list)
+create table if not exists public.featured_top (
+  position integer primary key,
+  hotel_id uuid references public.hotels(id) on delete cascade,
+  score numeric not null,
+  image_url text
+);
+create index if not exists idx_featured_top_hotel on public.featured_top(hotel_id);
+alter table public.featured_top enable row level security;
