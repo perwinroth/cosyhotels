@@ -185,9 +185,11 @@ async function runJob() {
       if (s.scope === 'city') cityStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
       if (s.scope === 'country') countryStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
     });
-    const CHAINS = [\n      "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge",\n    ];
+    const CHAINS = [
+      "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge",
+    ];
     const brandOf = (name: string, website?: string) => {
-      const hay = .toLowerCase();
+      const hay = `${name} ${website || ''}`.toLowerCase();
       for (const c of CHAINS) if (hay.includes(c)) return c;
       return "independent";
     };
