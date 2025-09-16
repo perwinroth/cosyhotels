@@ -146,6 +146,26 @@ export default async function HotelDetail({ params }: Props) {
 
   if (!hotel && !details) return notFound();
 
+  // If hotel exists but has no cosy score yet, compute a base score from details and persist
+  if (db && hotel && cosy == null && details) {
+    const parts = (details.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
+    const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
+    const summary = details.editorial_summary?.overview || details.formatted_address || '';
+    const am2: string[] = [];
+    const t = summary.toLowerCase();
+    if (t.includes("spa")) am2.push("Spa");
+    if (t.includes("sauna")) am2.push("Sauna");
+    if (t.includes("fireplace")) am2.push("Fireplace");
+    if (t.includes("bath")) am2.push("Bathtub");
+    if (t.includes("rooftop")) am2.push("Rooftop");
+    if (t.includes("garden")) am2.push("Garden");
+    if (t.includes("bar")) am2.push("Bar");
+    if (t.includes("restaurant")) am2.push("Restaurant");
+    const base = cosyScore({ rating: details.rating ? details.rating * 2 : undefined, amenities: am2, description: `${details.name}. ${summary}`, name: details.name, website: details.website, reviewsCount: details.user_ratings_total ?? undefined, city: cityName });
+    await db.from("cosy_scores").upsert({ hotel_id: hotel.id, score: base, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
+    cosy = base;
+  }
+
   // Resolve fields for UI
   name = name || details?.name || hotel?.name || "Hotel";
   if (!city || !country) {
