@@ -10,6 +10,19 @@ import { cosyScore } from "@/lib/scoring/cosy";
 import { getServerSupabase } from "@/lib/supabase/server";
 import slugify from "slugify";
 
+type HotelRow = {
+  id: string;
+  slug: string;
+  name: string;
+  city: string | null;
+  country: string | null;
+  website: string | null;
+  affiliate_url: string | null;
+  rating: number | null;
+  reviews_count: number | null;
+  source_id: string | null;
+};
+
 type Props = { params: { slug: string; locale: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -44,18 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function HotelDetail({ params }: Props) {
   const db = getServerSupabase();
-  let hotel: {
-    id: string;
-    slug: string;
-    name: string;
-    city: string | null;
-    country: string | null;
-    website: string | null;
-    affiliate_url: string | null;
-    rating: number | null;
-    reviews_count: number | null;
-    source_id: string | null;
-  } | null = null;
+  let hotel: HotelRow | null = null;
   let cosy: number | null = null;
 
   if (db) {
@@ -135,7 +137,7 @@ export default async function HotelDetail({ params }: Props) {
       .select("id,slug,name,city,country,website,affiliate_url,source_id,rating,reviews_count")
       .single();
     if (inserted) {
-      hotel = inserted as typeof hotel;
+      hotel = inserted as unknown as HotelRow;
       const base = cosyScore({ rating: details.rating ? details.rating * 2 : undefined, amenities: am, description: `${details.name}. ${details.editorial_summary?.overview || details.formatted_address || ''}`, name: details.name, website: details.website, reviewsCount: details.user_ratings_total ?? undefined, city: cityName });
       await db.from("cosy_scores").upsert({ hotel_id: inserted.id, score: base, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
       cosy = base; // until cron normalizes and sets score_final
