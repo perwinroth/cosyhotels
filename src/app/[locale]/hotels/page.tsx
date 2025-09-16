@@ -182,8 +182,20 @@ async function Results({
     _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/seal.svg",
   });
   if (city) {
-    const data = await searchText(`cosy boutique hotel in ${city}`);
-    let tmp = (data.results || []).slice(0, 48).map((r) => makePlace(r, city));
+    // City search: fetch up to 2 pages to exceed 20 results and allow 21-cap
+    const first = await searchText(`cosy boutique hotel in ${city}`);
+    let results = (first.results || []);
+    if (first.next_page_token) {
+      try {
+        const second = await searchText("", first.next_page_token);
+        results = results.concat(second.results || []);
+        if (second.next_page_token) {
+          const third = await searchText("", second.next_page_token);
+          results = results.concat(third.results || []);
+        }
+      } catch {}
+    }
+    let tmp = results.slice(0, 60).map((r) => makePlace(r, city));
     // Enrich missing images for city search as well
     tmp = await Promise.all(
       tmp.map(async (p) => {
@@ -347,7 +359,23 @@ async function Results({
       perBrand[brand] = bCount + 1;
       if (pick.length >= 9) break;
     }
-    limited = pick.length >= 9 ? pick : eligible.slice(0, 9);
+    // If we still don't have 9 (few eligible >=7), top up from overall filtered list
+    if (pick.length < 9) {
+      for (const h of filtered) {
+        if (pick.includes(h)) continue;
+        const country = ("country" in h ? (h as { country?: string }).country : undefined) || '';
+        const brand = brandOf(h.name);
+        const cCount = perCountry[country] || 0;
+        const bCount = perBrand[brand] || 0;
+        if (cCount >= maxCountry || bCount >= maxBrand) continue;
+        pick.push(h);
+        perCountry[country] = cCount + 1;
+        perBrand[brand] = bCount + 1;
+        if (pick.length >= 9) break;
+      }
+    }
+    // Final fallback: just take top 9 regardless of diversity if still short
+    limited = pick.length >= 9 ? pick : filtered.slice(0, 9);
   }
 
   // Flat list; if empty (with city), show fallback top cosy curated

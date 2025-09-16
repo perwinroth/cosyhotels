@@ -9,11 +9,13 @@ export async function getImageForHotel(name: string, city?: string, maxWidth = 8
   // Try Supabase cache first
   try {
     const supabase = getServerSupabase();
-    if (supabase && (slug || hotelId)) {
-      let q = supabase.from('hotel_images').select('url').order('created_at', { ascending: false }).limit(1);
-      if (slug) q = q.eq('slug', slug);
-      else if (hotelId) q = q.eq('hotel_id', hotelId);
-      const { data } = await q;
+    if (supabase && hotelId) {
+      const { data } = await supabase
+        .from('hotel_images')
+        .select('url')
+        .eq('hotel_id', hotelId)
+        .order('created_at', { ascending: false })
+        .limit(1);
       const url = data?.[0]?.url as string | undefined;
       if (url) {
         cache.set(key, url);
@@ -30,8 +32,8 @@ export async function getImageForHotel(name: string, city?: string, maxWidth = 8
   // Save resolved image to Supabase cache
   try {
     const supabase = getServerSupabase();
-    if (supabase && (slug || hotelId)) {
-      await supabase.from('hotel_images').insert({ slug: slug || null, hotel_id: hotelId || null, url, width: maxWidth }).throwOnError();
+    if (supabase && hotelId) {
+      await supabase.from('hotel_images').insert({ hotel_id: hotelId, url, width: maxWidth }).throwOnError();
     }
   } catch {}
   return url;
