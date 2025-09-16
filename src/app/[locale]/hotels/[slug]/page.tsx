@@ -211,6 +211,28 @@ export default async function HotelDetail({ params }: Props) {
       <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
         <Image src={image} alt={`${name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
+      {/* Hotel structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Hotel',
+            name,
+            url: `/${params.locale}/hotels/${hotel?.slug || params.slug}`,
+            image,
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: city || undefined,
+              addressCountry: country || undefined,
+            },
+            aggregateRating: (() => {
+              const r5 = details?.rating ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
+              return r5 ? { '@type': 'AggregateRating', ratingValue: Number(r5.toFixed(1)), bestRating: 5, worstRating: 1 } : undefined;
+            })(),
+          })
+        }}
+      />
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
       <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
       <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${(cosyDisplay).toFixed(1)} out of 10`}>
@@ -237,6 +259,50 @@ export default async function HotelDetail({ params }: Props) {
           </a>
         )}
       </div>
+      {/* Per-hotel FAQ */}
+      <section className="mt-6">
+        <details className="rounded-lg border border-zinc-200 bg-white p-3 md:p-4">
+          <summary className="cursor-pointer font-medium">Frequently asked questions</summary>
+          <div className="mt-2 space-y-3">
+            <div>
+              <div className="font-medium">What makes {name} a cosy hotel?</div>
+              <p className="text-sm text-zinc-600">{(() => {
+                const cues: string[] = [];
+                const sum = (details?.editorial_summary?.overview || details?.formatted_address || '').toLowerCase();
+                if (sum.includes('fireplace')) cues.push('a fireplace');
+                if (sum.includes('bath') || sum.includes('bathtub')) cues.push('bathtubs');
+                if (sum.includes('spa')) cues.push('a spa');
+                if (sum.includes('sauna')) cues.push('sauna');
+                if (sum.includes('garden')) cues.push('a garden');
+                const tail = cues.length ? `thanks to ${cues.slice(0,2).join(' and ')}` : 'for its small scale and warm design';
+                return `${name} feels cosy ${tail}.`;
+              })()}</p>
+            </div>
+            <div>
+              <div className="font-medium">Where is {name} located?</div>
+              <p className="text-sm text-zinc-600">{[city, country].filter(Boolean).join(', ')}.</p>
+            </div>
+            <div>
+              <div className="font-medium">Is {name} suitable for a romantic getaway?</div>
+              <p className="text-sm text-zinc-600">Yes — its cosy vibe and amenities make it a good pick for couples.</p>
+            </div>
+          </div>
+        </details>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: [
+                { '@type': 'Question', name: `What makes ${name} a cosy hotel?`, acceptedAnswer: { '@type': 'Answer', text: `${name} feels cosy for its intimate scale and warm design.` } },
+                { '@type': 'Question', name: `Where is ${name} located?`, acceptedAnswer: { '@type': 'Answer', text: `${[city, country].filter(Boolean).join(', ')}.` } },
+                { '@type': 'Question', name: `Is ${name} suitable for a romantic getaway?`, acceptedAnswer: { '@type': 'Answer', text: `Yes — its cosy vibe and amenities make it a good pick for couples.` } },
+              ],
+            }),
+          }}
+        />
+      </section>
     </div>
   );
 }
