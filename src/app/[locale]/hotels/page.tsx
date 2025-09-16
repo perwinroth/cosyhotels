@@ -145,7 +145,7 @@ async function Results({
           perBrand[brand] = bCount + 1;
           if (pickedTop.length >= 9) break;
         }
-        const chosen = pickedTop.length >= 9 ? pickedTop : top.slice(0, 9);
+        const chosen = (pickedTop.length >= 9 ? pickedTop : top).slice(0, 9);
         const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
         const renderTop = (h: typeof chosen[number]) => (
           <HotelTile
@@ -164,17 +164,7 @@ async function Results({
             goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
           />
         );
-        if (chosen.length >= 9) {
-          return (
-            <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
-              <div className="col-span-full sr-only" aria-live="polite">
-                Top 9 cosy places worldwide (weekly)
-              </div>
-              {chosen.map(renderTop)}
-            </div>
-          );
-        }
-        // If fewer than 9 found in Supabase, fall back to dynamic build below
+        return (\n          <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">\n            <div className="col-span-full sr-only" aria-live="polite">\n              Featured cosy places\n            </div>\n            {chosen.map(renderTop)}\n          </div>\n        );\n      }
       }
     }
   }

@@ -195,7 +195,7 @@ async function runJob() {
     };
     const perCountry: Record<string, number> = {};
     const perBrand: Record<string, number> = {};
-    const maxCountry = 3, maxBrand = 2;
+    // Relaxed diversity guard to ensure 9 picks while DB grows\n    const maxCountry = 4, maxBrand = 3;
     const scored = rows.map((r) => {
       const h = r.hotel;
       if (!h) return null;
