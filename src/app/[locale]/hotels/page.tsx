@@ -164,7 +164,15 @@ async function Results({
             goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
           />
         );
-        return (\n          <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">\n            <div className="col-span-full sr-only" aria-live="polite">\n              Featured cosy places\n            </div>\n            {chosen.map(renderTop)}\n          </div>\n        );\n      }
+        return (
+          <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+            <div className="col-span-full sr-only" aria-live="polite">
+              Featured cosy places
+            </div>
+            {chosen.map(renderTop)}
+          </div>
+        );
+      }
       }
     }
   }
