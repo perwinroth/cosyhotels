@@ -47,9 +47,9 @@ export default async function LocaleLayout({
               <span aria-hidden className="text-lg font-semibold uppercase tracking-wide text-[#0EA5A4]">Get cosy</span>
             </Link>
             <nav className="flex gap-4 text-sm items-center">
-              <Link href={`/${locale}/collections`} className="hover:underline">{m.nav.collections}</Link>
-              <Link href={`/${locale}/guides`} className="hover:underline">{m.nav.guides}</Link>
-              <Link href={`/${locale}/cosy-score`} className="hover:underline">How we calculate</Link>
+              <Link href={`/${locale}/collections`} prefetch={false} className="hover:underline">{m.nav.collections}</Link>
+              <Link href={`/${locale}/guides`} prefetch={false} className="hover:underline">{m.nav.guides}</Link>
+              <Link href={`/${locale}/cosy-score`} prefetch={false} className="hover:underline">How we calculate</Link>
               <LanguageSwitcher current={locale} />
             </nav>
           </div>
