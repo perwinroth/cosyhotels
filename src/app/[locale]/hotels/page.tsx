@@ -67,85 +67,29 @@ async function Results({
   if (!city) {
     const supabase = getServerSupabase();
     if (supabase) {
-      type DBHotel = {
-        id: string;
-        slug: string;
-        name: string;
-        city: string;
-        country: string | null;
-        website: string | null;
-        rating: number | null;
-        price: number | null;
-        affiliate_url: string | null;
-      };
-      type DBRow = { score: number; hotel: DBHotel | DBHotel[] | null };
+      type FT = { position: number; score: number; image_url: string | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null } | null };
       const { data, error } = await supabase
-        .from("cosy_scores")
-        .select("score, hotel:hotel_id (id,slug,name,city,country,website,rating,price,affiliate_url)")
-        .gte("score", 7)
-        .order("score", { ascending: false })
+        .from("featured_top")
+        .select("position, score, image_url, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)")
+        .order("position", { ascending: true })
         .limit(9);
       if (!error && data && data.length) {
-        // Ensure we return exactly 9: fill from next-best if <9 meet ≥7
-        let rows = (data as unknown as DBRow[]);
-        if (rows.length < 9) {
-          const { data: fill } = await supabase
-            .from("cosy_scores")
-            .select("score, hotel:hotel_id (id,slug,name,city,country,website,rating,price,affiliate_url)")
-            .lt("score", 7)
-            .order("score", { ascending: false })
-            .limit(9 - rows.length);
-          if (fill) rows = rows.concat(fill as unknown as DBRow[]);
-        }
-
-        const top = (await Promise.all(
-          rows
-            .map(async (r) => {
-              const h = (Array.isArray(r.hotel) ? r.hotel[0] : r.hotel) as DBHotel | null;
-              if (!h) return null;
-              const staticImg = baseHotels.find((b) => b.slug === h.slug)?.image;
-              const resolvedImg = staticImg || (await getImageForHotel(h.name as string, h.city as string, 800, h.slug as string, h.id as string));
-              return {
-                slug: String(h.slug),
-                name: String(h.name),
-                city: String(h.city || ''),
-                country: (h.country as string | null) || "",
-                rating: typeof h.rating === 'number' ? h.rating : 0,
-                price: typeof h.price === 'number' ? h.price : NaN,
-                _cosy: Number(r.score) || 0,
-                _img: resolvedImg || "/seal.svg",
-                affiliateUrl: (h.affiliate_url as string | null) || "",
-              };
-            })
-        ))
-        .filter(Boolean) as Array<{
-          slug: string; name: string; city: string; country: string; rating: number; price: number; _cosy: number; _img: string; affiliateUrl: string; website?: string;
-        }>;
-        // Diversity guard: limit per country/brand while preserving order
-        const chains = [
-          "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge",
-        ];
-        const brandOf = (name: string, website?: string) => {
-          const hay = `${name} ${website || ''}`.toLowerCase();
-          for (const c of chains) if (hay.includes(c)) return c;
-          return "independent";
-        };
-        const perCountry: Record<string, number> = {};
-        const perBrand: Record<string, number> = {};
-        const maxCountry = 3, maxBrand = 2;
-        const pickedTop: typeof top = [];
-        for (const t of top) {
-          const country = t.country || '';
-          const brand = brandOf(t.name, (t as { website?: string }).website);
-          const cCount = perCountry[country] || 0;
-          const bCount = perBrand[brand] || 0;
-          if (cCount >= maxCountry || bCount >= maxBrand) continue;
-          pickedTop.push(t);
-          perCountry[country] = cCount + 1;
-          perBrand[brand] = bCount + 1;
-          if (pickedTop.length >= 9) break;
-        }
-        const chosen = (pickedTop.length >= 9 ? pickedTop : top).slice(0, 9);
+        const rows = (data as unknown as FT[]).filter((r) => r.hotel).slice(0, 9);
+        const chosen = await Promise.all(rows.map(async (r) => {
+          const h = r.hotel!;
+          const resolvedImg = r.image_url || (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || "/seal.svg";
+          return {
+            slug: String(h.slug),
+            name: String(h.name),
+            city: String(h.city || ''),
+            country: String(h.country || ''),
+            rating: typeof h.rating === 'number' ? h.rating : 0,
+            price: typeof h.price === 'number' ? h.price : NaN,
+            _cosy: Number(r.score) || 0,
+            _img: resolvedImg,
+            affiliateUrl: (h.affiliate_url as string | null) || "",
+          };
+        }));
         const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
         const renderTop = (h: typeof chosen[number]) => (
           <HotelTile

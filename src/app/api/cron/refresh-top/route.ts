@@ -223,8 +223,9 @@ async function runJob() {
       perBrand[brand] = bCount + 1;
       if (picked.length >= 9) break;
     }
+    const toInsert = picked.length >= 9 ? picked.slice(0,9) : scored.slice(0,9);
     await db.from("featured_top").delete().neq("position", -1);
-    const inserts = picked.length ? picked.map((p, idx) => ({ position: idx + 1, hotel_id: p.hotel.id, score: p.final, image_url: "/seal.svg" })) : [];
+    const inserts = toInsert.map((p, idx) => ({ position: idx + 1, hotel_id: p.hotel.id, score: p.final, image_url: "/seal.svg" }));
     if (inserts.length) await db.from("featured_top").insert(inserts);
   } catch (e) { try { console.error("normalization_or_featured_error", e); } catch {} }
   return { scanned, upserted, skipped };
