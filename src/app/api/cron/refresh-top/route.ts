@@ -1,7 +1,8 @@
 import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
-import { cosyScore } from "@/lib/scoring/cosy";\nimport { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normalization";
+import { cosyScore } from "@/lib/scoring/cosy";
+import { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normalization";
 import slugify from "slugify";
 
 // A diverse set of seed queries across languages to cast a wide global net
