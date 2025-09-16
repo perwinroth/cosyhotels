@@ -208,9 +208,23 @@ async function Results({
           .select('source_id, cosy_scores ( score, score_final )')
           .in('source_id', ids);
         const byId = new Map<string, number>();
-        for (const r of (rows || []) as Array<{ source_id: string | null; cosy_scores: { score: number | null; score_final: number | null } | null }>) {
-          const s = r.cosy_scores?.score_final ?? r.cosy_scores?.score;
-          if (r.source_id && typeof s === 'number') byId.set(String(r.source_id), Number(s));
+        type ScoreEmbed = { score: unknown; score_final: unknown } | Array<{ score: unknown; score_final: unknown }> | null;
+        const getVal = (cs: ScoreEmbed): number | null => {
+          if (!cs) return null;
+          if (Array.isArray(cs)) {
+            const first = cs[0];
+            if (!first) return null;
+            const sf = typeof first.score_final === 'number' ? first.score_final : null;
+            const s = typeof first.score === 'number' ? first.score : null;
+            return (sf ?? s);
+          }
+          const sf = typeof cs.score_final === 'number' ? cs.score_final : null;
+          const s = typeof cs.score === 'number' ? cs.score : null;
+          return (sf ?? s);
+        };
+        for (const row of (rows || []) as Array<{ source_id: string | null; cosy_scores: ScoreEmbed }>) {
+          const v = getVal(row.cosy_scores);
+          if (row.source_id && typeof v === 'number') byId.set(String(row.source_id), v);
         }
         if (byId.size) {
           tmp = tmp.map((p) => (byId.has(String(p.id)) ? { ...p, _cosy: byId.get(String(p.id)) as number } : p));
@@ -284,9 +298,23 @@ async function Results({
           .select('source_id, cosy_scores ( score, score_final )')
           .in('source_id', ids);
         const byId = new Map<string, number>();
-        for (const r of (rows || []) as Array<{ source_id: string | null; cosy_scores: { score: number | null; score_final: number | null } | null }>) {
-          const s = r.cosy_scores?.score_final ?? r.cosy_scores?.score;
-          if (r.source_id && typeof s === 'number') byId.set(String(r.source_id), Number(s));
+        type ScoreEmbed = { score: unknown; score_final: unknown } | Array<{ score: unknown; score_final: unknown }> | null;
+        const getVal = (cs: ScoreEmbed): number | null => {
+          if (!cs) return null;
+          if (Array.isArray(cs)) {
+            const first = cs[0];
+            if (!first) return null;
+            const sf = typeof first.score_final === 'number' ? first.score_final : null;
+            const s = typeof first.score === 'number' ? first.score : null;
+            return (sf ?? s);
+          }
+          const sf = typeof cs.score_final === 'number' ? cs.score_final : null;
+          const s = typeof cs.score === 'number' ? cs.score : null;
+          return (sf ?? s);
+        };
+        for (const row of (rows || []) as Array<{ source_id: string | null; cosy_scores: ScoreEmbed }>) {
+          const v = getVal(row.cosy_scores);
+          if (row.source_id && typeof v === 'number') byId.set(String(row.source_id), v);
         }
         if (byId.size) {
           tmp = tmp.map((p) => (byId.has(String(p.id)) ? { ...p, _cosy: byId.get(String(p.id)) as number } : p));
