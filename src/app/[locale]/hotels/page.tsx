@@ -205,7 +205,7 @@ async function Results({
     amenities: [],
     description: r.formatted_address || "",
     affiliateUrl: "",
-    _cosy: adhocCosyScore({ rating: r.rating, summary: r.formatted_address, name: r.name }),
+    _cosy: adhocCosyScore({ rating: r.rating, summary: r.formatted_address, name: r.name, reviews: r.user_ratings_total }),
     _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/seal.svg",
   });
   if (city) {

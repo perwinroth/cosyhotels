@@ -89,6 +89,9 @@ async function runJob() {
         scanned++;
         const d = await getDetails(r.place_id);
         if (!d) { skipped++; continue; }
+        // Type filtering: skip non-hotel patterns
+        const types = (d.types || []).map((t) => t.toLowerCase());
+        if (types.some((t) => ["hostel","capsule_hotel","apartment","apartment_hotel"].includes(t))) { skipped++; continue; }
         const slug = slugify(d.name || r.place_id, { lower: true, strict: true });
         const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
         const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
@@ -130,7 +133,7 @@ async function runJob() {
         .single();
       if (error || !hotel) continue;
 
-      const score = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${summary}` });
+      const score = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${summary}` , name: d.name, website: d.website, reviewsCount: d.user_ratings_total ?? undefined, city: cityName });
       await db.from("cosy_scores").upsert({ hotel_id: hotel.id, score, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
       upserted++;
       }

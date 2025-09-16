@@ -31,14 +31,27 @@ const AMENITY_WEIGHTS: Record<string, number> = {
 };
 
 const COSY_KEYWORDS = [
+  // English
   "cosy", "cozy", "snug", "warm", "intimate", "charming", "boutique", "hygge",
-  "quiet", "peaceful", "comfy", "romantic", "character", "fireplace", "bath", "bathtub",
-  // Multilingual
-  "accogliente", "chaleureux", "charme", "encanto", "gemütlich", "mysig", "hyggelig",
+  "quiet", "peaceful", "comfy", "romantic", "character", "fireplace", "log fire", "wood stove",
+  "bath", "bathtub", "soaking tub", "garden", "courtyard",
+  // Romance languages
+  "accogliente", "intimo", "romantico", // IT
+  "chaleureux", "charme", "intime", // FR
+  "acogedor", "romántico", "con encanto", // ES
+  // Germanic/Scandi/Dutch
+  "gemütlich", // DE
+  "mysig", // SV
+  "hyggelig", // DA/NO
+  "gezellig", "knus", // NL
+  // Japanese/Asia specific cosy cues
+  "旅館", "温泉", "町家", "畳", // ryokan, onsen, machiya, tatami
+  "onsen", "ryokan", "machiya", "tatami", "hot spring",
 ];
 
 const NEGATIVE_KEYWORDS = [
   "noisy", "busy", "corporate", "conference", "chain",
+  "hostel", "dorm", "capsule", "capsule hotel", "party hostel",
 ];
 
 export function keywordSentiment(text?: string) {
@@ -47,7 +60,8 @@ export function keywordSentiment(text?: string) {
   let score = 0;
   for (const k of COSY_KEYWORDS) if (t.includes(k)) score += 1;
   for (const k of NEGATIVE_KEYWORDS) if (t.includes(k)) score -= 1;
-  return Math.max(-0.5, Math.min(score / 8, 1)); // allow slight negative
+  // Stronger cap and smoothing
+  return Math.max(-0.5, Math.min(score / 10, 1));
 }
 
 export function amenitiesScore(am?: string[]) {
@@ -85,9 +99,9 @@ function chainPenalty(name?: string, website?: string) {
 
 function reviewConfidence(reviews?: number) {
   if (!reviews || reviews <= 0) return 0;
-  // Diminishing returns; ~+0.1 @200, ~+0.2 @1000
-  const bonus = Math.log10(1 + reviews) / 10; // 0..~0.3
-  return Math.min(0.2, bonus);
+  // Diminishing returns; ~+0.12 @200, ~+0.2 @1000
+  const bonus = Math.log10(1 + reviews) / 12; // 0..~0.25
+  return Math.min(0.25, bonus);
 }
 
 export function cosyParts(features: HotelFeatures) {
@@ -99,13 +113,10 @@ export function cosyParts(features: HotelFeatures) {
   const chain = chainPenalty(features.name, features.website);
   const conf = reviewConfidence(features.reviewsCount);
 
-  const raw = Math.max(0, Math.min(10,
-    base * 5.8 +
-    amen * 1.4 +
-    desc * 2.0 +
-    img * 0.8 +
-    scale + chain + conf
-  ));
+  // Base blend
+  let raw = base * 5.8 + amen * 1.4 + desc * 2.0 + img * 0.8 + scale + chain + conf;
+  // Clamp to 0..10
+  raw = Math.max(0, Math.min(10, raw));
   return { raw, parts: { rating_base: base, amenities: amen, keywords: desc, image_warmth: img, scale_penalty: scale, chain_penalty: chain, review_conf: conf } };
 }
 
@@ -133,14 +144,17 @@ export function adhocCosyScore({
   rating,
   summary,
   name,
+  reviews
 }: {
   rating?: number; // 0..5 from Places
   summary?: string;
   name?: string;
+  reviews?: number;
 }) {
   const base = ((rating ?? 4) / 5); // normalize 0..1
   const desc = keywordSentiment(`${name || ""}. ${summary || ""}`);
-  // Blend with stronger emphasis on rating for lack of amenities/rooms
-  const blended = base * 7 + desc * 3; // 0..10 scale
+  const conf = reviewConfidence(reviews);
+  // Blend with stronger emphasis on rating; add confidence
+  const blended = base * 6.6 + desc * 3 + conf * 1.0; // 0..10 scale
   return Math.max(0, Math.min(10, blended));
 }
