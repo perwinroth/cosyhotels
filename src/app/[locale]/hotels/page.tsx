@@ -18,8 +18,15 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
       canonical: `/${params.locale}/hotels`,
       languages,
     },
-    title: "Explore hotels",
-    description: "Browse unique stays with filters and sorting.",
+    title: "Cosy Hotel Rooms & Boutique Hotels | Get Cosy",
+    description: "Discover cosy hotel rooms, boutique hotels, and romantic getaways worldwide. Curated picks with helpful filters.",
+    openGraph: {
+      title: "Cosy Hotel Rooms & Boutique Hotels",
+      description: "Discover cosy hotel rooms, boutique hotels, and romantic getaways worldwide.",
+      type: "website",
+      url: `/${params.locale}/hotels`,
+      images: [{ url: "/logo-seal.svg", width: 1200, height: 800 }],
+    },
   };
 }
 
@@ -30,9 +37,75 @@ export default function HotelsPage({
   searchParams: { [key: string]: string | string[] | undefined };
   params: { locale: string };
 }) {
+  const cityParam = typeof searchParams.city === 'string' ? searchParams.city.trim() : '';
+  const hasCity = !!cityParam;
+  const h1 = hasCity ? `Cosy hotel in ${cityParam} – boutique stays` : `Cosy hotel rooms & boutique hotels`;
+  const intro = hasCity
+    ? `Find a cosy hotel in ${cityParam}. We surface intimate boutique stays with warm design, great reviews and that cosy feel.`
+    : `Find cosy hotel rooms, boutique hotels, and romantic getaways across the world. Use the search and filters to uncover intimate stays with warm design and great reviews.`;
+
+  const faqs = hasCity
+    ? [
+        { q: `What makes a cosy hotel in ${cityParam}?`, a: `Small scale, warm interiors, good reviews, and details like fireplaces, bathtubs, gardens or a quiet vibe.` },
+        { q: `How do you pick boutique hotels in ${cityParam}?`, a: `We analyze reviews, amenities and language signals to score how cosy a place feels, then feature the best-rated ones.` },
+        { q: `Are these romantic getaways in ${cityParam}?`, a: `Many of them are. Look for higher cosy scores and amenities like spa, sauna, bathtub or fireplaces.` },
+      ]
+    : [
+        { q: `What makes a hotel feel cosy?`, a: `Small scale, warm interiors, great reviews and design details like fireplaces, bathtubs, gardens or a quiet vibe.` },
+        { q: `How do you choose boutique hotels?`, a: `We analyze reviews, amenities and language signals to score how cosy a place feels, then feature the best-rated ones.` },
+        { q: `Are these good for romantic getaways?`, a: `Yes—many of our top cosy picks are ideal for couples weekends with spa, sauna or soaking tubs.` },
+      ];
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <SearchBar locale={params.locale} />
+      <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{h1}</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Get Cosy',
+            url: `/${params.locale}/hotels`,
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: `/${params.locale}/hotels?city={search_term_string}`,
+              'query-input': 'required name=search_term_string'
+            }
+          })
+        }}
+      />
+      <p className="mt-2 max-w-3xl text-zinc-600 text-sm md:text-base">{intro}</p>
+      <section className="mt-4">
+        <details className="rounded-lg border border-zinc-200 bg-white p-3 md:p-4">
+          <summary className="cursor-pointer font-medium">Frequently asked questions</summary>
+          <div className="mt-2 space-y-3">
+            {faqs.map((f, i) => (
+              <div key={`faq-${i}`}>
+                <div className="font-medium">{f.q}</div>
+                <p className="text-sm text-zinc-600">{f.a}</p>
+              </div>
+            ))}
+          </div>
+        </details>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: faqs.map((f) => ({
+                '@type': 'Question',
+                name: f.q,
+                acceptedAnswer: { '@type': 'Answer', text: f.a },
+              })),
+            }),
+          }}
+        />
+      </section>
+      <div className="mt-4">
+        <SearchBar locale={params.locale} />
+      </div>
       <div className="mt-2">
         <Results searchParams={searchParams} locale={params.locale} />
       </div>

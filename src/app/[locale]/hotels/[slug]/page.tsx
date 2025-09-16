@@ -187,6 +187,27 @@ export default async function HotelDetail({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
+      {/* Cosy snippet – first text on the page for LLMs/SEO */}
+      <p className="text-sm text-zinc-700">
+        {(() => {
+          const cues: string[] = [];
+          const sum = (details?.editorial_summary?.overview || details?.formatted_address || '').toLowerCase();
+          if (sum.includes('fireplace')) cues.push('a warm fireplace');
+          if (sum.includes('bath') || sum.includes('bathtub')) cues.push('soaking tubs');
+          if (sum.includes('spa')) cues.push('a relaxing spa');
+          if (sum.includes('sauna')) cues.push('sauna');
+          if (sum.includes('garden')) cues.push('quiet gardens');
+          if (sum.includes('rooftop')) cues.push('a rooftop view');
+          const bits = cues.length ? `thanks to ${cues.slice(0,3).join(', ')}` : 'for its intimate scale and warm design';
+          const templates = [
+            `${name} is a cosy hotel in ${city}. We rate it cosy ${bits}.`,
+            `A cosy pick in ${city}: ${name}. We rate it cosy ${bits}.`,
+            `We rate ${name} a cosy hotel in ${city} ${bits}.`,
+          ];
+          const idx = (name.length + (city || '').length) % templates.length;
+          return templates[idx];
+        })()}
+      </p>
       <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
         <Image src={image} alt={`${name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
