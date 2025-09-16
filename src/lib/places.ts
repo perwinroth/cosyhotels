@@ -82,6 +82,8 @@ export async function getDetails(placeId: string): Promise<PlaceDetails | null> 
     "price_level",
     "photos",
     "editorial_summary",
+    // Fetch a small sample of reviews to extract cosy cues (do not render raw quotes)
+    "reviews",
   ].join(",");
   const url = `${API}/details/json?${new URLSearchParams({ place_id: placeId, fields, key }).toString()}`;
   const res = await fetch(url, { cache: "no-store" });

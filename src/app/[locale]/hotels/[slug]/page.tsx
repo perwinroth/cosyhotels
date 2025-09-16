@@ -185,29 +185,42 @@ export default async function HotelDetail({ params }: Props) {
 
   const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
 
+  // Build richer cosy snippet (<= ~160 chars) using Places cues
+  const rating5 = details?.rating ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
+  const reviewsTotal = details?.user_ratings_total ?? hotel?.reviews_count ?? undefined;
+  const priceLevel = details?.price_level;
+  const priceText = typeof priceLevel === 'number' ? ['budget','budget','mid-range','upscale','luxury'][Math.max(0, Math.min(4, priceLevel))] : undefined;
+  const textSrc = `${details?.editorial_summary?.overview || ''} ${details?.formatted_address || ''}`.toLowerCase();
+  const cues: string[] = [];
+  if (textSrc.includes('fireplace')) cues.push('a fireplace');
+  if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) cues.push('soaking tubs');
+  if (textSrc.includes('spa')) cues.push('a spa');
+  if (textSrc.includes('sauna')) cues.push('sauna');
+  if (textSrc.includes('garden')) cues.push('a garden');
+  if (textSrc.includes('rooftop')) cues.push('a rooftop view');
+  // Pull hints from reviews text without quoting
+  const reviewsText = (details as any)?.reviews as Array<{ text?: string }> | undefined;
+  if (reviewsText) {
+    const joined = reviewsText.map((r) => (r.text || '').toLowerCase()).join(' ');
+    if (joined.includes('quiet') && !cues.includes('quiet')) cues.push('a quiet vibe');
+    if (joined.includes('romantic') && !cues.includes('romantic')) cues.push('a romantic feel');
+  }
+  const cueList = cues.filter(Boolean).slice(0, 3);
+  const cuePhrase = cueList.length ? `thanks to ${cueList.join(', ')}` : 'for its intimate scale and warm design';
+  const ratingPhrase = rating5 ? ` Rated ${rating5.toFixed(1)}/5${reviewsTotal ? ` from ${reviewsTotal.toLocaleString()} reviews` : ''}.` : '';
+  const pricePhrase = priceText ? ` Expect ${priceText} prices.` : '';
+  const templates = [
+    `${name} is a cosy hotel in ${city}. We rate it cosy ${cuePhrase}.${ratingPhrase}${pricePhrase}`,
+    `A cosy pick in ${city}: ${name}. We rate it cosy ${cuePhrase}.${ratingPhrase}${pricePhrase}`,
+    `We rate ${name} a cosy hotel in ${city} ${cuePhrase}.${ratingPhrase}${pricePhrase}`,
+  ];
+  const cosySnippetFull = templates[(name.length + (city || '').length) % templates.length];
+  const cosySnippet = cosySnippetFull.length > 180 ? `${cosySnippetFull.slice(0, 177)}...` : cosySnippetFull;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Cosy snippet – first text on the page for LLMs/SEO */}
-      <p className="text-sm text-zinc-700">
-        {(() => {
-          const cues: string[] = [];
-          const sum = (details?.editorial_summary?.overview || details?.formatted_address || '').toLowerCase();
-          if (sum.includes('fireplace')) cues.push('a warm fireplace');
-          if (sum.includes('bath') || sum.includes('bathtub')) cues.push('soaking tubs');
-          if (sum.includes('spa')) cues.push('a relaxing spa');
-          if (sum.includes('sauna')) cues.push('sauna');
-          if (sum.includes('garden')) cues.push('quiet gardens');
-          if (sum.includes('rooftop')) cues.push('a rooftop view');
-          const bits = cues.length ? `thanks to ${cues.slice(0,3).join(', ')}` : 'for its intimate scale and warm design';
-          const templates = [
-            `${name} is a cosy hotel in ${city}. We rate it cosy ${bits}.`,
-            `A cosy pick in ${city}: ${name}. We rate it cosy ${bits}.`,
-            `We rate ${name} a cosy hotel in ${city} ${bits}.`,
-          ];
-          const idx = (name.length + (city || '').length) % templates.length;
-          return templates[idx];
-        })()}
-      </p>
+      <p className="text-sm text-zinc-700">{cosySnippet}</p>
       <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
         <Image src={image} alt={`${name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
@@ -244,6 +257,18 @@ export default async function HotelDetail({ params }: Props) {
           <span />
         </div>
       </div>
+      {/* Why we rate it cosy */}
+      <section className="mt-4">
+        <h2 className="sr-only">Why we rate it cosy</h2>
+        <ul className="list-disc pl-5 text-sm text-zinc-700 space-y-1">
+          {cueList.map((c, i) => (<li key={`c-${i}`}>{c}</li>))}
+          {!cueList.length && <li>Intimate scale and warm design</li>}
+          {typeof rating5 === 'number' && (
+            <li>Guest rating: {rating5.toFixed(1)}/5{reviewsTotal ? ` from ${reviewsTotal.toLocaleString()} reviews` : ''}</li>
+          )}
+          {priceText && <li>Typical price level: {priceText}</li>}
+        </ul>
+      </section>
       <div className="mt-5 flex items-center gap-3">
         <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
           Back to results
