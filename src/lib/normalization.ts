@@ -1,6 +1,6 @@
 import { getServerSupabase } from "@/lib/supabase/server";
 
-type ScoreRow = { score: number; city: string | null; country: string | null };
+// removed unused ScoreRow alias
 
 function median(values: number[]) {
   if (!values.length) return 0;

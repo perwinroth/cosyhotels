@@ -89,7 +89,7 @@ export default async function HotelDetail({ params }: Props) {
   let city = (hotel?.city as string | null) || "";
   let country = (hotel?.country as string | null) || "";
   let website = hotel?.website || null;
-  let affiliateUrl = hotel?.affiliate_url || null;
+  const affiliateUrl = hotel?.affiliate_url || null;
   let image: string = "/logo-seal.svg";
 
   // Prefer place details for imagery; if we have a source_id use it, else try slug as place_id
