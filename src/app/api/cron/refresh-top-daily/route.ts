@@ -7,7 +7,9 @@ import slugify from "slugify";
 // Import or copy from main refresh route (kept in sync)
 const QUERIES = [
   "cosy boutique hotel","cozy boutique hotel","charming boutique hotel","romantic boutique hotel",
-  "hôtel de charme","hotel con encanto","hotel romantico","gemütliches hotel","koseligt hotel","mysigt hotell","hyggelig hotel",
+  "small boutique hotel","intimate boutique hotel","design hotel",
+  "hôtel de charme","hôtel cosy","hotel con encanto","hotel romantico","hotel romântico",
+  "gemütliches hotel","kleines hotel","gezellig hotel","koseligt hotel","mysigt hotell","hyggeligt hotel",
 ];
 const COUNTRIES = [
   "France","Spain","Italy","Portugal","Germany","United Kingdom","Ireland","Netherlands","Belgium","Luxembourg",
@@ -19,8 +21,8 @@ const COUNTRIES = [
   "India","Sri Lanka","Australia","New Zealand",
 ];
 
-const MAX_SCANNED = 2000;
-const PAGES = 3;
+const MAX_SCANNED = 3000;
+const PAGES = 4;
 
 async function runJob() {
   const supabase = getServerSupabase();

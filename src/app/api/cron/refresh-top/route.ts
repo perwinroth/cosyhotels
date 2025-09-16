@@ -8,25 +8,14 @@ import slugify from "slugify";
 // A diverse set of seed queries across languages to cast a wide global net
 const QUERIES = [
   // English
-  "cosy boutique hotel",
-  "cozy boutique hotel",
-  "charming boutique hotel",
-  "romantic boutique hotel",
-  "small cosy hotel",
-  "intimate boutique hotel",
+  "cosy boutique hotel","cozy boutique hotel","charming boutique hotel","romantic boutique hotel",
+  "small boutique hotel","intimate boutique hotel","chic boutique hotel","design hotel",
   // Localized synonyms
-  "hôtel de charme",
-  "hôtel cosy",
-  "hotel con encanto",
-  "hotel romantico",
-  "hotel romântico",
-  "gemütliches hotel",
-  "kleines gemütliches hotel",
-  "koseligt hotel",
-  "mysigt hotell",
-  "hyggelig hotel",
-  "accogliente hotel",
-  "boutique hotel acogedor",
+  "hôtel de charme","hôtel cosy","maison d'hôtes de charme",
+  "hotel con encanto","hotel romantico","hotel romântico",
+  "gemütliches hotel","kleines hotel","kleines gemütliches hotel",
+  "gezellig hotel","knus hotel","hyggeligt hotel","mysigt hotell","koselig hotell",
+  "accogliente hotel","boutique hotel acogedor","ryokan","minshuku",
 ];
 
 // Regions and areas to expand coverage beyond major cities
@@ -38,10 +27,10 @@ const REGIONS = [
 ];
 
 // Limits to avoid exhausting API quotas in a single run (raised per request)
-const MAX_SCANNED = 5000; // total place ids to evaluate per run
-const PAGES_GENERAL = 4;  // pages to fetch for each general query
-const PAGES_REGION = 3;   // pages to fetch for each region-qualified query
-const PAGES_COUNTRY = 2;  // pages to fetch for each country-qualified query
+const MAX_SCANNED = 8000; // total place ids to evaluate per run
+const PAGES_GENERAL = 5;  // pages to fetch for each general query
+const PAGES_REGION = 4;   // pages to fetch for each region-qualified query
+const PAGES_COUNTRY = 3;  // pages to fetch for each country-qualified query
 
 // Broad country list to increase global coverage
 const COUNTRIES = [
