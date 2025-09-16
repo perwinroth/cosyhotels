@@ -3,7 +3,6 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normalization";
-import slugify from "slugify";
 import { generateHotelSlug } from "@/lib/slug";
 import { cities } from "@/data/cities";
 import { citiesLarge } from "@/data/cities_large";
@@ -86,10 +85,10 @@ async function runJob() {
         // Type filtering: skip non-hotel patterns
         const types = (d.types || []).map((t) => t.toLowerCase());
         if (types.some((t) => ["hostel","capsule_hotel","apartment","apartment_hotel"].includes(t))) { skipped++; continue; }
-        const slug = await generateHotelSlug(db as any, d.name || r.place_id, cityName, country);
         const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
         const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
         const country = parts.length ? parts[parts.length - 1] : '';
+        const slug = await generateHotelSlug(db, d.name || r.place_id, cityName, country);
         const summary = d.editorial_summary?.overview || d.formatted_address || '';
         const am: string[] = [];
         const sLower = summary.toLowerCase();

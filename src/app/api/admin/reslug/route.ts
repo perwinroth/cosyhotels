@@ -6,8 +6,6 @@ export const runtime = 'nodejs';
 export const maxDuration = 300;
 
 export async function POST() {
-  const token = process.env.ADMIN_TOKEN || "";
-  // Basic guard: require ADMIN_TOKEN header if set
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
 
@@ -26,7 +24,7 @@ export async function POST() {
 
   for (const r of rows) {
     const current = String(r.slug || "").toLowerCase();
-    const next = await generateHotelSlug(db as any, r.name, r.city, r.country, { reserved, exclude: current });
+    const next = await generateHotelSlug(db, r.name, r.city, r.country, { reserved, exclude: current });
     if (!current || next !== current) {
       // Update hotel slug
       const { error: upErr } = await db.from("hotels").update({ slug: next, updated_at: new Date().toISOString() }).eq("id", r.id);
@@ -47,4 +45,3 @@ export async function POST() {
 }
 
 export async function GET() { return NextResponse.json({ ok: true }); }
-
