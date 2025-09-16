@@ -213,52 +213,46 @@ async function Results({
     );
     places = tmp;
   } else {
-    // Front page: broaden queries to avoid regional bias and fetch a diverse global pool
-    const queries = [
-      // English and localized synonyms
-      "cosy boutique hotel",
-      "cozy boutique hotel",
-      "charming boutique hotel",
-      "romantic boutique hotel",
-      "hôtel de charme",
-      "hotel con encanto",
-      "gemütliches hotel",
-      "koseligt hotel",
-      "mysigt hotell",
-      "hyggelig hotel",
-      // Regional and country qualifiers
-      "cosy boutique hotel in Europe",
-      "cosy boutique hotel in Asia",
-      "cosy boutique hotel in Japan",
-      "cosy boutique hotel in Italy",
-      "cosy boutique hotel in France",
-      "cosy boutique hotel in Greece",
-      "cosy boutique hotel in Spain",
-      "cosy boutique hotel in Portugal",
-      "cosy boutique hotel in Thailand",
-      "cosy boutique hotel in Indonesia",
-      "cosy boutique hotel in Mexico",
-      "cosy boutique hotel in Morocco",
+    // Front page: broaden queries heavily and fetch multiple pages with delays so we always exceed 9 eligible
+    const baseQueries = [
+      // English
+      "cosy boutique hotel","cozy boutique hotel","charming boutique hotel","romantic boutique hotel","small boutique hotel","intimate hotel",
+      // FR/ES/IT/PT/DE/NL/JP/SE/DK/NO
+      "hôtel de charme","hôtel cosy","hotel con encanto","albergo di charme","hotel romantico","hotel romântico","gemütliches hotel","kleines hotel",
+      "knus hotel","gezellig hotel","ryokan","minshuku","mysigt hotell","hyggeligt hotel","koselig hotell",
     ];
-    // Fetch first page for all queries
-    const batches = await Promise.all(queries.map((q) => searchText(q)));
-    let results = batches.flatMap((b) => (b.results || []));
-    // If still light on candidates, try a second page for the first few queries
-    if (results.length < 60) {
-      const nexts = await Promise.all(
-        batches
-          .slice(0, 5)
-          .map((b) => (b.next_page_token ? searchText("", b.next_page_token) : Promise.resolve({ results: [] } as { results: PlaceSearchResult[] })))
-      );
-      results = results.concat(nexts.flatMap((n) => n.results || []));
+    const regional = [
+      "in Europe","in Asia","in Japan","in Italy","in France","in Greece","in Spain","in Portugal","in Thailand","in Indonesia","in Mexico","in Morocco",
+    ];
+    const queries: string[] = [];
+    for (const q of baseQueries) queries.push(q);
+    for (const q of baseQueries.slice(0, 8)) for (const r of regional) queries.push(`${q} ${r}`);
+
+    // Helper to fetch up to 3 pages with token delays
+    async function fetchAllPages(q: string, pages = 3) {
+      const first = await searchText(q);
+      let res: PlaceSearchResult[] = first.results || [];
+      let token = first.next_page_token;
+      for (let i = 1; i < pages && token; i++) {
+        await new Promise((r) => setTimeout(r, 1500));
+        const next = await searchText("", token);
+        res = res.concat(next.results || []);
+        token = next.next_page_token;
+      }
+      return res;
     }
+
     const seenPlace = new Set<string>();
     const picked: PlaceSearchResult[] = [];
-    for (const r of results) {
-      if (!r.place_id || seenPlace.has(r.place_id)) continue;
-      seenPlace.add(r.place_id);
-      picked.push(r);
-      if (picked.length >= 150) break; // safety cap
+    for (const q of queries) {
+      const res = await fetchAllPages(q, 2); // 2 pages per query to balance latency
+      for (const r of res) {
+        if (!r.place_id || seenPlace.has(r.place_id)) continue;
+        seenPlace.add(r.place_id);
+        picked.push(r);
+        if (picked.length >= 600) break; // larger safety cap
+      }
+      if (picked.length >= 600) break;
     }
     let tmp = picked.map((r) => makePlace(r));
     // Enrich missing images by fetching details for those without photos
