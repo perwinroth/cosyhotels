@@ -4,6 +4,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function SearchBar({ locale = "en" }: { locale?: string }) {
   const [city, setCity] = useState("");
+  const [suggestions, setSuggestions] = useState<Array<{ city: string; country: string }>>([]);
+  const [showSuggest, setShowSuggest] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -35,6 +37,32 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
     router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
   }
 
+  // Fetch Google Places suggestions for city input (free text remains allowed)
+  useEffect(() => {
+    const q = city.trim();
+    if (!q) { setSuggestions([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/places/search?query=${encodeURIComponent(q)}`);
+        const json = await res.json();
+        const uniq = new Map<string, { city: string; country: string }>();
+        for (const r of (json.results || [])) {
+          const parts = String(r.formatted_address || "").split(',').map((s: string) => s.trim()).filter(Boolean);
+          const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
+          const country = parts.length ? parts[parts.length - 1] : '';
+          const key = `${cityName}|${country}`;
+          if (cityName && country && !uniq.has(key)) uniq.set(key, { city: cityName, country });
+          if (uniq.size >= 8) break;
+        }
+        setSuggestions(Array.from(uniq.values()));
+        setShowSuggest(true);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [city]);
+
   const amenityOptions = [
     "Spa","Sauna","Rooftop","Garden","Bar","Restaurant","Pool","Pet-friendly","Gym",
   ];
@@ -51,12 +79,34 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
       }}
       className="relative grid md:grid-cols-[1fr_auto_auto] gap-3"
     >
+      <div className="relative">
       <input
         className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-400"
         placeholder="Paris, Rome, Lisbon…"
         value={city}
         onChange={(e) => setCity(e.target.value)}
+        onFocus={() => setShowSuggest(true)}
+        onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
       />
+      {showSuggest && suggestions.length > 0 && (
+        <div className="absolute mt-1 w-full z-20 rounded-md border border-zinc-200 bg-white shadow">
+          <ul className="max-h-64 overflow-auto">
+            {suggestions.map((s, i) => (
+              <li key={`${s.city}-${s.country}-${i}`}>
+                <button
+                  type="button"
+                  className="w-full text-left px-3 py-2 hover:bg-zinc-50"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { setCity(s.city); setShowSuggest(false); }}
+                >
+                  {s.city}, <span className="text-zinc-500">{s.country}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      </div>
       <div className="relative">
         <button
           type="button"

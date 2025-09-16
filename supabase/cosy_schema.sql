@@ -99,6 +99,16 @@ create table if not exists public.normalizer_stats (
 );
 alter table public.normalizer_stats enable row level security;
 
+-- Old slug → new slug redirects (for SEO-safe migration)
+create table if not exists public.hotel_slug_redirects (
+  old_slug text primary key,
+  new_slug text not null,
+  hotel_id uuid references public.hotels(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_hotel_slug_redirects_new on public.hotel_slug_redirects(new_slug);
+alter table public.hotel_slug_redirects enable row level security;
+
 -- Featured front page picks (persisted top list)
 create table if not exists public.featured_top (
   position integer primary key,
