@@ -173,7 +173,6 @@ async function Results({
           </div>
         );
       }
-      }
     }
   }
 

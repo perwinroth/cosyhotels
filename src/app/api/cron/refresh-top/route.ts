@@ -223,11 +223,9 @@ async function runJob() {
       if (picked.length >= 9) break;
     }
     await db.from("featured_top").delete().neq("position", -1);
-    const inserts = picked.map((p, idx) => ({ position: idx + 1, hotel_id: p.hotel.id, score: p.final, image_url: "/seal.svg" }));
-    if (inserts.length) await db.from("featured_top").insert(inserts);\n    // Persist score_final for consistency\n    for (const p of toInsert) {\n      try { await db.from("cosy_scores").update({ score_final: p.final, computed_at: new Date().toISOString() }).eq("hotel_id", p.hotel.id); } catch {}\n    }
+    const inserts = picked.length ? picked.map((p, idx) => ({ position: idx + 1, hotel_id: p.hotel.id, score: p.final, image_url: "/seal.svg" })) : [];
+    if (inserts.length) await db.from("featured_top").insert(inserts);
   } catch (e) { try { console.error("normalization_or_featured_error", e); } catch {} }
-  return { scanned, upserted, skipped };
-
   return { scanned, upserted, skipped };
 }
 
