@@ -9,6 +9,7 @@ import { locales } from "@/i18n/locales";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { getServerSupabase } from "@/lib/supabase/server";
 import slugify from "slugify";
+import { generateHotelSlug } from "@/lib/slug";
 
 type HotelRow = {
   id: string;
@@ -112,7 +113,7 @@ export default async function HotelDetail({ params }: Props) {
     if (sLower.includes("garden")) am.push("Garden");
     if (sLower.includes("bar")) am.push("Bar");
     if (sLower.includes("restaurant")) am.push("Restaurant");
-    const slug = slugify(details.name || params.slug, { lower: true, strict: true });
+    const slug = await generateHotelSlug(db as any, details.name || params.slug, cityName, countryName);
     const { data: inserted } = await db
       .from("hotels")
       .upsert({

@@ -4,7 +4,9 @@ import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normalization";
 import slugify from "slugify";
+import { generateHotelSlug } from "@/lib/slug";
 import { cities } from "@/data/cities";
+import { citiesLarge } from "@/data/cities_large";
 
 // A diverse set of seed queries across languages to cast a wide global net
 const QUERIES = [
@@ -84,7 +86,7 @@ async function runJob() {
         // Type filtering: skip non-hotel patterns
         const types = (d.types || []).map((t) => t.toLowerCase());
         if (types.some((t) => ["hostel","capsule_hotel","apartment","apartment_hotel"].includes(t))) { skipped++; continue; }
-        const slug = slugify(d.name || r.place_id, { lower: true, strict: true });
+        const slug = await generateHotelSlug(db as any, d.name || r.place_id, cityName, country);
         const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
         const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
         const country = parts.length ? parts[parts.length - 1] : '';
@@ -157,7 +159,8 @@ async function runJob() {
     }
   }
   // 4) Deterministic sweep across major world cities
-  for (const city of cities) {
+  const ALL_CITIES = Array.from(new Set([...(cities || []), ...(citiesLarge || [])]));
+  for (const city of ALL_CITIES) {
     if (shouldStop()) break;
     await fetchQuery(`cosy boutique hotel in ${city}`, PAGES_CITY);
   }

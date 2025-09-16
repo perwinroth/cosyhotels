@@ -3,7 +3,9 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
 import slugify from "slugify";
+import { generateHotelSlug } from "@/lib/slug";
 import { cities } from "@/data/cities";
+import { citiesLarge } from "@/data/cities_large";
 
 // Import or copy from main refresh route (kept in sync)
 const QUERIES = [
@@ -35,7 +37,8 @@ async function runJob() {
   const slice = (arr: string[], parts: number, idx: number) => arr.filter((_, i) => i % parts === idx);
   const dailyCountries = slice(COUNTRIES, 7, day);
   const dailyQueries = slice(QUERIES, 7, day).concat(QUERIES.slice(0, 2));
-  const dailyCities = slice(cities, 7, day);
+  const ALL_CITIES = Array.from(new Set([...(cities || []), ...(citiesLarge || [])]));
+  const dailyCities = slice(ALL_CITIES, 7, day);
 
   let scanned = 0, upserted = 0, skipped = 0;
   const seen = new Set<string>();
@@ -58,7 +61,7 @@ async function runJob() {
         const types = (d.types || []).map((t) => t.toLowerCase());
         if (types.some((t) => ["hostel","capsule_hotel","apartment","apartment_hotel"].includes(t))) { skipped++; continue; }
 
-        const slug = slugify(d.name || r.place_id, { lower: true, strict: true });
+        const slug = await generateHotelSlug(db as any, d.name || r.place_id, cityName, country);
         const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
         const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
         const country = parts.length ? parts[parts.length - 1] : '';
