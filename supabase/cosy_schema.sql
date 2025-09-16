@@ -60,6 +60,7 @@ create index if not exists idx_price_snapshots_hotel on public.price_snapshots(h
 create table if not exists public.cosy_scores (
   hotel_id uuid primary key references public.hotels(id) on delete cascade,
   score numeric not null,
+  score_final numeric,
   amenities_score numeric,
   review_sentiment numeric,
   imagery_warmth numeric,
