@@ -1,5 +1,5 @@
 // Supabase-first detail page with Places fallback and upsert
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { getDetails, photoUrl } from "@/lib/places";
@@ -145,6 +145,11 @@ export default async function HotelDetail({ params }: Props) {
   }
 
   if (!hotel && !details) return notFound();
+
+  // Redirect to canonical SEO slug if the URL uses a Place ID or old slug
+  if (hotel && params.slug !== hotel.slug) {
+    permanentRedirect(`/${params.locale}/hotels/${hotel.slug}`);
+  }
 
   // If hotel exists but has no cosy score yet, compute a base score from details and persist
   if (db && hotel && cosy == null && details) {
