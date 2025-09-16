@@ -199,8 +199,8 @@ export default async function HotelDetail({ params }: Props) {
   if (textSrc.includes('garden')) cues.push('a garden');
   if (textSrc.includes('rooftop')) cues.push('a rooftop view');
   // Pull hints from reviews text without quoting
-  const reviewsText = (details as any)?.reviews as Array<{ text?: string }> | undefined;
-  if (reviewsText) {
+  const reviewsText = details?.reviews as Array<{ text?: string }> | undefined;
+  if (reviewsText && reviewsText.length) {
     const joined = reviewsText.map((r) => (r.text || '').toLowerCase()).join(' ');
     if (joined.includes('quiet') && !cues.includes('quiet')) cues.push('a quiet vibe');
     if (joined.includes('romantic') && !cues.includes('romantic')) cues.push('a romantic feel');

@@ -64,6 +64,7 @@ export type PlaceDetails = {
   price_level?: number;
   photos?: { photo_reference: string; width: number; height: number }[];
   editorial_summary?: { overview: string };
+  reviews?: { text?: string; rating?: number }[];
 };
 
 export async function getDetails(placeId: string): Promise<PlaceDetails | null> {
