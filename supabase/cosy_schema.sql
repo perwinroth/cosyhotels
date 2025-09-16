@@ -86,3 +86,14 @@ alter table public.price_snapshots enable row level security;
 alter table public.cosy_scores enable row level security;
 alter table public.job_runs enable row level security;
 
+-- Normalization stats per city/country (robust median/IQR over base scores)
+create table if not exists public.normalizer_stats (
+  scope text not null,                 -- 'city' | 'country'
+  key text not null,                   -- e.g., 'Paris' or 'Japan'
+  median numeric not null,
+  iqr numeric not null,
+  n integer not null default 0,
+  computed_at timestamptz not null default now(),
+  primary key (scope, key)
+);
+alter table public.normalizer_stats enable row level security;

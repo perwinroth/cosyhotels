@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
-import { cosyScore } from "@/lib/scoring/cosy";
+import { cosyScore } from "@/lib/scoring/cosy";\nimport { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normalization";
 import slugify from "slugify";
 
 // A diverse set of seed queries across languages to cast a wide global net
@@ -167,6 +167,64 @@ async function runJob() {
 
   // Log useful totals to server logs for Vercel
   try { console.info(JSON.stringify({ refreshTop: { scanned, upserted, skipped } })); } catch {}
+  try {
+    await computeAndPersistNormalizerStats();
+    type Row = { score: number; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; website: string | null; reviews_count: number | null } | null };
+    const { data } = await db
+      .from("cosy_scores")
+      .select("score, hotel:hotel_id (id,slug,name,city,country,website,reviews_count)")
+      .gte("score", 7)
+      .order("score", { ascending: false })
+      .limit(300);
+    const rows = (data || []) as unknown as Row[];
+    const { data: stats } = await db.from("normalizer_stats").select("scope,key,median,iqr");
+    const cityStats = new Map<string, { m: number; i: number }>();
+    const countryStats = new Map<string, { m: number; i: number }>();
+    ((stats as unknown as { scope: string; key: string; median: number; iqr: number }[]) || []).forEach((s) => {
+      if (s.scope === 'city') cityStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
+      if (s.scope === 'country') countryStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
+    });
+    const CHAINS = [\n      "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge",\n    ];
+    const brandOf = (name: string, website?: string) => {
+      const hay = .toLowerCase();
+      for (const c of CHAINS) if (hay.includes(c)) return c;
+      return "independent";
+    };
+    const perCountry: Record<string, number> = {};
+    const perBrand: Record<string, number> = {};
+    const maxCountry = 3, maxBrand = 2;
+    const scored = rows.map((r) => {
+      const h = r.hotel;
+      if (!h) return null;
+      const base = Number(r.score) || 0;
+      const cs = cityStats.get(String(h.city || '')) || { m: base, i: 1 };
+      const ks = countryStats.get(String(h.country || '')) || { m: base, i: 1 };
+      const normCity = normalizedScore(base, cs.m, cs.i);
+      const normCountry = normalizedScore(base, ks.m, ks.i);
+      const reviews = typeof (h.reviews_count as number | null) === 'number' ? (h.reviews_count as number) : 0;
+      const conf = Math.max(0.6, Math.min(1.0, Math.log10(1 + reviews) / 2));
+      const final = (0.5 * base + 0.3 * normCity + 0.2 * normCountry) * conf;
+      return { hotel: h, base, final };
+    }).filter(Boolean) as Array<{ hotel: NonNullable<Row['hotel']>; base: number; final: number }>;
+    scored.sort((a, b) => b.final - a.final);
+    const picked: typeof scored = [];
+    for (const s of scored) {
+      const country = String(s.hotel.country || '');
+      const brand = brandOf(s.hotel.name, s.hotel.website || undefined);
+      const cCount = perCountry[country] || 0;
+      const bCount = perBrand[brand] || 0;
+      if (cCount >= maxCountry || bCount >= maxBrand) continue;
+      picked.push(s);
+      perCountry[country] = cCount + 1;
+      perBrand[brand] = bCount + 1;
+      if (picked.length >= 9) break;
+    }
+    await db.from("featured_top").delete().neq("position", -1);
+    const inserts = picked.map((p, idx) => ({ position: idx + 1, hotel_id: p.hotel.id, score: p.final, image_url: "/seal.svg" }));
+    if (inserts.length) await db.from("featured_top").insert(inserts);
+  } catch (e) { try { console.error("normalization_or_featured_error", e); } catch {} }
+  return { scanned, upserted, skipped };
+
   return { scanned, upserted, skipped };
 }
 
