@@ -4,6 +4,7 @@ import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normalization";
 import slugify from "slugify";
+import { cities } from "@/data/cities";
 
 // A diverse set of seed queries across languages to cast a wide global net
 const QUERIES = [
@@ -31,6 +32,7 @@ const MAX_SCANNED = 8000; // total place ids to evaluate per run
 const PAGES_GENERAL = 5;  // pages to fetch for each general query
 const PAGES_REGION = 4;   // pages to fetch for each region-qualified query
 const PAGES_COUNTRY = 3;  // pages to fetch for each country-qualified query
+const PAGES_CITY = 2;     // pages to fetch for each specific city
 
 // Broad country list to increase global coverage
 const COUNTRIES = [
@@ -153,6 +155,11 @@ async function runJob() {
       if (shouldStop()) break;
       await fetchQuery(`${q} in ${country}`, PAGES_COUNTRY);
     }
+  }
+  // 4) Deterministic sweep across major world cities
+  for (const city of cities) {
+    if (shouldStop()) break;
+    await fetchQuery(`cosy boutique hotel in ${city}`, PAGES_CITY);
   }
 
   // Log useful totals to server logs for Vercel

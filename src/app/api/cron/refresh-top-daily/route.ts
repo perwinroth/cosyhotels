@@ -3,6 +3,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
 import slugify from "slugify";
+import { cities } from "@/data/cities";
 
 // Import or copy from main refresh route (kept in sync)
 const QUERIES = [
@@ -34,6 +35,7 @@ async function runJob() {
   const slice = (arr: string[], parts: number, idx: number) => arr.filter((_, i) => i % parts === idx);
   const dailyCountries = slice(COUNTRIES, 7, day);
   const dailyQueries = slice(QUERIES, 7, day).concat(QUERIES.slice(0, 2));
+  const dailyCities = slice(cities, 7, day);
 
   let scanned = 0, upserted = 0, skipped = 0;
   const seen = new Set<string>();
@@ -112,6 +114,11 @@ async function runJob() {
       if (shouldStop()) break;
       await fetchQ(`${q} in ${c}`);
     }
+  }
+  // Sweep a share of cities each day
+  for (const city of dailyCities) {
+    if (shouldStop()) break;
+    await fetchQ(`cosy boutique hotel in ${city}`);
   }
 
   try { console.info(JSON.stringify({ refreshTopDaily: { scanned, upserted, skipped, day } })); } catch {}
