@@ -198,6 +198,25 @@ async function Results({
       } catch {}
     }
     let tmp = results.slice(0, 60).map((r) => makePlace(r, city));
+    // If Supabase has entries for these Place IDs, override scores with persisted score_final/score for consistency
+    try {
+      const supabase = getServerSupabase();
+      if (supabase && tmp.length) {
+        const ids = tmp.map((p) => String(p.id));
+        const { data: rows } = await supabase
+          .from('hotels')
+          .select('source_id, cosy_scores ( score, score_final )')
+          .in('source_id', ids);
+        const byId = new Map<string, number>();
+        for (const r of (rows || []) as Array<{ source_id: string | null; cosy_scores: { score: number | null; score_final: number | null } | null }>) {
+          const s = r.cosy_scores?.score_final ?? r.cosy_scores?.score;
+          if (r.source_id && typeof s === 'number') byId.set(String(r.source_id), Number(s));
+        }
+        if (byId.size) {
+          tmp = tmp.map((p) => (byId.has(String(p.id)) ? { ...p, _cosy: byId.get(String(p.id)) as number } : p));
+        }
+      }
+    } catch {}
     // Enrich missing images for city search as well
     tmp = await Promise.all(
       tmp.map(async (p) => {
@@ -255,6 +274,25 @@ async function Results({
       if (picked.length >= 600) break;
     }
     let tmp = picked.map((r) => makePlace(r));
+    // Override with Supabase scores when available for consistency
+    try {
+      const supabase = getServerSupabase();
+      if (supabase && tmp.length) {
+        const ids = tmp.map((p) => String(p.id));
+        const { data: rows } = await supabase
+          .from('hotels')
+          .select('source_id, cosy_scores ( score, score_final )')
+          .in('source_id', ids);
+        const byId = new Map<string, number>();
+        for (const r of (rows || []) as Array<{ source_id: string | null; cosy_scores: { score: number | null; score_final: number | null } | null }>) {
+          const s = r.cosy_scores?.score_final ?? r.cosy_scores?.score;
+          if (r.source_id && typeof s === 'number') byId.set(String(r.source_id), Number(s));
+        }
+        if (byId.size) {
+          tmp = tmp.map((p) => (byId.has(String(p.id)) ? { ...p, _cosy: byId.get(String(p.id)) as number } : p));
+        }
+      }
+    } catch {}
     // Enrich missing images by fetching details for those without photos
     tmp = await Promise.all(
       tmp.map(async (p) => {
