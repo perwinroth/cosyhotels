@@ -182,14 +182,16 @@ async function Results({
     _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/seal.svg",
   });
   if (city) {
-    // City search: fetch up to 2 pages to exceed 20 results and allow 21-cap
+    // City search: fetch up to 3 pages; add slight delays for next_page_token activation
     const first = await searchText(`cosy boutique hotel in ${city}`);
     let results = (first.results || []);
     if (first.next_page_token) {
       try {
+        await new Promise((r) => setTimeout(r, 1500));
         const second = await searchText("", first.next_page_token);
         results = results.concat(second.results || []);
         if (second.next_page_token) {
+          await new Promise((r) => setTimeout(r, 1500));
           const third = await searchText("", second.next_page_token);
           results = results.concat(third.results || []);
         }
