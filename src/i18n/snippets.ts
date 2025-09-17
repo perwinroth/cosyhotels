@@ -108,6 +108,36 @@ const cueMap: Record<string, Record<string, string>> = {
     tranquil: 'en rolig stemning',
     romantic: 'en romantisk følelse',
   },
+  ja: {
+    spa: '心地よいスパ',
+    sauna: '落ち着くサウナ',
+    tubs: '深めのバスタブ',
+    fireplace: '暖炉のぬくもり',
+    garden: '静かな庭',
+    rooftop: '屋上テラス',
+    tranquil: '静かな雰囲気',
+    romantic: 'ロマンチックな雰囲気',
+  },
+  ko: {
+    spa: '편안한 스파',
+    sauna: '차분한 사우나',
+    tubs: '넉넉한 욕조',
+    fireplace: '벽난로의 따뜻함',
+    garden: '고요한 정원',
+    rooftop: '루프탑 전망',
+    tranquil: '아늑한 분위기',
+    romantic: '로맨틱한 분위기',
+  },
+  zh: {
+    spa: '舒缓的水疗',
+    sauna: '宁静的桑拿',
+    tubs: '浸泡浴缸',
+    fireplace: '壁炉的温暖',
+    garden: '安静的花园',
+    rooftop: '屋顶景观',
+    tranquil: '安静的氛围',
+    romantic: '浪漫的气息',
+  },
 };
 
 const ideals: Record<string, Record<string, string>> = {
@@ -121,6 +151,9 @@ const ideals: Record<string, Record<string, string>> = {
   da: { 'budget': 'budgetvenlig komfort', 'mid-range': 'mellemklasse-komfort', 'upscale': 'eksklusiv komfort', 'luxury': 'luksuskomfort', warm: 'et varmt, afslappet ophold' },
   sv: { 'budget': 'prisvärt komfort', 'mid-range': 'mellanklasskomfort', 'upscale': 'hög komfort', 'luxury': 'lyxig komfort', warm: 'en varm, avslappnad vistelse' },
   no: { 'budget': 'rimelig komfort', 'mid-range': 'komfort i mellomklassen', 'upscale': 'eksklusiv komfort', 'luxury': 'luksuskomfort', warm: 'et varmt og avslappet opphold' },
+  ja: { 'budget': '手頃な快適さ', 'mid-range': '程よい快適さ', 'upscale': '上質な快適さ', 'luxury': '贅沢な快適さ', warm: '温かくリラックスできる滞在' },
+  ko: { 'budget': '합리적 편안함', 'mid-range': '중간급 편안함', 'upscale': '고급스러운 편안함', 'luxury': '럭셔리한 편안함', warm: '따뜻하고 편안한 숙박' },
+  zh: { 'budget': '经济舒适', 'mid-range': '中档舒适', 'upscale': '高档舒适', 'luxury': '奢华舒适', warm: '温馨放松的住宿' },
 };
 
 const templates: Record<string, string[]> = {
@@ -159,6 +192,18 @@ const templates: Record<string, string[]> = {
   ],
   no: [
     `Ser du etter et koselig hotell i {city}, er {name} et toppvalg. Vi gir {rating}{reviews} takket være {cues}. Ideelt hvis du vil {ideal}.`,
+  ],
+  ja: [
+    `{city}でコージーなホテルをお探しなら、{name}はおすすめです。私たちの評価は{rating}{reviews}。{cues}が魅力です。{ideal}に最適。`,
+    `{name}は{city}でもっともコージーなホテルの一つ。評価は{rating}{reviews}、{cues}が心地よさを高めます。{ideal}にぴったり。`,
+  ],
+  ko: [
+    `{city}에서 아늑한 호텔을 찾는다면 {name}이(가) 최고의 선택입니다. 평점은 {rating}{reviews}, {cues}가 돋보입니다. {ideal}에 안성맞춤.`,
+    `{name}은(는) {city}에서 가장 아늑한 호텔 중 하나입니다. 평점 {rating}{reviews}, {cues} 덕분에 더욱 포근합니다. {ideal}에 적합합니다.`,
+  ],
+  zh: [
+    `如果你在{city}寻找温馨的酒店，{name}是不二之选。我们评分为{rating}{reviews}，得益于{cues}。非常适合{ideal}。`,
+    `{name}是{city}最温馨的酒店之一。我们给出{rating}{reviews}，因为{cues}，适合{ideal}。`,
   ],
 };
 

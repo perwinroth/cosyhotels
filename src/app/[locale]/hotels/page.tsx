@@ -4,6 +4,7 @@ import { SearchBar } from "@/components/HomeSections";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import type { Metadata } from "next";
 import { locales } from "@/i18n/locales";
+import { messages } from "@/i18n/messages";
 import { cosyScore, adhocCosyScore } from "@/lib/scoring/cosy";
 import { getImageForHotel } from "@/lib/hotelImages";
 import HotelTile from "@/components/HotelTile";
@@ -39,10 +40,11 @@ export default function HotelsPage({
 }) {
   const cityParam = typeof searchParams.city === 'string' ? searchParams.city.trim() : '';
   const hasCity = !!cityParam;
-  const h1 = hasCity ? `Cosy hotel in ${cityParam} – boutique stays` : `Cosy hotel rooms & boutique hotels`;
+  const m = messages[params.locale as keyof typeof messages] ?? messages.en;
+  const h1 = hasCity ? (m.hotels?.h1_city?.replace('{city}', cityParam) || `Cosy hotel in ${cityParam} – boutique stays`) : (m.hotels?.h1_generic || 'Cosy hotel rooms & boutique hotels');
   const intro = hasCity
-    ? `Find a cosy hotel in ${cityParam}. We surface intimate boutique stays with warm design, great reviews and that cosy feel.`
-    : `Find cosy hotel rooms, boutique hotels, and romantic getaways across the world. Use the search and filters to uncover intimate stays with warm design and great reviews.`;
+    ? (m.hotels?.intro_city?.replace('{city}', cityParam) || `Find a cosy hotel in ${cityParam}. We surface intimate boutique stays with warm design, great reviews and that cosy feel.`)
+    : (m.hotels?.intro_generic || `Find cosy hotel rooms, boutique hotels, and romantic getaways across the world. Use the search and filters to uncover intimate stays with warm design and great reviews.`);
 
   const faqs = hasCity
     ? [

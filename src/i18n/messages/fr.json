@@ -5,5 +5,11 @@
     "description": "Évasions cosy sélectionnées."
   },
   "nav": {"explore": "Explorer", "collections": "Collections", "guides": "Guides"},
+  "hotels": {
+    "h1_generic": "Hôtels chaleureux & boutiques-hôtels",
+    "h1_city": "Hôtel chaleureux à {city} – boutiques de charme",
+    "intro_generic": "Trouvez des hôtels chaleureux, des boutiques-hôtels et des escapades romantiques partout dans le monde. Utilisez la recherche et les filtres pour découvrir des adresses intimes au design chaleureux et bien notées.",
+    "intro_city": "Trouvez un hôtel chaleureux à {city}. Nous mettons en avant des boutiques-hôtels intimistes, bien notés et vraiment chaleureux."
+  },
   "home": {"browseAll": "Voir tous les hôtels"}
 }

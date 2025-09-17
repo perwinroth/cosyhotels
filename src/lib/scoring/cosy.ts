@@ -47,11 +47,25 @@ const COSY_KEYWORDS = [
   // Japanese/Asia specific cosy cues
   "旅館", "温泉", "町家", "畳", // ryokan, onsen, machiya, tatami
   "onsen", "ryokan", "machiya", "tatami", "hot spring",
+  // Korean
+  "아늑", "편안", "로맨틱", "벽난로",
+  // Chinese
+  "温馨", "舒适", "浪漫", "壁炉", "花园",
+  // Polish
+  "przytulny", "romantyczny", "kominek",
+  // Turkish
+  "samimi", "sıcak", "romantik",
 ];
 
 const NEGATIVE_KEYWORDS = [
   "noisy", "busy", "corporate", "conference", "chain",
   "hostel", "dorm", "capsule", "capsule hotel", "party hostel",
+  // Global languages negatives
+  "ビジネスホテル", // business hotel (JP)
+  "商务酒店", // business hotel (ZH)
+  "비즈니스 호텔", // business hotel (KO)
+  "konferencja", // conference (PL)
+  "iş oteli", // business hotel (TR)
 ];
 
 export function keywordSentiment(text?: string) {

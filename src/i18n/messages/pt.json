@@ -5,5 +5,11 @@
     "description": "Escapadelas aconchegantes selecionadas."
   },
   "nav": {"explore": "Explorar", "collections": "Coleções", "guides": "Guias"},
+  "hotels": {
+    "h1_generic": "Hotéis acolhedores & boutique",
+    "h1_city": "Hotel acolhedor em {city} – estadas boutique",
+    "intro_generic": "Encontre hotéis acolhedores, boutique e escapadelas românticas pelo mundo. Use a pesquisa e os filtros para descobrir estadias íntimas com design quente e boas avaliações.",
+    "intro_city": "Encontre um hotel acolhedor em {city}. Destacamos estadias boutique íntimas com design quente e ótimas avaliações."
+  },
   "home": {"browseAll": "Ver todos os hotéis"}
 }

@@ -6,17 +6,20 @@ import { getImageForHotel } from "@/lib/hotelImages";
 import { getDetails } from "@/lib/places";
 import { buildCosySnippet } from "@/i18n/snippets";
 import Image from "next/image";
+import { translate } from "@/lib/i18n/translate";
 import { locales } from "@/i18n/locales";
 
 type Props = { params: { slug: string; locale: string } };
 
-export function generateMetadata({ params }: Props): Metadata {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const g = getGuide(params.slug);
   if (!g) {
     const cg = getCityGuide(params.slug);
     if (cg) {
-      const title = `${cg.city} cosy hotels – 9 handpicked stays`;
-      const description = `Our favourite cosy and romantic boutique hotels in ${cg.city}.`;
+      const titleBase = `${cg.city} cosy hotels – 9 handpicked stays`;
+      const descBase = `Our favourite cosy and romantic boutique hotels in ${cg.city}.`;
+      const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
+      const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
       const url = `/${params.locale}/guides/${cg.slug}`;
       const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/guides/${cg.slug}`]));
       return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary", title, description } };
@@ -25,27 +28,31 @@ export function generateMetadata({ params }: Props): Metadata {
   }
   const url = `/${params.locale}/guides/${g.slug}`;
   const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/guides/${g.slug}`]));
+  const title = params.locale === 'en' ? g.title : await translate(g.title, params.locale);
+  const description = params.locale === 'en' ? g.excerpt : await translate(g.excerpt, params.locale);
   return {
-    title: g.title,
-    description: g.excerpt,
+    title,
+    description,
     alternates: { canonical: url, languages },
-    openGraph: { title: g.title, description: g.excerpt, type: "article", url },
-    twitter: { card: "summary", title: g.title, description: g.excerpt },
+    openGraph: { title, description, type: "article", url },
+    twitter: { card: "summary", title, description },
   };
 }
 
 export default async function GuidePage({ params }: Props) {
   const g = getGuide(params.slug);
   if (g) {
+    const title = params.locale === 'en' ? g.title : await translate(g.title, params.locale);
+    const excerpt = params.locale === 'en' ? g.excerpt : await translate(g.excerpt, params.locale);
     return (
       <article className="prose prose-zinc mx-auto max-w-3xl px-4 py-8">
-        <h1 className="mb-2">{g.title}</h1>
-        <p className="text-zinc-600">{g.excerpt}</p>
+        <h1 className="mb-2">{title}</h1>
+        <p className="text-zinc-600">{excerpt}</p>
         <div className="mt-6" dangerouslySetInnerHTML={{ __html: g.body }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.excerpt, mainEntityOfPage: { '@type': 'WebPage', '@id': `/guides/${g.slug}` } }),
+            __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: title, description: excerpt, mainEntityOfPage: { '@type': 'WebPage', '@id': `/guides/${g.slug}` } }),
           }}
         />
       </article>

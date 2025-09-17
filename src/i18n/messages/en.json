@@ -9,6 +9,12 @@
     "collections": "Collections",
     "guides": "Guides"
   },
+  "hotels": {
+    "h1_generic": "Cosy hotel rooms & boutique hotels",
+    "h1_city": "Cosy hotel in {city} – boutique stays",
+    "intro_generic": "Find cosy hotel rooms, boutique hotels, and romantic getaways across the world. Use the search and filters to uncover intimate stays with warm design and great reviews.",
+    "intro_city": "Find a cosy hotel in {city}. We surface intimate boutique stays with warm design, great reviews and that cosy feel."
+  },
   "home": {
     "browseAll": "Browse all hotels"
   }
