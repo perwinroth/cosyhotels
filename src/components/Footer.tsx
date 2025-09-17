@@ -10,13 +10,13 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
             <strong className="text-black">{site.name}</strong> · {site.description}
           </div>
           <nav aria-label="Footer" className="mt-3">
-            <ul className="list-disc pl-5 space-y-1">
-              <li><Link href={`/${locale}/cosy-score`} className="hover:underline">Cosy score</Link></li>
-              <li><Link href={`/${locale}/disclosure`} className="hover:underline">Affiliate disclosure</Link></li>
-              <li><Link href={`/${locale}/privacy`} className="hover:underline">Privacy</Link></li>
-              <li><Link href={`/${locale}/about`} className="hover:underline">About</Link></li>
-              <li><Link href={`/${locale}/contact`} className="hover:underline">Contact</Link></li>
-            </ul>
+            <div className="flex flex-col space-y-1">
+              <Link href={`/${locale}/cosy-score`} className="hover:underline">Cosy score</Link>
+              <Link href={`/${locale}/disclosure`} className="hover:underline">Affiliate disclosure</Link>
+              <Link href={`/${locale}/privacy`} className="hover:underline">Privacy</Link>
+              <Link href={`/${locale}/about`} className="hover:underline">About</Link>
+              <Link href={`/${locale}/contact`} className="hover:underline">Contact</Link>
+            </div>
           </nav>
         </div>
         <div className="md:text-right">© {new Date().getFullYear()} {site.name}</div>
