@@ -115,50 +115,54 @@ export default async function HotelDetail({ params }: Props) {
       .maybeSingle();
     if (ct) cityTop = ct as unknown as typeof cityTop;
   }
-  if (!hotel && details && db) {
+  if (!hotel && db) {
     // Upsert minimal record so subsequent visits use Supabase
-    const parts = (details.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
-    const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
-    const countryName = parts.length ? parts[parts.length - 1] : '';
-    const am: string[] = [];
-    const sLower = (details.editorial_summary?.overview || details.formatted_address || '').toLowerCase();
-    if (sLower.includes("spa")) am.push("Spa");
-    if (sLower.includes("sauna")) am.push("Sauna");
-    if (sLower.includes("fireplace")) am.push("Fireplace");
-    if (sLower.includes("bath")) am.push("Bathtub");
-    if (sLower.includes("rooftop")) am.push("Rooftop");
-    if (sLower.includes("garden")) am.push("Garden");
-    if (sLower.includes("bar")) am.push("Bar");
-    if (sLower.includes("restaurant")) am.push("Restaurant");
-    const slug = await generateHotelSlug(db!, details.name || params.slug, cityName, countryName);
-    const { data: inserted } = await db
-      .from("hotels")
-      .upsert({
-        source: "google-places",
-        source_id: details.place_id,
-        slug,
-        name: details.name,
-        address: details.formatted_address || null,
-        city: cityName,
-        country: countryName,
-        lat: details.geometry?.location.lat ?? null,
-        lng: details.geometry?.location.lng ?? null,
-        rating: details.rating ? Number((details.rating * 2).toFixed(1)) : null,
-        reviews_count: details.user_ratings_total ?? null,
-        rooms_count: null,
-        amenities: am.length ? am : null,
-        description: details.editorial_summary?.overview || details.formatted_address || null,
-        website: details.website || null,
-        affiliate_url: null,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "slug" })
-      .select("id,slug,name,city,country,website,affiliate_url,source_id,rating,reviews_count")
-      .single();
-    if (inserted) {
-      hotel = inserted as unknown as HotelRow;
-      const base = cosyScore({ rating: details.rating ? details.rating * 2 : undefined, amenities: am, description: `${details.name}. ${details.editorial_summary?.overview || details.formatted_address || ''}`, name: details.name, website: details.website, reviewsCount: details.user_ratings_total ?? undefined, city: cityName });
-      await db.from("cosy_scores").upsert({ hotel_id: inserted.id, score: base, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
-      cosy = base; // until cron normalizes and sets score_final
+    const placeId = params.slug;
+    const d = await getDetails(placeId);
+    if (d) {
+      const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
+      const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
+      const countryName = parts.length ? parts[parts.length - 1] : '';
+      const am: string[] = [];
+      const sLower = (d.editorial_summary?.overview || d.formatted_address || '').toLowerCase();
+      if (sLower.includes("spa")) am.push("Spa");
+      if (sLower.includes("sauna")) am.push("Sauna");
+      if (sLower.includes("fireplace")) am.push("Fireplace");
+      if (sLower.includes("bath")) am.push("Bathtub");
+      if (sLower.includes("rooftop")) am.push("Rooftop");
+      if (sLower.includes("garden")) am.push("Garden");
+      if (sLower.includes("bar")) am.push("Bar");
+      if (sLower.includes("restaurant")) am.push("Restaurant");
+      const slug = await generateHotelSlug(db!, d.name || params.slug, cityName, countryName);
+      const { data: inserted } = await db
+        .from("hotels")
+        .upsert({
+          source: "google-places",
+          source_id: d.place_id,
+          slug,
+          name: d.name,
+          address: d.formatted_address || null,
+          city: cityName,
+          country: countryName,
+          lat: d.geometry?.location.lat ?? null,
+          lng: d.geometry?.location.lng ?? null,
+          rating: d.rating ? Number((d.rating * 2).toFixed(1)) : null,
+          reviews_count: d.user_ratings_total ?? null,
+          rooms_count: null,
+          amenities: am.length ? am : null,
+          description: d.editorial_summary?.overview || d.formatted_address || null,
+          website: d.website || null,
+          affiliate_url: null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "slug" })
+        .select("id,slug,name,city,country,website,affiliate_url,source_id,rating,reviews_count")
+        .single();
+      if (inserted) {
+        hotel = inserted as unknown as HotelRow;
+        const base = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${d.editorial_summary?.overview || d.formatted_address || ''}`, name: d.name, website: d.website, reviewsCount: d.user_ratings_total ?? undefined, city: cityName });
+        await db.from("cosy_scores").upsert({ hotel_id: inserted.id, score: base, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
+        cosy = base; // until cron normalizes and sets score_final
+      }
     }
   }
 
