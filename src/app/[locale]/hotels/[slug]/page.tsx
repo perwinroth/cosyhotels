@@ -276,7 +276,7 @@ export default async function HotelDetail({ params }: Props) {
         </a>
         {goHref && (
           <a
-            className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-4 py-2 hover:bg-zinc-50"
+            className="ml-auto inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-4 py-2 hover:bg-zinc-50"
             href={goHref}
             target="_blank"
             rel="noopener nofollow sponsored"
