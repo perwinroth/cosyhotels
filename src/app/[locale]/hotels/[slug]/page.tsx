@@ -229,20 +229,10 @@ export default async function HotelDetail({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      {/* Cosy snippet – first text on the page for LLMs/SEO */}
-      <p className="text-sm text-zinc-700">{cosySnippet}</p>
-      {/* Why we rate it cosy – placed before the image */}
-      <section className="mt-3">
-        <h2 className="sr-only">Why we rate it cosy</h2>
-        <ul className="list-disc pl-5 text-sm text-zinc-700 space-y-1">
-          {cueList.map((c, i) => (<li key={`c-${i}`}>{c}</li>))}
-          {!cueList.length && <li>Intimate scale and warm design</li>}
-          {typeof rating5 === 'number' && (
-            <li>Guest rating: {rating5.toFixed(1)}/5{reviewsTotal ? ` from ${reviewsTotal.toLocaleString()} reviews` : ''}</li>
-          )}
-          {priceText && <li>Typical price level: {priceText}</li>}
-        </ul>
-      </section>
+      {/* Title, address, snippet */}
+      <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
+      <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
+      <p className="mt-3 text-sm text-zinc-700">{cosySnippet}</p>
 
       <div className="mt-3 relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
         <Image src={image} alt={`${name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
@@ -269,9 +259,7 @@ export default async function HotelDetail({ params }: Props) {
           })
         }}
       />
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
-      <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
-      <p className="mt-3 text-sm text-zinc-700">{cosySnippet}</p>
+      
       <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${(cosyDisplay).toFixed(1)} out of 10`}>
         <div className="flex items-center justify-between">
           <div>
