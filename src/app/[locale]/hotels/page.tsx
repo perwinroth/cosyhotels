@@ -245,6 +245,7 @@ async function Results({
           const h = r.hotel!;
           const resolvedImg = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || "/seal.svg";
           return {
+            _id: String(h.id),
             slug: String(h.slug),
             name: String(h.name),
             city: String(h.city || ''),
@@ -256,6 +257,12 @@ async function Results({
             affiliateUrl: (h.affiliate_url as string | null) || "",
           };
         }));
+        // Self-heal featured_top with these top picks
+        try {
+          const inserts = chosen.map((c, idx) => ({ position: idx + 1, hotel_id: c._id, score: c._cosy, image_url: c._img }));
+          await supabase.from('featured_top').delete().neq('position', -1);
+          if (inserts.length) await supabase.from('featured_top').insert(inserts);
+        } catch {}
         const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
         const renderTop = (h: typeof chosen[number]) => (
           <HotelTile
@@ -359,7 +366,8 @@ async function Results({
   } else {
     // Front page: prioritize speed; rely on Supabase featured_top. If Supabase is unavailable or explicit env flag is set, run a minimal Places fallback so the grid is never blank.
     const supForCheck = getServerSupabase();
-    const enableFallback = process.env.NEXT_PUBLIC_ENABLE_FRONT_PLACES_FALLBACK === 'true' || !supForCheck;
+    // Enable minimal Places fallback if explicitly flagged, if Supabase is unavailable, or if there are no curated hotels to show
+    const enableFallback = process.env.NEXT_PUBLIC_ENABLE_FRONT_PLACES_FALLBACK === 'true' || !supForCheck || hotels.length === 0;
     if (enableFallback) {
       // Broader fallback (may be slow) — use only when explicitly enabled
       const baseQueries = [
