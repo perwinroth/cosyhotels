@@ -184,7 +184,21 @@ async function Results({
           const moreRows = ((more || []) as unknown as MS[])
             .filter((r) => r.hotel && !excludeSlugs.has(String(r.hotel!.slug)))
             .slice(0, 9 - chosen.length);
-          const moreChosen = await Promise.all(moreRows.map(async (r) => {
+          const CHAINS = [
+            "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge","four points","courtyard","residence inn","springhill suites","fairfield inn","doubletree","embassy suites","moxy","ac hotel","aloft","element","hampton","waldorf astoria","conrad","jw marriott","ritz",
+          ];
+          const isChain = (name: string) => {
+            const hay = name.toLowerCase();
+            return CHAINS.some((c) => hay.includes(c));
+          };
+          const filteredRows = moreRows.filter((r) => {
+            const s = typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0);
+            if (s < 7.0) return false;
+            const name = String(r.hotel!.name || '');
+            if (isChain(name)) return false;
+            return true;
+          });
+          const moreChosen = await Promise.all(filteredRows.map(async (r) => {
             const h = r.hotel!;
             const resolvedImg = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || "/seal.svg";
             return {

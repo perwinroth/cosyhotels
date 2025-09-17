@@ -57,6 +57,15 @@ const COUNTRIES = [
   "Australia","New Zealand",
 ];
 
+function brandOfName(name: string, website?: string) {
+  const CHAINS = [
+    "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge","four points","courtyard","residence inn","springhill suites","fairfield inn","doubletree","embassy suites","park inn","park plaza","sofitel","pullman","moxy","ac hotel","aloft","element","hampton","hilton garden inn","waldorf astoria","conrad","ritz","jw marriott",
+  ];
+  const hay = `${name} ${website || ''}`.toLowerCase();
+  for (const c of CHAINS) if (hay.includes(c)) return c;
+  return 'independent';
+}
+
 async function runJob() {
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
@@ -87,6 +96,9 @@ async function runJob() {
         // Type filtering: skip non-hotel patterns
         const types = (d.types || []).map((t) => t.toLowerCase());
         if (types.some((t) => ["hostel","capsule_hotel","apartment","apartment_hotel"].includes(t))) { skipped++; continue; }
+        // Chain filtering: skip big chains and conference hotels
+        const chain = brandOfName(d.name || '', d.website || undefined);
+        if (chain !== 'independent') { skipped++; continue; }
         const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
         const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
         const country = parts.length ? parts[parts.length - 1] : '';
@@ -176,7 +188,7 @@ async function runJob() {
       .select("score, hotel:hotel_id (id,slug,name,city,country,website,reviews_count)")
       .gte("score", 7)
       .order("score", { ascending: false })
-      .limit(300);
+      .limit(1000);
     const rows = (data || []) as unknown as Row[];
     const { data: stats } = await db.from("normalizer_stats").select("scope,key,median,iqr");
     const cityStats = new Map<string, { m: number; i: number }>();
@@ -185,14 +197,7 @@ async function runJob() {
       if (s.scope === 'city') cityStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
       if (s.scope === 'country') countryStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
     });
-    const CHAINS = [
-      "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge",
-    ];
-    const brandOf = (name: string, website?: string) => {
-      const hay = `${name} ${website || ''}`.toLowerCase();
-      for (const c of CHAINS) if (hay.includes(c)) return c;
-      return "independent";
-    };
+    const brandOf = brandOfName;
     const perCountry: Record<string, number> = {};
     const perBrand: Record<string, number> = {};
     // Relaxed diversity guard to ensure 9 picks while DB grows
@@ -224,6 +229,8 @@ async function runJob() {
     for (const s of scored) {
       const country = String(s.hotel.country || '');
       const brand = brandOf(s.hotel.name, s.hotel.website || undefined);
+      if (brand !== 'independent') continue; // exclude big chains entirely
+      if (s.final < 7.0) continue; // enforce threshold
       const cCount = perCountry[country] || 0;
       const bCount = perBrand[brand] || 0;
       if (cCount >= maxCountry || bCount >= maxBrand) continue;
