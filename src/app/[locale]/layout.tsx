@@ -50,6 +50,9 @@ export default async function LocaleLayout({
               <Link href={`/${locale}/collections`} prefetch={false} className="hover:underline">{m.nav.collections}</Link>
               <Link href={`/${locale}/guides`} prefetch={false} className="hover:underline">{m.nav.guides}</Link>
               <Link href={`/${locale}/cosy-score`} prefetch={false} className="hover:underline">How we calculate</Link>
+              <Link href={`/${locale}/cosy-score#seal`} prefetch={false} className="hover:underline">
+                Curious about the badge? See how the Seal of approval works.
+              </Link>
               <LanguageSwitcher current={locale} />
             </nav>
           </div>
