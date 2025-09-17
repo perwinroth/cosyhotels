@@ -6,6 +6,7 @@ import { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normali
 import { generateHotelSlug } from "@/lib/slug";
 import { cities } from "@/data/cities";
 import { citiesLarge } from "@/data/cities_large";
+import { cityGuides } from "@/data/cityGuides";
 
 // A diverse set of seed queries across languages to cast a wide global net
 const QUERIES = [
@@ -226,6 +227,50 @@ async function runJob() {
     const inserts = toInsert.map((p, idx) => ({ position: idx + 1, hotel_id: p.hotel.id, score: p.final, image_url: "/seal.svg" }));
     if (inserts.length) await db.from("featured_top").insert(inserts);
   } catch (e) { try { console.error("normalization_or_featured_error", e); } catch {} }
+  // 5) Precompute top-9 per city for guides
+  try {
+    const guideCities = Array.from(new Set(cityGuides.map((c) => c.city)));
+    for (const city of guideCities) {
+      const { data: rows } = await db
+        .from('hotels')
+        .select('id,slug,name,city,country,rating,reviews_count,source_id, cosy_scores ( score, score_final )')
+        .ilike('city', `%${city}%`)
+        .limit(200);
+      const scored = (rows || []).map((r: any) => {
+        const cs = Array.isArray(r.cosy_scores) ? r.cosy_scores[0] : r.cosy_scores;
+        const s = (cs && (cs.score_final ?? cs.score)) ? Number(cs.score_final ?? cs.score) : 0;
+        return { h: r, s };
+      }).filter((x: any) => x.s > 0).sort((a: any, b: any) => b.s - a.s).slice(0, 9);
+      const inserts: any[] = [];
+      let rank = 1;
+      for (const { h, s } of scored) {
+        let rating5: number | null = h.rating ? Number(h.rating) / 2 : null;
+        let reviews = h.reviews_count || null;
+        const cues: string[] = [];
+        try {
+          if (h.source_id) {
+            const d = await getDetails(h.source_id);
+            if (d) {
+              rating5 = d.rating ?? rating5;
+              reviews = (d.user_ratings_total ?? reviews) as number | null;
+              const txt = `${d.editorial_summary?.overview || ''} ${d.formatted_address || ''}`.toLowerCase();
+              if (txt.includes('spa')) cues.push('spa');
+              if (txt.includes('sauna')) cues.push('sauna');
+              if (txt.includes('bathtub') || txt.includes('soaking') || txt.includes('bath')) cues.push('tubs');
+              if (txt.includes('fireplace')) cues.push('fireplace');
+              if (txt.includes('garden')) cues.push('garden');
+              if (txt.includes('rooftop')) cues.push('rooftop');
+            }
+          }
+        } catch {}
+        const image_url = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || '/seal.svg';
+        inserts.push({ city, rank, hotel_id: h.id, score: s, image_url, rating5: rating5 ?? null, reviews_count: reviews ?? null, cues, updated_at: new Date().toISOString() });
+        rank++;
+      }
+      await db.from('city_top').delete().eq('city', city);
+      if (inserts.length) await db.from('city_top').insert(inserts);
+    }
+  } catch (e) { try { console.error('city_top_error', e); } catch {} }
   return { scanned, upserted, skipped };
 }
 

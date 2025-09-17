@@ -61,79 +61,38 @@ export default async function GuidePage({ params }: Props) {
   const cg = getCityGuide(params.slug);
   if (!cg) return <div className="mx-auto max-w-6xl px-4 py-8">Guide not found.</div>;
 
-  // Fetch top cosy hotels for the city from Supabase
+  // Fetch precomputed top cosy hotels for the city from Supabase (city_top)
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
-  type HR = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; website: string | null; reviews_count: number | null; source_id: string | null; cosy_scores: { score: number | null; score_final: number | null } | { score: number | null; score_final: number | null }[] | null };
+  type CT = { rank: number; score: number; image_url: string | null; rating5: number | null; reviews_count: number | null; cues: string[] | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; } | null };
   const { data } = await db
-    .from('hotels')
-    .select('id,slug,name,city,country,rating,website,reviews_count,source_id, cosy_scores ( score, score_final )')
-    .ilike('city', `%${cg.city}%`)
-    .limit(120);
-  const hotels = (data || []) as unknown as HR[];
-  const coalesceScore = (cs: HR['cosy_scores']) => {
-    if (!cs) return 0;
-    if (Array.isArray(cs)) {
-      const first = cs[0]; if (!first) return 0;
-      return (typeof first.score_final === 'number' ? first.score_final : (typeof first.score === 'number' ? first.score : 0)) as number;
-    }
-    return (typeof cs.score_final === 'number' ? cs.score_final : (typeof cs.score === 'number' ? cs.score : 0)) as number;
-  };
-  const ranked = hotels
-    .map((h) => ({ h, score: coalesceScore(h.cosy_scores) }))
-    .filter((x) => x.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 9);
-
-  const chosen = await Promise.all(
-    ranked.map(async ({ h, score }) => {
-      const img = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || "/seal.svg";
-      // Build a cosy snippet using Places details if available
-      let snippet = `${h.name} is among the cosiest hotels in ${h.city || cg.city}.`;
-      try {
-        if (h.source_id) {
-          const d = await getDetails(h.source_id);
-          if (d) {
-            const r5 = d.rating ?? (typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined);
-            const reviews = d.user_ratings_total ?? h.reviews_count ?? undefined;
-            const txt = `${d.editorial_summary?.overview || ''} ${d.formatted_address || ''}`.toLowerCase();
-            const cues: string[] = [];
-            if (txt.includes('spa')) cues.push('a soothing spa');
-            if (txt.includes('sauna')) cues.push('a calming sauna');
-            if (txt.includes('bathtub') || txt.includes('soaking') || txt.includes('bath')) cues.push('soaking tubs');
-            if (txt.includes('fireplace')) cues.push('fireside warmth');
-            if (txt.includes('garden')) cues.push('a quiet garden');
-            if (txt.includes('rooftop')) cues.push('a rooftop view');
-            const cueKeys: string[] = [];
-            if (cues.includes('a soothing spa')) cueKeys.push('spa');
-            if (cues.includes('a calming sauna')) cueKeys.push('sauna');
-            if (cues.includes('soaking tubs')) cueKeys.push('tubs');
-            if (cues.includes('fireside warmth')) cueKeys.push('fireplace');
-            if (cues.includes('a quiet garden')) cueKeys.push('garden');
-            if (cues.includes('a rooftop view')) cueKeys.push('rooftop');
-            snippet = buildCosySnippet(params.locale, {
-              city: h.city || cg.city,
-              name: h.name,
-              rating: r5,
-              reviewsCount: reviews || undefined,
-              cues: cueKeys.slice(0,2),
-              idealLevel: 'warm',
-            });
-          }
-        }
-      } catch {}
-      return {
-        slug: String(h.slug),
-        name: String(h.name),
-        city: String(h.city || ''),
-        country: String(h.country || ''),
-        rating: typeof h.rating === 'number' ? h.rating : 0,
-        _cosy: score,
-        _img: img,
-        snippet,
-      };
-    })
-  );
+    .from('city_top')
+    .select('rank, score, image_url, rating5, reviews_count, cues, hotel:hotel_id (id,slug,name,city,country)')
+    .eq('city', cg.city)
+    .order('rank', { ascending: true })
+    .limit(9);
+  const chosen = ((data || []) as unknown as CT[]).filter((r) => r.hotel).map((r) => {
+    const h = r.hotel!;
+    const cueKeys = (r.cues || []) as string[];
+    const snippet = buildCosySnippet(params.locale, {
+      city: String(h.city || cg.city),
+      name: String(h.name),
+      rating: r.rating5 ?? undefined,
+      reviewsCount: r.reviews_count ?? undefined,
+      cues: cueKeys,
+      idealLevel: 'warm',
+    });
+    return {
+      slug: String(h.slug),
+      name: String(h.name),
+      city: String(h.city || ''),
+      country: String(h.country || ''),
+      rating: 0,
+      _cosy: Number(r.score) || 0,
+      _img: r.image_url || '/seal.svg',
+      snippet,
+    };
+  });
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
   return (

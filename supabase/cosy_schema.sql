@@ -120,6 +120,22 @@ create table if not exists public.translations (
 );
 alter table public.translations enable row level security;
 
+-- Precomputed top hotels per city for guides (fast SSR)
+create table if not exists public.city_top (
+  city text not null,
+  rank integer not null,
+  hotel_id uuid references public.hotels(id) on delete cascade,
+  score numeric not null,
+  image_url text,
+  rating5 numeric,
+  reviews_count integer,
+  cues text[],
+  updated_at timestamptz not null default now(),
+  primary key (city, rank)
+);
+create index if not exists idx_city_top_city on public.city_top(city);
+alter table public.city_top enable row level security;
+
 -- Featured front page picks (persisted top list)
 create table if not exists public.featured_top (
   position integer primary key,
