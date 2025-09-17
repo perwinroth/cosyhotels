@@ -262,7 +262,7 @@ async function Results({
   if (city) {
     // City search: fetch only the first page server-side for speed; rely on Supabase overrides and client navigation for more
     const first = await searchText(`cosy boutique hotel in ${city}`);
-    let results = (first.results || []);
+    const results = (first.results || []);
     let tmp = results.slice(0, 48).map((r) => makePlace(r, city));
     // If Supabase has entries for these Place IDs, override scores with persisted score_final/score for consistency
     try {

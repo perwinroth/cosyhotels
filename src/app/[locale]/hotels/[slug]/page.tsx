@@ -206,8 +206,7 @@ export default async function HotelDetail({ params }: Props) {
     if (joined.includes('quiet') && !cues.includes('a quiet vibe')) cues.push('a tranquil vibe');
     if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
   }
-  const cueList = cues.filter(Boolean).slice(0, 3);
-  // cuePhrase, ratingPhrase, idealPhrase no longer used (handled by buildCosySnippet)
+  // cues already processed into cueKeys; buildCosySnippet will handle phrasing
   const approxReviews = (n?: number | null) => {
     if (!n || n <= 0) return '';
     if (n < 50) return `${n}`;
@@ -215,7 +214,7 @@ export default async function HotelDetail({ params }: Props) {
     return `${rounded}+`;
   };
   const reviewText = reviewsTotal ? ` (based on ${approxReviews(reviewsTotal)} reviews)` : '';
-  const _unusedReviewText = reviewText; // keep computed but unused to satisfy linter
+  // reviewText computed earlier; buildCosySnippet composes localized review phrase
   const cueKeys: string[] = [];
   if (cues.includes('a soothing spa')) cueKeys.push('spa');
   if (cues.includes('a calming sauna')) cueKeys.push('sauna');
