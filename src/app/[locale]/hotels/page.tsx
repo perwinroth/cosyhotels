@@ -314,8 +314,10 @@ async function Results({
     );
     places = tmp;
   } else {
-    // Front page: prioritize speed; rely on Supabase featured_top only. Optional Places fallback can be toggled via env.
-    if (process.env.NEXT_PUBLIC_ENABLE_FRONT_PLACES_FALLBACK === 'true') {
+    // Front page: prioritize speed; rely on Supabase featured_top. If Supabase is unavailable or explicit env flag is set, run a minimal Places fallback so the grid is never blank.
+    const supForCheck = getServerSupabase();
+    const enableFallback = process.env.NEXT_PUBLIC_ENABLE_FRONT_PLACES_FALLBACK === 'true' || !supForCheck;
+    if (enableFallback) {
       // Broader fallback (may be slow) — use only when explicitly enabled
       const baseQueries = [
       // English
