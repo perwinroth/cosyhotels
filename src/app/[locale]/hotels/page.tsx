@@ -230,6 +230,49 @@ async function Results({
         }
       }
     }
+    // Hard fallback to direct Supabase top 9 (no featured required)
+    if (supabase) {
+      type MS = { score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null } | null };
+      const { data: more } = await supabase
+        .from("cosy_scores")
+        .select("score, score_final, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)")
+        .order("score_final", { ascending: false, nullsFirst: false })
+        .order("score", { ascending: false })
+        .limit(12);
+      const moreRows = ((more || []) as unknown as MS[]).filter((r) => r.hotel).slice(0, 9);
+      if (moreRows.length) {
+        const chosen = await Promise.all(moreRows.map(async (r) => {
+          const h = r.hotel!;
+          const resolvedImg = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || "/seal.svg";
+          return {
+            slug: String(h.slug),
+            name: String(h.name),
+            city: String(h.city || ''),
+            country: String(h.country || ''),
+            rating: typeof h.rating === 'number' ? h.rating : 0,
+            price: typeof h.price === 'number' ? h.price : NaN,
+            _cosy: typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0),
+            _img: resolvedImg,
+            affiliateUrl: (h.affiliate_url as string | null) || "",
+          };
+        }));
+        const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
+        const renderTop = (h: typeof chosen[number]) => (
+          <HotelTile
+            key={`${h.slug}-${h._img}`}
+            hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
+            href={detailsHref(h.slug)}
+            goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+          />
+        );
+        return (
+          <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+            <div className="col-span-full sr-only" aria-live="polite">Top cosy places</div>
+            {chosen.map(renderTop)}
+          </div>
+        );
+      }
+    }
   }
 
   // Compute results from merged list
