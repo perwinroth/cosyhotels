@@ -95,9 +95,26 @@ export default async function HotelDetail({ params }: Props) {
   const affiliateUrl = hotel?.affiliate_url || null;
   let image: string = "/logo-seal.svg";
 
-  // Prefer place details for imagery; if we have a source_id use it, else try slug as place_id
-  const placeId = hotel?.source_id || params.slug;
-  const details = await getDetails(placeId);
+  // Try fast Supabase-backed data first (images + cues) to avoid blocking on Places
+  let details: Awaited<ReturnType<typeof getDetails>> | null = null;
+  let cityTop: { rating5: number | null; reviews_count: number | null; cues: string[] | null; image_url: string | null } | null = null;
+  let cachedImageUrl: string | null = null;
+  if (db && hotel) {
+    const { data: img } = await db
+      .from('hotel_images')
+      .select('url')
+      .eq('hotel_id', hotel.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    cachedImageUrl = (img?.url as string | undefined) || null;
+    const { data: ct } = await db
+      .from('city_top')
+      .select('rating5,reviews_count,cues,image_url')
+      .eq('hotel_id', hotel.id)
+      .maybeSingle();
+    if (ct) cityTop = ct as unknown as typeof cityTop;
+  }
   if (!hotel && details && db) {
     // Upsert minimal record so subsequent visits use Supabase
     const parts = (details.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
@@ -180,29 +197,46 @@ export default async function HotelDetail({ params }: Props) {
     country = country || (parts.length ? parts[parts.length - 1] : "");
   }
   website = website || details?.website || null;
-  const ref = details?.photos?.[0]?.photo_reference;
-  image = ref ? photoUrl(ref, 1200) : image;
+  // Prefer cached Supabase image first; only hit Places if nothing cached
+  if (cachedImageUrl) image = cachedImageUrl;
+  else if (cityTop?.image_url) image = cityTop.image_url;
+  else {
+    const placeId = hotel?.source_id || params.slug;
+    details = await getDetails(placeId);
+    const ref = details?.photos?.[0]?.photo_reference;
+    image = ref ? photoUrl(ref, 1200) : image;
+  }
   const cosyDisplay = typeof cosy === 'number' ? cosy : 0;
 
   const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
 
   // Build richer cosy snippet (<= ~160 chars) using Places cues
-  const rating5 = details?.rating ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
-  const reviewsTotal = details?.user_ratings_total ?? hotel?.reviews_count ?? undefined;
+  const rating5 = cityTop?.rating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : (details?.rating ?? undefined));
+  const reviewsTotal = cityTop?.reviews_count ?? (details?.user_ratings_total ?? hotel?.reviews_count ?? undefined);
   const priceLevel = details?.price_level;
   const priceText = typeof priceLevel === 'number' ? ['budget','budget','mid-range','upscale','luxury'][Math.max(0, Math.min(4, priceLevel))] : undefined;
   const textSrc = `${details?.editorial_summary?.overview || ''} ${details?.formatted_address || ''}`.toLowerCase();
   const cues: string[] = [];
-  if (textSrc.includes('fireplace')) cues.push('fireside warmth');
-  if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) cues.push('soaking tubs');
-  if (textSrc.includes('spa')) cues.push('a soothing spa');
-  if (textSrc.includes('sauna')) cues.push('a calming sauna');
-  if (textSrc.includes('garden')) cues.push('a quiet garden');
-  if (textSrc.includes('rooftop')) cues.push('a rooftop view');
+  if (cityTop?.cues && cityTop.cues.length) {
+    for (const k of cityTop.cues) {
+      if (k === 'spa') cues.push('a soothing spa');
+      if (k === 'sauna') cues.push('a calming sauna');
+      if (k === 'tubs') cues.push('soaking tubs');
+      if (k === 'fireplace') cues.push('fireside warmth');
+      if (k === 'garden') cues.push('a quiet garden');
+      if (k === 'rooftop') cues.push('a rooftop view');
+    }
+  } else if (details) {
+    if (textSrc.includes('fireplace')) cues.push('fireside warmth');
+    if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) cues.push('soaking tubs');
+    if (textSrc.includes('spa')) cues.push('a soothing spa');
+    if (textSrc.includes('sauna')) cues.push('a calming sauna');
+    if (textSrc.includes('garden')) cues.push('a quiet garden');
+    if (textSrc.includes('rooftop')) cues.push('a rooftop view');
+  }
   // Pull hints from reviews text without quoting
-  const reviewsText = details?.reviews as Array<{ text?: string }> | undefined;
-  if (reviewsText && reviewsText.length) {
-    const joined = reviewsText.map((r) => (r.text || '').toLowerCase()).join(' ');
+  if (details?.reviews && details.reviews.length) {
+    const joined = details.reviews.map((r) => (r.text || '').toLowerCase()).join(' ');
     if (joined.includes('quiet') && !cues.includes('a quiet vibe')) cues.push('a tranquil vibe');
     if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
   }

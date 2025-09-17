@@ -371,8 +371,8 @@ async function Results({
   } else {
     // Front page: prioritize speed; rely on Supabase featured_top. If Supabase is unavailable or explicit env flag is set, run a minimal Places fallback so the grid is never blank.
     const supForCheck = getServerSupabase();
-    // Enable minimal Places fallback if explicitly flagged, if Supabase is unavailable, or if there are no curated hotels to show
-    const enableFallback = process.env.NEXT_PUBLIC_ENABLE_FRONT_PLACES_FALLBACK === 'true' || !supForCheck || hotels.length === 0;
+    // Enable minimal Places fallback only if explicitly flagged or if Supabase is unavailable
+    const enableFallback = process.env.NEXT_PUBLIC_ENABLE_FRONT_PLACES_FALLBACK === 'true' || !supForCheck;
     if (enableFallback) {
       // Broader fallback (may be slow) — use only when explicitly enabled
       const baseQueries = [
