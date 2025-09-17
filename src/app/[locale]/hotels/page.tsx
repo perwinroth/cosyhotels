@@ -1,4 +1,5 @@
 // unified listings page
+export const revalidate = 300; // cache SSR for 5 minutes (front page)
 import { hotels as baseHotels } from "@/data/hotels";
 import { SearchBar } from "@/components/HomeSections";
 import { applyOverrides, fetchOverrides } from "@/lib/overrides";

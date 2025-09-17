@@ -234,9 +234,28 @@ async function runJob() {
     }
     const toInsert = picked.length >= 9 ? picked.slice(0,9) : scored.slice(0,9);
     await db.from("featured_top").delete().neq("position", -1);
-    const inserts = toInsert.map((p, idx) => ({ position: idx + 1, hotel_id: p.hotel.id, score: p.final, image_url: "/seal.svg" }));
+    const inserts = await Promise.all(toInsert.map(async (p, idx) => ({
+      position: idx + 1,
+      hotel_id: p.hotel.id,
+      score: p.final,
+      image_url: await getImageForHotel(String(p.hotel.name), String(p.hotel.city || ''), 800, String(p.hotel.slug), String(p.hotel.id)) || '/seal.svg',
+    })));
     if (inserts.length) await db.from("featured_top").insert(inserts);
   } catch (e) { try { console.error("normalization_or_featured_error", e); } catch {} }
+  // 4) Precompute images for top ~120 hotels globally to speed up grids and guides
+  try {
+    const { data: topRows } = await db
+      .from('cosy_scores')
+      .select('score, score_final, hotel:hotel_id (id,slug,name,city)')
+      .order('score_final', { ascending: false, nullsFirst: false })
+      .order('score', { ascending: false })
+      .limit(150);
+    const list = (topRows || []) as unknown as Array<{ score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; city: string | null } | null }>;
+    for (const r of list) {
+      const h = r.hotel; if (!h) continue;
+      try { await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)); } catch {}
+    }
+  } catch (e) { try { console.error('precompute_images_error', e); } catch {} }
   // 5) Precompute top-9 per city for guides
   try {
     type RowHotel = {
