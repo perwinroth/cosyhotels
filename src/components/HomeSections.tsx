@@ -81,7 +81,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
     >
       <div className="relative">
       <input
-        className="border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+        className="w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-400"
         placeholder="Paris, Rome, Lisbon…"
         value={city}
         onChange={(e) => setCity(e.target.value)}
@@ -107,7 +107,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         </div>
       )}
       </div>
-      <div className="relative md:justify-self-end">
+      <div className="relative">
         <button
           type="button"
           aria-expanded={open}
