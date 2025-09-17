@@ -216,7 +216,14 @@ export default async function HotelDetail({ params }: Props) {
   const reviewText = reviewsTotal ? ` (based on ${approxReviews(reviewsTotal)} reviews)` : '';
   const ratingPhrase = rating5 ? `We rate it ${rating5.toFixed(1)}/5${reviewText}` : '';
   const idealPhrase = priceText ? ` Ideal if you want ${priceText} comfort without losing that warm, relaxed hotel feel.` : ` Ideal if you want a warm, relaxed hotel feel.`;
-  const cosySnippetFull = `If you're looking for a cosy hotel in ${city}, ${name} is a top pick. ${ratingPhrase} ${cuePhrase}.` + idealPhrase;
+  const cosyTemplates = [
+    `If you're looking for a cosy hotel in ${city}, ${name} is a top pick. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
+    `Searching for a cosy hotel in ${city}? ${name} stands out. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
+    `${name} is among the cosiest hotels in ${city}. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
+    `For a cosy stay in ${city}, ${name} is a strong choice. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
+  ];
+  const tmplIndex = (name.length + (city || '').length * 7) % cosyTemplates.length;
+  const cosySnippetFull = cosyTemplates[tmplIndex];
   const cosySnippet = cosySnippetFull.length > 180 ? `${cosySnippetFull.slice(0, 177)}...` : cosySnippetFull;
 
   return (
