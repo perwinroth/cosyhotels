@@ -109,6 +109,17 @@ create table if not exists public.hotel_slug_redirects (
 create index if not exists idx_hotel_slug_redirects_new on public.hotel_slug_redirects(new_slug);
 alter table public.hotel_slug_redirects enable row level security;
 
+-- Cached translations to avoid re-hitting MT providers
+create table if not exists public.translations (
+  lang text not null,
+  src_hash text not null,
+  src_text text not null,
+  translated_text text not null,
+  created_at timestamptz not null default now(),
+  primary key (lang, src_hash)
+);
+alter table public.translations enable row level security;
+
 -- Featured front page picks (persisted top list)
 create table if not exists public.featured_top (
   position integer primary key,

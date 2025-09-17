@@ -198,3 +198,4 @@ export function buildCosySnippet(locale: string, parts: Parts) {
   return t[idx].replace(/\{(\w+)\}/g, (_, k) => dict[k] || '');
 }
 
+export const SUPPORTED_SNIPPET_LOCALES = new Set(Object.keys(cueMap));
