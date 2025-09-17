@@ -24,13 +24,13 @@ type GResult = {
   photos?: GPhoto[];
 };
 
-export async function searchText(query: string, pagetoken?: string): Promise<PlaceSearchResponse> {
+export async function searchText(query: string, pagetoken?: string, revalidateSeconds = 10800): Promise<PlaceSearchResponse> {
   const key = process.env.GOOGLE_MAPS_API_KEY;
   if (!key) return { results: [] };
   const params = new URLSearchParams({ query, key });
   if (pagetoken) params.set("pagetoken", pagetoken);
   const url = `${API}/textsearch/json?${params.toString()}`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, { next: { revalidate: revalidateSeconds }, cache: "force-cache" });
   if (!res.ok) return { results: [] };
   const json = await res.json();
   const resultsSrc: GResult[] = (json.results || []) as GResult[];
@@ -67,7 +67,7 @@ export type PlaceDetails = {
   reviews?: { text?: string; rating?: number }[];
 };
 
-export async function getDetails(placeId: string): Promise<PlaceDetails | null> {
+export async function getDetails(placeId: string, revalidateSeconds = 86400): Promise<PlaceDetails | null> {
   const key = process.env.GOOGLE_MAPS_API_KEY;
   if (!key) return null;
   const fields = [
@@ -87,7 +87,7 @@ export async function getDetails(placeId: string): Promise<PlaceDetails | null> 
     "reviews",
   ].join(",");
   const url = `${API}/details/json?${new URLSearchParams({ place_id: placeId, fields, key }).toString()}`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, { next: { revalidate: revalidateSeconds }, cache: "force-cache" });
   if (!res.ok) return null;
   const json = await res.json();
   return (json.result as PlaceDetails | undefined) || null;

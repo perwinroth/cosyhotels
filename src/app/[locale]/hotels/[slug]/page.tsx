@@ -243,7 +243,7 @@ export default async function HotelDetail({ params }: Props) {
       <p className="mt-3 text-sm text-zinc-700">{cosySnippet}</p>
 
       <div className="mt-3 relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
-        <Image src={image} alt={`${name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
+        <Image src={image} alt={`${name}`} fill priority className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
       {/* Hotel structured data */}
       <script

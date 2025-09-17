@@ -260,22 +260,10 @@ async function Results({
     _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/seal.svg",
   });
   if (city) {
-    // City search: fetch up to 3 pages; add slight delays for next_page_token activation
+    // City search: fetch only the first page server-side for speed; rely on Supabase overrides and client navigation for more
     const first = await searchText(`cosy boutique hotel in ${city}`);
     let results = (first.results || []);
-    if (first.next_page_token) {
-      try {
-        await new Promise((r) => setTimeout(r, 1500));
-        const second = await searchText("", first.next_page_token);
-        results = results.concat(second.results || []);
-        if (second.next_page_token) {
-          await new Promise((r) => setTimeout(r, 1500));
-          const third = await searchText("", second.next_page_token);
-          results = results.concat(third.results || []);
-        }
-      } catch {}
-    }
-    let tmp = results.slice(0, 60).map((r) => makePlace(r, city));
+    let tmp = results.slice(0, 48).map((r) => makePlace(r, city));
     // If Supabase has entries for these Place IDs, override scores with persisted score_final/score for consistency
     try {
       const supabase = getServerSupabase();
@@ -324,8 +312,10 @@ async function Results({
     );
     places = tmp;
   } else {
-    // Front page: broaden queries heavily and fetch multiple pages with delays so we always exceed 9 eligible
-    const baseQueries = [
+    // Front page: prioritize speed; rely on Supabase featured_top only. Optional Places fallback can be toggled via env.
+    if (process.env.NEXT_PUBLIC_ENABLE_FRONT_PLACES_FALLBACK === 'true') {
+      // Broader fallback (may be slow) — use only when explicitly enabled
+      const baseQueries = [
       // English
       "cosy boutique hotel","cozy boutique hotel","charming boutique hotel","romantic boutique hotel","small boutique hotel","intimate hotel",
       // FR/ES/IT/PT/DE/NL/JP/SE/DK/NO
@@ -413,6 +403,9 @@ async function Results({
       })
     );
     places = tmp;
+    } else {
+      places = [];
+    }
   }
 
   // Merge curated + places, de-duplicate by name+city, then optionally filter by rank
