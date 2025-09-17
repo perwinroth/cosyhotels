@@ -66,6 +66,7 @@ const NEGATIVE_KEYWORDS = [
   "비즈니스 호텔", // business hotel (KO)
   "konferencja", // conference (PL)
   "iş oteli", // business hotel (TR)
+  "airport", "convention", "meeting rooms", "event centre", "event center",
 ];
 
 export function keywordSentiment(text?: string) {
@@ -75,7 +76,8 @@ export function keywordSentiment(text?: string) {
   for (const k of COSY_KEYWORDS) if (t.includes(k)) score += 1;
   for (const k of NEGATIVE_KEYWORDS) if (t.includes(k)) score -= 1;
   // Stronger cap and smoothing
-  return Math.max(-0.5, Math.min(score / 10, 1));
+  // Scale: positive words add up to +1 max, negatives down to -1 max
+  return Math.max(-1, Math.min(score / 8, 1));
 }
 
 export function amenitiesScore(am?: string[]) {
@@ -104,10 +106,22 @@ export function scalePenalty(roomsCount?: number, city?: string) {
 
 function chainPenalty(name?: string, website?: string) {
   const chains = [
-    "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge",
+    "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge","four points","courtyard","residence inn","springhill suites","fairfield inn","doubletree","embassy suites","waldorf astoria","conrad","sofitel","pullman","moxy","ac hotel","aloft","element","hampton","jw marriott","ritz",
+  ];
+  const domains = [
+    "marriott.com","hyatt.com","hilton.com","accor.com","radissonhotels.com","ritzcarlton.com","ihg.com","sheraton.com","ibis.com","novotel.com","wyndhamhotels.com","bestwestern.com","premierinn.com","travelodge.co.uk",
   ];
   const hay = `${name || ''} ${website || ''}`.toLowerCase();
-  for (const c of chains) if (hay.includes(c)) return -0.2;
+  if (chains.some((c) => hay.includes(c))) return -1.2;
+  if (website && domains.some((d) => website.toLowerCase().includes(d))) return -1.2;
+  return 0;
+}
+
+function sizePenaltyByReviews(reviews?: number) {
+  if (!reviews || reviews <= 0) return 0;
+  if (reviews > 50000) return -0.6;
+  if (reviews > 20000) return -0.4;
+  if (reviews > 10000) return -0.2;
   return 0;
 }
 
@@ -126,12 +140,13 @@ export function cosyParts(features: HotelFeatures) {
   const scale = scalePenalty(features.roomsCount, features.city);
   const chain = chainPenalty(features.name, features.website);
   const conf = reviewConfidence(features.reviewsCount);
+  const sizeRev = sizePenaltyByReviews(features.reviewsCount);
 
-  // Base blend
-  let raw = base * 5.8 + amen * 1.4 + desc * 2.0 + img * 0.8 + scale + chain + conf;
+  // Re-balanced blend: slightly downweight rating, upweight warmth + penalties
+  let raw = base * 5.0 + amen * 1.8 + desc * 2.2 + img * 0.8 + scale + chain + sizeRev + conf;
   // Clamp to 0..10
   raw = Math.max(0, Math.min(10, raw));
-  return { raw, parts: { rating_base: base, amenities: amen, keywords: desc, image_warmth: img, scale_penalty: scale, chain_penalty: chain, review_conf: conf } };
+  return { raw, parts: { rating_base: base, amenities: amen, keywords: desc, image_warmth: img, scale_penalty: scale, chain_penalty: chain, size_penalty_reviews: sizeRev, review_conf: conf } };
 }
 
 export function cosyScore(features: HotelFeatures) {

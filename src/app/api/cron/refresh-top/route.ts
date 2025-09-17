@@ -96,9 +96,7 @@ async function runJob() {
         // Type filtering: skip non-hotel patterns
         const types = (d.types || []).map((t) => t.toLowerCase());
         if (types.some((t) => ["hostel","capsule_hotel","apartment","apartment_hotel"].includes(t))) { skipped++; continue; }
-        // Chain filtering: skip big chains and conference hotels
-        const chain = brandOfName(d.name || '', d.website || undefined);
-        if (chain !== 'independent') { skipped++; continue; }
+        // Keep ingest inclusive; rely on scoring to penalize chains
         const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
         const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
         const country = parts.length ? parts[parts.length - 1] : '';
@@ -197,7 +195,6 @@ async function runJob() {
       if (s.scope === 'city') cityStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
       if (s.scope === 'country') countryStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
     });
-    const brandOf = brandOfName;
     const perCountry: Record<string, number> = {};
     const perBrand: Record<string, number> = {};
     // Relaxed diversity guard to ensure 9 picks while DB grows
@@ -228,15 +225,12 @@ async function runJob() {
     const picked: typeof scored = [];
     for (const s of scored) {
       const country = String(s.hotel.country || '');
-      const brand = brandOf(s.hotel.name, s.hotel.website || undefined);
-      if (brand !== 'independent') continue; // exclude big chains entirely
+      // No hard exclusion; rely on scoring penalties
       if (s.final < 7.0) continue; // enforce threshold
       const cCount = perCountry[country] || 0;
-      const bCount = perBrand[brand] || 0;
-      if (cCount >= maxCountry || bCount >= maxBrand) continue;
+      if (cCount >= maxCountry) continue;
       picked.push(s);
       perCountry[country] = cCount + 1;
-      perBrand[brand] = bCount + 1;
       if (picked.length >= 9) break;
     }
     const toInsert = picked.length >= 9 ? picked.slice(0,9) : scored.slice(0,9);
