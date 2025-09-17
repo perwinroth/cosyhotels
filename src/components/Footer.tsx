@@ -8,17 +8,17 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
         <div>
           <strong className="text-black">{site.name}</strong> · {site.description}
         </div>
-        <nav className="flex flex-wrap gap-4">
-          <Link href={`/${locale}/cosy-score`} className="hover:underline">Cosy score</Link>
-          <Link href={`/${locale}/disclosure`} className="hover:underline">Affiliate disclosure</Link>
-          <Link href={`/${locale}/privacy`} className="hover:underline">Privacy</Link>
-          <Link href={`/${locale}/about`} className="hover:underline">About</Link>
-          <Link href={`/${locale}/contact`} className="hover:underline">Contact</Link>
-          <Link href={`/shortlists`} className="hover:underline">Shortlists</Link>
+        <nav aria-label="Footer">
+          <ul className="list-disc pl-5 space-y-1">
+            <li><Link href={`/${locale}/cosy-score`} className="hover:underline">Cosy score</Link></li>
+            <li><Link href={`/${locale}/disclosure`} className="hover:underline">Affiliate disclosure</Link></li>
+            <li><Link href={`/${locale}/privacy`} className="hover:underline">Privacy</Link></li>
+            <li><Link href={`/${locale}/about`} className="hover:underline">About</Link></li>
+            <li><Link href={`/${locale}/contact`} className="hover:underline">Contact</Link></li>
+          </ul>
         </nav>
         <div>© {new Date().getFullYear()} {site.name}</div>
       </div>
     </footer>
   );
 }
-
