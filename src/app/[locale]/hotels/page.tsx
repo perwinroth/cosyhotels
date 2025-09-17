@@ -76,6 +76,9 @@ export default function HotelsPage({
         }}
       />
       <p className="mt-2 max-w-3xl text-zinc-600 text-sm md:text-base">{intro}</p>
+      <p className="mt-1 text-sm text-zinc-600">
+        Curious about the badge? <a href={`/${params.locale}/cosy-score#seal`} className="underline">See how the Seal of approval works</a>.
+      </p>
       {/* Search under intro */}
       <div className="mt-4">
         <SearchBar locale={params.locale} />

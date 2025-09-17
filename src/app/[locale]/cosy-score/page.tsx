@@ -12,6 +12,12 @@ export default function CosyScorePage() {
       <p className="mt-2 text-zinc-700">A transparent, evolving heuristic to estimate how cosy a place feels.</p>
 
       <div className="prose prose-zinc mt-6">
+        <h2 id="seal">Seal of approval</h2>
+        <p>
+          We add a small seal badge to places with a <strong>Cosy score of 7.0 or higher</strong>. It’s a simple indicator that the hotel likely delivers that warm, relaxed feel we look for.
+          Scores come from a blend of overall rating, amenities warmth, language signals, and small‑scale bonus (see below).
+        </p>
+
         <h2>What goes into the score</h2>
         <ul>
           <li><strong>Overall rating</strong> (out of 10) – normalized and weighted.</li>
@@ -34,4 +40,3 @@ export default function CosyScorePage() {
     </div>
   );
 }
-
