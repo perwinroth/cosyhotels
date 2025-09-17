@@ -37,7 +37,8 @@ async function ensureFeatured(): Promise<EnsureFeaturedResult> {
   }
   if (!picks.length) return { ensured: false, have: 0 };
 
-  const inserts = await Promise.all(picks.map(async ({ h, s }, i) => ({
+  type Insert = { position: number; hotel_id: string; score: number; image_url: string };
+  const inserts: Insert[] = await Promise.all(picks.map(async ({ h, s }, i) => ({
     position: i + 1,
     hotel_id: h.id,
     score: s,

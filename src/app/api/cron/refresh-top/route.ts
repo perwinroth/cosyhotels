@@ -210,6 +210,15 @@ async function runJob() {
       const final = (0.5 * base + 0.3 * normCity + 0.2 * normCountry) * conf;
       return { hotel: h, base, final };
     }).filter(Boolean) as Array<{ hotel: NonNullable<Row['hotel']>; base: number; final: number }>;
+    // Persist final normalized score so all surfaces read the same value
+    try {
+      for (const s of scored) {
+        await db
+          .from('cosy_scores')
+          .update({ score_final: s.final, computed_at: new Date().toISOString() })
+          .eq('hotel_id', s.hotel.id);
+      }
+    } catch (e) { try { console.error('score_final_update_error', e); } catch {} }
     scored.sort((a, b) => b.final - a.final);
     const picked: typeof scored = [];
     for (const s of scored) {
