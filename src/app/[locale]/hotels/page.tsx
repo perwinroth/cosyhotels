@@ -203,7 +203,7 @@ async function Results({
         }
         if (chosen.length > 0) {
           const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
-          const renderTop = (h: typeof chosen[number]) => (
+          const renderTop = (h: typeof chosen[number], idx: number) => (
             <HotelTile
               key={`${h.slug}-${h._img}`}
               hotel={{
@@ -218,6 +218,8 @@ async function Results({
               }}
               href={detailsHref(h.slug)}
               goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+              priority={idx === 0}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
             />
           );
           return (
@@ -225,7 +227,7 @@ async function Results({
               <div className="col-span-full sr-only" aria-live="polite">
                 Featured cosy places
               </div>
-              {chosen.map(renderTop)}
+              {chosen.map((h, i) => renderTop(h, i))}
             </div>
           );
         }
@@ -265,18 +267,20 @@ async function Results({
           if (inserts.length) await supabase.from('featured_top').insert(inserts);
         } catch {}
         const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
-        const renderTop = (h: typeof chosen[number]) => (
+        const renderTop = (h: typeof chosen[number], idx: number) => (
           <HotelTile
             key={`${h.slug}-${h._img}`}
             hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
             href={detailsHref(h.slug)}
             goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+            priority={idx === 0}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
           />
         );
         return (
           <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
             <div className="col-span-full sr-only" aria-live="polite">Top cosy places</div>
-            {chosen.map(renderTop)}
+            {chosen.map((h, i) => renderTop(h, i))}
           </div>
         );
       }
@@ -492,7 +496,7 @@ async function Results({
       break;
   }
 
-  const renderCard = (h: typeof filtered[number]) => {
+  const renderCard = (h: typeof filtered[number], idx: number) => {
     const detailsHref = `/${locale}/hotels/${h.slug}`;
     const hasAffiliate = ("affiliateUrl" in h && (h as { affiliateUrl?: string }).affiliateUrl);
     const isPlace = !(typeof h.price === "number" && isFinite(h.price as number));
@@ -512,6 +516,8 @@ async function Results({
         }}
         href={detailsHref}
         goHref={goHref}
+        priority={!city && idx === 0}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
       />
     );
   };
@@ -586,7 +592,7 @@ async function Results({
         {limited.length} result{limited.length === 1 ? "" : "s"}
         {city ? ` in ${city}` : ""}
       </div>
-      {limited.map(renderCard)}
+      {limited.map((h, i) => renderCard(h, i))}
     </div>
   );
 }

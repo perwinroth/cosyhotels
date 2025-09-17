@@ -1,9 +1,7 @@
-"use client";
 import Link from "next/link";
 import Image from "next/image";
 import { shimmer } from "@/lib/image";
 import { cosyBadgeClass } from "@/lib/scoring/cosy";
-import { useRouter } from "next/navigation";
 
 export type TileHotel = {
   slug: string;
@@ -16,33 +14,13 @@ export type TileHotel = {
   cosy: number;   // computed 0..10
 };
 
-export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; href: string; goHref?: string }) {
+export default function HotelTile({ hotel, href, goHref, priority = false, sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" }: { hotel: TileHotel; href: string; goHref?: string; priority?: boolean; sizes?: string }) {
   const h = hotel;
   const cosyText = h.cosy.toFixed(1);
-  const router = useRouter();
-
-  function openDetails() {
-    router.push(href);
-  }
-
-  function keyOpen(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openDetails();
-    }
-  }
   return (
-    <div
-      className="overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full cursor-pointer"
-      aria-label={`${h.name}, Cosy ${cosyText}`}
-      data-cosy={cosyText}
-      role="link"
-      tabIndex={0}
-      onClick={openDetails}
-      onKeyDown={keyOpen}
-    >
+    <Link href={href} className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full" aria-label={`${h.name}, Cosy ${cosyText}`} data-cosy={cosyText}>
       <div className="relative aspect-[4/3] bg-zinc-100">
-        <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" />
+        <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" priority={priority} blurDataURL={shimmer(1200, 800)} sizes={sizes} />
         {h.cosy >= 7.0 ? (
           <div className="absolute left-2 bottom-2">
             <div className="flex items-center gap-1 bg-[#0EA5A4] text-white text-xs px-3 py-1 rounded-full shadow">
@@ -65,11 +43,10 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
         </div>
         <div className="mt-auto pt-4 flex items-center justify-between gap-2">
           <div className="flex gap-2">
-            <Link href={href} onClick={(e) => e.stopPropagation()} className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50">Details</Link>
+            <Link href={href} className="text-sm px-3 py-1.5 rounded-full border brand-border hover:bg-zinc-50">Details</Link>
             {goHref && (
               <a
                 href={goHref}
-                onClick={(e) => e.stopPropagation()}
                 target="_blank"
                 rel="noopener nofollow sponsored"
                 className="text-sm px-3 py-1.5 rounded-full bg-[#0EA5A6] text-white !text-white no-underline hover:bg-[#0EA5A6] border border-transparent"
@@ -81,6 +58,6 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
           <div />
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
