@@ -18,8 +18,8 @@ export default function HotelTile({ hotel, href, goHref, priority = false, sizes
   const h = hotel;
   const cosyText = h.cosy.toFixed(1);
   return (
-    <Link href={href} className="block overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full" aria-label={`${h.name}, Cosy ${cosyText}`} data-cosy={cosyText}>
-      <div className="relative aspect-[4/3] bg-zinc-100">
+    <div className="overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full" aria-label={`${h.name}, Cosy ${cosyText}`} data-cosy={cosyText}>
+      <Link href={href} className="relative aspect-[4/3] bg-zinc-100 block">
         <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" priority={priority} blurDataURL={shimmer(1200, 800)} sizes={sizes} />
         {h.cosy >= 7.0 ? (
           <div className="absolute left-2 bottom-2">
@@ -34,10 +34,12 @@ export default function HotelTile({ hotel, href, goHref, priority = false, sizes
             Cosy {cosyText}
           </span>
         </div>
-      </div>
+      </Link>
       <div className="p-3 flex flex-col h-[188px]">
         <div>
-          <h3 className="font-medium line-clamp-1">{h.name}</h3>
+          <h3 className="font-medium line-clamp-1">
+            <Link href={href} className="hover:underline">{h.name}</Link>
+          </h3>
           <div className="text-sm text-black">{h.city}{h.country ? `, ${h.country}` : ""}</div>
           {h.price != null && <div className="mt-3 text-sm font-medium brand-price">From ${h.price}/night</div>}
         </div>
@@ -58,6 +60,6 @@ export default function HotelTile({ hotel, href, goHref, priority = false, sizes
           <div />
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
