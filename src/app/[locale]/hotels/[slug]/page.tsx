@@ -225,7 +225,7 @@ export default async function HotelDetail({ params }: Props) {
   const preferIdx = 2; // “…is among the cosiest hotels in City.”
   const tmplIndex = (name.length + (city || '').length * 7) % cosyTemplates.length;
   const cosySnippetFull = cueList.length ? cosyTemplates[preferIdx] : cosyTemplates[tmplIndex];
-  const cosySnippet = cosySnippetFull.length > 180 ? `${cosySnippetFull.slice(0, 177)}...` : cosySnippetFull;
+  const cosySnippet = cosySnippetFull;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
