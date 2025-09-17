@@ -200,32 +200,34 @@ async function Results({
           }));
           chosen = chosen.concat(moreChosen).slice(0, 9);
         }
-        const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
-        const renderTop = (h: typeof chosen[number]) => (
-          <HotelTile
-            key={`${h.slug}-${h._img}`}
-            hotel={{
-              slug: String(h.slug),
-              name: h.name,
-              city: h.city,
-              country: h.country,
-              rating: h.rating,
-              price: isFinite(h.price as number) ? (h.price as number) : undefined,
-              image: h._img,
-              cosy: h._cosy,
-            }}
-            href={detailsHref(h.slug)}
-            goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
-          />
-        );
-        return (
-          <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
-            <div className="col-span-full sr-only" aria-live="polite">
-              Featured cosy places
+        if (chosen.length > 0) {
+          const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
+          const renderTop = (h: typeof chosen[number]) => (
+            <HotelTile
+              key={`${h.slug}-${h._img}`}
+              hotel={{
+                slug: String(h.slug),
+                name: h.name,
+                city: h.city,
+                country: h.country,
+                rating: h.rating,
+                price: isFinite(h.price as number) ? (h.price as number) : undefined,
+                image: h._img,
+                cosy: h._cosy,
+              }}
+              href={detailsHref(h.slug)}
+              goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+            />
+          );
+          return (
+            <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+              <div className="col-span-full sr-only" aria-live="polite">
+                Featured cosy places
+              </div>
+              {chosen.map(renderTop)}
             </div>
-            {chosen.map(renderTop)}
-          </div>
-        );
+          );
+        }
       }
     }
   }
