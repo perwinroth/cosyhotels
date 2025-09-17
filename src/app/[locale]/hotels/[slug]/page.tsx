@@ -257,6 +257,7 @@ export default async function HotelDetail({ params }: Props) {
       />
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
       <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
+      <p className="mt-3 text-sm text-zinc-700">{cosySnippet}</p>
       <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${(cosyDisplay).toFixed(1)} out of 10`}>
         <div className="flex items-center justify-between">
           <div>
