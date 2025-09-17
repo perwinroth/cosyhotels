@@ -229,6 +229,17 @@ async function runJob() {
   } catch (e) { try { console.error("normalization_or_featured_error", e); } catch {} }
   // 5) Precompute top-9 per city for guides
   try {
+    type RowHotel = {
+      id: string;
+      slug: string;
+      name: string;
+      city: string | null;
+      country: string | null;
+      rating: number | null;
+      reviews_count: number | null;
+      source_id: string | null;
+      cosy_scores: { score: number | null; score_final: number | null } | Array<{ score: number | null; score_final: number | null }> | null;
+    };
     const guideCities = Array.from(new Set(cityGuides.map((c) => c.city)));
     for (const city of guideCities) {
       const { data: rows } = await db
@@ -236,12 +247,17 @@ async function runJob() {
         .select('id,slug,name,city,country,rating,reviews_count,source_id, cosy_scores ( score, score_final )')
         .ilike('city', `%${city}%`)
         .limit(200);
-      const scored = (rows || []).map((r: any) => {
-        const cs = Array.isArray(r.cosy_scores) ? r.cosy_scores[0] : r.cosy_scores;
-        const s = (cs && (cs.score_final ?? cs.score)) ? Number(cs.score_final ?? cs.score) : 0;
-        return { h: r, s };
-      }).filter((x: any) => x.s > 0).sort((a: any, b: any) => b.s - a.s).slice(0, 9);
-      const inserts: any[] = [];
+      const safeRows = (rows || []) as RowHotel[];
+      const scored = safeRows
+        .map((r) => {
+          const cs = Array.isArray(r.cosy_scores) ? r.cosy_scores[0] : r.cosy_scores;
+          const s = cs ? Number((cs.score_final ?? cs.score) || 0) : 0;
+          return { h: r, s };
+        })
+        .filter((x) => x.s > 0)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, 9);
+      const inserts: Array<{ city: string; rank: number; hotel_id: string; score: number; image_url: string; rating5: number | null; reviews_count: number | null; cues: string[]; updated_at: string }>= [];
       let rank = 1;
       for (const { h, s } of scored) {
         let rating5: number | null = h.rating ? Number(h.rating) / 2 : null;

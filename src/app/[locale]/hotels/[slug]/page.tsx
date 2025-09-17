@@ -207,14 +207,7 @@ export default async function HotelDetail({ params }: Props) {
     if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
   }
   // cues already processed into cueKeys; buildCosySnippet will handle phrasing
-  const approxReviews = (n?: number | null) => {
-    if (!n || n <= 0) return '';
-    if (n < 50) return `${n}`;
-    const rounded = Math.floor(n / 10) * 10;
-    return `${rounded}+`;
-  };
-  const reviewText = reviewsTotal ? ` (based on ${approxReviews(reviewsTotal)} reviews)` : '';
-  // reviewText computed earlier; buildCosySnippet composes localized review phrase
+  // buildCosySnippet composes localized review phrase using rating/reviewsTotal
   const cueKeys: string[] = [];
   if (cues.includes('a soothing spa')) cueKeys.push('spa');
   if (cues.includes('a calming sauna')) cueKeys.push('sauna');

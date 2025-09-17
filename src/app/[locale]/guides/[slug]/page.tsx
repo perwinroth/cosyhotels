@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { getImageForHotel } from "@/lib/hotelImages";
-import { getDetails } from "@/lib/places";
+// using precomputed city_top; no direct Places calls
 import { buildCosySnippet } from "@/i18n/snippets";
 import Image from "next/image";
 import { translate } from "@/lib/i18n/translate";
