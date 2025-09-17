@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { normalizedScore } from "@/lib/normalization";
 import { getImageForHotel } from "@/lib/hotelImages";
-import HotelTile from "@/components/HotelTile";
+import { getDetails } from "@/lib/places";
 import { locales } from "@/i18n/locales";
 
 type Props = { params: { slug: string; locale: string } };
@@ -53,62 +52,92 @@ export default async function GuidePage({ params }: Props) {
   const cg = getCityGuide(params.slug);
   if (!cg) return <div className="mx-auto max-w-6xl px-4 py-8">Guide not found.</div>;
 
-  // Fetch from Supabase and normalize for consistency with front page
+  // Fetch top cosy hotels for the city from Supabase
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
-  type Row = { score: number; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; website: string | null; reviews_count: number | null } | null };
+  type HR = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; website: string | null; reviews_count: number | null; source_id: string | null; cosy_scores: { score: number | null; score_final: number | null } | { score: number | null; score_final: number | null }[] | null };
   const { data } = await db
-    .from("cosy_scores")
-    .select("score, hotel:hotel_id (id,slug,name,city,country,rating,price,website,reviews_count)")
-    .ilike("hotel.city", `%${cg.city}%`)
-    .order("score", { ascending: false })
+    .from('hotels')
+    .select('id,slug,name,city,country,rating,website,reviews_count,source_id, cosy_scores ( score, score_final )')
+    .ilike('city', `%${cg.city}%`)
     .limit(120);
-  const rows = (data || []) as unknown as Row[];
-  const { data: stats } = await db.from("normalizer_stats").select("scope,key,median,iqr");
-  const cityStats = new Map<string, { m: number; i: number }>();
-  const countryStats = new Map<string, { m: number; i: number }>();
-  ((stats as unknown as { scope: string; key: string; median: number; iqr: number }[]) || []).forEach((s) => {
-    if (s.scope === 'city') cityStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
-    if (s.scope === 'country') countryStats.set(s.key, { m: Number(s.median), i: Number(s.iqr) });
-  });
-  const scored = rows.map((r) => {
-    const h = r.hotel; if (!h) return null;
-    const base = Number(r.score) || 0;
-    const cs = cityStats.get(String(h.city || '')) || { m: base, i: 1 };
-    const ks = countryStats.get(String(h.country || '')) || { m: base, i: 1 };
-    const normCity = normalizedScore(base, cs.m, cs.i);
-    const normCountry = normalizedScore(base, ks.m, ks.i);
-    const reviews = typeof (h.reviews_count as number | null) === 'number' ? (h.reviews_count as number) : 0;
-    const conf = Math.max(0.6, Math.min(1.0, Math.log10(1 + reviews) / 2));
-    const final = (0.5 * base + 0.3 * normCity + 0.2 * normCountry) * conf;
-    return { hotel: h, _cosy: final };
-  }).filter(Boolean) as Array<{ hotel: NonNullable<Row['hotel']>; _cosy: number }>;
-  scored.sort((a, b) => b._cosy - a._cosy);
-  const chosen = await Promise.all(scored.slice(0, 9).map(async (s) => ({
-    slug: String(s.hotel.slug),
-    name: String(s.hotel.name),
-    city: String(s.hotel.city || ''),
-    country: String(s.hotel.country || ''),
-    rating: typeof s.hotel.rating === 'number' ? s.hotel.rating : 0,
-    _cosy: s._cosy,
-    _img: (await getImageForHotel(String(s.hotel.name), String(s.hotel.city || ''), 800, String(s.hotel.slug), String(s.hotel.id))) || "/seal.svg",
-  })));
+  const hotels = (data || []) as unknown as HR[];
+  const coalesceScore = (cs: HR['cosy_scores']) => {
+    if (!cs) return 0;
+    if (Array.isArray(cs)) {
+      const first = cs[0]; if (!first) return 0;
+      return (typeof first.score_final === 'number' ? first.score_final : (typeof first.score === 'number' ? first.score : 0)) as number;
+    }
+    return (typeof cs.score_final === 'number' ? cs.score_final : (typeof cs.score === 'number' ? cs.score : 0)) as number;
+  };
+  const ranked = hotels
+    .map((h) => ({ h, score: coalesceScore(h.cosy_scores) }))
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 9);
+
+  const chosen = await Promise.all(
+    ranked.map(async ({ h, score }) => {
+      const img = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || "/seal.svg";
+      // Build a cosy snippet using Places details if available
+      let snippet = `${h.name} is among the cosiest hotels in ${h.city || cg.city}.`;
+      try {
+        if (h.source_id) {
+          const d = await getDetails(h.source_id);
+          if (d) {
+            const r5 = d.rating ?? (typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined);
+            const reviews = d.user_ratings_total ?? h.reviews_count ?? undefined;
+            const txt = `${d.editorial_summary?.overview || ''} ${d.formatted_address || ''}`.toLowerCase();
+            const cues: string[] = [];
+            if (txt.includes('spa')) cues.push('a soothing spa');
+            if (txt.includes('sauna')) cues.push('a calming sauna');
+            if (txt.includes('bathtub') || txt.includes('soaking') || txt.includes('bath')) cues.push('soaking tubs');
+            if (txt.includes('fireplace')) cues.push('fireside warmth');
+            if (txt.includes('garden')) cues.push('a quiet garden');
+            if (txt.includes('rooftop')) cues.push('a rooftop view');
+            const approx = (n?: number | null) => (n && n > 0 ? (n < 50 ? `${n}` : `${Math.floor(n / 10) * 10}+`) : undefined);
+            const rtext = r5 ? ` We rate it ${r5.toFixed(1)}/5${reviews ? ` (based on ${approx(reviews)} reviews)` : ''}` : '';
+            const cuePhrase = cues.length ? ` thanks to ${cues.slice(0, 2).join(', ')}` : '';
+            snippet = `${h.name} is among the cosiest hotels in ${h.city || cg.city}.${rtext}${cuePhrase}.`;
+          }
+        }
+      } catch {}
+      return {
+        slug: String(h.slug),
+        name: String(h.name),
+        city: String(h.city || ''),
+        country: String(h.country || ''),
+        rating: typeof h.rating === 'number' ? h.rating : 0,
+        _cosy: score,
+        _img: img,
+        snippet,
+      };
+    })
+  );
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{cg.city} cosy hotels</h1>
       <p className="mt-2 text-zinc-600">9 handpicked cosy and romantic stays in {cg.city}.</p>
-      <div className="mt-6 grid md:grid-cols-3 gap-3 auto-rows-fr">
-        {chosen.map((h) => (
-          <HotelTile
-            key={`${h.slug}-${h._img}`}
-            hotel={{ slug: String(h.slug), name: h.name, city: h.city, country: h.country, rating: h.rating, image: h._img, cosy: h._cosy }}
-            href={detailsHref(h.slug)}
-            goHref={`/go/${h.slug}`}
-          />
+      <ol className="mt-6 space-y-6">
+        {chosen.map((h, idx) => (
+          <li key={`${h.slug}-${h._img}`} className="border border-zinc-200 rounded-xl bg-white">
+            <div className="p-3 md:p-4">
+              <div className="flex items-baseline gap-3">
+                <div className="text-xl font-semibold tabular-nums">{idx + 1}.</div>
+                <h2 className="text-xl font-semibold">
+                  <a href={detailsHref(h.slug)} className="hover:underline">{h.name}</a>
+                </h2>
+              </div>
+              <p className="mt-2 text-sm text-zinc-700">{h.snippet}</p>
+            </div>
+            <a href={detailsHref(h.slug)}>
+              <img src={h._img} alt={`${h.name} – ${h.city}`} className="w-full aspect-[4/3] object-cover rounded-b-xl" />
+            </a>
+          </li>
         ))}
-      </div>
+      </ol>
     </div>
   );
 }
