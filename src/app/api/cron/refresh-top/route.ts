@@ -3,6 +3,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normalization";
+import { getImageForHotel } from "@/lib/hotelImages";
 import { generateHotelSlug } from "@/lib/slug";
 import { cities } from "@/data/cities";
 import { citiesLarge } from "@/data/cities_large";
