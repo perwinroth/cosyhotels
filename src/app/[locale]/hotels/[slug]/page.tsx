@@ -206,7 +206,7 @@ export default async function HotelDetail({ params }: Props) {
     if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
   }
   const cueList = cues.filter(Boolean).slice(0, 3);
-  const cuePhrase = cueList.length ? `thanks to its ${cueList.join(', ')}` : 'for its intimate scale and warm design';
+  const cuePhrase = cueList.length ? `thanks to ${cueList.join(', ')}` : 'for its intimate scale and warm design';
   const approxReviews = (n?: number | null) => {
     if (!n || n <= 0) return '';
     if (n < 50) return `${n}`;
@@ -222,15 +222,29 @@ export default async function HotelDetail({ params }: Props) {
     `${name} is among the cosiest hotels in ${city}. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
     `For a cosy stay in ${city}, ${name} is a strong choice. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
   ];
+  const preferIdx = 2; // “…is among the cosiest hotels in City.”
   const tmplIndex = (name.length + (city || '').length * 7) % cosyTemplates.length;
-  const cosySnippetFull = cosyTemplates[tmplIndex];
+  const cosySnippetFull = cueList.length ? cosyTemplates[preferIdx] : cosyTemplates[tmplIndex];
   const cosySnippet = cosySnippetFull.length > 180 ? `${cosySnippetFull.slice(0, 177)}...` : cosySnippetFull;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Cosy snippet – first text on the page for LLMs/SEO */}
       <p className="text-sm text-zinc-700">{cosySnippet}</p>
-      <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
+      {/* Why we rate it cosy – placed before the image */}
+      <section className="mt-3">
+        <h2 className="sr-only">Why we rate it cosy</h2>
+        <ul className="list-disc pl-5 text-sm text-zinc-700 space-y-1">
+          {cueList.map((c, i) => (<li key={`c-${i}`}>{c}</li>))}
+          {!cueList.length && <li>Intimate scale and warm design</li>}
+          {typeof rating5 === 'number' && (
+            <li>Guest rating: {rating5.toFixed(1)}/5{reviewsTotal ? ` from ${reviewsTotal.toLocaleString()} reviews` : ''}</li>
+          )}
+          {priceText && <li>Typical price level: {priceText}</li>}
+        </ul>
+      </section>
+
+      <div className="mt-3 relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
         <Image src={image} alt={`${name}`} fill className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
       {/* Hotel structured data */}
@@ -267,18 +281,7 @@ export default async function HotelDetail({ params }: Props) {
           <span />
         </div>
       </div>
-      {/* Why we rate it cosy */}
-      <section className="mt-4">
-        <h2 className="sr-only">Why we rate it cosy</h2>
-        <ul className="list-disc pl-5 text-sm text-zinc-700 space-y-1">
-          {cueList.map((c, i) => (<li key={`c-${i}`}>{c}</li>))}
-          {!cueList.length && <li>Intimate scale and warm design</li>}
-          {typeof rating5 === 'number' && (
-            <li>Guest rating: {rating5.toFixed(1)}/5{reviewsTotal ? ` from ${reviewsTotal.toLocaleString()} reviews` : ''}</li>
-          )}
-          {priceText && <li>Typical price level: {priceText}</li>}
-        </ul>
-      </section>
+      
       <div className="mt-5 flex items-center gap-3">
         <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
           Back to results
