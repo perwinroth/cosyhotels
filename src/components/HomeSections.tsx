@@ -77,7 +77,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         router.push(`/${locale}/hotels?${sp.toString()}`);
         setOpen(false);
       }}
-      className="relative grid md:grid-cols-[1fr_auto_auto] gap-3"
+      className="relative grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_140px_auto] gap-2 md:gap-2"
     >
       <div className="relative">
       <input
@@ -107,7 +107,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         </div>
       )}
       </div>
-      <div className="relative">
+      <div className="relative md:justify-self-end">
         <button
           type="button"
           aria-expanded={open}
