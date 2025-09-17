@@ -58,10 +58,6 @@ export default function HotelsPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* Search on top */}
-      <div className="mb-4">
-        <SearchBar locale={params.locale} />
-      </div>
       <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{h1}</h1>
       <script
         type="application/ld+json"
@@ -80,6 +76,10 @@ export default function HotelsPage({
         }}
       />
       <p className="mt-2 max-w-3xl text-zinc-600 text-sm md:text-base">{intro}</p>
+      {/* Search under intro */}
+      <div className="mt-4">
+        <SearchBar locale={params.locale} />
+      </div>
       <div className="mt-4">
         <Results searchParams={searchParams} locale={params.locale} />
       </div>
