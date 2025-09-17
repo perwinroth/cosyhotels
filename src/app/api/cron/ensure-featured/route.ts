@@ -5,7 +5,11 @@ import { getImageForHotel } from "@/lib/hotelImages";
 export const runtime = 'nodejs';
 export const maxDuration = 120;
 
-async function ensureFeatured() {
+type EnsureFeaturedOk = { ensured: boolean; inserted?: number; have?: number };
+type EnsureFeaturedErr = { error: string };
+type EnsureFeaturedResult = EnsureFeaturedOk | EnsureFeaturedErr;
+
+async function ensureFeatured(): Promise<EnsureFeaturedResult> {
   const db = getServerSupabase();
   if (!db) return { error: 'Supabase not configured' };
   // Current rows
@@ -52,8 +56,7 @@ export async function POST() {
 }
 
 export async function GET() {
-  const res = await ensureFeatured();
-  if ((res as any).error) return NextResponse.json(res, { status: 500 });
+  const res: EnsureFeaturedResult = await ensureFeatured();
+  if ('error' in res) return NextResponse.json(res, { status: 500 });
   return NextResponse.json(res);
 }
-
