@@ -62,3 +62,4 @@ export default function GuidesIndex({ params }: { params: { locale: string } }) 
     </div>
   );
 }
+export const revalidate = 600;

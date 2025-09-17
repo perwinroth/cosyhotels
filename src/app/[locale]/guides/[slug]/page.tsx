@@ -158,3 +158,4 @@ export default async function GuidePage({ params }: Props) {
     </div>
   );
 }
+export const revalidate = 600;
