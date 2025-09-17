@@ -192,29 +192,31 @@ export default async function HotelDetail({ params }: Props) {
   const priceText = typeof priceLevel === 'number' ? ['budget','budget','mid-range','upscale','luxury'][Math.max(0, Math.min(4, priceLevel))] : undefined;
   const textSrc = `${details?.editorial_summary?.overview || ''} ${details?.formatted_address || ''}`.toLowerCase();
   const cues: string[] = [];
-  if (textSrc.includes('fireplace')) cues.push('a fireplace');
+  if (textSrc.includes('fireplace')) cues.push('fireside warmth');
   if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) cues.push('soaking tubs');
-  if (textSrc.includes('spa')) cues.push('a spa');
-  if (textSrc.includes('sauna')) cues.push('sauna');
-  if (textSrc.includes('garden')) cues.push('a garden');
+  if (textSrc.includes('spa')) cues.push('a soothing spa');
+  if (textSrc.includes('sauna')) cues.push('a calming sauna');
+  if (textSrc.includes('garden')) cues.push('a quiet garden');
   if (textSrc.includes('rooftop')) cues.push('a rooftop view');
   // Pull hints from reviews text without quoting
   const reviewsText = details?.reviews as Array<{ text?: string }> | undefined;
   if (reviewsText && reviewsText.length) {
     const joined = reviewsText.map((r) => (r.text || '').toLowerCase()).join(' ');
-    if (joined.includes('quiet') && !cues.includes('quiet')) cues.push('a quiet vibe');
-    if (joined.includes('romantic') && !cues.includes('romantic')) cues.push('a romantic feel');
+    if (joined.includes('quiet') && !cues.includes('a quiet vibe')) cues.push('a tranquil vibe');
+    if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
   }
   const cueList = cues.filter(Boolean).slice(0, 3);
-  const cuePhrase = cueList.length ? `thanks to ${cueList.join(', ')}` : 'for its intimate scale and warm design';
-  const ratingPhrase = rating5 ? ` Rated ${rating5.toFixed(1)}/5${reviewsTotal ? ` from ${reviewsTotal.toLocaleString()} reviews` : ''}.` : '';
-  const pricePhrase = priceText ? ` Expect ${priceText} prices.` : '';
-  const templates = [
-    `${name} is a cosy hotel in ${city}. We rate it cosy ${cuePhrase}.${ratingPhrase}${pricePhrase}`,
-    `A cosy pick in ${city}: ${name}. We rate it cosy ${cuePhrase}.${ratingPhrase}${pricePhrase}`,
-    `We rate ${name} a cosy hotel in ${city} ${cuePhrase}.${ratingPhrase}${pricePhrase}`,
-  ];
-  const cosySnippetFull = templates[(name.length + (city || '').length) % templates.length];
+  const cuePhrase = cueList.length ? `thanks to its ${cueList.join(', ')}` : 'for its intimate scale and warm design';
+  const approxReviews = (n?: number | null) => {
+    if (!n || n <= 0) return '';
+    if (n < 50) return `${n}`;
+    const rounded = Math.floor(n / 10) * 10;
+    return `${rounded}+`;
+  };
+  const reviewText = reviewsTotal ? ` (based on ${approxReviews(reviewsTotal)} reviews)` : '';
+  const ratingPhrase = rating5 ? `We rate it ${rating5.toFixed(1)}/5${reviewText}` : '';
+  const idealPhrase = priceText ? ` Ideal if you want ${priceText} comfort without losing that warm, relaxed hotel feel.` : ` Ideal if you want a warm, relaxed hotel feel.`;
+  const cosySnippetFull = `If you're looking for a cosy hotel in ${city}, ${name} is a top pick. ${ratingPhrase} ${cuePhrase}.` + idealPhrase;
   const cosySnippet = cosySnippetFull.length > 180 ? `${cosySnippetFull.slice(0, 177)}...` : cosySnippetFull;
 
   return (
