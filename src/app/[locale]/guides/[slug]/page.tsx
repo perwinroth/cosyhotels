@@ -5,6 +5,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 // using precomputed city_top; no direct Places calls
 import { buildCosySnippet } from "@/i18n/snippets";
 import Image from "next/image";
+import { getImageForHotel } from "@/lib/hotelImages";
 import { translate } from "@/lib/i18n/translate";
 import { locales } from "@/i18n/locales";
 
@@ -70,7 +71,7 @@ export default async function GuidePage({ params }: Props) {
     .eq('city', cg.city)
     .order('rank', { ascending: true })
     .limit(9);
-  const chosen = ((data || []) as unknown as CT[]).filter((r) => r.hotel).map((r) => {
+  let chosen = ((data || []) as unknown as CT[]).filter((r) => r.hotel).map((r) => {
     const h = r.hotel!;
     const cueKeys = (r.cues || []) as string[];
     const snippet = buildCosySnippet(params.locale, {
@@ -92,6 +93,42 @@ export default async function GuidePage({ params }: Props) {
       snippet,
     };
   });
+
+  // Fallback: if city_top not yet populated, compute top 9 on the fly
+  if (chosen.length === 0) {
+    type HR = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; cosy_scores: { score: number | null; score_final: number | null } | { score: number | null; score_final: number | null }[] | null };
+    const { data: rows } = await db
+      .from('hotels')
+      .select('id,slug,name,city,country,rating, cosy_scores ( score, score_final )')
+      .ilike('city', `%${cg.city}%`)
+      .limit(120);
+    const hotels = (rows || []) as HR[];
+    const scoreOf = (cs: HR['cosy_scores']) => {
+      if (!cs) return 0;
+      if (Array.isArray(cs)) {
+        const first = cs[0]; if (!first) return 0;
+        return Number((first.score_final ?? first.score) || 0);
+      }
+      return Number((cs.score_final ?? cs.score) || 0);
+    };
+    const ranked = hotels
+      .map((h) => ({ h, s: scoreOf(h.cosy_scores) }))
+      .filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 9);
+    chosen = await Promise.all(ranked.map(async ({ h, s }) => {
+      const img = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg';
+      const snippet = buildCosySnippet(params.locale, {
+        city: String(h.city || cg.city),
+        name: String(h.name),
+        rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined,
+        reviewsCount: undefined,
+        cues: [],
+        idealLevel: 'warm',
+      });
+      return { slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: s, _img: img, snippet };
+    }));
+  }
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
   return (
