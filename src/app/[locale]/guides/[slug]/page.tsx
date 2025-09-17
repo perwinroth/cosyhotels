@@ -5,6 +5,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { getImageForHotel } from "@/lib/hotelImages";
 import { getDetails } from "@/lib/places";
 import { buildCosySnippet } from "@/i18n/snippets";
+import Image from "next/image";
 import { locales } from "@/i18n/locales";
 
 type Props = { params: { slug: string; locale: string } };
@@ -145,7 +146,9 @@ export default async function GuidePage({ params }: Props) {
               <p className="mt-2 text-sm text-zinc-700">{h.snippet}</p>
             </div>
             <a href={detailsHref(h.slug)}>
-              <img src={h._img} alt={`${h.name} – ${h.city}`} className="w-full aspect-[4/3] object-cover rounded-b-xl" />
+              <div className="relative w-full aspect-[4/3] rounded-b-xl overflow-hidden">
+                <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 1200px" />
+              </div>
             </a>
           </li>
         ))}

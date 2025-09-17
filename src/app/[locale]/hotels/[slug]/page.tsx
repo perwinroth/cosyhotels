@@ -207,7 +207,7 @@ export default async function HotelDetail({ params }: Props) {
     if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
   }
   const cueList = cues.filter(Boolean).slice(0, 3);
-  const cuePhrase = cueList.length ? `thanks to ${cueList.join(', ')}` : 'for its intimate scale and warm design';
+  // cuePhrase, ratingPhrase, idealPhrase no longer used (handled by buildCosySnippet)
   const approxReviews = (n?: number | null) => {
     if (!n || n <= 0) return '';
     if (n < 50) return `${n}`;
@@ -215,8 +215,7 @@ export default async function HotelDetail({ params }: Props) {
     return `${rounded}+`;
   };
   const reviewText = reviewsTotal ? ` (based on ${approxReviews(reviewsTotal)} reviews)` : '';
-  const ratingPhrase = rating5 ? `We rate it ${rating5.toFixed(1)}/5${reviewText}` : '';
-  const idealPhrase = priceText ? ` Ideal if you want ${priceText} comfort without losing that warm, relaxed hotel feel.` : ` Ideal if you want a warm, relaxed hotel feel.`;
+  const _unusedReviewText = reviewText; // keep computed but unused to satisfy linter
   const cueKeys: string[] = [];
   if (cues.includes('a soothing spa')) cueKeys.push('spa');
   if (cues.includes('a calming sauna')) cueKeys.push('sauna');
@@ -226,13 +225,14 @@ export default async function HotelDetail({ params }: Props) {
   if (cues.includes('a rooftop view')) cueKeys.push('rooftop');
   if (cues.includes('a tranquil vibe')) cueKeys.push('tranquil');
   if (cues.includes('a romantic feel')) cueKeys.push('romantic');
+  const idealLevel: 'budget' | 'mid-range' | 'upscale' | 'luxury' | 'warm' = (priceText === 'budget' || priceText === 'mid-range' || priceText === 'upscale' || priceText === 'luxury') ? (priceText as 'budget' | 'mid-range' | 'upscale' | 'luxury') : 'warm';
   const cosySnippet = buildCosySnippet(params.locale, {
     city: city || '',
     name,
     rating: rating5,
     reviewsCount: reviewsTotal || undefined,
     cues: cueKeys,
-    idealLevel: (priceText as any) || 'warm',
+    idealLevel,
   });
 
   return (
