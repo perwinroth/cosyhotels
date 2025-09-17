@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import { cosyScore } from "@/lib/scoring/cosy";
+import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { generateHotelSlug } from "@/lib/slug";
 
@@ -216,16 +217,23 @@ export default async function HotelDetail({ params }: Props) {
   const reviewText = reviewsTotal ? ` (based on ${approxReviews(reviewsTotal)} reviews)` : '';
   const ratingPhrase = rating5 ? `We rate it ${rating5.toFixed(1)}/5${reviewText}` : '';
   const idealPhrase = priceText ? ` Ideal if you want ${priceText} comfort without losing that warm, relaxed hotel feel.` : ` Ideal if you want a warm, relaxed hotel feel.`;
-  const cosyTemplates = [
-    `If you're looking for a cosy hotel in ${city}, ${name} is a top pick. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
-    `Searching for a cosy hotel in ${city}? ${name} stands out. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
-    `${name} is among the cosiest hotels in ${city}. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
-    `For a cosy stay in ${city}, ${name} is a strong choice. ${ratingPhrase} ${cuePhrase}.` + idealPhrase,
-  ];
-  const preferIdx = 2; // “…is among the cosiest hotels in City.”
-  const tmplIndex = (name.length + (city || '').length * 7) % cosyTemplates.length;
-  const cosySnippetFull = cueList.length ? cosyTemplates[preferIdx] : cosyTemplates[tmplIndex];
-  const cosySnippet = cosySnippetFull;
+  const cueKeys: string[] = [];
+  if (cues.includes('a soothing spa')) cueKeys.push('spa');
+  if (cues.includes('a calming sauna')) cueKeys.push('sauna');
+  if (cues.includes('soaking tubs')) cueKeys.push('tubs');
+  if (cues.includes('fireside warmth')) cueKeys.push('fireplace');
+  if (cues.includes('a quiet garden')) cueKeys.push('garden');
+  if (cues.includes('a rooftop view')) cueKeys.push('rooftop');
+  if (cues.includes('a tranquil vibe')) cueKeys.push('tranquil');
+  if (cues.includes('a romantic feel')) cueKeys.push('romantic');
+  const cosySnippet = buildCosySnippet(params.locale, {
+    city: city || '',
+    name,
+    rating: rating5,
+    reviewsCount: reviewsTotal || undefined,
+    cues: cueKeys,
+    idealLevel: (priceText as any) || 'warm',
+  });
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">

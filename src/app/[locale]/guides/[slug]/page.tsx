@@ -4,6 +4,7 @@ import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getImageForHotel } from "@/lib/hotelImages";
 import { getDetails } from "@/lib/places";
+import { buildCosySnippet } from "@/i18n/snippets";
 import { locales } from "@/i18n/locales";
 
 type Props = { params: { slug: string; locale: string } };
@@ -95,10 +96,21 @@ export default async function GuidePage({ params }: Props) {
             if (txt.includes('fireplace')) cues.push('fireside warmth');
             if (txt.includes('garden')) cues.push('a quiet garden');
             if (txt.includes('rooftop')) cues.push('a rooftop view');
-            const approx = (n?: number | null) => (n && n > 0 ? (n < 50 ? `${n}` : `${Math.floor(n / 10) * 10}+`) : undefined);
-            const rtext = r5 ? ` We rate it ${r5.toFixed(1)}/5${reviews ? ` (based on ${approx(reviews)} reviews)` : ''}` : '';
-            const cuePhrase = cues.length ? ` thanks to ${cues.slice(0, 2).join(', ')}` : '';
-            snippet = `${h.name} is among the cosiest hotels in ${h.city || cg.city}.${rtext}${cuePhrase}.`;
+            const cueKeys: string[] = [];
+            if (cues.includes('a soothing spa')) cueKeys.push('spa');
+            if (cues.includes('a calming sauna')) cueKeys.push('sauna');
+            if (cues.includes('soaking tubs')) cueKeys.push('tubs');
+            if (cues.includes('fireside warmth')) cueKeys.push('fireplace');
+            if (cues.includes('a quiet garden')) cueKeys.push('garden');
+            if (cues.includes('a rooftop view')) cueKeys.push('rooftop');
+            snippet = buildCosySnippet(params.locale, {
+              city: h.city || cg.city,
+              name: h.name,
+              rating: r5,
+              reviewsCount: reviews || undefined,
+              cues: cueKeys.slice(0,2),
+              idealLevel: 'warm',
+            });
           }
         }
       } catch {}
