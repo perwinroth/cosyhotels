@@ -1,0 +1,9 @@
+# Protect critical surfacing and scoring logic; require @perwinroth review
+src/app/[locale]/hotels/page.tsx  @perwinroth
+src/components/HotelTile.tsx      @perwinroth
+src/app/api/cron/**               @perwinroth
+src/lib/scoring/**                @perwinroth
+src/app/[locale]/guides/**        @perwinroth
+
+# Default: no owner (keeps normal flow for other changes)
+
