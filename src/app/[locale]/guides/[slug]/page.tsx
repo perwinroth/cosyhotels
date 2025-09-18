@@ -71,31 +71,34 @@ export default async function GuidePage({ params }: Props) {
     .eq('city', cg.city)
     .order('rank', { ascending: true })
     .limit(9);
-  let chosen = ((data || []) as unknown as CT[]).filter((r) => r.hotel).map((r) => {
-    const h = r.hotel!;
-    const cueKeys = (r.cues || []) as string[];
-    const snippet = buildCosySnippet(params.locale, {
-      city: String(h.city || cg.city),
-      name: String(h.name),
-      rating: r.rating5 ?? undefined,
-      reviewsCount: r.reviews_count ?? undefined,
-      cues: cueKeys,
-      idealLevel: 'warm',
+  // Start with precomputed city_top (enforced cosy >= 7 just in case)
+  let chosen = ((data || []) as unknown as CT[])
+    .filter((r) => r.hotel && Number(r.score) >= 7.0)
+    .map((r) => {
+      const h = r.hotel!;
+      const cueKeys = (r.cues || []) as string[];
+      const snippet = buildCosySnippet(params.locale, {
+        city: String(h.city || cg.city),
+        name: String(h.name),
+        rating: r.rating5 ?? undefined,
+        reviewsCount: r.reviews_count ?? undefined,
+        cues: cueKeys,
+        idealLevel: 'warm',
+      });
+      return {
+        slug: String(h.slug),
+        name: String(h.name),
+        city: String(h.city || ''),
+        country: String(h.country || ''),
+        rating: 0,
+        _cosy: Number(r.score) || 0,
+        _img: r.image_url || '/seal.svg',
+        snippet,
+      };
     });
-    return {
-      slug: String(h.slug),
-      name: String(h.name),
-      city: String(h.city || ''),
-      country: String(h.country || ''),
-      rating: 0,
-      _cosy: Number(r.score) || 0,
-      _img: r.image_url || '/seal.svg',
-      snippet,
-    };
-  });
 
-  // Fallback: if city_top not yet populated, compute top 9 on the fly
-  if (chosen.length === 0) {
+  // Fallback / top-up: if fewer than 9, query hotels+scores for this city and fill to 9 (cosy >= 7)
+  if (chosen.length < 9) {
     type HR = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; cosy_scores: { score: number | null; score_final: number | null } | { score: number | null; score_final: number | null }[] | null };
     const { data: rows } = await db
       .from('hotels')
@@ -111,23 +114,50 @@ export default async function GuidePage({ params }: Props) {
       }
       return Number((cs.score_final ?? cs.score) || 0);
     };
-    const ranked = hotels
-      .map((h) => ({ h, s: scoreOf(h.cosy_scores) }))
-      .filter((x) => x.s > 0)
-      .sort((a, b) => b.s - a.s)
-      .slice(0, 9);
-    chosen = await Promise.all(ranked.map(async ({ h, s }) => {
-      const img = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg';
-      const snippet = buildCosySnippet(params.locale, {
-        city: String(h.city || cg.city),
-        name: String(h.name),
-        rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined,
-        reviewsCount: undefined,
-        cues: [],
-        idealLevel: 'warm',
-      });
-      return { slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: s, _img: img, snippet };
-    }));
+    const missing = 9 - chosen.length;
+    if (missing > 0) {
+      const seen = new Set(chosen.map((c) => c.slug));
+      const ranked = hotels
+        .map((h) => ({ h, s: scoreOf(h.cosy_scores) }))
+        .filter((x) => x.s >= 7.0)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, Math.max(9, missing * 2));
+      const topUp = await Promise.all(ranked
+        .filter(({ h }) => !seen.has(String(h.slug)))
+        .slice(0, missing)
+        .map(async ({ h, s }) => {
+          const img = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg';
+          const snippet = buildCosySnippet(params.locale, {
+            city: String(h.city || cg.city),
+            name: String(h.name),
+            rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined,
+            reviewsCount: undefined,
+            cues: [],
+            idealLevel: 'warm',
+          });
+          return { slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: s, _img: img, snippet };
+        }));
+      chosen = chosen.concat(topUp);
+    }
+  }
+
+  // Final guarantee: if still < 9, top up from curated dataset when available (match city if possible; cosy >= 7)
+  if (chosen.length < 9) {
+    // Lazy import to avoid heavier bundle
+    const { hotels: curated } = await import("@/data/hotels");
+    const seen = new Set(chosen.map((c) => c.slug));
+    const byCity = curated.filter((h) => (h.city || '').toLowerCase().includes(cg.city.toLowerCase()) && h._cosy >= 7.0);
+    const globalTop = curated.filter((h) => h._cosy >= 7.0).sort((a, b) => b._cosy - a._cosy);
+    const addFrom = (list: typeof curated) => {
+      for (const h of list) {
+        if (seen.has(String(h.slug))) continue;
+        chosen.push({ slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: Number(h._cosy) || 0, _img: String(h._img || '/seal.svg'), snippet: buildCosySnippet(params.locale, { city: String(h.city || cg.city), name: String(h.name), rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined, reviewsCount: undefined, cues: [], idealLevel: 'warm' }) });
+        seen.add(String(h.slug));
+        if (chosen.length >= 9) break;
+      }
+    };
+    if (chosen.length < 9) addFrom(byCity);
+    if (chosen.length < 9) addFrom(globalTop);
   }
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
