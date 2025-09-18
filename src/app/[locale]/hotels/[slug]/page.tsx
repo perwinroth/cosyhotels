@@ -252,10 +252,14 @@ export default async function HotelDetail({ params }: Props) {
   let topRating5: number | null = null;
   let topReviews: number | null = null;
   let topCues: string[] | null = null;
-  if (cityTop) {
-    topRating5 = cityTop.rating5;
-    topReviews = cityTop.reviews_count;
-    topCues = cityTop.cues;
+  {
+    const cto: unknown = cityTop;
+    if (cto && typeof cto === 'object') {
+      const s = cto as { rating5?: number | null; reviews_count?: number | null; cues?: string[] | null };
+      topRating5 = s.rating5 ?? null;
+      topReviews = s.reviews_count ?? null;
+      topCues = s.cues ?? null;
+    }
   }
   const rating5 = topRating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : detailsRating);
   const reviewsTotal = topReviews ?? (detailsReviews ?? hotel?.reviews_count ?? undefined);
