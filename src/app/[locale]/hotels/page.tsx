@@ -146,61 +146,78 @@ async function Results({
   if (!city) {
     const supabase = getServerSupabase();
     if (supabase) {
-      type FT = { position: number; score: number; image_url: string | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null } | null };
-      const { data, error } = await supabase
+      type FTRow = { position: number; score: number | null; image_url: string | null; hotel_id: string };
+      const { data: frows, error } = await supabase
         .from("featured_top")
-        .select("position, score, image_url, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)")
+        .select("position, score, image_url, hotel_id")
         .order("position", { ascending: true })
         .limit(9);
-      if (!error && data) {
-        const rows = (data as unknown as FT[]).filter((r) => r.hotel).slice(0, 9);
+      if (!error && frows && frows.length) {
+        const ids = (frows as unknown as FTRow[]).map(r => String(r.hotel_id));
+        const { data: hotelsRows } = await supabase
+          .from('hotels')
+          .select('id,slug,name,city,country,rating,price,affiliate_url')
+          .in('id', ids);
+        const byId = new Map((hotelsRows || []).map(h => [String((h as any).id), h]));
         // Build initial list from featured
-        let chosen = await Promise.all(rows.map(async (r) => {
-          const h = r.hotel!;
-          const resolvedImg = r.image_url || (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || "/seal.svg";
+        let chosen = await Promise.all((frows as unknown as FTRow[]).map(async (r) => {
+          const h = byId.get(String(r.hotel_id));
+          if (!h) return null;
+          const resolvedImg = r.image_url || (await getImageForHotel(String((h as any).name), String((h as any).city || ''), 800, String((h as any).slug), String((h as any).id))) || "/seal.svg";
           return {
-            slug: String(h.slug),
-            name: String(h.name),
-            city: String(h.city || ''),
-            country: String(h.country || ''),
-            rating: typeof h.rating === 'number' ? h.rating : 0,
-            price: typeof h.price === 'number' ? h.price : NaN,
-            _cosy: Number(r.score) || 0,
+            slug: String((h as any).slug),
+            name: String((h as any).name),
+            city: String((h as any).city || ''),
+            country: String((h as any).country || ''),
+            rating: typeof (h as any).rating === 'number' ? (h as any).rating : 0,
+            price: typeof (h as any).price === 'number' ? (h as any).price : NaN,
+            _cosy: typeof r.score === 'number' ? Number(r.score) : 0,
             _img: resolvedImg,
-            affiliateUrl: (h.affiliate_url as string | null) || "",
+            affiliateUrl: ((h as any).affiliate_url as string | null) || "",
           };
         }));
+        chosen = chosen.filter(Boolean) as typeof chosen;
 
         // If fewer than 9 featured rows, top up from Supabase cosy_scores (score_final first)
         if (chosen.length < 9) {
-          type MS = { score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null } | null };
-          const excludeSlugs = new Set(chosen.map((c) => c.slug));
+          type CSR = { score: number | null; score_final: number | null; hotel_id: string };
+          const exclude = new Set(chosen.map((c) => c.slug));
           const { data: more } = await supabase
             .from("cosy_scores")
-            .select("score, score_final, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)")
+            .select("score, score_final, hotel_id")
             .order("score_final", { ascending: false, nullsFirst: false })
             .order("score", { ascending: false })
-            .limit(50);
-          const moreRows = ((more || []) as unknown as MS[])
-            .filter((r) => r.hotel && !excludeSlugs.has(String(r.hotel!.slug)))
+            .limit(100);
+          const csRows = ((more || []) as unknown as CSR[]) as CSR[];
+          const hotelsNeeded = csRows
+            .map(r => String(r.hotel_id))
+            .slice(0, 100);
+          const { data: hotelsMore } = await supabase
+            .from('hotels')
+            .select('id,slug,name,city,country,rating,price,affiliate_url')
+            .in('id', hotelsNeeded);
+          const byId2 = new Map((hotelsMore || []).map(h => [String((h as any).id), h]));
+          const filteredRows = csRows
+            .map(r => ({ r, h: byId2.get(String(r.hotel_id)) }))
+            .filter(x => x.h && !exclude.has(String((x.h as any).slug)))
+            .filter(x => {
+              const s = typeof x.r.score_final === 'number' ? Number(x.r.score_final) : (typeof x.r.score === 'number' ? Number(x.r.score) : 0);
+              return s >= 7.0;
+            })
             .slice(0, 9 - chosen.length);
-          const filteredRows = moreRows.filter((r) => {
+          const moreChosen = await Promise.all(filteredRows.map(async ({ r, h }) => {
+            const resolvedImg = await getImageForHotel(String((h as any).name), String((h as any).city || ''), 800, String((h as any).slug), String((h as any).id)) || "/seal.svg";
             const s = typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0);
-            return s >= 7.0;
-          });
-          const moreChosen = await Promise.all(filteredRows.map(async (r) => {
-            const h = r.hotel!;
-            const resolvedImg = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || "/seal.svg";
             return {
-              slug: String(h.slug),
-              name: String(h.name),
-              city: String(h.city || ''),
-              country: String(h.country || ''),
-              rating: typeof h.rating === 'number' ? h.rating : 0,
-              price: typeof h.price === 'number' ? h.price : NaN,
-              _cosy: typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0),
+              slug: String((h as any).slug),
+              name: String((h as any).name),
+              city: String((h as any).city || ''),
+              country: String((h as any).country || ''),
+              rating: typeof (h as any).rating === 'number' ? (h as any).rating : 0,
+              price: typeof (h as any).price === 'number' ? (h as any).price : NaN,
+              _cosy: s,
               _img: resolvedImg,
-              affiliateUrl: (h.affiliate_url as string | null) || "",
+              affiliateUrl: ((h as any).affiliate_url as string | null) || "",
             };
           }));
           chosen = chosen.concat(moreChosen).slice(0, 9);
