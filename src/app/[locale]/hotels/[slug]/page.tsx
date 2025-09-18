@@ -96,8 +96,9 @@ export default async function HotelDetail({ params }: Props) {
   let image: string = "/logo-seal.svg";
 
   // Try fast Supabase-backed data first (images + cues) to avoid blocking on Places
-  // Be explicit to avoid any accidental "never" narrowing during control-flow analysis
-  let gDetails: PlaceDetails | null = null;
+  // Use unknown + a type guard to avoid TSX control-flow oddities with intrinsics
+  let gDetails: unknown = null;
+  const isPlaceDetails = (x: unknown): x is PlaceDetails => !!x && typeof x === 'object';
   let cityTop: { rating5: number | null; reviews_count: number | null; cues: string[] | null; image_url: string | null } | null = null;
   let cachedImageUrl: string | null = null;
   if (db && hotel) {
@@ -167,7 +168,7 @@ export default async function HotelDetail({ params }: Props) {
     }
   }
 
-  if (!hotel && !gDetails) return notFound();
+  if (!hotel && !isPlaceDetails(gDetails)) return notFound();
 
   // Redirect to canonical SEO slug if the URL uses a Place ID or old slug
   if (hotel && params.slug !== hotel.slug) {
@@ -176,7 +177,7 @@ export default async function HotelDetail({ params }: Props) {
 
   // If hotel exists but has no cosy score yet, compute a base score from details and persist
   if (db && hotel && cosy == null) {
-    const d = gDetails ?? (hotel.source_id ? await getDetails(hotel.source_id) : null);
+    const d: PlaceDetails | null = isPlaceDetails(gDetails) ? gDetails : (hotel.source_id ? await getDetails(hotel.source_id) : null);
     if (d) {
       const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
       const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
@@ -201,7 +202,7 @@ export default async function HotelDetail({ params }: Props) {
   name = name || hotel?.name || "Hotel";
   if (!city || !country) {
     let addr = "";
-    if (gDetails) {
+    if (isPlaceDetails(gDetails)) {
       addr = gDetails.formatted_address || "";
     }
     const parts = addr.split(',').map(s => s.trim()).filter(Boolean);
@@ -209,7 +210,7 @@ export default async function HotelDetail({ params }: Props) {
     country = country || (parts.length ? parts[parts.length - 1] : "");
   }
   {
-    const fromDetails = gDetails ? (gDetails.website ?? null) : null;
+    const fromDetails = isPlaceDetails(gDetails) ? (gDetails.website ?? null) : null;
     website = website || fromDetails;
   }
   // Prefer cached Supabase image first; only hit Places if nothing cached
@@ -219,7 +220,7 @@ export default async function HotelDetail({ params }: Props) {
     const placeId = hotel?.source_id || params.slug;
     gDetails = await getDetails(placeId);
     let ref: string | undefined = undefined;
-    if (gDetails) {
+    if (isPlaceDetails(gDetails)) {
       ref = gDetails.photos?.[0]?.photo_reference;
     }
     image = ref ? photoUrl(ref, 1200) : image;
@@ -234,7 +235,7 @@ export default async function HotelDetail({ params }: Props) {
   let priceLevel: number | undefined = undefined;
   let overviewTxt = '';
   let addrTxt = '';
-  if (gDetails) {
+  if (isPlaceDetails(gDetails)) {
     detailsRating = gDetails.rating;
     detailsReviews = gDetails.user_ratings_total ?? undefined;
     priceLevel = gDetails.price_level;
@@ -255,7 +256,7 @@ export default async function HotelDetail({ params }: Props) {
       if (k === 'garden') cues.push('a quiet garden');
       if (k === 'rooftop') cues.push('a rooftop view');
     }
-  } else if (gDetails) {
+  } else if (isPlaceDetails(gDetails)) {
     if (textSrc.includes('fireplace')) cues.push('fireside warmth');
     if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) cues.push('soaking tubs');
     if (textSrc.includes('spa')) cues.push('a soothing spa');
@@ -264,7 +265,7 @@ export default async function HotelDetail({ params }: Props) {
     if (textSrc.includes('rooftop')) cues.push('a rooftop view');
   }
   // Pull hints from reviews text without quoting
-  if (gDetails && gDetails.reviews && gDetails.reviews.length) {
+  if (isPlaceDetails(gDetails) && gDetails.reviews && gDetails.reviews.length) {
     const joined = gDetails.reviews.map((r) => (r.text || '').toLowerCase()).join(' ');
     if (joined.includes('quiet') && !cues.includes('a quiet vibe')) cues.push('a tranquil vibe');
     if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
@@ -316,7 +317,7 @@ export default async function HotelDetail({ params }: Props) {
               addressCountry: country || undefined,
             },
             aggregateRating: (() => {
-              const r5 = (gDetails && typeof gDetails.rating === 'number') ? Number(gDetails.rating) : (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
+              const r5 = (isPlaceDetails(gDetails) && typeof gDetails.rating === 'number') ? Number(gDetails.rating) : (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
               return r5 ? { '@type': 'AggregateRating', ratingValue: Number(r5.toFixed(1)), bestRating: 5, worstRating: 1 } : undefined;
             })(),
           })
@@ -357,7 +358,7 @@ export default async function HotelDetail({ params }: Props) {
               <div className="font-medium">What makes {name} a cosy hotel?</div>
               <p className="text-sm text-zinc-600">{(() => {
                 const cues: string[] = [];
-                const sum = `${gDetails?.editorial_summary?.overview || ''} ${gDetails?.formatted_address || ''}`.toLowerCase();
+                const sum = (isPlaceDetails(gDetails) ? `${gDetails.editorial_summary?.overview || ''} ${gDetails.formatted_address || ''}` : '').toLowerCase();
                 if (sum.includes('fireplace')) cues.push('a fireplace');
                 if (sum.includes('bath') || sum.includes('bathtub')) cues.push('bathtubs');
                 if (sum.includes('spa')) cues.push('a spa');
