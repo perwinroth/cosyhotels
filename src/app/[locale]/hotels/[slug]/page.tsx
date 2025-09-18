@@ -249,13 +249,21 @@ export default async function HotelDetail({ params }: Props) {
     overviewTxt = gDetails.editorial_summary?.overview || '';
     addrTxt = gDetails.formatted_address || '';
   }
-  const rating5 = cityTop?.rating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : detailsRating);
-  const reviewsTotal = cityTop?.reviews_count ?? (detailsReviews ?? hotel?.reviews_count ?? undefined);
+  let topRating5: number | null = null;
+  let topReviews: number | null = null;
+  let topCues: string[] | null = null;
+  if (cityTop) {
+    topRating5 = cityTop.rating5;
+    topReviews = cityTop.reviews_count;
+    topCues = cityTop.cues;
+  }
+  const rating5 = topRating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : detailsRating);
+  const reviewsTotal = topReviews ?? (detailsReviews ?? hotel?.reviews_count ?? undefined);
   const priceText = typeof priceLevel === 'number' ? ['budget','budget','mid-range','upscale','luxury'][Math.max(0, Math.min(4, priceLevel))] : undefined;
   const textSrc = `${overviewTxt} ${addrTxt}`.toLowerCase();
   const cues: string[] = [];
-  if (cityTop?.cues && cityTop.cues.length) {
-    for (const k of cityTop.cues) {
+  if (topCues && topCues.length) {
+    for (const k of topCues) {
       if (k === 'spa') cues.push('a soothing spa');
       if (k === 'sauna') cues.push('a calming sauna');
       if (k === 'tubs') cues.push('soaking tubs');
