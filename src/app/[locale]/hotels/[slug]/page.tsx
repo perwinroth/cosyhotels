@@ -97,7 +97,7 @@ export default async function HotelDetail({ params }: Props) {
 
   // Try fast Supabase-backed data first (images + cues) to avoid blocking on Places
   // Be explicit to avoid any accidental "never" narrowing during control-flow analysis
-  let details: PlaceDetails | null = null;
+  let gDetails: PlaceDetails | null = null;
   let cityTop: { rating5: number | null; reviews_count: number | null; cues: string[] | null; image_url: string | null } | null = null;
   let cachedImageUrl: string | null = null;
   if (db && hotel) {
@@ -167,7 +167,7 @@ export default async function HotelDetail({ params }: Props) {
     }
   }
 
-  if (!hotel && !details) return notFound();
+  if (!hotel && !gDetails) return notFound();
 
   // Redirect to canonical SEO slug if the URL uses a Place ID or old slug
   if (hotel && params.slug !== hotel.slug) {
@@ -176,7 +176,7 @@ export default async function HotelDetail({ params }: Props) {
 
   // If hotel exists but has no cosy score yet, compute a base score from details and persist
   if (db && hotel && cosy == null) {
-    const d = details ?? (hotel.source_id ? await getDetails(hotel.source_id) : null);
+    const d = gDetails ?? (hotel.source_id ? await getDetails(hotel.source_id) : null);
     if (d) {
       const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
       const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
@@ -198,20 +198,20 @@ export default async function HotelDetail({ params }: Props) {
   }
 
   // Resolve fields for UI
-  name = name || details?.name || hotel?.name || "Hotel";
+  name = name || gDetails?.name || hotel?.name || "Hotel";
   if (!city || !country) {
-    const parts = (details?.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
+    const parts = (gDetails?.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
     city = city || (parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || ""));
     country = country || (parts.length ? parts[parts.length - 1] : "");
   }
-  website = website || details?.website || null;
+  website = website || gDetails?.website || null;
   // Prefer cached Supabase image first; only hit Places if nothing cached
   if (cachedImageUrl) image = cachedImageUrl;
   else if (cityTop?.image_url) image = cityTop.image_url;
   else {
     const placeId = hotel?.source_id || params.slug;
-    details = await getDetails(placeId);
-    const ref = details?.photos?.[0]?.photo_reference;
+    gDetails = await getDetails(placeId);
+    const ref = gDetails?.photos?.[0]?.photo_reference;
     image = ref ? photoUrl(ref, 1200) : image;
   }
   const cosyDisplay = typeof cosy === 'number' ? cosy : 0;
@@ -219,11 +219,11 @@ export default async function HotelDetail({ params }: Props) {
   const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
 
   // Build richer cosy snippet (<= ~160 chars) using Places cues
-  const rating5 = cityTop?.rating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : (details?.rating ?? undefined));
-  const reviewsTotal = cityTop?.reviews_count ?? (details?.user_ratings_total ?? hotel?.reviews_count ?? undefined);
-  const priceLevel = details?.price_level;
+  const rating5 = cityTop?.rating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : (gDetails?.rating ?? undefined));
+  const reviewsTotal = cityTop?.reviews_count ?? (gDetails?.user_ratings_total ?? hotel?.reviews_count ?? undefined);
+  const priceLevel = gDetails?.price_level;
   const priceText = typeof priceLevel === 'number' ? ['budget','budget','mid-range','upscale','luxury'][Math.max(0, Math.min(4, priceLevel))] : undefined;
-  const textSrc = `${details?.editorial_summary?.overview || ''} ${details?.formatted_address || ''}`.toLowerCase();
+  const textSrc = `${gDetails?.editorial_summary?.overview || ''} ${gDetails?.formatted_address || ''}`.toLowerCase();
   const cues: string[] = [];
   if (cityTop?.cues && cityTop.cues.length) {
     for (const k of cityTop.cues) {
@@ -234,7 +234,7 @@ export default async function HotelDetail({ params }: Props) {
       if (k === 'garden') cues.push('a quiet garden');
       if (k === 'rooftop') cues.push('a rooftop view');
     }
-  } else if (details) {
+  } else if (gDetails) {
     if (textSrc.includes('fireplace')) cues.push('fireside warmth');
     if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) cues.push('soaking tubs');
     if (textSrc.includes('spa')) cues.push('a soothing spa');
@@ -243,8 +243,8 @@ export default async function HotelDetail({ params }: Props) {
     if (textSrc.includes('rooftop')) cues.push('a rooftop view');
   }
   // Pull hints from reviews text without quoting
-  if (details?.reviews && details.reviews.length) {
-    const joined = details.reviews.map((r) => (r.text || '').toLowerCase()).join(' ');
+  if (gDetails?.reviews && gDetails.reviews.length) {
+    const joined = gDetails.reviews.map((r) => (r.text || '').toLowerCase()).join(' ');
     if (joined.includes('quiet') && !cues.includes('a quiet vibe')) cues.push('a tranquil vibe');
     if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
   }
@@ -295,7 +295,7 @@ export default async function HotelDetail({ params }: Props) {
               addressCountry: country || undefined,
             },
             aggregateRating: (() => {
-              const r5 = details?.rating ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
+              const r5 = gDetails?.rating ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
               return r5 ? { '@type': 'AggregateRating', ratingValue: Number(r5.toFixed(1)), bestRating: 5, worstRating: 1 } : undefined;
             })(),
           })
@@ -336,7 +336,7 @@ export default async function HotelDetail({ params }: Props) {
               <div className="font-medium">What makes {name} a cosy hotel?</div>
               <p className="text-sm text-zinc-600">{(() => {
                 const cues: string[] = [];
-                const sum = (details?.editorial_summary?.overview || details?.formatted_address || '').toLowerCase();
+                const sum = (gDetails?.editorial_summary?.overview || gDetails?.formatted_address || '').toLowerCase();
                 if (sum.includes('fireplace')) cues.push('a fireplace');
                 if (sum.includes('bath') || sum.includes('bathtub')) cues.push('bathtubs');
                 if (sum.includes('spa')) cues.push('a spa');
