@@ -215,15 +215,18 @@ export default async function HotelDetail({ params }: Props) {
   }
   // Prefer cached Supabase image first; only hit Places if nothing cached
   if (cachedImageUrl) image = cachedImageUrl;
-  else if (cityTop?.image_url) image = cityTop.image_url;
   else {
-    const placeId = hotel?.source_id || params.slug;
-    gDetails = await getDetails(placeId);
-    let ref: string | undefined = undefined;
-    if (isPlaceDetails(gDetails)) {
-      ref = gDetails.photos?.[0]?.photo_reference;
+    const imgTop = cityTop ? cityTop.image_url : null;
+    if (imgTop) image = imgTop;
+    else {
+      const placeId = hotel?.source_id || params.slug;
+      gDetails = await getDetails(placeId);
+      let ref: string | undefined = undefined;
+      if (isPlaceDetails(gDetails)) {
+        ref = gDetails.photos?.[0]?.photo_reference;
+      }
+      image = ref ? photoUrl(ref, 1200) : image;
     }
-    image = ref ? photoUrl(ref, 1200) : image;
   }
   const cosyDisplay = typeof cosy === 'number' ? cosy : 0;
 
