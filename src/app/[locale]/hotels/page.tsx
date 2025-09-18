@@ -575,6 +575,20 @@ async function Results({
     }
     // Final fallback: just take top 9 regardless of diversity if still short
     limited = pick.length >= 9 ? pick : filtered.slice(0, 9);
+    // Hard guarantee: always render 9 tiles on the front page by topping up from curated cosy >= 7
+    if (limited.length < 9) {
+      const already = new Set(limited.map((h) => `${h.name.toLowerCase()}|${(h.city || '').toLowerCase()}`));
+      const curatedTop = [...curated]
+        .filter((h) => h._cosy >= 7.0)
+        .sort((a, b) => b._cosy - a._cosy);
+      for (const h of curatedTop) {
+        const key = `${h.name.toLowerCase()}|${(h.city || '').toLowerCase()}`;
+        if (already.has(key)) continue;
+        limited.push(h);
+        already.add(key);
+        if (limited.length >= 9) break;
+      }
+    }
   }
 
   // Flat list; if empty (with city), show fallback top cosy curated
