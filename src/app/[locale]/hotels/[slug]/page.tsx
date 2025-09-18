@@ -216,7 +216,11 @@ export default async function HotelDetail({ params }: Props) {
   // Prefer cached Supabase image first; only hit Places if nothing cached
   if (cachedImageUrl) image = cachedImageUrl;
   else {
-    const imgTop = cityTop ? cityTop.image_url : null;
+    const cto: unknown = cityTop;
+    let imgTop: string | null = null;
+    if (cto && typeof cto === 'object' && 'image_url' in cto) {
+      imgTop = (cto as { image_url: string | null }).image_url ?? null;
+    }
     if (imgTop) image = imgTop;
     else {
       const placeId = hotel?.source_id || params.slug;
