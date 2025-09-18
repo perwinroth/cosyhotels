@@ -198,7 +198,7 @@ export default async function HotelDetail({ params }: Props) {
   }
 
   // Resolve fields for UI
-  name = name || hotel?.name || (gDetails ? gDetails.name : undefined) || "Hotel";
+  name = name || hotel?.name || "Hotel";
   if (!city || !country) {
     const addr = gDetails ? (gDetails.formatted_address || "") : "";
     const parts = addr.split(',').map(s => s.trim()).filter(Boolean);
