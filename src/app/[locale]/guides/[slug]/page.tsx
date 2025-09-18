@@ -64,13 +64,24 @@ export default async function GuidePage({ params }: Props) {
   // Fetch precomputed top cosy hotels for the city from Supabase (city_top)
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
+  // Build robust city match (handle variants like "New York City" / "NYC")
+  const cityVariants = (name: string) => {
+    const n = name.trim();
+    const lower = n.toLowerCase();
+    const out = new Set<string>([n]);
+    if (lower === 'new york' || lower.includes('new york') || lower === 'nyc') {
+      ['New York City', 'NYC', 'Manhattan', 'New York'].forEach((v) => out.add(v));
+    }
+    return Array.from(out);
+  };
+  const orFilter = (variants: string[]) => variants.map((v) => `city.ilike.%${v}%`).join(',');
   type CT = { rank: number; score: number; image_url: string | null; rating5: number | null; reviews_count: number | null; cues: string[] | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; } | null };
   const { data } = await db
     .from('city_top')
     .select('rank, score, image_url, rating5, reviews_count, cues, hotel:hotel_id (id,slug,name,city,country)')
-    .eq('city', cg.city)
+    .or(orFilter(cityVariants(cg.city)))
     .order('rank', { ascending: true })
-    .limit(9);
+    .limit(12);
   // Start with precomputed city_top (enforced cosy >= 7 just in case)
   let chosen = ((data || []) as unknown as CT[])
     .filter((r) => r.hotel && Number(r.score) >= 7.0)
@@ -103,8 +114,8 @@ export default async function GuidePage({ params }: Props) {
     const { data: rows } = await db
       .from('hotels')
       .select('id,slug,name,city,country,rating, cosy_scores ( score, score_final )')
-      .ilike('city', `%${cg.city}%`)
-      .limit(120);
+      .or(orFilter(cityVariants(cg.city)))
+      .limit(200);
     const hotels = (rows || []) as HR[];
     const scoreOf = (cs: HR['cosy_scores']) => {
       if (!cs) return 0;
@@ -141,13 +152,12 @@ export default async function GuidePage({ params }: Props) {
     }
   }
 
-  // Final guarantee: if still < 9, top up from curated dataset when available (match city if possible; cosy >= 7)
+  // Final guarantee: if still < 9, top up from curated dataset for THIS city only (cosy >= 7)
   if (chosen.length < 9) {
     // Lazy import to avoid heavier bundle
     const { hotels: curated } = await import("@/data/hotels");
     const seen = new Set(chosen.map((c) => c.slug));
     const byCity = curated.filter((h) => (h.city || '').toLowerCase().includes(cg.city.toLowerCase()) && h._cosy >= 7.0);
-    const globalTop = curated.filter((h) => h._cosy >= 7.0).sort((a, b) => b._cosy - a._cosy);
     const addFrom = (list: typeof curated) => {
       for (const h of list) {
         if (seen.has(String(h.slug))) continue;
@@ -157,7 +167,6 @@ export default async function GuidePage({ params }: Props) {
       }
     };
     if (chosen.length < 9) addFrom(byCity);
-    if (chosen.length < 9) addFrom(globalTop);
   }
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
