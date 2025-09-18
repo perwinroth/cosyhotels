@@ -198,13 +198,14 @@ export default async function HotelDetail({ params }: Props) {
   }
 
   // Resolve fields for UI
-  name = name || gDetails?.name || hotel?.name || "Hotel";
+  name = name || hotel?.name || (gDetails ? gDetails.name : undefined) || "Hotel";
   if (!city || !country) {
-    const parts = (gDetails?.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
+    const addr = gDetails ? (gDetails.formatted_address || "") : "";
+    const parts = addr.split(',').map(s => s.trim()).filter(Boolean);
     city = city || (parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || ""));
     country = country || (parts.length ? parts[parts.length - 1] : "");
   }
-  website = website || gDetails?.website || null;
+  website = website || (gDetails ? gDetails.website || null : null);
   // Prefer cached Supabase image first; only hit Places if nothing cached
   if (cachedImageUrl) image = cachedImageUrl;
   else if (cityTop?.image_url) image = cityTop.image_url;
