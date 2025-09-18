@@ -200,19 +200,22 @@ export default async function HotelDetail({ params }: Props) {
   // Resolve fields for UI
   name = name || hotel?.name || "Hotel";
   if (!city || !country) {
-    const addr = gDetails ? (gDetails.formatted_address || "") : "";
+    const gd: any = gDetails as any;
+    const addr = gd?.formatted_address || "";
     const parts = addr.split(',').map(s => s.trim()).filter(Boolean);
     city = city || (parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || ""));
     country = country || (parts.length ? parts[parts.length - 1] : "");
   }
-  website = website || (gDetails ? gDetails.website || null : null);
+  const gd: any = gDetails as any;
+  website = website || (gd?.website ?? null);
   // Prefer cached Supabase image first; only hit Places if nothing cached
   if (cachedImageUrl) image = cachedImageUrl;
   else if (cityTop?.image_url) image = cityTop.image_url;
   else {
     const placeId = hotel?.source_id || params.slug;
     gDetails = await getDetails(placeId);
-    const ref = gDetails?.photos?.[0]?.photo_reference;
+    const gd: any = gDetails as any;
+    const ref = gd?.photos?.[0]?.photo_reference;
     image = ref ? photoUrl(ref, 1200) : image;
   }
   const cosyDisplay = typeof cosy === 'number' ? cosy : 0;
@@ -220,11 +223,11 @@ export default async function HotelDetail({ params }: Props) {
   const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
 
   // Build richer cosy snippet (<= ~160 chars) using Places cues
-  const rating5 = cityTop?.rating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : (gDetails?.rating ?? undefined));
-  const reviewsTotal = cityTop?.reviews_count ?? (gDetails?.user_ratings_total ?? hotel?.reviews_count ?? undefined);
-  const priceLevel = gDetails?.price_level;
+  const rating5 = cityTop?.rating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : ((gd as any)?.rating ?? undefined));
+  const reviewsTotal = cityTop?.reviews_count ?? (((gd as any)?.user_ratings_total ?? hotel?.reviews_count) ?? undefined);
+  const priceLevel = (gd as any)?.price_level as number | undefined;
   const priceText = typeof priceLevel === 'number' ? ['budget','budget','mid-range','upscale','luxury'][Math.max(0, Math.min(4, priceLevel))] : undefined;
-  const textSrc = `${gDetails?.editorial_summary?.overview || ''} ${gDetails?.formatted_address || ''}`.toLowerCase();
+  const textSrc = `${(gd as any)?.editorial_summary?.overview || ''} ${(gd as any)?.formatted_address || ''}`.toLowerCase();
   const cues: string[] = [];
   if (cityTop?.cues && cityTop.cues.length) {
     for (const k of cityTop.cues) {
@@ -244,8 +247,8 @@ export default async function HotelDetail({ params }: Props) {
     if (textSrc.includes('rooftop')) cues.push('a rooftop view');
   }
   // Pull hints from reviews text without quoting
-  if (gDetails?.reviews && gDetails.reviews.length) {
-    const joined = gDetails.reviews.map((r) => (r.text || '').toLowerCase()).join(' ');
+  if ((gd as any)?.reviews && (gd as any).reviews.length) {
+    const joined = (gd as any).reviews.map((r: any) => (r.text || '').toLowerCase()).join(' ');
     if (joined.includes('quiet') && !cues.includes('a quiet vibe')) cues.push('a tranquil vibe');
     if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
   }
@@ -296,7 +299,7 @@ export default async function HotelDetail({ params }: Props) {
               addressCountry: country || undefined,
             },
             aggregateRating: (() => {
-              const r5 = gDetails?.rating ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
+              const r5 = (gd as any)?.rating ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
               return r5 ? { '@type': 'AggregateRating', ratingValue: Number(r5.toFixed(1)), bestRating: 5, worstRating: 1 } : undefined;
             })(),
           })
@@ -337,7 +340,7 @@ export default async function HotelDetail({ params }: Props) {
               <div className="font-medium">What makes {name} a cosy hotel?</div>
               <p className="text-sm text-zinc-600">{(() => {
                 const cues: string[] = [];
-                const sum = (gDetails?.editorial_summary?.overview || gDetails?.formatted_address || '').toLowerCase();
+                const sum = (((gd as any)?.editorial_summary?.overview) || ((gd as any)?.formatted_address) || '').toLowerCase();
                 if (sum.includes('fireplace')) cues.push('a fireplace');
                 if (sum.includes('bath') || sum.includes('bathtub')) cues.push('bathtubs');
                 if (sum.includes('spa')) cues.push('a spa');
