@@ -6,6 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { buildCosySnippet } from "@/i18n/snippets";
 import Image from "next/image";
 import { getImageForHotel } from "@/lib/hotelImages";
+import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
 import { locales } from "@/i18n/locales";
 
@@ -157,16 +158,22 @@ export default async function GuidePage({ params }: Props) {
     // Lazy import to avoid heavier bundle
     const { hotels: curated } = await import("@/data/hotels");
     const seen = new Set(chosen.map((c) => c.slug));
-    const byCity = curated.filter((h) => (h.city || '').toLowerCase().includes(cg.city.toLowerCase()) && h._cosy >= 7.0);
-    const addFrom = (list: typeof curated) => {
-      for (const h of list) {
-        if (seen.has(String(h.slug))) continue;
-        chosen.push({ slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: Number(h._cosy) || 0, _img: String(h._img || '/seal.svg'), snippet: buildCosySnippet(params.locale, { city: String(h.city || cg.city), name: String(h.name), rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined, reviewsCount: undefined, cues: [], idealLevel: 'warm' }) });
-        seen.add(String(h.slug));
-        if (chosen.length >= 9) break;
-      }
-    };
-    if (chosen.length < 9) addFrom(byCity);
+    // Enrich curated with cosy and image to avoid Places
+    const enriched = await Promise.all(curated
+      .filter((h) => (h.city || '').toLowerCase().includes(cg.city.toLowerCase()))
+      .map(async (h) => ({
+        ...h,
+        _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
+        _img: h.image || (await getImageForHotel(h.name, h.city, 800, h.slug, h.id)) || '/seal.svg',
+      }))
+    );
+    const byCity = enriched.filter((h) => h._cosy >= 7.0).sort((a, b) => b._cosy - a._cosy);
+    for (const h of byCity) {
+      if (seen.has(String(h.slug))) continue;
+      chosen.push({ slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: Number(h._cosy) || 0, _img: String(h._img || '/seal.svg'), snippet: buildCosySnippet(params.locale, { city: String(h.city || cg.city), name: String(h.name), rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined, reviewsCount: undefined, cues: [], idealLevel: 'warm' }) });
+      seen.add(String(h.slug));
+      if (chosen.length >= 9) break;
+    }
   }
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
