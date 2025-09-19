@@ -111,29 +111,32 @@ export default async function GuidePage({ params }: Props) {
 
   // Fallback / top-up: if fewer than 9, query hotels+scores for this city and fill to 9 (cosy >= 7)
   if (chosen.length < 9) {
-    type HR = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; cosy_scores: { score: number | null; score_final: number | null } | { score: number | null; score_final: number | null }[] | null };
-    const { data: rows } = await db
+    type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null };
+    type CS = { hotel_id: string; score: number | null; score_final: number | null };
+    // Two-step RLS-safe fetch: hotels by city variants, then cosy_scores by hotel_id
+    const { data: hRows } = await db
       .from('hotels')
-      .select('id,slug,name,city,country,rating, cosy_scores ( score, score_final )')
+      .select('id,slug,name,city,country,rating')
       .or(orFilter(cityVariants(cg.city)))
-      .limit(200);
-    const hotels = (rows || []) as HR[];
-    const scoreOf = (cs: HR['cosy_scores']) => {
-      if (!cs) return 0;
-      if (Array.isArray(cs)) {
-        const first = cs[0]; if (!first) return 0;
-        return Number((first.score_final ?? first.score) || 0);
-      }
-      return Number((cs.score_final ?? cs.score) || 0);
-    };
+      .limit(400);
+    const hotels: HB[] = (hRows || []) as HB[];
+    const ids = hotels.map((h) => String(h.id));
+    const { data: sRows } = await db
+      .from('cosy_scores')
+      .select('hotel_id,score,score_final')
+      .in('hotel_id', ids);
+    const scoreMap = new Map<string, number>();
+    for (const r of (sRows || []) as CS[]) {
+      const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
+      if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+    }
     const missing = 9 - chosen.length;
     if (missing > 0) {
       const seen = new Set(chosen.map((c) => c.slug));
       const ranked = hotels
-        .map((h) => ({ h, s: scoreOf(h.cosy_scores) }))
+        .map((h) => ({ h, s: scoreMap.get(String(h.id)) ?? 0 }))
         .filter((x) => x.s >= 7.0)
-        .sort((a, b) => b.s - a.s)
-        .slice(0, Math.max(9, missing * 2));
+        .sort((a, b) => b.s - a.s);
       const topUp = await Promise.all(ranked
         .filter(({ h }) => !seen.has(String(h.slug)))
         .slice(0, missing)
