@@ -257,39 +257,50 @@ async function runJob() {
       try { await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)); } catch {}
     }
   } catch (e) { try { console.error('precompute_images_error', e); } catch {} }
-  // 5) Precompute top-9 per city for guides
+  // 5) Precompute top-9 per city for guides (RLS-safe, no embedded joins)
   try {
-    type RowHotel = {
-      id: string;
-      slug: string;
-      name: string;
-      city: string | null;
-      country: string | null;
-      rating: number | null;
-      reviews_count: number | null;
-      source_id: string | null;
-      cosy_scores: { score: number | null; score_final: number | null } | Array<{ score: number | null; score_final: number | null }> | null;
+    type RowHotel = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; reviews_count: number | null; source_id: string | null };
+    type RowScore = { hotel_id: string; score: number | null; score_final: number | null };
+    const orFilter = (variants: string[]) => variants.map((v) => `city.ilike.%${v}%`).join(',');
+    const cityVariants = (name: string) => {
+      const n = name.trim();
+      const lower = n.toLowerCase();
+      const out = new Set<string>([n]);
+      if (lower === 'new york' || lower.includes('new york') || lower === 'nyc') ['New York City','NYC','Manhattan','New York'].forEach((v) => out.add(v));
+      if (lower === 'los angeles' || lower === 'la') ['Los Angeles','LA','Santa Monica','West Hollywood'].forEach((v) => out.add(v));
+      if (lower === 'san francisco' || lower === 'sf') ['San Francisco','SF'].forEach((v) => out.add(v));
+      return Array.from(out);
     };
     const guideCities = Array.from(new Set(cityGuides.map((c) => c.city)));
     for (const city of guideCities) {
+      // Two-step: hotels for city variants, then scores by hotel_id
       const { data: rows } = await db
         .from('hotels')
-        .select('id,slug,name,city,country,rating,reviews_count,source_id, cosy_scores ( score, score_final )')
-        .ilike('city', `%${city}%`)
-        .limit(200);
-      const safeRows = (rows || []) as RowHotel[];
-      const scored = safeRows
-        .map((r) => {
-          const cs = Array.isArray(r.cosy_scores) ? r.cosy_scores[0] : r.cosy_scores;
-          const s = cs ? Number((cs.score_final ?? cs.score) || 0) : 0;
-          return { h: r, s };
-        })
-        .filter((x) => x.s > 0)
+        .select('id,slug,name,city,country,rating,reviews_count,source_id')
+        .or(orFilter(cityVariants(city)))
+        .limit(400);
+      const hotels = (rows || []) as RowHotel[];
+      if (!hotels.length) { await db.from('city_top').delete().eq('city', city); continue; }
+      const ids = hotels.map((h) => String(h.id));
+      const { data: sRows } = await db
+        .from('cosy_scores')
+        .select('hotel_id,score,score_final')
+        .in('hotel_id', ids);
+      const scoreMap = new Map<string, number>();
+      for (const r of (sRows || []) as RowScore[]) {
+        const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
+        if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+      }
+      const seenSlug = new Set<string>();
+      const ranked = hotels
+        .map((h) => ({ h, s: scoreMap.get(String(h.id)) ?? 0 }))
+        .filter((x) => x.s >= 7.0)
         .sort((a, b) => b.s - a.s)
+        .filter(({ h }) => { if (seenSlug.has(String(h.slug))) return false; seenSlug.add(String(h.slug)); return true; })
         .slice(0, 9);
       const inserts: Array<{ city: string; rank: number; hotel_id: string; score: number; image_url: string; rating5: number | null; reviews_count: number | null; cues: string[]; updated_at: string }>= [];
       let rank = 1;
-      for (const { h, s } of scored) {
+      for (const { h, s } of ranked) {
         let rating5: number | null = h.rating ? Number(h.rating) / 2 : null;
         let reviews = h.reviews_count || null;
         const cues: string[] = [];
