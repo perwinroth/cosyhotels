@@ -386,7 +386,10 @@ async function Results({
           if (row.source_id && typeof v === 'number') byId.set(String(row.source_id), v);
         }
         if (byId.size) {
-          tmp = tmp.map((p) => (byId.has(String(p.id)) ? { ...p, _cosy: byId.get(String(p.id)) as number } : p));
+          tmp = tmp.map((p) => {
+            const v = byId.get(String(p.id));
+            return (typeof v === 'number') ? { ...p, _cosy: v } : p;
+          });
         }
       }
     } catch {}
@@ -481,7 +484,10 @@ async function Results({
           if (row.source_id && typeof v === 'number') byId.set(String(row.source_id), v);
         }
         if (byId.size) {
-          tmp = tmp.map((p) => (byId.has(String(p.id)) ? { ...p, _cosy: byId.get(String(p.id)) as number } : p));
+          tmp = tmp.map((p) => {
+            const v = byId.get(String(p.id));
+            return (typeof v === 'number') ? { ...p, _cosy: v } : p;
+          });
         }
       }
     } catch {}
