@@ -13,6 +13,9 @@ import { searchText, photoUrl, getDetails } from "@/lib/places";
 import type { PlaceSearchResult } from "@/lib/places";
 import { getServerSupabase } from "@/lib/supabase/server";
 
+// Type guard to narrow out nulls from arrays
+function nonNull<T>(x: T | null | undefined): x is T { return x != null; }
+
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/hotels`]));
   return {
@@ -186,7 +189,7 @@ async function Results({
             affiliateUrl: (h.affiliate_url as string | null) || "",
           };
         }));
-        chosen = chosen.filter(Boolean) as typeof chosen;
+        chosen = chosen.filter(nonNull);
 
         // If fewer than 9 featured rows, top up from Supabase cosy_scores (score_final first)
         if (chosen.length < 9) {
