@@ -194,7 +194,7 @@ async function Results({
         // If fewer than 9 featured rows, top up from Supabase cosy_scores (score_final first)
         if (chosen.length < 9) {
           type CSR = { score: number | null; score_final: number | null; hotel_id: string };
-          const exclude = new Set(chosen.map((c) => c.slug));
+          const exclude = new Set(chosen.filter(nonNull).map((c) => c.slug));
           const { data: more } = await supabase
             .from("cosy_scores")
             .select("score, score_final, hotel_id")
