@@ -236,9 +236,10 @@ async function Results({
           }));
           chosen = chosen.concat(moreChosen).slice(0, 9);
         }
-        if (chosen.length > 0) {
+        const list = chosen.filter(nonNull);
+        if (list.length > 0) {
           const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
-          const renderTop = (h: typeof chosen[number], idx: number) => (
+          const renderTop = (h: typeof list[number], idx: number) => (
             <HotelTile
               key={`${h.slug}-${h._img}`}
               hotel={{
@@ -262,7 +263,7 @@ async function Results({
               <div className="col-span-full sr-only" aria-live="polite">
                 Featured cosy places
               </div>
-              {chosen.map((h, i) => renderTop(h, i))}
+              {list.map((h, i) => renderTop(h, i))}
             </div>
           );
         }
