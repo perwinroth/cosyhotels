@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { searchText, getDetails } from "@/lib/places";
 import { cosyScore } from "@/lib/scoring/cosy";
+import { getOSMContext } from "@/lib/context/osm";
 import { computeAndPersistNormalizerStats, normalizedScore } from "@/lib/normalization";
 import { getImageForHotel } from "@/lib/hotelImages";
 import { generateHotelSlug } from "@/lib/slug";
@@ -138,7 +139,8 @@ async function runJob() {
         .single();
       if (error || !hotel) continue;
 
-      const score = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${summary}` , name: d.name, website: d.website, reviewsCount: d.user_ratings_total ?? undefined, city: cityName });
+      const ctx = await getOSMContext(d.geometry?.location.lat ?? null, d.geometry?.location.lng ?? null);
+      const score = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${summary}` , name: d.name, website: d.website, reviewsCount: d.user_ratings_total ?? undefined, city: cityName, country }, ctx);
       await db.from("cosy_scores").upsert({ hotel_id: hotel.id, score, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
       upserted++;
       }
@@ -313,10 +315,15 @@ async function runJob() {
               const txt = `${d.editorial_summary?.overview || ''} ${d.formatted_address || ''}`.toLowerCase();
               if (txt.includes('spa')) cues.push('spa');
               if (txt.includes('sauna')) cues.push('sauna');
+              if (txt.includes('hammam')) cues.push('hammam');
               if (txt.includes('bathtub') || txt.includes('soaking') || txt.includes('bath')) cues.push('tubs');
-              if (txt.includes('fireplace')) cues.push('fireplace');
-              if (txt.includes('garden')) cues.push('garden');
-              if (txt.includes('rooftop')) cues.push('rooftop');
+              if (txt.includes('fireplace') || txt.includes('stove') || txt.includes('log fire')) cues.push('fireplace');
+              if (txt.includes('garden') || txt.includes('courtyard')) cues.push('garden');
+              if (txt.includes('rooftop') || txt.includes('terrace')) cues.push('rooftop');
+              if (txt.includes('breakfast') || txt.includes('homemade') || txt.includes('home-made') || txt.includes('baked')) cues.push('breakfast');
+              if (txt.includes('quiet') || txt.includes('peaceful')) cues.push('quiet');
+              if (txt.includes('handmade') || txt.includes('hand-crafted') || txt.includes('artisan') || txt.includes('linen')) cues.push('handmade');
+              if (txt.includes('family-run') || txt.includes('family run') || txt.includes('owner') || txt.includes('innkeeper')) cues.push('owner');
             }
           }
         } catch {}

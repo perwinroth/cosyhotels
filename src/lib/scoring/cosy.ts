@@ -164,7 +164,9 @@ function reviewConfidence(reviews?: number) {
   return Math.min(0.25, bonus);
 }
 
-export function cosyParts(features: HotelFeatures) {
+export type ContextSignals = { natureProximity?: number; nightlifeDensity?: number; walkability?: number };
+
+export function cosyParts(features: HotelFeatures, ctx: ContextSignals = {}) {
   const base = (features.rating ?? 8) / 10; // normalize 0..1
   const climate = inferClimate(features.city, features.country);
   const chain = chainPenalty(features.name, features.website);
@@ -179,13 +181,18 @@ export function cosyParts(features: HotelFeatures) {
   // Contextual boosts: description gets a little more weight in cold/temperate where design/setting matters
   const descWeight = climate === 'warm' ? 2.0 : 2.4;
   let raw = base * 4.8 + amen * 1.9 + desc * descWeight + img * 0.8 + scale + chain + sizeRev + conf;
+  // Context adjustments
+  const natureBoost = Math.min(0.8, Math.max(0, (ctx.natureProximity ?? 0) * 0.8));
+  const nightPenalty = -Math.min(0.5, Math.max(0, (ctx.nightlifeDensity ?? 0) * 0.5));
+  const walkBoost = Math.min(0.3, Math.max(0, (ctx.walkability ?? 0) * 0.3));
+  raw += natureBoost + nightPenalty + walkBoost;
   // Clamp to 0..10
   raw = Math.max(0, Math.min(10, raw));
-  return { raw, parts: { rating_base: base, amenities: amen, keywords: desc, image_warmth: img, scale_penalty: scale, chain_penalty: chain, size_penalty_reviews: sizeRev, review_conf: conf, climate } };
+  return { raw, parts: { rating_base: base, amenities: amen, keywords: desc, image_warmth: img, scale_penalty: scale, chain_penalty: chain, size_penalty_reviews: sizeRev, review_conf: conf, climate, natureBoost, nightPenalty, walkBoost } };
 }
 
-export function cosyScore(features: HotelFeatures) {
-  return cosyParts(features).raw;
+export function cosyScore(features: HotelFeatures, ctx: ContextSignals = {}) {
+  return cosyParts(features, ctx).raw;
 }
 
 // Helper for UI: map cosy score to brand color classes
