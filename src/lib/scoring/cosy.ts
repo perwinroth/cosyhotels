@@ -8,6 +8,7 @@ export type HotelFeatures = {
   name?: string;
   website?: string;
   city?: string;
+  country?: string;
 };
 
 const AMENITY_WEIGHTS: Record<string, number> = {
@@ -26,7 +27,7 @@ const AMENITY_WEIGHTS: Record<string, number> = {
   restaurant: 0.3,
   "room service": 0.2,
   "pet-friendly": 0.4,
-  pool: 0.3,
+  pool: 0.3, // will be adjusted contextually
   gym: -0.1,
 };
 
@@ -35,6 +36,11 @@ const COSY_KEYWORDS = [
   "cosy", "cozy", "snug", "warm", "intimate", "charming", "boutique", "hygge",
   "quiet", "peaceful", "comfy", "romantic", "character", "fireplace", "log fire", "wood stove",
   "bath", "bathtub", "soaking tub", "garden", "courtyard",
+  // Nature/setting
+  "forest", "woods", "woodland", "lake", "lakeside", "mountain", "alpine", "meadow", "countryside", "rural",
+  "cabin", "cottage", "farmhouse", "barn", "stone walls", "timber", "wooden",
+  // Room niceties
+  "linen", "duvet", "rain shower", "balcony", "terrace",
   // Romance languages
   "accogliente", "intimo", "romantico", // IT
   "chaleureux", "charme", "intime", // FR
@@ -80,13 +86,39 @@ export function keywordSentiment(text?: string) {
   return Math.max(-1, Math.min(score / 8, 1));
 }
 
-export function amenitiesScore(am?: string[]) {
+type Climate = 'cold' | 'temperate' | 'warm';
+
+function inferClimate(city?: string, country?: string): Climate {
+  const v = `${(city || '').toLowerCase()} ${(country || '').toLowerCase()}`;
+  const warmHints = [
+    'spain','portugal','italy','greece','turkey','morocco','tunisia','egypt','mexico','brazil','argentina','chile','uruguay','peru','colombia','costa rica','panama','dominican','jamaica','uae','dubai','abu dhabi','israel','lebanon','saudi','india','sri lanka','thailand','vietnam','cambodia','laos','malaysia','singapore','indonesia','philippines','australia','new zealand','miami','los angeles','la','rio','lisbon','athens','marrakech','marrakesh','sicily','sardinia','andalusia','andalucía','mallorca','ibiza'
+  ];
+  const coldHints = ['sweden','norway','finland','iceland','denmark','poland','czech','austria','switzerland','scotland','ireland','england','uk','germany','netherlands','belgium','canada','alps','oslo','stockholm','helsinki','copenhagen','berlin'];
+  if (warmHints.some(h => v.includes(h))) return 'warm';
+  if (coldHints.some(h => v.includes(h))) return 'cold';
+  return 'temperate';
+}
+
+function amenitiesScore(am: string[] | undefined, climate: Climate, chainActive: boolean) {
   if (!am || !am.length) return 0;
   let s = 0;
   for (const a of am) {
     const k = a.toLowerCase();
-    if (k in AMENITY_WEIGHTS) s += AMENITY_WEIGHTS[k];
+    let w = AMENITY_WEIGHTS[k] ?? 0;
+    // Contextual tweaks
+    if (k === 'pool') {
+      w = climate === 'warm' ? 0.8 : climate === 'temperate' ? 0.3 : 0.0;
+    }
+    if (k === 'sauna') {
+      w = climate === 'cold' ? 1.6 : climate === 'temperate' ? 1.2 : 0.8;
+    }
+    if (k === 'spa') {
+      w = climate === 'cold' ? 1.2 : 1.0;
+    }
+    s += w;
   }
+  // If it looks like a chain, dampen the amenity boost slightly so spa/sauna at big chains don't dominate
+  if (chainActive) s *= 0.7;
   return Math.max(0, Math.min(3, s));
 }
 
@@ -112,8 +144,8 @@ function chainPenalty(name?: string, website?: string) {
     "marriott.com","hyatt.com","hilton.com","accor.com","radissonhotels.com","ritzcarlton.com","ihg.com","sheraton.com","ibis.com","novotel.com","wyndhamhotels.com","bestwestern.com","premierinn.com","travelodge.co.uk",
   ];
   const hay = `${name || ''} ${website || ''}`.toLowerCase();
-  if (chains.some((c) => hay.includes(c))) return -1.2;
-  if (website && domains.some((d) => website.toLowerCase().includes(d))) return -1.2;
+  if (chains.some((c) => hay.includes(c))) return -1.0;
+  if (website && domains.some((d) => website.toLowerCase().includes(d))) return -1.0;
   return 0;
 }
 
@@ -134,19 +166,22 @@ function reviewConfidence(reviews?: number) {
 
 export function cosyParts(features: HotelFeatures) {
   const base = (features.rating ?? 8) / 10; // normalize 0..1
-  const amen = amenitiesScore(features.amenities);
+  const climate = inferClimate(features.city, features.country);
+  const chain = chainPenalty(features.name, features.website);
+  const amen = amenitiesScore(features.amenities, climate, chain < 0);
   const desc = keywordSentiment(features.description);
   const img = features.imagesWarmthHint ?? 0; // later fill with vision model
   const scale = scalePenalty(features.roomsCount, features.city);
-  const chain = chainPenalty(features.name, features.website);
   const conf = reviewConfidence(features.reviewsCount);
   const sizeRev = sizePenaltyByReviews(features.reviewsCount);
 
   // Re-balanced blend: slightly downweight rating, upweight warmth + penalties
-  let raw = base * 5.0 + amen * 1.8 + desc * 2.2 + img * 0.8 + scale + chain + sizeRev + conf;
+  // Contextual boosts: description gets a little more weight in cold/temperate where design/setting matters
+  const descWeight = climate === 'warm' ? 2.0 : 2.4;
+  let raw = base * 4.8 + amen * 1.9 + desc * descWeight + img * 0.8 + scale + chain + sizeRev + conf;
   // Clamp to 0..10
   raw = Math.max(0, Math.min(10, raw));
-  return { raw, parts: { rating_base: base, amenities: amen, keywords: desc, image_warmth: img, scale_penalty: scale, chain_penalty: chain, size_penalty_reviews: sizeRev, review_conf: conf } };
+  return { raw, parts: { rating_base: base, amenities: amen, keywords: desc, image_warmth: img, scale_penalty: scale, chain_penalty: chain, size_penalty_reviews: sizeRev, review_conf: conf, climate } };
 }
 
 export function cosyScore(features: HotelFeatures) {
