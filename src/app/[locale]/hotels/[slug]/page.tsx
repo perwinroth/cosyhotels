@@ -6,7 +6,7 @@ import { getDetails, photoUrl, type PlaceDetails } from "@/lib/places";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
-import { cosyScore } from "@/lib/scoring/cosy";
+import { cosyScore, cosyParts } from "@/lib/scoring/cosy";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { generateHotelSlug } from "@/lib/slug";
@@ -24,7 +24,7 @@ type HotelRow = {
   source_id: string | null;
 };
 
-type Props = { params: { slug: string; locale: string } };
+type Props = { params: { slug: string; locale: string }; searchParams?: Record<string, string | string[] | undefined> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/hotels/${params.slug}`]));
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { alternates: { canonical: url, languages } };
 }
 
-export default async function HotelDetail({ params }: Props) {
+export default async function HotelDetail({ params, searchParams }: Props) {
   const db = getServerSupabase();
   let hotel: HotelRow | null = null;
   let cosy: number | null = null;
@@ -236,6 +236,9 @@ export default async function HotelDetail({ params }: Props) {
 
   const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
 
+  // Optional debug view (only when ?debug=true)
+  const debug = (typeof searchParams?.debug === 'string' && searchParams?.debug === 'true');
+
   // Build richer cosy snippet (<= ~160 chars) using Places cues
   let detailsRating: number | undefined = undefined;
   let detailsReviews: number | undefined = undefined;
@@ -352,6 +355,45 @@ export default async function HotelDetail({ params }: Props) {
           <span />
         </div>
       </div>
+
+      {debug && (() => {
+        // Compute a local breakdown for transparency
+        const inferredAmenities: string[] = [];
+        const t = textSrc || '';
+        if (t.includes('spa')) inferredAmenities.push('spa');
+        if (t.includes('sauna')) inferredAmenities.push('sauna');
+        if (t.includes('fireplace')) inferredAmenities.push('fireplace');
+        if (t.includes('bath') || t.includes('tub')) inferredAmenities.push('bathtub');
+        if (t.includes('garden')) inferredAmenities.push('garden');
+        if (t.includes('rooftop')) inferredAmenities.push('rooftop');
+        const rating10 = (typeof hotel?.rating === 'number') ? Number(hotel.rating) : (typeof rating5 === 'number' ? rating5 * 2 : undefined);
+        const reviewsCount = cityTop?.reviews_count ?? (details?.user_ratings_total ?? (hotel?.reviews_count ?? undefined));
+        const parts = cosyParts({
+          rating: rating10,
+          amenities: inferredAmenities,
+          description: textSrc,
+          name,
+          website: website || undefined,
+          city,
+          reviewsCount: (typeof reviewsCount === 'number' ? reviewsCount : undefined),
+        });
+        return (
+          <details className="mt-3 rounded-lg border border-dashed border-zinc-300 bg-white p-3">
+            <summary className="cursor-pointer font-medium">Debug: scoring breakdown</summary>
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-zinc-700">{JSON.stringify({
+              ui_display: Number(cosyDisplay.toFixed(1)),
+              local_recomputed: Number(parts.raw.toFixed(2)),
+              parts: parts.parts,
+              context: {
+                rating10,
+                inferredAmenities,
+                reviewsCount,
+                hasCityTop: Boolean(cityTop),
+              }
+            }, null, 2)}</pre>
+          </details>
+        );
+      })()}
       
       <div className="mt-5 flex items-center gap-3">
         <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
