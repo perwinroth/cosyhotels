@@ -59,8 +59,18 @@ export default async function GuidePage({ params }: Props) {
       </article>
     );
   }
-  const cg = getCityGuide(params.slug);
-  if (!cg) return <div className="mx-auto max-w-6xl px-4 py-8">Guide not found.</div>;
+  let cg = getCityGuide(params.slug);
+  if (!cg) {
+    // Build a lightweight city guide from slug aliases so guides never 404
+    const slug = params.slug.toLowerCase();
+    const aliases: Record<string, string> = {
+      'new-york': 'New York', 'nyc': 'New York', 'new-york-city': 'New York',
+      'san-francisco': 'San Francisco', 'sf': 'San Francisco',
+      'los-angeles': 'Los Angeles', 'la': 'Los Angeles',
+    };
+    const pretty = aliases[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+    cg = { city: pretty, slug: params.slug } as unknown as ReturnType<typeof getCityGuide>;
+  }
 
   // Fetch precomputed top cosy hotels for the city from Supabase (city_top)
   const db = getServerSupabase();
