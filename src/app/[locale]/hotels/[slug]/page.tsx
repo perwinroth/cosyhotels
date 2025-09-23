@@ -232,7 +232,8 @@ export default async function HotelDetail({ params, searchParams }: Props) {
       image = ref ? photoUrl(ref, 1200) : image;
     }
   }
-  const cosyDisplay = typeof cosy === 'number' ? cosy : 0;
+  // Fallback local cosy if DB missing; take the max to avoid downgrading
+  const cosyDisplay = typeof cosy === 'number' ? Math.max(cosy, localCosy) : localCosy;
 
   const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
 

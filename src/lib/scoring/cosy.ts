@@ -139,6 +139,8 @@ export function scalePenalty(roomsCount?: number, city?: string) {
 function chainPenalty(name?: string, website?: string) {
   const chains = [
     "marriott","hilton","hyatt","accor","radisson","kempinski","four seasons","ritz-carlton","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham","premier inn","travelodge","four points","courtyard","residence inn","springhill suites","fairfield inn","doubletree","embassy suites","waldorf astoria","conrad","sofitel","pullman","moxy","ac hotel","aloft","element","hampton","jw marriott","ritz",
+    // sub-brands / phrasing
+    "by hyatt","jdv by hyatt","joie de vivre","autograph collection","design hotels","marriott bonvoy","tribute portfolio","grand hyatt","park hyatt","story hotel",
   ];
   const domains = [
     "marriott.com","hyatt.com","hilton.com","accor.com","radissonhotels.com","ritzcarlton.com","ihg.com","sheraton.com","ibis.com","novotel.com","wyndhamhotels.com","bestwestern.com","premierinn.com","travelodge.co.uk",
