@@ -281,7 +281,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   const rating10 = (typeof hotel?.rating === 'number') ? Number(hotel?.rating) : (typeof detailsRating === 'number' ? detailsRating * 2 : undefined);
   let lat: number | null = null, lng: number | null = null;
   if (isPlaceDetails(gDetails)) { lat = gDetails.geometry?.location.lat ?? null; lng = gDetails.geometry?.location.lng ?? null; }
-  else if (hotel && typeof (hotel as any).lat === 'number' && typeof (hotel as any).lng === 'number') { lat = (hotel as any).lat; lng = (hotel as any).lng; }
+  else if (hotel && typeof hotel.lat === 'number' && typeof hotel.lng === 'number') { lat = hotel.lat; lng = hotel.lng; }
   let ctx = { natureProximity: 0, nightlifeDensity: 0, walkability: 0 };
   try { if (lat != null && lng != null) ctx = await (await import('@/lib/context/osm')).getOSMContext(lat, lng); } catch {}
   const localCosy = cosyScore({ rating: rating10, amenities: inferredAmenities, description: textSrc, name, website: website || undefined, city, country, reviewsCount: (typeof reviewsTotal === 'number' ? reviewsTotal : undefined) }, ctx);
