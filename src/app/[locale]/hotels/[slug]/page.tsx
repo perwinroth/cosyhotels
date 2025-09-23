@@ -367,7 +367,8 @@ export default async function HotelDetail({ params, searchParams }: Props) {
         if (t.includes('garden')) inferredAmenities.push('garden');
         if (t.includes('rooftop')) inferredAmenities.push('rooftop');
         const rating10 = (typeof hotel?.rating === 'number') ? Number(hotel.rating) : (typeof rating5 === 'number' ? rating5 * 2 : undefined);
-        const ctReviews = (cityTop && typeof cityTop.reviews_count === 'number') ? cityTop.reviews_count : undefined;
+        const ct = (cityTop as unknown) as { reviews_count?: number } | null;
+        const ctReviews = (ct && typeof ct.reviews_count === 'number') ? ct.reviews_count : undefined;
         const pdReviews = (isPlaceDetails(gDetails) && typeof gDetails.user_ratings_total === 'number') ? gDetails.user_ratings_total : undefined;
         const reviewsCount = ctReviews ?? pdReviews ?? (typeof hotel?.reviews_count === 'number' ? hotel.reviews_count : undefined);
         const parts = cosyParts({
