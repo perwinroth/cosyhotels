@@ -47,9 +47,9 @@ export async function getOSMContext(lat?: number | null, lng?: number | null): P
       cache: 'force-cache',
     });
     if (!res.ok) return { natureProximity: 0, nightlifeDensity: 0, walkability: 0 };
-    const json = await res.json();
+    const json = await res.json() as { elements?: Array<{ tags?: { total?: string } }> };
     // Overpass returns an array of objects with type "count"
-    const counts: number[] = (json?.elements || []).map((e: any) => (typeof e?.tags?.total === 'string' ? Number(e.tags.total) : 0));
+    const counts: number[] = (json.elements || []).map((e) => (typeof e.tags?.total === 'string' ? Number(e.tags.total) : 0));
     const [night = 0, nature = 0, walk = 0] = counts;
     // Map counts to 0..1 via soft saturating curves
     const nightlifeDensity = clamp01(night / 10);   // >10 bars/clubs nearby is saturated busy
@@ -60,4 +60,3 @@ export async function getOSMContext(lat?: number | null, lng?: number | null): P
     return { natureProximity: 0, nightlifeDensity: 0, walkability: 0 };
   }
 }
-
