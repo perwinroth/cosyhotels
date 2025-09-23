@@ -22,6 +22,8 @@ type HotelRow = {
   rating: number | null;
   reviews_count: number | null;
   source_id: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type Props = { params: { slug: string; locale: string }; searchParams?: Record<string, string | string[] | undefined> };
@@ -65,14 +67,14 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     // Try by slug first (tiles link using hotel.slug), then by source_id (Place ID)
     const { data: hBySlug } = await db
       .from("hotels")
-      .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,source_id")
+      .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,source_id,lat,lng")
       .eq("slug", params.slug)
       .maybeSingle();
     hotel = hBySlug || null;
     if (!hotel) {
       const { data: hBySrc } = await db
         .from("hotels")
-        .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,source_id")
+        .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,source_id,lat,lng")
         .eq("source_id", params.slug)
         .maybeSingle();
       hotel = hBySrc || null;
@@ -232,8 +234,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
       image = ref ? photoUrl(ref, 1200) : image;
     }
   }
-  // Fallback local cosy if DB missing; take the max to avoid downgrading
-  const cosyDisplay = typeof cosy === 'number' ? Math.max(cosy, localCosy) : localCosy;
+  // Will compute local cosy after deriving text cues
 
   const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
 
@@ -269,6 +270,22 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   const reviewsTotal = topReviews ?? (detailsReviews ?? hotel?.reviews_count ?? undefined);
   const priceText = typeof priceLevel === 'number' ? ['budget','budget','mid-range','upscale','luxury'][Math.max(0, Math.min(4, priceLevel))] : undefined;
   const textSrc = `${overviewTxt} ${addrTxt}`.toLowerCase();
+  // Compute robust local cosy using current signals + OSM context, then take max with DB cosy
+  const inferredAmenities: string[] = [];
+  if (textSrc.includes('fireplace') || textSrc.includes('stove') || textSrc.includes('log fire')) inferredAmenities.push('fireplace');
+  if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) inferredAmenities.push('bathtub');
+  if (textSrc.includes('spa')) inferredAmenities.push('spa');
+  if (textSrc.includes('sauna')) inferredAmenities.push('sauna');
+  if (textSrc.includes('garden') || textSrc.includes('courtyard')) inferredAmenities.push('garden');
+  if (textSrc.includes('rooftop') || textSrc.includes('terrace')) inferredAmenities.push('rooftop');
+  const rating10 = (typeof hotel?.rating === 'number') ? Number(hotel?.rating) : (typeof detailsRating === 'number' ? detailsRating * 2 : undefined);
+  let lat: number | null = null, lng: number | null = null;
+  if (isPlaceDetails(gDetails)) { lat = gDetails.geometry?.location.lat ?? null; lng = gDetails.geometry?.location.lng ?? null; }
+  else if (hotel && typeof (hotel as any).lat === 'number' && typeof (hotel as any).lng === 'number') { lat = (hotel as any).lat; lng = (hotel as any).lng; }
+  let ctx = { natureProximity: 0, nightlifeDensity: 0, walkability: 0 };
+  try { if (lat != null && lng != null) ctx = await (await import('@/lib/context/osm')).getOSMContext(lat, lng); } catch {}
+  const localCosy = cosyScore({ rating: rating10, amenities: inferredAmenities, description: textSrc, name, website: website || undefined, city, country, reviewsCount: (typeof reviewsTotal === 'number' ? reviewsTotal : undefined) }, ctx);
+  const cosyDisplay = typeof cosy === 'number' ? Math.max(cosy, localCosy) : localCosy;
   const cues: string[] = [];
   if (topCues && topCues.length) {
     for (const k of topCues) {
