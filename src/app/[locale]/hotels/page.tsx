@@ -189,7 +189,8 @@ async function Results({
             affiliateUrl: (h.affiliate_url as string | null) || "",
           };
         }));
-        chosen = chosen.filter(nonNull);
+        // Enforce cosy >= 7 for front page
+        chosen = chosen.filter(nonNull).filter((c) => c._cosy >= 7.0);
 
         // If fewer than 9 featured rows, top up from Supabase cosy_scores (score_final first)
         if (chosen.length < 9) {
@@ -278,7 +279,13 @@ async function Results({
         .order("score_final", { ascending: false, nullsFirst: false })
         .order("score", { ascending: false })
         .limit(12);
-      const moreRows = ((more || []) as unknown as MS[]).filter((r) => r.hotel).slice(0, 9);
+      const moreRows = ((more || []) as unknown as MS[])
+        .filter((r) => r.hotel)
+        .filter((r) => {
+          const s = typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0);
+          return s >= 7.0;
+        })
+        .slice(0, 9);
       if (moreRows.length) {
         const chosen = await Promise.all(moreRows.map(async (r) => {
           const h = r.hotel!;
@@ -353,6 +360,46 @@ async function Results({
     _img: r.photos?.[0]?.photo_reference ? photoUrl(r.photos[0].photo_reference, 800) : "/seal.svg",
   });
   if (city) {
+    // Supabase-first: pull top cosy for this city, then blend with Places
+    const supabaseCity = getServerSupabase();
+    let supList: typeof curated = [];
+    if (supabaseCity) {
+      type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null };
+      type CS = { hotel_id: string; score: number | null; score_final: number | null };
+      const { data: hRows } = await supabaseCity
+        .from('hotels')
+        .select('id,slug,name,city,country,rating,price')
+        .ilike('city', `%${city}%`)
+        .limit(200);
+      const hotelsCity = ((hRows || []) as HB[]);
+      const ids = hotelsCity.map((h) => String(h.id));
+      const { data: sRows } = await supabaseCity
+        .from('cosy_scores')
+        .select('hotel_id,score,score_final')
+        .in('hotel_id', ids);
+      const scoreMap = new Map<string, number>();
+      for (const r of ((sRows || []) as CS[])) {
+        const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
+        if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+      }
+      const ranked = hotelsCity
+        .map((h) => ({ h, s: scoreMap.get(String(h.id)) ?? 0 }))
+        .filter((x) => x.s >= 7.0)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, 24);
+      supList = await Promise.all(ranked.map(async ({ h, s }) => ({
+        ...h,
+        city: String(h.city || ''),
+        country: String(h.country || ''),
+        rating: typeof h.rating === 'number' ? h.rating : 0,
+        price: typeof h.price === 'number' ? h.price : NaN,
+        _cosy: s,
+        _img: (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg',
+        amenities: [],
+        description: '',
+        affiliateUrl: '',
+      })));
+    }
     // City search: fetch only the first page server-side for speed; rely on Supabase overrides and client navigation for more
     const first = await searchText(`cosy boutique hotel in ${city}`);
     const results = (first.results || []);
@@ -406,7 +453,10 @@ async function Results({
         return p;
       })
     );
-    places = tmp;
+    // Merge Supabase-first list (authoritative) with Places results
+    const supSeen = new Set(supList.map((h) => h.slug));
+    const mergedCity = [...supList, ...tmp.filter((p) => !supSeen.has(String(p.slug)))];
+    places = mergedCity;
   } else {
     // Front page: prioritize speed; rely on Supabase featured_top. If Supabase is unavailable or explicit env flag is set, run a minimal Places fallback so the grid is never blank.
     const supForCheck = getServerSupabase();

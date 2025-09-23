@@ -32,6 +32,7 @@ async function ensureFeatured(): Promise<EnsureFeaturedResult> {
     if (!h.slug || seen.has(h.slug)) continue;
     seen.add(h.slug);
     const s = typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0);
+    if (s < 7.0) continue; // enforce cosy >= 7 for front page
     picks.push({ h, s });
     if (picks.length >= 9) break;
   }
