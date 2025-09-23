@@ -435,7 +435,10 @@ async function Results({
         if (byId.size) {
           tmp = tmp.map((p) => {
             const v = byId.get(String(p.id));
-            return (typeof v === 'number') ? { ...p, _cosy: v } : p;
+            const dbScore = (Number.isFinite(v) && (v as number) > 0) ? (v as number) : null;
+            const local = Math.max(0, Math.min(10, p._cosy));
+            const final = dbScore != null ? Math.max(local, dbScore) : local;
+            return { ...p, _cosy: final };
           });
         }
       }
@@ -536,7 +539,10 @@ async function Results({
         if (byId.size) {
           tmp = tmp.map((p) => {
             const v = byId.get(String(p.id));
-            return (typeof v === 'number') ? { ...p, _cosy: v } : p;
+            const dbScore = (Number.isFinite(v) && (v as number) > 0) ? (v as number) : null;
+            const local = Math.max(0, Math.min(10, p._cosy));
+            const final = dbScore != null ? Math.max(local, dbScore) : local;
+            return { ...p, _cosy: final };
           });
         }
       }
