@@ -71,6 +71,7 @@ export default async function GuidePage({ params }: Props) {
     const pretty = aliases[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
     cg = { city: pretty, slug: params.slug } as unknown as ReturnType<typeof getCityGuide>;
   }
+  const cityName = String((cg as { city: string }).city);
 
   // Fetch precomputed top cosy hotels for the city from Supabase (city_top)
   const db = getServerSupabase();
@@ -90,7 +91,7 @@ export default async function GuidePage({ params }: Props) {
   const { data } = await db
     .from('city_top')
     .select('rank, score, image_url, rating5, reviews_count, cues, hotel:hotel_id (id,slug,name,city,country)')
-    .or(orFilter(cityVariants(cg.city)))
+    .or(orFilter(cityVariants(cityName)))
     .order('rank', { ascending: true })
     .limit(12);
   // Start with precomputed city_top (enforced cosy >= 7 just in case)
@@ -100,7 +101,7 @@ export default async function GuidePage({ params }: Props) {
       const h = r.hotel!;
       const cueKeys = (r.cues || []) as string[];
       const snippet = buildCosySnippet(params.locale, {
-        city: String(h.city || cg.city),
+        city: String(h.city || cityName),
         name: String(h.name),
         rating: r.rating5 ?? undefined,
         reviewsCount: r.reviews_count ?? undefined,
@@ -127,7 +128,7 @@ export default async function GuidePage({ params }: Props) {
     const { data: hRows } = await db
       .from('hotels')
       .select('id,slug,name,city,country,rating')
-      .or(orFilter(cityVariants(cg.city)))
+      .or(orFilter(cityVariants(cityName)))
       .limit(400);
     const hotels: HB[] = (hRows || []) as HB[];
     const ids = hotels.map((h) => String(h.id));
@@ -173,7 +174,7 @@ export default async function GuidePage({ params }: Props) {
     const seen = new Set(chosen.map((c) => c.slug));
     // Enrich curated with cosy and image to avoid Places
     const enriched = await Promise.all(curated
-      .filter((h) => (h.city || '').toLowerCase().includes(cg.city.toLowerCase()))
+      .filter((h) => (h.city || '').toLowerCase().includes(cityName.toLowerCase()))
       .map(async (h) => ({
         ...h,
         _cosy: cosyScore({ rating: h.rating, amenities: h.amenities, description: h.description }),
@@ -183,7 +184,7 @@ export default async function GuidePage({ params }: Props) {
     const byCity = enriched.filter((h) => h._cosy >= 7.0).sort((a, b) => b._cosy - a._cosy);
     for (const h of byCity) {
       if (seen.has(String(h.slug))) continue;
-      chosen.push({ slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: Number(h._cosy) || 0, _img: String(h._img || '/seal.svg'), snippet: buildCosySnippet(params.locale, { city: String(h.city || cg.city), name: String(h.name), rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined, reviewsCount: undefined, cues: [], idealLevel: 'warm' }) });
+      chosen.push({ slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: Number(h._cosy) || 0, _img: String(h._img || '/seal.svg'), snippet: buildCosySnippet(params.locale, { city: String(h.city || cityName), name: String(h.name), rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined, reviewsCount: undefined, cues: [], idealLevel: 'warm' }) });
       seen.add(String(h.slug));
       if (chosen.length >= 9) break;
     }
@@ -192,8 +193,8 @@ export default async function GuidePage({ params }: Props) {
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">{cg.city} cosy hotels</h1>
-      <p className="mt-2 text-zinc-600">9 handpicked cosy and romantic stays in {cg.city}.</p>
+      <h1 className="text-2xl font-semibold">{cityName} cosy hotels</h1>
+      <p className="mt-2 text-zinc-600">9 handpicked cosy and romantic stays in {cityName}.</p>
       <ol className="mt-6 space-y-6">
         {chosen.map((h, idx) => (
           <li key={`${h.slug}-${h._img}`} className="border border-zinc-200 rounded-xl bg-white">
