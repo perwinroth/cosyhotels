@@ -10,6 +10,7 @@ import { cosyScore, cosyParts } from "@/lib/scoring/cosy";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { generateHotelSlug } from "@/lib/slug";
+import { getOSMContext } from "@/lib/context/osm";
 
 type HotelRow = {
   id: string;
@@ -283,7 +284,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   if (isPlaceDetails(gDetails)) { lat = gDetails.geometry?.location.lat ?? null; lng = gDetails.geometry?.location.lng ?? null; }
   else if (hotel && typeof hotel.lat === 'number' && typeof hotel.lng === 'number') { lat = hotel.lat; lng = hotel.lng; }
   let ctx = { natureProximity: 0, nightlifeDensity: 0, walkability: 0 };
-  try { if (lat != null && lng != null) ctx = await (await import('@/lib/context/osm')).getOSMContext(lat, lng); } catch {}
+  try { if (lat != null && lng != null) ctx = await getOSMContext(lat, lng); } catch {}
   const localCosy = cosyScore({ rating: rating10, amenities: inferredAmenities, description: textSrc, name, website: website || undefined, city, country, reviewsCount: (typeof reviewsTotal === 'number' ? reviewsTotal : undefined) }, ctx);
   const cosyDisplay = typeof cosy === 'number' ? Math.max(cosy, localCosy) : localCosy;
   const cues: string[] = [];
