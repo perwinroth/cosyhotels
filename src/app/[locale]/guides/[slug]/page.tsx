@@ -154,7 +154,7 @@ export default async function GuidePage({ params }: Props) {
         .map(async ({ h, s }) => {
           const img = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg';
           const snippet = buildCosySnippet(params.locale, {
-            city: String(h.city || cg.city),
+            city: String(h.city || cityName),
             name: String(h.name),
             rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined,
             reviewsCount: undefined,
