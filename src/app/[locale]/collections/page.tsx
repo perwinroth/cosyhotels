@@ -30,10 +30,12 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
       case 'city-rooftops':
         query = query.contains('amenities', ['Rooftop']);
         break;
-      case 'spa-retreats':
-        // @ts-ignore use overlaps for any of Spa/Sauna
-        query = (query as any).overlaps('amenities', ['Spa','Sauna']);
+      case 'spa-retreats': {
+        type OverlapsCapable<T> = T & { overlaps: (column: string, value: unknown[]) => T };
+        const q = query as unknown as OverlapsCapable<typeof query>;
+        query = q.overlaps('amenities', ['Spa','Sauna']);
         break;
+      }
       case 'pet-friendly':
         query = query.contains('amenities', ['Pet-friendly']);
         break;
