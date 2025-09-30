@@ -95,11 +95,12 @@ export default async function CollectionPage({ params }: Props) {
   const results = typedRows.map((h) => ({
     _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: scoreMap.get(String(h.id)) || 0, _img: imgMap.get(String(h.id)) || '/logo-seal.svg',
   }));
+  const final = results;
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{c.title}</h1>
       <p className="mt-2 text-black max-w-2xl">{c.description}</p>
-      {results.length === 0 ? (
+      {final.length === 0 ? (
         <div className="mt-6 rounded-xl border brand-border p-4 bg-white">
           <div className="font-medium">We’re curating this collection.</div>
           <p className="text-sm text-black mt-1">No hotels match yet. Explore all hotels or check back soon.</p>
@@ -107,7 +108,7 @@ export default async function CollectionPage({ params }: Props) {
         </div>
       ) : (
         <div className="mt-6 grid md:grid-cols-3 gap-4">
-          {results.map((h) => (
+          {final.map((h) => (
             <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border brand-border overflow-hidden hover:shadow-md bg-white">
               <div className="relative aspect-[4/3] bg-zinc-100">
                 <Image

@@ -49,7 +49,7 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         query = query.ilike('city', '%Paris%');
         break;
     }
-    const { data, count } = await query.limit(1);
+    const { data, count, error } = await query.limit(1);
     const first = (data || [])[0] as { id?: string; name?: string } | undefined;
     let img: string | null = null;
     if (first && first.id) {
@@ -61,6 +61,20 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         .limit(1)
         .maybeSingle();
       img = (imgRow?.url as string | undefined) || null;
+    }
+    // If no results from Supabase or query error, peek into curated to populate preview
+    if ((!count || count === 0) || error) {
+      const { hotels: curated } = await import('@/data/hotels');
+      const filter = (h: any) => {
+        if (slug === 'city-rooftops') return (h.amenities || []).includes('Rooftop');
+        if (slug === 'spa-retreats') return (h.amenities || []).some((a: string) => a === 'Spa' || a === 'Sauna');
+        if (slug === 'pet-friendly') return (h.amenities || []).includes('Pet-friendly');
+        if (slug === 'romantic-paris') return String(h.city || '').toLowerCase().includes('paris');
+        return false;
+      };
+      const picks = curated.filter(filter);
+      const firstC = picks[0];
+      return { count: picks.length, img: (firstC && (firstC.image as string | undefined)) || null, name: (firstC && (firstC.name as string | undefined)) || null };
     }
     return { count: count || 0, img, name: (first?.name as string | undefined) || null };
   }

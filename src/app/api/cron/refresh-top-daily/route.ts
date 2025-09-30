@@ -74,7 +74,8 @@ async function runJob() {
         if (sLower.includes("machiya")) am.push("Machiya");
         if (sLower.includes("fireplace")) am.push("Fireplace");
         if (sLower.includes("bath")) am.push("Bathtub");
-        if (sLower.includes("rooftop")) am.push("Rooftop");
+        if (sLower.includes("rooftop") || sLower.includes("roof terrace") || sLower.includes("dachterrasse") || sLower.includes("toit-terrasse") || sLower.includes("azotea")) am.push("Rooftop");
+        if (sLower.includes("pet-friendly") || sLower.includes("pets allowed") || sLower.includes("dog") || sLower.includes("dogs") || sLower.includes("mascotas")) am.push("Pet-friendly");
         if (sLower.includes("garden")) am.push("Garden");
         if (sLower.includes("bar")) am.push("Bar");
         if (sLower.includes("restaurant")) am.push("Restaurant");
