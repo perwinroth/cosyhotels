@@ -4,12 +4,14 @@
     "tagline": "Encontre quartos de hotel aconchegantes",
     "description": "Escapadelas aconchegantes selecionadas."
   },
-  "nav": {"explore": "Explorar", "collections": "Coleções", "guides": "Guias"},
+  "nav": {"explore": "Explorar", "collections": "Coleções", "guides": "Guias", "how": "Como calculamos", "seal": "Selo de aprovação"},
   "hotels": {
     "h1_generic": "Hotéis acolhedores & boutique",
     "h1_city": "Hotel acolhedor em {city} – estadas boutique",
     "intro_generic": "Encontre hotéis acolhedores, boutique e escapadelas românticas pelo mundo. Use a pesquisa e os filtros para descobrir estadias íntimas com design quente e boas avaliações.",
     "intro_city": "Encontre um hotel acolhedor em {city}. Destacamos estadias boutique íntimas com design quente e ótimas avaliações."
   },
-  "home": {"browseAll": "Ver todos os hotéis"}
+  "home": {"browseAll": "Ver todos os hotéis"},
+  "footer": {"cosy_score": "Pontuação Cosy", "disclosure": "Divulgação de afiliados", "privacy": "Privacidade", "about": "Sobre", "contact": "Contato"},
+  "collections": {"title": "Coleções", "intro": "Temas de hotéis selecionados para inspirar e planejar.", "hotels": "hotéis"}
 }

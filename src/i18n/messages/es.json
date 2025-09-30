@@ -4,12 +4,14 @@
     "tagline": "Encuentra habitaciones de hotel acogedoras",
     "description": "Escapadas acogedoras seleccionadas."
   },
-  "nav": {"explore": "Explorar", "collections": "Colecciones", "guides": "Guías"},
+  "nav": {"explore": "Explorar", "collections": "Colecciones", "guides": "Guías", "how": "Cómo calculamos", "seal": "Sello de aprobación"},
   "hotels": {
     "h1_generic": "Hoteles acogedores & boutique",
     "h1_city": "Hotel acogedor en {city} – estancias boutique",
     "intro_generic": "Encuentra hoteles acogedores, boutique y escapadas románticas en todo el mundo. Usa la búsqueda y los filtros para descubrir lugares íntimos con diseño cálido y grandes reseñas.",
     "intro_city": "Encuentra un hotel acogedor en {city}. Destacamos estancias boutique íntimas con diseño cálido y buenas reseñas."
   },
-  "home": {"browseAll": "Ver todos los hoteles"}
+  "home": {"browseAll": "Ver todos los hoteles"},
+  "footer": {"cosy_score": "Puntuación Cosy", "disclosure": "Divulgación de afiliados", "privacy": "Privacidad", "about": "Acerca de", "contact": "Contacto"},
+  "collections": {"title": "Colecciones", "intro": "Temas de hoteles seleccionados para inspirarte y planificar.", "hotels": "hoteles"}
 }

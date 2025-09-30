@@ -4,12 +4,14 @@
     "tagline": "Trova camere d'hotel accoglienti",
     "description": "Fughe accoglienti curate."
   },
-  "nav": {"explore": "Esplora", "collections": "Collezioni", "guides": "Guide"},
+  "nav": {"explore": "Esplora", "collections": "Collezioni", "guides": "Guide", "how": "Come calcoliamo", "seal": "Sigillo di approvazione"},
   "hotels": {
     "h1_generic": "Hotel accoglienti & boutique",
     "h1_city": "Hotel accogliente a {city} – stay boutique",
     "intro_generic": "Trova hotel accoglienti, boutique e fughe romantiche in tutto il mondo. Usa ricerca e filtri per scoprire strutture intime dal design caldo e ben recensite.",
     "intro_city": "Trova un hotel accogliente a {city}. Selezioniamo boutique hotel intimi, dal design caldo e con ottime recensioni."
   },
-  "home": {"browseAll": "Vedi tutti gli hotel"}
+  "home": {"browseAll": "Vedi tutti gli hotel"},
+  "footer": {"cosy_score": "Punteggio Cosy", "disclosure": "Informativa affiliati", "privacy": "Privacy", "about": "Chi siamo", "contact": "Contatti"},
+  "collections": {"title": "Collezioni", "intro": "Temi di hotel curati per ispirarti e pianificare.", "hotels": "hotel"}
 }

@@ -7,7 +7,9 @@
   "nav": {
     "explore": "Explore",
     "collections": "Collections",
-    "guides": "Guides"
+    "guides": "Guides",
+    "how": "How we calculate",
+    "seal": "Seal of Approval"
   },
   "hotels": {
     "h1_generic": "Cosy hotel rooms & boutique hotels",
@@ -17,5 +19,17 @@
   },
   "home": {
     "browseAll": "Browse all hotels"
+  },
+  "footer": {
+    "cosy_score": "Cosy score",
+    "disclosure": "Affiliate disclosure",
+    "privacy": "Privacy",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "collections": {
+    "title": "Collections",
+    "intro": "Curated hotel themes for inspiration and planning.",
+    "hotels": "hotels"
   }
 }

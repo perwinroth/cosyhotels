@@ -4,12 +4,14 @@
     "tagline": "Finde gemütliche Hotelzimmer",
     "description": "Kuratiert gemütliche Auszeiten."
   },
-  "nav": {"explore": "Entdecken", "collections": "Kollektionen", "guides": "Guides"},
+  "nav": {"explore": "Entdecken", "collections": "Kollektionen", "guides": "Guides", "how": "So berechnen wir", "seal": "Gütesiegel"},
   "hotels": {
     "h1_generic": "Gemütliche Zimmer & Boutique‑Hotels",
     "h1_city": "Gemütliches Hotel in {city} – Boutique‑Stays",
     "intro_generic": "Finden Sie gemütliche Hotelzimmer, Boutique‑Hotels und romantische Auszeiten weltweit. Mit Suche und Filtern entdecken Sie kleine, warme Adressen mit starken Bewertungen.",
     "intro_city": "Finden Sie ein gemütliches Hotel in {city}. Wir zeigen kleine Boutique‑Häuser mit warmem Design und sehr guten Bewertungen."
   },
-  "home": {"browseAll": "Alle Hotels ansehen"}
+  "home": {"browseAll": "Alle Hotels ansehen"},
+  "footer": {"cosy_score": "Cosy‑Score", "disclosure": "Affiliate‑Hinweis", "privacy": "Datenschutz", "about": "Über uns", "contact": "Kontakt"},
+  "collections": {"title": "Kollektionen", "intro": "Kuratiert Hotelthemen zur Inspiration und Planung.", "hotels": "Hotels"}
 }

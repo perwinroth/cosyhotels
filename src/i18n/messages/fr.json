@@ -4,12 +4,14 @@
     "tagline": "Trouvez des chambres d'hôtel cosy",
     "description": "Évasions cosy sélectionnées."
   },
-  "nav": {"explore": "Explorer", "collections": "Collections", "guides": "Guides"},
+  "nav": {"explore": "Explorer", "collections": "Collections", "guides": "Guides", "how": "Notre méthode de calcul", "seal": "Sceau d'approbation"},
   "hotels": {
     "h1_generic": "Hôtels chaleureux & boutiques-hôtels",
     "h1_city": "Hôtel chaleureux à {city} – boutiques de charme",
     "intro_generic": "Trouvez des hôtels chaleureux, des boutiques-hôtels et des escapades romantiques partout dans le monde. Utilisez la recherche et les filtres pour découvrir des adresses intimes au design chaleureux et bien notées.",
     "intro_city": "Trouvez un hôtel chaleureux à {city}. Nous mettons en avant des boutiques-hôtels intimistes, bien notés et vraiment chaleureux."
   },
-  "home": {"browseAll": "Voir tous les hôtels"}
+  "home": {"browseAll": "Voir tous les hôtels"},
+  "footer": {"cosy_score": "Score Cosy", "disclosure": "Divulgation d'affiliation", "privacy": "Confidentialité", "about": "À propos", "contact": "Contact"},
+  "collections": {"title": "Collections", "intro": "Thèmes d'hôtels sélectionnés pour s'inspirer et planifier.", "hotels": "hôtels"}
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { collections } from "@/data/collections";
+import { messages as i18n } from "@/i18n/messages";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 
@@ -12,8 +13,8 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   ]);
   return {
     alternates: { canonical: `/${params.locale}/collections`, languages },
-    title: "Collections",
-    description: "Curated themes to explore cosy boutique stays.",
+    title: i18n[params.locale as keyof typeof i18n]?.collections?.title || 'Collections',
+    description: i18n[params.locale as keyof typeof i18n]?.collections?.intro || 'Curated themes to explore cosy boutique stays.',
   };
 }
 
@@ -59,8 +60,8 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">Collections</h1>
-      <p className="mt-2 text-zinc-600">Curated hotel themes for inspiration and planning.</p>
+      <h1 className="text-2xl font-semibold">{i18n[params.locale as keyof typeof i18n]?.collections?.title || 'Collections'}</h1>
+      <p className="mt-2 text-zinc-600">{i18n[params.locale as keyof typeof i18n]?.collections?.intro || 'Curated hotel themes for inspiration and planning.'}</p>
       <div className="mt-6 grid md:grid-cols-2 gap-4">
         {previews.map((c) => (
           <Link key={c.slug} href={`/${params.locale}/collections/${c.slug}`} className="block rounded-xl border border-zinc-200 overflow-hidden hover:shadow-sm bg-white">
@@ -74,7 +75,7 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
                 quality={70}
                 unoptimized={Boolean(c.img && /^https?:\/\//.test(c.img))}
               />
-              <div className="absolute right-2 bottom-2 text-xs rounded px-2 py-0.5 bg-white/90 border border-zinc-200">{c.count} hotels</div>
+              <div className="absolute right-2 bottom-2 text-xs rounded px-2 py-0.5 bg-white/90 border border-zinc-200">{c.count} {i18n[params.locale as keyof typeof i18n]?.collections?.hotels || 'hotels'}</div>
             </div>
             <div className="p-4">
               <h2 className="font-medium">{c.title}</h2>
