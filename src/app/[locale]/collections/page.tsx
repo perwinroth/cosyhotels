@@ -50,7 +50,9 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         query = query.ilike('city', '%Paris%');
         break;
     }
-    let { data, count, error } = await query.limit(1);
+    const res = await query.limit(1);
+    const data = res.data;
+    let { count, error } = res as { count: number | null; error: any };
     let img: string | null = null;
     let first = (data || [])[0] as { id?: string; name?: string; slug?: string; city?: string | null } | undefined;
     if (first && first.id) {
@@ -119,4 +121,3 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
     </div>
   );
 }
-import type { Hotel } from "@/data/hotels";
