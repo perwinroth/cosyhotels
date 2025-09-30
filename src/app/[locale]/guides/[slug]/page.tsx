@@ -76,7 +76,7 @@ export default async function GuidePage({ params }: Props) {
   // Source guide hotels from Supabase with robust city matching and diversity
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
-  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null };
+  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null; source?: string | null; source_id?: string | null };
   type CS = { hotel_id: string; score: number | null; score_final: number | null };
   // Build robust variants for the city (handles common local names)
   const base = cityName.trim();
@@ -93,6 +93,20 @@ export default async function GuidePage({ params }: Props) {
     'Reykjavik': ['Reykjavík'],
     'Quebec City': ['Québec','Quebec'],
     'Porto': ['Oporto'],
+    'Rome': ['Roma'],
+    'Milan': ['Milano'],
+    'Turin': ['Torino'],
+    'Naples': ['Napoli'],
+    'Genoa': ['Genova'],
+    'Cologne': ['Köln'],
+    'Munich': ['München'],
+    'Vienna': ['Wien'],
+    'Seville': ['Sevilla'],
+    'Brussels': ['Bruxelles','Brussel'],
+    'Bruges': ['Brugge'],
+    'Athens': ['Athína','Athina'],
+    'Kyoto': ['京都市','京都'],
+    'Tokyo': ['東京','Tōkyō'],
   };
   for (const alt of (localSynonyms[base] || [])) vset.add(alt);
   // Query by city or address containing any variant
@@ -100,7 +114,7 @@ export default async function GuidePage({ params }: Props) {
   const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
   const { data: hRows } = await db
     .from('hotels')
-    .select('id,slug,name,city,country,rating,address,reviews_count')
+    .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id')
     .or(`${orCity},${orAddr}`)
     .limit(800);
   const hotels = ((hRows || []) as HB[]).filter(Boolean);
@@ -123,7 +137,17 @@ export default async function GuidePage({ params }: Props) {
     for (const c of chains) if (hay.includes(c)) return c; return 'independent';
   };
   const variants = Array.from(vset).map((v) => norm(v));
-  const scored = hotels.map((h) => {
+  const identKey = (h: HB) => {
+    const base = h.source_id ? `src:${h.source_id}` : `${norm(String(h.name))}|${norm(String(h.city || ''))}|${norm(String(h.country || ''))}`;
+    return base;
+  };
+  const seenId = new Set<string>();
+  const scored = hotels.filter((h) => {
+    const k = identKey(h);
+    if (seenId.has(k)) return false;
+    seenId.add(k);
+    return true;
+  }).map((h) => {
     const s = scoreMap.get(String(h.id)) ?? 0;
     const city = norm(String(h.city || ''));
     const addr = norm(String(h.address || ''));
