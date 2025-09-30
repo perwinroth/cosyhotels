@@ -277,7 +277,15 @@ export default async function GuidePage({ params }: Props) {
             </div>
             <a href={detailsHref(h.slug)}>
               <div className="relative w-full aspect-[4/3] rounded-b-xl overflow-hidden">
-                <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 800px" quality={70} />
+                <Image
+                  src={h._img}
+                  alt={`${h.name} – ${h.city}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  quality={70}
+                  unoptimized={/^https?:\/\//.test(h._img)}
+                />
               </div>
             </a>
           </li>

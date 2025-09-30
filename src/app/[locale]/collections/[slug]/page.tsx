@@ -97,7 +97,15 @@ export default async function CollectionPage({ params }: Props) {
           {results.map((h) => (
             <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border brand-border overflow-hidden hover:shadow-md bg-white">
               <div className="relative aspect-[4/3] bg-zinc-100">
-                <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" quality={70} />
+                <Image
+                  src={h._img}
+                  alt={`${h.name} – ${h.city}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 600px"
+                  quality={70}
+                  unoptimized={/^https?:\/\//.test(h._img)}
+                />
                 {h._cosy >= 7 ? (
                   <div className="absolute left-2 bottom-2">
                     <div className="flex items-center gap-1 bg-[#0EA5A4] text-white text-xs px-3 py-1 rounded-full shadow">
