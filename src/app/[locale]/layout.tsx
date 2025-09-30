@@ -57,7 +57,7 @@ export default async function LocaleLayout({
               <Link href={`/${locale}/collections`} prefetch={false} className="hover:underline">{m.nav.collections}</Link>
               <Link href={`/${locale}/guides`} prefetch={false} className="hover:underline">{m.nav.guides}</Link>
               <Link href={`/${locale}/cosy-score`} prefetch={false} className="hover:underline">{m.nav.how}</Link>
-              <Link href={`/${locale}/cosy-score#seal`} prefetch={false} className="hover:underline">{m.nav.seal}</Link>
+              <Link href={`/${locale}/cosy-score#seal`} prefetch={false} className="hover:underline">Seal of Approval</Link>
               <LanguageSwitcher current={locale} />
             </nav>
           </div>

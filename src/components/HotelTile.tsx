@@ -24,8 +24,8 @@ export default function HotelTile({ hotel, href, goHref, priority = false, sizes
         {h.cosy >= 7.0 ? (
           <div className="absolute left-2 bottom-2">
             <div className="flex items-center gap-1 bg-[#0EA5A4] text-white text-xs px-3 py-1 rounded-full shadow">
-              <Image src="/seal.svg" alt="Seal of approval" width={14} height={14} />
-              <span>Seal of approval</span>
+              <Image src="/seal.svg" alt="Seal of Approval" width={14} height={14} />
+              <span>Seal of Approval</span>
             </div>
           </div>
         ) : null}
