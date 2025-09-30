@@ -224,10 +224,21 @@ export default async function GuidePage({ params }: Props) {
   }))
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
+  const listJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: chosen.map((h, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}${detailsHref(h.slug)}`,
+      name: h.name,
+    })),
+  };
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{cityName} cosy hotels</h1>
       <p className="mt-2 text-zinc-600">9 handpicked cosy and romantic stays in {cityName}.</p>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
       <ol className="mt-6 space-y-6">
         {chosen.map((h, idx) => (
           <li key={`${h.slug}-${h._img}`} className="border border-zinc-200 rounded-xl bg-white">

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { collections } from "@/data/collections";
 import { guides } from "@/data/guides";
+import { cityGuides } from "@/data/cityGuides";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 
@@ -17,6 +18,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     routes.push({ url: `${base}/${locale}/collections`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
     for (const g of guides) {
       routes.push({ url: `${base}/${locale}/guides/${g.slug}`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
+    }
+    for (const cg of cityGuides) {
+      routes.push({ url: `${base}/${locale}/guides/${cg.slug}`, lastModified: now, changeFrequency: "weekly", priority: 0.7 });
     }
     routes.push({ url: `${base}/${locale}/guides`, lastModified: now, changeFrequency: "monthly", priority: 0.4 });
   }
