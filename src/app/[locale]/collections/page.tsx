@@ -65,7 +65,7 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         {previews.map((c) => (
           <Link key={c.slug} href={`/${params.locale}/collections/${c.slug}`} className="block rounded-xl border border-zinc-200 overflow-hidden hover:shadow-sm bg-white">
             <div className="relative aspect-[16/9] bg-zinc-100">
-              <Image src={c.img || '/logo-seal.svg'} alt={c.name ? `${c.name}` : c.title} fill className="object-cover" />
+              <Image src={c.img || '/logo-seal.svg'} alt={c.name ? `${c.name}` : c.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" quality={70} />
               <div className="absolute right-2 bottom-2 text-xs rounded px-2 py-0.5 bg-white/90 border border-zinc-200">{c.count} hotels</div>
             </div>
             <div className="p-4">
