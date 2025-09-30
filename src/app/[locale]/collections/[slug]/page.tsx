@@ -59,31 +59,40 @@ export default async function CollectionPage({ params }: Props) {
       query = query.ilike("city", "%Paris%");
       break;
   }
-  const { data: rows, error } = await query.limit(60);
+  const { data: rows, error } = await query.limit(400);
   // Gracefully handle query errors by showing an empty collection state
   if (error) {
     try { console.error('collections_page_error', c.slug, error); } catch {}
   }
   type HotelRow = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; amenities?: string[] | null };
-  type ScoreRow = { hotel_id: string; score: number | null };
+  type ScoreRow = { hotel_id: string; score: number | null; score_final: number | null };
   const typedRows = (rows || []) as unknown as HotelRow[];
-  const ids = typedRows.map((r) => r.id);
+  const idsAll = typedRows.map((r) => r.id);
+  // Pull cosy scores and rank by score_final desc, then score desc
   let scoreMap = new Map<string, number>();
-  if (ids.length) {
+  if (idsAll.length) {
     const { data: scores } = await supabase
-      .from("cosy_scores")
-      .select("hotel_id,score")
-      .in("hotel_id", ids);
+      .from('cosy_scores')
+      .select('hotel_id,score,score_final')
+      .in('hotel_id', idsAll);
     const typedScores = (scores || []) as unknown as ScoreRow[];
-    scoreMap = new Map(typedScores.map((s) => [String(s.hotel_id), Number(s.score || 0)]));
+    for (const s of typedScores) {
+      const v = typeof s.score_final === 'number' ? s.score_final : (typeof s.score === 'number' ? s.score : 0);
+      scoreMap.set(String(s.hotel_id), Number(v || 0));
+    }
   }
-  // Prefetch images for these hotels
+  const ranked = [...typedRows]
+    .map((h) => ({ h, s: scoreMap.get(String(h.id)) || 0 }))
+    .sort((a, b) => b.s - a.s)
+    .slice(0, 9);
+  const idsTop = ranked.map(({ h }) => h.id);
+  // Prefetch images for the top 9 only
   const imgMap = new Map<string, string>();
-  if (ids.length) {
+  if (idsTop.length) {
     const { data: imgs } = await supabase
       .from('hotel_images')
       .select('hotel_id,url,created_at')
-      .in('hotel_id', ids)
+      .in('hotel_id', idsTop)
       .order('created_at', { ascending: false });
     for (const row of (imgs || []) as Array<{ hotel_id: string | null; url: string | null }>) {
       const hid = row.hotel_id ? String(row.hotel_id) : '';
@@ -92,10 +101,9 @@ export default async function CollectionPage({ params }: Props) {
       if (!imgMap.has(hid)) imgMap.set(hid, url);
     }
   }
-  const results = typedRows.map((h) => ({
-    _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: scoreMap.get(String(h.id)) || 0, _img: imgMap.get(String(h.id)) || '/logo-seal.svg',
+  const final = ranked.map(({ h, s }) => ({
+    _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: s, _img: imgMap.get(String(h.id)) || '/logo-seal.svg',
   }));
-  const final = results;
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{c.title}</h1>
