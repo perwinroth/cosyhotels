@@ -14,7 +14,9 @@ const QUERIES = [
 const MAX_SCANNED_DEFAULT = 600;
 const PAGES_DEFAULT = 3;
 
-async function runForCity(city: string, country?: string, opts?: { max?: number; pages?: number }) {
+type CityResult = { scanned: number; upserted: number; skipped: number; city: string; country?: string } | { error: string };
+
+async function runForCity(city: string, country?: string, opts?: { max?: number; pages?: number }): Promise<CityResult> {
   const supabase = getServerSupabase();
   if (!supabase) return { error: "Supabase not configured" } as const;
   if (!process.env.GOOGLE_MAPS_API_KEY) return { error: "GOOGLE_MAPS_API_KEY not set" } as const;
@@ -113,7 +115,7 @@ export async function GET(req: Request) {
   const max = url.searchParams.get("max");
   if (!city) return NextResponse.json({ error: "Missing ?city" }, { status: 400 });
   const res = await runForCity(city, country, { pages: pages ? Number(pages) : undefined, max: max ? Number(max) : undefined });
-  if ((res as any).error) return NextResponse.json(res, { status: 500 });
+  if ('error' in res) return NextResponse.json(res, { status: 500 });
   return NextResponse.json(res);
 }
 
@@ -130,4 +132,3 @@ export async function POST(req: Request) {
 
 export const runtime = 'nodejs';
 export const maxDuration = 180;
-

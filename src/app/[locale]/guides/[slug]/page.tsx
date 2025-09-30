@@ -118,7 +118,7 @@ export default async function GuidePage({ params }: Props) {
   // Query by city or address containing any variant
   const orCity = Array.from(vset).map((v) => `city.ilike.%${v}%`).join(',');
   const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
-  let { data: hRows } = await db
+  const { data: hRows } = await db
     .from('hotels')
     .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id')
     .or(`${orCity},${orAddr}`)

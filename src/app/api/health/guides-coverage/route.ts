@@ -77,7 +77,7 @@ export async function GET() {
     const orCity = Array.from(variants).map((v) => `city.ilike.%${v}%`).join(',');
     const orAddr = Array.from(variants).map((v) => `address.ilike.%${v}%`).join(',');
 
-    let { data: hRows } = await db
+    const { data: hRows } = await db
       .from('hotels')
       .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id')
       .or(`${orCity},${orAddr}`)
