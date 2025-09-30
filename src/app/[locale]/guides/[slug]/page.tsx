@@ -215,8 +215,26 @@ export default async function GuidePage({ params }: Props) {
     }
   }
   const take = picks;
+  // Prefer cached images from Supabase to avoid slow/fragile lookups; fall back to Places-based helper
+  const idsForImgs = take.map(({ h }) => String(h.id));
+  const imgMap = new Map<string, string>();
+  try {
+    const { data: imgRows } = await db
+      .from('hotel_images')
+      .select('hotel_id,url,created_at')
+      .in('hotel_id', idsForImgs)
+      .order('created_at', { ascending: false });
+    for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null }>) {
+      const hid = row.hotel_id ? String(row.hotel_id) : '';
+      const url = row.url ? String(row.url) : '';
+      if (!hid || !url) continue;
+      if (!imgMap.has(hid)) imgMap.set(hid, url);
+    }
+  } catch {}
+
   const chosen = await Promise.all(take.map(async ({ h, s }) => {
-    const img = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg';
+    const cached = imgMap.get(String(h.id));
+    const img = cached || (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg';
     const snippet = buildCosySnippet(params.locale, {
       city: String(h.city || cityName),
       name: String(h.name),
