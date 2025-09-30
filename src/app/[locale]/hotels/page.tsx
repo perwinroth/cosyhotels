@@ -269,6 +269,60 @@ async function Results({
           );
         }
       }
+      // If we got here, featured_top did not yield a valid list.
+      // Directly build top 9 from cosy_scores (score_final first), enforce cosy >= 7.0.
+      type TopRow = { score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null } | null };
+      const { data: topRows } = await supabase
+        .from('cosy_scores')
+        .select('score, score_final, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)')
+        .order('score_final', { ascending: false, nullsFirst: false })
+        .order('score', { ascending: false })
+        .limit(30);
+      const candidates = ((topRows || []) as unknown as TopRow[])
+        .filter((r) => r.hotel)
+        .map((r) => ({ r, s: (typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0)) }))
+        .filter(({ s }) => s >= 7.0);
+      const seenTop = new Set<string>();
+      const topNine = await Promise.all(candidates
+        .filter(({ r }) => {
+          const slug = String(r.hotel!.slug);
+          if (seenTop.has(slug)) return false; seenTop.add(slug); return true;
+        })
+        .slice(0, 9)
+        .map(async ({ r, s }) => {
+          const h = r.hotel!;
+          const resolvedImg = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || '/seal.svg';
+          return {
+            slug: String(h.slug),
+            name: String(h.name),
+            city: String(h.city || ''),
+            country: String(h.country || ''),
+            rating: typeof h.rating === 'number' ? h.rating : 0,
+            price: typeof h.price === 'number' ? h.price : NaN,
+            _cosy: s,
+            _img: resolvedImg,
+            affiliateUrl: (h.affiliate_url as string | null) || '',
+          };
+        }));
+      if (topNine.length) {
+        const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
+        const renderTop = (h: typeof topNine[number], idx: number) => (
+          <HotelTile
+            key={`${h.slug}-${h._img}`}
+            hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
+            href={detailsHref(h.slug)}
+            goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+            priority={idx === 0}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+          />
+        );
+        return (
+          <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+            <div className="col-span-full sr-only" aria-live="polite">Top cosy places</div>
+            {topNine.map((h, i) => renderTop(h, i))}
+          </div>
+        );
+      }
     }
   }
 
