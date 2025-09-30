@@ -101,8 +101,9 @@ export default async function CollectionPage({ params }: Props) {
       if (!imgMap.has(hid)) imgMap.set(hid, url);
     }
   }
+  const toProxy = (src: string) => src.startsWith('http') ? `/api/proxy/image?url=${encodeURIComponent(src)}` : src;
   const final = ranked.map(({ h, s }) => ({
-    _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: s, _img: imgMap.get(String(h.id)) || '/logo-seal.svg',
+    _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: s, _img: toProxy(imgMap.get(String(h.id)) || '/logo-seal.svg'),
   }));
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">

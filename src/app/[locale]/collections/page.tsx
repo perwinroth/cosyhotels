@@ -76,7 +76,8 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
       const firstC = picks[0];
       return { count: picks.length, img: (firstC && (firstC.image as string | undefined)) || null, name: (firstC && (firstC.name as string | undefined)) || null };
     }
-    return { count: count || 0, img, name: (first?.name as string | undefined) || null };
+    const toProxy = (src: string | null) => (src && src.startsWith('http')) ? `/api/proxy/image?url=${encodeURIComponent(src)}` : src;
+    return { count: count || 0, img: toProxy(img), name: (first?.name as string | undefined) || null };
   }
 
   const previews = await Promise.all(collections.map(async (c) => ({ slug: c.slug, title: c.title, description: c.description, ...(await fetchPreview(c.slug)) })));

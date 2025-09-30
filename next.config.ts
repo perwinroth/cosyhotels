@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: 'https', hostname: 'www.cosyhotelroom.com', pathname: '/api/places/photo' },
+      { protocol: 'https', hostname: 'www.cosyhotelroom.com', pathname: '/api/proxy/image' },
+      { protocol: 'https', hostname: 'www.cosyhotelroom.com', pathname: '/api/proxy/image/**' },
       { protocol: 'https', hostname: 'www.cosyhotelroom.com', pathname: '/api/places/photo/**' },
       { protocol: 'https', hostname: 'cosyhotelroom.com', pathname: '/api/places/photo/**' },
       { protocol: 'https', hostname: 'maps.googleapis.com', pathname: '/**' },
