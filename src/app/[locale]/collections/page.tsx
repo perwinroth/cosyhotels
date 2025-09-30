@@ -5,6 +5,7 @@ import { collections } from "@/data/collections";
 import { messages as i18n } from "@/i18n/messages";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getImageForHotel } from "@/lib/hotelImages";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   const languages = Object.fromEntries([
@@ -50,7 +51,7 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         break;
     }
     const { data, count, error } = await query.limit(1);
-    const first = (data || [])[0] as { id?: string; name?: string } | undefined;
+    const first = (data || [])[0] as { id?: string; name?: string; slug?: string; city?: string | null } | undefined;
     let img: string | null = null;
     if (first && first.id) {
       const { data: imgRow } = await supabase
@@ -62,22 +63,17 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         .maybeSingle();
       img = (imgRow?.url as string | undefined) || null;
     }
-    // If no results from Supabase or query error, peek into curated to populate preview
-    if ((!count || count === 0) || error) {
-      const { hotels: curated } = await import('@/data/hotels');
-      const filter = (h: Hotel) => {
-        if (slug === 'city-rooftops') return (h.amenities || []).includes('Rooftop');
-        if (slug === 'spa-retreats') return (h.amenities || []).some((a) => a === 'Spa' || a === 'Sauna');
-        if (slug === 'pet-friendly') return (h.amenities || []).includes('Pet-friendly');
-        if (slug === 'romantic-paris') return String(h.city || '').toLowerCase().includes('paris');
-        return false;
-      };
-      const picks = curated.filter(filter);
-      const firstC = picks[0];
-      return { count: picks.length, img: (firstC && (firstC.image as string | undefined)) || null, name: (firstC && (firstC.name as string | undefined)) || null };
+    // If we have no cached image but there is a first row, resolve one via helper and persist
+    if (!img && first && first.id) {
+      try {
+        const resolved = await getImageForHotel(String(first.name || ''), String(first.city || ''), 600, String(first.slug || ''), String(first.id));
+        if (resolved) {
+          img = resolved;
+          await supabase.from('hotel_images').insert({ hotel_id: first.id, url: resolved });
+        }
+      } catch {}
     }
-    const toProxy = (src: string | null) => (src && src.startsWith('http')) ? `/api/proxy/image?url=${encodeURIComponent(src)}` : src;
-    return { count: count || 0, img: toProxy(img), name: (first?.name as string | undefined) || null };
+    return { count: count || 0, img, name: (first?.name as string | undefined) || null };
   }
 
   const previews = await Promise.all(collections.map(async (c) => ({ slug: c.slug, title: c.title, description: c.description, ...(await fetchPreview(c.slug)) })));

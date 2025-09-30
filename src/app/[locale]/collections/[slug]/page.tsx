@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getImageForHotel } from "@/lib/hotelImages";
 import type { Metadata } from "next";
 import { getCollection } from "@/data/collections";
 import { cosyBadgeClass } from "@/lib/scoring/cosy";
@@ -101,9 +102,20 @@ export default async function CollectionPage({ params }: Props) {
       if (!imgMap.has(hid)) imgMap.set(hid, url);
     }
   }
-  const toProxy = (src: string) => src.startsWith('http') ? `/api/proxy/image?url=${encodeURIComponent(src)}` : src;
-  const final = ranked.map(({ h, s }) => ({
-    _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: s, _img: toProxy(imgMap.get(String(h.id)) || '/logo-seal.svg'),
+  const final = await Promise.all(ranked.map(async ({ h, s }) => {
+    let url = imgMap.get(String(h.id)) || '';
+    if (!url) {
+      // Resolve via Places helper; caches via our /api/places/photo
+      url = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '';
+      if (url) {
+        try { await supabase.from('hotel_images').insert({ hotel_id: h.id, url }); } catch {}
+      }
+    }
+    return {
+      _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''),
+      rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined,
+      _cosy: s, _img: url || '/logo-seal.svg',
+    };
   }));
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
