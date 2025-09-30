@@ -64,8 +64,23 @@ export default async function CollectionPage({ params }: Props) {
     const typedScores = (scores || []) as unknown as ScoreRow[];
     scoreMap = new Map(typedScores.map((s) => [String(s.hotel_id), Number(s.score || 0)]));
   }
+  // Prefetch images for these hotels
+  let imgMap = new Map<string, string>();
+  if (ids.length) {
+    const { data: imgs } = await supabase
+      .from('hotel_images')
+      .select('hotel_id,url,created_at')
+      .in('hotel_id', ids)
+      .order('created_at', { ascending: false });
+    for (const row of (imgs || []) as Array<{ hotel_id: string | null; url: string | null }>) {
+      const hid = row.hotel_id ? String(row.hotel_id) : '';
+      const url = row.url ? String(row.url) : '';
+      if (!hid || !url) continue;
+      if (!imgMap.has(hid)) imgMap.set(hid, url);
+    }
+  }
   const results = typedRows.map((h) => ({
-    slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: scoreMap.get(String(h.id)) || 0,
+    _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined, _cosy: scoreMap.get(String(h.id)) || 0, _img: imgMap.get(String(h.id)) || '/logo-seal.svg',
   }));
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -82,7 +97,7 @@ export default async function CollectionPage({ params }: Props) {
           {results.map((h) => (
             <Link key={h.slug} href={`/${params.locale}/hotels/${h.slug}`} className="block rounded-2xl border brand-border overflow-hidden hover:shadow-md bg-white">
               <div className="relative aspect-[4/3] bg-zinc-100">
-                <Image src={"/logo-seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" />
+                <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" />
                 {h._cosy >= 7 ? (
                   <div className="absolute left-2 bottom-2">
                     <div className="flex items-center gap-1 bg-[#0EA5A4] text-white text-xs px-3 py-1 rounded-full shadow">
