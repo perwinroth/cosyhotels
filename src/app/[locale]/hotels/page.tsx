@@ -6,6 +6,7 @@ import { applyOverrides, fetchOverrides } from "@/lib/overrides";
 import type { Metadata } from "next";
 import { locales } from "@/i18n/locales";
 import { messages } from "@/i18n/messages";
+import { cityGuides } from "@/data/cityGuides";
 import { cosyScore, adhocCosyScore } from "@/lib/scoring/cosy";
 import { getImageForHotel } from "@/lib/hotelImages";
 import HotelTile from "@/components/HotelTile";
@@ -17,7 +18,10 @@ import { getServerSupabase } from "@/lib/supabase/server";
 function nonNull<T>(x: T | null | undefined): x is T { return x != null; }
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/hotels`]));
+  const languages = Object.fromEntries([
+    ...locales.map((l) => [l, `/${l}/hotels`]),
+    ["x-default", "/en/hotels"],
+  ]);
   return {
     alternates: {
       canonical: `/${params.locale}/hotels`,
@@ -90,6 +94,19 @@ export default function HotelsPage({
       <div className="mt-4">
         <Results searchParams={searchParams} locale={params.locale} />
       </div>
+      {/* Popular Guides to strengthen internal linking */}
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold">Popular guides</h2>
+        <ul className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
+          {cityGuides.slice(0, 12).map((g) => (
+            <li key={g.slug}>
+              <a className="block rounded border border-zinc-200 bg-white px-3 py-2 hover:bg-zinc-50" href={`/${params.locale}/guides/${g.slug}`}>
+                {g.city} cosy hotels
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
       {/* FAQ at the bottom */}
       <section className="mt-8">
         <details className="rounded-lg border border-zinc-200 bg-white p-3 md:p-4">

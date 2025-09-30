@@ -30,7 +30,10 @@ type HotelRow = {
 type Props = { params: { slug: string; locale: string }; searchParams?: Record<string, string | string[] | undefined> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/hotels/${params.slug}`]));
+  const languages = Object.fromEntries([
+    ...locales.map((l) => [l, `/${l}/hotels/${params.slug}`]),
+    ["x-default", `/en/hotels/${params.slug}`],
+  ]);
   const url = `/${params.locale}/hotels/${params.slug}`;
   // Try Supabase first by slug or source_id
   const db = getServerSupabase();

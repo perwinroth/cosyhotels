@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { site } from "@/config/site";
+import { locales } from "@/i18n/locales";
 import "../globals.css";
 import { messages } from "@/i18n/messages";
 import Analytics from "@/components/Analytics";
@@ -14,7 +15,13 @@ export const metadata: Metadata = {
     template: `%s | ${site.name}`,
   },
   description: site.description,
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    languages: Object.fromEntries([
+      ...locales.map((l) => [l, `/${l}`]),
+      ["x-default", "/en"],
+    ]),
+  },
   openGraph: {
     type: "website",
     url: "/",

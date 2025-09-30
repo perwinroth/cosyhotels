@@ -24,13 +24,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
       const url = `/${params.locale}/guides/${cg.slug}`;
-      const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/guides/${cg.slug}`]));
+      const languages = Object.fromEntries([
+        ...locales.map((l) => [l, `/${l}/guides/${cg.slug}`]),
+        ["x-default", `/en/guides/${cg.slug}`],
+      ]);
       return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary", title, description } };
     }
     return {};
   }
   const url = `/${params.locale}/guides/${g.slug}`;
-  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/guides/${g.slug}`]));
+  const languages = Object.fromEntries([
+    ...locales.map((l) => [l, `/${l}/guides/${g.slug}`]),
+    ["x-default", `/en/guides/${g.slug}`],
+  ]);
   const title = params.locale === 'en' ? g.title : await translate(g.title, params.locale);
   const description = params.locale === 'en' ? g.excerpt : await translate(g.excerpt, params.locale);
   return {
