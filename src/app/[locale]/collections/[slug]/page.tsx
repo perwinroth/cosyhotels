@@ -60,7 +60,7 @@ export default async function CollectionPage({ params }: Props) {
       query = query.ilike("city", "%Paris%");
       break;
   }
-  let { data: rows, error } = await query.limit(400);
+  const { data: rows, error } = await query.limit(400);
   // Gracefully handle query errors by showing an empty collection state
   if (error) {
     try { console.error('collections_page_error', c.slug, error); } catch {}

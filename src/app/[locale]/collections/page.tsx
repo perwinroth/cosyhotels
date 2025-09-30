@@ -51,8 +51,8 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         break;
     }
     let { data, count, error } = await query.limit(1);
-    const first = (data || [])[0] as { id?: string; name?: string; slug?: string; city?: string | null } | undefined;
     let img: string | null = null;
+    let first = (data || [])[0] as { id?: string; name?: string; slug?: string; city?: string | null } | undefined;
     if (first && first.id) {
       const { data: imgRow } = await supabase
         .from('hotel_images')
@@ -68,10 +68,11 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
       const spaQ = supabase.from('hotels').select('id,slug,name,city,country,amenities', { count: 'exact' }).contains('amenities', ['Spa']).limit(1);
       const sauQ = supabase.from('hotels').select('id,slug,name,city,country,amenities', { count: 'exact' }).contains('amenities', ['Sauna']).limit(1);
       const [a, b] = await Promise.all([spaQ, sauQ]);
-      const c1 = a.count || 0; const c2 = b.count || 0;
-      count = c1 + c2;
-      data = (a.data && a.data.length ? a.data : (b.data || null)) as any;
-      error = null as any;
+      const d1 = (a.data || []) as Array<{ id?: string; name?: string; slug?: string; city?: string | null }>;
+      const d2 = (b.data || []) as Array<{ id?: string; name?: string; slug?: string; city?: string | null }>;
+      count = d1.length + d2.length;
+      first = d1[0] || d2[0] || undefined;
+      error = null;
     }
 
     // If we have no cached image but there is a first row, resolve one via helper and persist
