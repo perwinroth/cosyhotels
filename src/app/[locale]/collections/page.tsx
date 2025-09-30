@@ -65,9 +65,9 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
     // If no results from Supabase or query error, peek into curated to populate preview
     if ((!count || count === 0) || error) {
       const { hotels: curated } = await import('@/data/hotels');
-      const filter = (h: any) => {
+      const filter = (h: Hotel) => {
         if (slug === 'city-rooftops') return (h.amenities || []).includes('Rooftop');
-        if (slug === 'spa-retreats') return (h.amenities || []).some((a: string) => a === 'Spa' || a === 'Sauna');
+        if (slug === 'spa-retreats') return (h.amenities || []).some((a) => a === 'Spa' || a === 'Sauna');
         if (slug === 'pet-friendly') return (h.amenities || []).includes('Pet-friendly');
         if (slug === 'romantic-paris') return String(h.city || '').toLowerCase().includes('paris');
         return false;
@@ -110,3 +110,4 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
     </div>
   );
 }
+import type { Hotel } from "@/data/hotels";

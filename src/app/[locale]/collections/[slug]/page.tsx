@@ -69,7 +69,7 @@ export default async function CollectionPage({ params }: Props) {
   const typedRows = (rows || []) as unknown as HotelRow[];
   const idsAll = typedRows.map((r) => r.id);
   // Pull cosy scores and rank by score_final desc, then score desc
-  let scoreMap = new Map<string, number>();
+  const scoreMap = new Map<string, number>();
   if (idsAll.length) {
     const { data: scores } = await supabase
       .from('cosy_scores')
