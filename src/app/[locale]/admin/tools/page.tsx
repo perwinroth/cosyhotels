@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 
-type Resp = { ok: boolean; status: number; json?: any; text?: string };
+type JSONValue = null | boolean | number | string | JSONValue[] | { [k: string]: JSONValue };
+type Resp = { ok: boolean; status: number; json?: JSONValue; text?: string };
 
 function useAction() {
   const [loading, setLoading] = useState(false);
@@ -12,7 +13,7 @@ function useAction() {
     try {
       const r = await fetch(url, { ...init, headers: { 'content-type': 'application/json', ...(init?.headers || {}) } });
       const ct = r.headers.get('content-type') || '';
-      let body: any = undefined;
+      let body: JSONValue | undefined = undefined;
       if (ct.includes('application/json')) {
         try { body = await r.json(); } catch {}
         setResp({ ok: r.ok, status: r.status, json: body });
@@ -29,7 +30,7 @@ function useAction() {
   return { loading, resp, run };
 }
 
-export default function AdminTools({ params }: { params: { locale: string } }) {
+export default function AdminTools() {
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
   const [pages, setPages] = useState("1");
@@ -157,4 +158,3 @@ export default function AdminTools({ params }: { params: { locale: string } }) {
     </div>
   );
 }
-
