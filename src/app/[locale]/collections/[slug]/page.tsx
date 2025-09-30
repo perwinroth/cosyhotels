@@ -65,7 +65,7 @@ export default async function CollectionPage({ params }: Props) {
     scoreMap = new Map(typedScores.map((s) => [String(s.hotel_id), Number(s.score || 0)]));
   }
   // Prefetch images for these hotels
-  let imgMap = new Map<string, string>();
+  const imgMap = new Map<string, string>();
   if (ids.length) {
     const { data: imgs } = await supabase
       .from('hotel_images')
