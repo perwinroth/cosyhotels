@@ -14,4 +14,9 @@
   "home": {"browseAll": "Voir tous les hôtels"},
   "footer": {"cosy_score": "Score Cosy", "disclosure": "Divulgation d'affiliation", "privacy": "Confidentialité", "about": "À propos", "contact": "Contact"},
   "collections": {"title": "Collections", "intro": "Thèmes d'hôtels sélectionnés pour s'inspirer et planifier.", "hotels": "hôtels"}
+  ,
+  "guides": {
+    "h1_city": "Hôtels chaleureux à {city}",
+    "intro_city": "9 adresses chaleureuses et romantiques sélectionnées à {city}."
+  }
 }

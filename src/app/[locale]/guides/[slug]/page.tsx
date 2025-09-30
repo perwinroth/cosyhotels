@@ -5,6 +5,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 // using precomputed city_top; no direct Places calls
 import { buildCosySnippet } from "@/i18n/snippets";
 import Image from "next/image";
+import { messages as i18n } from "@/i18n/messages";
 import { getImageForHotel } from "@/lib/hotelImages";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
@@ -258,10 +259,13 @@ export default async function GuidePage({ params }: Props) {
       name: h.name,
     })),
   };
+  const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
+  const h1 = (m.guides?.h1_city || '{city} cosy hotels').replace('{city}', cityName);
+  const intro = (m.guides?.intro_city || '9 handpicked cosy and romantic stays in {city}.').replace('{city}', cityName);
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">{cityName} cosy hotels</h1>
-      <p className="mt-2 text-zinc-600">9 handpicked cosy and romantic stays in {cityName}.</p>
+      <h1 className="text-2xl font-semibold">{h1}</h1>
+      <p className="mt-2 text-zinc-600">{intro}</p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
       <ol className="mt-6 space-y-6">
         {chosen.map((h, idx) => (

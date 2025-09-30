@@ -14,4 +14,9 @@
   "home": {"browseAll": "Vedi tutti gli hotel"},
   "footer": {"cosy_score": "Punteggio Cosy", "disclosure": "Informativa affiliati", "privacy": "Privacy", "about": "Chi siamo", "contact": "Contatti"},
   "collections": {"title": "Collezioni", "intro": "Temi di hotel curati per ispirarti e pianificare.", "hotels": "hotel"}
+  ,
+  "guides": {
+    "h1_city": "Hotel accoglienti a {city}",
+    "intro_city": "9 soggiorni accoglienti e romantici selezionati a {city}."
+  }
 }

@@ -14,4 +14,9 @@
   "home": {"browseAll": "Alle Hotels ansehen"},
   "footer": {"cosy_score": "Cosy‑Score", "disclosure": "Affiliate‑Hinweis", "privacy": "Datenschutz", "about": "Über uns", "contact": "Kontakt"},
   "collections": {"title": "Kollektionen", "intro": "Kuratiert Hotelthemen zur Inspiration und Planung.", "hotels": "Hotels"}
+  ,
+  "guides": {
+    "h1_city": "Gemütliche Hotels in {city}",
+    "intro_city": "9 handverlesene gemütliche und romantische Adressen in {city}."
+  }
 }

@@ -31,7 +31,8 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         query = query.contains('amenities', ['Rooftop']);
         break;
       case 'spa-retreats':
-        query = query.or('amenities.cs.{Spa},amenities.cs.{Sauna}');
+        // @ts-ignore use overlaps for any of Spa/Sauna
+        query = (query as any).overlaps('amenities', ['Spa','Sauna']);
         break;
       case 'pet-friendly':
         query = query.contains('amenities', ['Pet-friendly']);

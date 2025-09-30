@@ -40,7 +40,10 @@ export default async function CollectionPage({ params }: Props) {
       query = query.contains("amenities", ["Rooftop"]);
       break;
     case "spa-retreats":
-      query = query.or("amenities.cs.{Spa},amenities.cs.{Sauna}");
+      // match any of Spa or Sauna
+      // use overlaps for array/jsonb amenities
+      // @ts-ignore supabase-js overlaps is available for array/jsonb
+      query = (query as any).overlaps("amenities", ["Spa", "Sauna"]);
       break;
     case "pet-friendly":
       query = query.contains("amenities", ["Pet-friendly"]);

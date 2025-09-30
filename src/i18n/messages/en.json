@@ -31,5 +31,9 @@
     "title": "Collections",
     "intro": "Curated hotel themes for inspiration and planning.",
     "hotels": "hotels"
+  },
+  "guides": {
+    "h1_city": "{city} cosy hotels",
+    "intro_city": "9 handpicked cosy and romantic stays in {city}."
   }
 }

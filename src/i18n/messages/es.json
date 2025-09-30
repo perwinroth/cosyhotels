@@ -14,4 +14,9 @@
   "home": {"browseAll": "Ver todos los hoteles"},
   "footer": {"cosy_score": "Puntuación Cosy", "disclosure": "Divulgación de afiliados", "privacy": "Privacidad", "about": "Acerca de", "contact": "Contacto"},
   "collections": {"title": "Colecciones", "intro": "Temas de hoteles seleccionados para inspirarte y planificar.", "hotels": "hoteles"}
+  ,
+  "guides": {
+    "h1_city": "Hoteles acogedores en {city}",
+    "intro_city": "9 estancias acogedoras y románticas seleccionadas en {city}."
+  }
 }
