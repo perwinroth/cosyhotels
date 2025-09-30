@@ -50,7 +50,7 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         query = query.ilike('city', '%Paris%');
         break;
     }
-    const { data, count, error } = await query.limit(1);
+    let { data, count, error } = await query.limit(1);
     const first = (data || [])[0] as { id?: string; name?: string; slug?: string; city?: string | null } | undefined;
     let img: string | null = null;
     if (first && first.id) {
@@ -63,6 +63,17 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
         .maybeSingle();
       img = (imgRow?.url as string | undefined) || null;
     }
+    // For spa-retreats, if no rows via overlaps, try contains Spa/Sauna to improve preview reliability
+    if ((error || !data || data.length === 0 || !count) && slug === 'spa-retreats') {
+      const spaQ = supabase.from('hotels').select('id,slug,name,city,country,amenities', { count: 'exact' }).contains('amenities', ['Spa']).limit(1);
+      const sauQ = supabase.from('hotels').select('id,slug,name,city,country,amenities', { count: 'exact' }).contains('amenities', ['Sauna']).limit(1);
+      const [a, b] = await Promise.all([spaQ, sauQ]);
+      const c1 = a.count || 0; const c2 = b.count || 0;
+      count = c1 + c2;
+      data = (a.data && a.data.length ? a.data : (b.data || null)) as any;
+      error = null as any;
+    }
+
     // If we have no cached image but there is a first row, resolve one via helper and persist
     if (!img && first && first.id) {
       try {

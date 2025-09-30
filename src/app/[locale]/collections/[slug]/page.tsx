@@ -60,14 +60,31 @@ export default async function CollectionPage({ params }: Props) {
       query = query.ilike("city", "%Paris%");
       break;
   }
-  const { data: rows, error } = await query.limit(400);
+  let { data: rows, error } = await query.limit(400);
   // Gracefully handle query errors by showing an empty collection state
   if (error) {
     try { console.error('collections_page_error', c.slug, error); } catch {}
   }
   type HotelRow = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; amenities?: string[] | null };
   type ScoreRow = { hotel_id: string; score: number | null; score_final: number | null };
-  const typedRows = (rows || []) as unknown as HotelRow[];
+  let typedRows = (rows || []) as unknown as HotelRow[];
+  // Robust union for spa-retreats: include either Spa or Sauna via contains when overlaps yields nothing
+  if (typedRows.length === 0 && c.slug === 'spa-retreats') {
+    const { data: spa1 } = await supabase
+      .from('hotels')
+      .select('id,slug,name,city,country,rating,price,amenities')
+      .contains('amenities', ['Spa'])
+      .limit(400);
+    const { data: spa2 } = await supabase
+      .from('hotels')
+      .select('id,slug,name,city,country,rating,price,amenities')
+      .contains('amenities', ['Sauna'])
+      .limit(400);
+    const map = new Map<string, HotelRow>();
+    for (const r of ((spa1 || []) as unknown as HotelRow[])) map.set(String(r.id), r);
+    for (const r of ((spa2 || []) as unknown as HotelRow[])) map.set(String(r.id), r);
+    typedRows = Array.from(map.values());
+  }
   const idsAll = typedRows.map((r) => r.id);
   // Pull cosy scores and rank by score_final desc, then score desc
   const scoreMap = new Map<string, number>();
