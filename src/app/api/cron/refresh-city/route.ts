@@ -114,9 +114,13 @@ export async function GET(req: Request) {
   const pages = url.searchParams.get("pages");
   const max = url.searchParams.get("max");
   if (!city) return NextResponse.json({ error: "Missing ?city" }, { status: 400 });
-  const res = await runForCity(city, country, { pages: pages ? Number(pages) : undefined, max: max ? Number(max) : undefined });
-  if ('error' in res) return NextResponse.json(res, { status: 500 });
-  return NextResponse.json(res);
+  // Schedule heavy work in background and return immediately to avoid timeouts
+  after(async () => {
+    try {
+      await runForCity(city, country, { pages: pages ? Number(pages) : undefined, max: max ? Number(max) : undefined });
+    } catch (e) { try { console.error('refresh-city GET background error', e); } catch {} }
+  });
+  return NextResponse.json({ scheduled: true, city }, { status: 202 });
 }
 
 export async function POST(req: Request) {

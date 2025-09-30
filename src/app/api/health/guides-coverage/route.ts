@@ -56,7 +56,15 @@ const LOCAL_SYNONYMS: Record<string, string[]> = {
   'Tokyo': ['東京','Tōkyō'],
 };
 
-export async function GET() {
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const only = url.searchParams.get('cities');
+  const list = only ? only.split(',').map(s => s.trim()).filter(Boolean) : null;
+  // Give this route more breathing room on Vercel
+  
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
 
@@ -71,7 +79,8 @@ export async function GET() {
     brand_caps_applied: boolean;
   }> = [];
 
-  for (const g of cityGuides) {
+  const todo = list ? cityGuides.filter((g) => list.includes(g.city) || list.includes(g.slug)) : cityGuides;
+  for (const g of todo) {
     const base = g.city.trim();
     const variants = new Set<string>([base, ...(LOCAL_SYNONYMS[base] || [])]);
     const orCity = Array.from(variants).map((v) => `city.ilike.%${v}%`).join(',');
