@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
 import { locales } from "@/i18n/locales";
+import { bboxFor } from "@/data/cityCoords";
 
 type Props = { params: { slug: string; locale: string } };
 
@@ -117,12 +118,28 @@ export default async function GuidePage({ params }: Props) {
   // Query by city or address containing any variant
   const orCity = Array.from(vset).map((v) => `city.ilike.%${v}%`).join(',');
   const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
-  const { data: hRows } = await db
+  let { data: hRows } = await db
     .from('hotels')
     .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id')
     .or(`${orCity},${orAddr}`)
     .limit(800);
-  const hotels = ((hRows || []) as HB[]).filter(Boolean);
+  let hotels = ((hRows || []) as HB[]).filter(Boolean);
+  // If the text match pool is small, widen with a lat/lng bounding box around the city center
+  if (hotels.length < 100) {
+    const bb = bboxFor(cityName);
+    if (bb) {
+      const { data: geoRows } = await db
+        .from('hotels')
+        .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id,lat,lng')
+        .gte('lat', bb.minLat)
+        .lte('lat', bb.maxLat)
+        .gte('lng', bb.minLng)
+        .lte('lng', bb.maxLng)
+        .limit(1200);
+      const geoHotels = ((geoRows || []) as HB[]).filter(Boolean);
+      hotels = [...hotels, ...geoHotels];
+    }
+  }
   const ids = hotels.map((h) => String(h.id));
   const { data: sRows } = await db
     .from('cosy_scores')

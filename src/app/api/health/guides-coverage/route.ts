@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityGuides } from "@/data/cityGuides";
+import { bboxFor } from "@/data/cityCoords";
 
 type HB = {
   id: string;
@@ -76,12 +77,27 @@ export async function GET() {
     const orCity = Array.from(variants).map((v) => `city.ilike.%${v}%`).join(',');
     const orAddr = Array.from(variants).map((v) => `address.ilike.%${v}%`).join(',');
 
-    const { data: hRows } = await db
+    let { data: hRows } = await db
       .from('hotels')
       .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id')
       .or(`${orCity},${orAddr}`)
       .limit(1000);
-    const hotels: HB[] = ((hRows || []) as HB[]).filter(Boolean);
+    let hotels: HB[] = ((hRows || []) as HB[]).filter(Boolean);
+    if (hotels.length < 100) {
+      const bb = bboxFor(g.city);
+      if (bb) {
+        const { data: geoRows } = await db
+          .from('hotels')
+          .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id,lat,lng')
+          .gte('lat', bb.minLat)
+          .lte('lat', bb.maxLat)
+          .gte('lng', bb.minLng)
+          .lte('lng', bb.maxLng)
+          .limit(2000);
+        const geoHotels: HB[] = ((geoRows || []) as HB[]).filter(Boolean);
+        hotels = [...hotels, ...geoHotels];
+      }
+    }
     const candidates = hotels.length;
 
     const ids = hotels.map((h) => String(h.id));
