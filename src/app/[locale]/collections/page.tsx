@@ -27,18 +27,24 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
       .from('hotels')
       .select('id,slug,name,city,country,amenities', { count: 'exact' });
     switch (slug) {
-      case 'city-rooftops':
-        query = query.contains('amenities', ['Rooftop']);
+      case 'city-rooftops': {
+        type OverlapsCapable<T> = T & { overlaps: (column: string, value: unknown[]) => T };
+        const q = query as unknown as OverlapsCapable<typeof query>;
+        query = q.overlaps('amenities', ['Rooftop']);
         break;
+      }
       case 'spa-retreats': {
         type OverlapsCapable<T> = T & { overlaps: (column: string, value: unknown[]) => T };
         const q = query as unknown as OverlapsCapable<typeof query>;
         query = q.overlaps('amenities', ['Spa','Sauna']);
         break;
       }
-      case 'pet-friendly':
-        query = query.contains('amenities', ['Pet-friendly']);
+      case 'pet-friendly': {
+        type OverlapsCapable<T> = T & { overlaps: (column: string, value: unknown[]) => T };
+        const q = query as unknown as OverlapsCapable<typeof query>;
+        query = q.overlaps('amenities', ['Pet-friendly']);
         break;
+      }
       case 'romantic-paris':
         query = query.ilike('city', '%Paris%');
         break;

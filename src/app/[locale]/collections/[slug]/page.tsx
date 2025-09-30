@@ -36,9 +36,12 @@ export default async function CollectionPage({ params }: Props) {
     .from("hotels")
     .select("id,slug,name,city,country,rating,price,amenities");
   switch (c.slug) {
-    case "city-rooftops":
-      query = query.contains("amenities", ["Rooftop"]);
+    case "city-rooftops": {
+      type OverlapsCapable<T> = T & { overlaps: (column: string, value: unknown[]) => T };
+      const q = query as unknown as OverlapsCapable<typeof query>;
+      query = q.overlaps("amenities", ["Rooftop"]);
       break;
+    }
     case "spa-retreats": {
       // Match any of Spa or Sauna on array/jsonb column using overlaps
       type OverlapsCapable<T> = T & { overlaps: (column: string, value: unknown[]) => T };
@@ -46,15 +49,21 @@ export default async function CollectionPage({ params }: Props) {
       query = q.overlaps("amenities", ["Spa", "Sauna"]);
       break;
     }
-    case "pet-friendly":
-      query = query.contains("amenities", ["Pet-friendly"]);
+    case "pet-friendly": {
+      type OverlapsCapable<T> = T & { overlaps: (column: string, value: unknown[]) => T };
+      const q = query as unknown as OverlapsCapable<typeof query>;
+      query = q.overlaps("amenities", ["Pet-friendly"]);
       break;
+    }
     case "romantic-paris":
       query = query.ilike("city", "%Paris%");
       break;
   }
   const { data: rows, error } = await query.limit(60);
-  if (error) return <div className="mx-auto max-w-6xl px-4 py-8">Error loading collection.</div>;
+  // Gracefully handle query errors by showing an empty collection state
+  if (error) {
+    try { console.error('collections_page_error', c.slug, error); } catch {}
+  }
   type HotelRow = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; amenities?: string[] | null };
   type ScoreRow = { hotel_id: string; score: number | null };
   const typedRows = (rows || []) as unknown as HotelRow[];
