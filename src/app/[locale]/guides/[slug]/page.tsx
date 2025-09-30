@@ -73,17 +73,37 @@ export default async function GuidePage({ params }: Props) {
   }
   const cityName = String((cg as { city: string }).city);
 
-  // Source guide hotels exactly like city search: Supabase hotels + cosy_scores
+  // Source guide hotels from Supabase with robust city matching and diversity
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
-  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null };
+  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null };
   type CS = { hotel_id: string; score: number | null; score_final: number | null };
+  // Build robust variants for the city (handles common local names)
+  const base = cityName.trim();
+  const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+  const vset = new Set<string>([base]);
+  const localSynonyms: Record<string, string[]> = {
+    'New York': ['New York City','NYC','Manhattan'],
+    'New York City': ['New York','NYC','Manhattan'],
+    'San Francisco': ['San Fransisco','Bay Area'],
+    'Prague': ['Praha'],
+    'Florence': ['Firenze'],
+    'Venice': ['Venezia'],
+    'Copenhagen': ['København'],
+    'Reykjavik': ['Reykjavík'],
+    'Quebec City': ['Québec','Quebec'],
+    'Porto': ['Oporto'],
+  };
+  for (const alt of (localSynonyms[base] || [])) vset.add(alt);
+  // Query by city or address containing any variant
+  const orCity = Array.from(vset).map((v) => `city.ilike.%${v}%`).join(',');
+  const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
   const { data: hRows } = await db
     .from('hotels')
-    .select('id,slug,name,city,country,rating')
-    .ilike('city', `%${cityName}%`)
-    .limit(400);
-  const hotels = ((hRows || []) as HB[]);
+    .select('id,slug,name,city,country,rating,address,reviews_count')
+    .or(`${orCity},${orAddr}`)
+    .limit(800);
+  const hotels = ((hRows || []) as HB[]).filter(Boolean);
   const ids = hotels.map((h) => String(h.id));
   const { data: sRows } = await db
     .from('cosy_scores')
@@ -94,17 +114,55 @@ export default async function GuidePage({ params }: Props) {
     const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
     if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
   }
-  const ranked = hotels
-    .map((h) => ({ h, s: scoreMap.get(String(h.id)) ?? 0 }))
-    .filter((x) => x.s >= 7.0)
-    .sort((a, b) => b.s - a.s);
+  // Score and prioritize exact city matches, apply basic chain diversity to avoid duplicates
+  const chains = [
+    'marriott','hilton','hyatt','accor','radisson','kempinski','four seasons','ritz-carlton','intercontinental','sheraton','ibis','novotel','mercure','holiday inn','best western','wyndham','premier inn','travelodge',
+  ];
+  const brandOf = (name: string) => {
+    const hay = name.toLowerCase();
+    for (const c of chains) if (hay.includes(c)) return c; return 'independent';
+  };
+  const variants = Array.from(vset).map((v) => norm(v));
+  const scored = hotels.map((h) => {
+    const s = scoreMap.get(String(h.id)) ?? 0;
+    const city = norm(String(h.city || ''));
+    const addr = norm(String(h.address || ''));
+    const exact = variants.includes(city) ? 2 : 0;
+    const mention = variants.some((v) => addr.includes(v)) ? 1 : 0;
+    const tie = typeof h.reviews_count === 'number' ? Math.min(1, Number(h.reviews_count) / 1000) : 0;
+    return { h, s, exact, mention, tie, brand: brandOf(h.name) };
+  });
+  const sorted = scored
+    .sort((a, b) => (b.exact - a.exact) || (b.mention - a.mention) || (b.s - a.s) || (b.tie - a.tie));
+  const primary = sorted.filter((x) => x.s >= 7.0);
+  const perBrand: Record<string, number> = {};
   const seen = new Set<string>();
-  const take = ranked.filter(({ h }) => {
-    const key = String(h.slug);
-    if (seen.has(key)) return false;
+  const picks: typeof sorted = [];
+  // First pass: cosy >= 7.0 with brand cap
+  for (const x of primary) {
+    const key = String(x.h.slug);
+    if (seen.has(key)) continue;
+    const bc = perBrand[x.brand] || 0;
+    if (bc >= 2 && x.brand !== 'independent') continue;
     seen.add(key);
-    return true;
-  }).slice(0, 9);
+    perBrand[x.brand] = bc + 1;
+    picks.push(x);
+    if (picks.length >= 9) break;
+  }
+  // Second pass: top remaining regardless of score to guarantee 9 from our dataset
+  if (picks.length < 9) {
+    for (const x of sorted) {
+      if (picks.length >= 9) break;
+      const key = String(x.h.slug);
+      if (seen.has(key)) continue;
+      const bc = perBrand[x.brand] || 0;
+      if (bc >= 2 && x.brand !== 'independent') continue;
+      seen.add(key);
+      perBrand[x.brand] = bc + 1;
+      picks.push(x);
+    }
+  }
+  const take = picks;
   const chosen = await Promise.all(take.map(async ({ h, s }) => {
     const img = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg';
     const snippet = buildCosySnippet(params.locale, {
