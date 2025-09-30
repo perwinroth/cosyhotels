@@ -16,9 +16,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootHome({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
+export default function RootHome({ searchParams = {} as { [key: string]: string | string[] | undefined } }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   // Reuse the English hotels page as the root home
-  // Cast props shape to satisfy TS for cross-render
-  const Comp = HotelsPage as unknown as (p: { searchParams?: any; params: { locale: string } }) => any;
-  return Comp({ searchParams: searchParams || {}, params: { locale: 'en' } });
+  return <HotelsPage searchParams={searchParams} params={{ locale: 'en' }} />;
 }
