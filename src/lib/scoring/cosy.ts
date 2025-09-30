@@ -29,6 +29,11 @@ const AMENITY_WEIGHTS: Record<string, number> = {
   "pet-friendly": 0.4,
   pool: 0.3, // will be adjusted contextually
   gym: -0.1,
+  // Japan/Asia specific amenities
+  onsen: 1.6,
+  ryokan: 1.0,
+  tatami: 0.6,
+  machiya: 0.8,
 };
 
 const COSY_KEYWORDS = [
@@ -50,9 +55,11 @@ const COSY_KEYWORDS = [
   "mysig", // SV
   "hyggelig", // DA/NO
   "gezellig", "knus", // NL
-  // Japanese/Asia specific cosy cues
+  // Japanese/Asia specific cosy cues (duplicated for stronger weight)
   "旅館", "温泉", "町家", "畳", // ryokan, onsen, machiya, tatami
+  "旅館", "温泉", // extra weight
   "onsen", "ryokan", "machiya", "tatami", "hot spring",
+  "onsen", "ryokan", // extra weight
   // Korean
   "아늑", "편안", "로맨틱", "벽난로",
   // Chinese

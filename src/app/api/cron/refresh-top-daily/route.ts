@@ -68,6 +68,10 @@ async function runJob() {
         const sLower = summary.toLowerCase();
         if (sLower.includes("spa")) am.push("Spa");
         if (sLower.includes("sauna")) am.push("Sauna");
+        if (sLower.includes("onsen") || sLower.includes("hot spring")) am.push("Onsen");
+        if (sLower.includes("ryokan")) am.push("Ryokan");
+        if (sLower.includes("tatami")) am.push("Tatami");
+        if (sLower.includes("machiya")) am.push("Machiya");
         if (sLower.includes("fireplace")) am.push("Fireplace");
         if (sLower.includes("bath")) am.push("Bathtub");
         if (sLower.includes("rooftop")) am.push("Rooftop");
