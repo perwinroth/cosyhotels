@@ -145,7 +145,7 @@ async function Results({
   const sortCandidate = typeof params.sort === "string" ? params.sort : undefined;
   const sort: Sort = isSort(sortCandidate) ? sortCandidate : "cosy-desc";
 
-  // Front page: prefer persisted global top 9 from Supabase if available
+  // Front page (no city): strictly Supabase-sourced, always 9 cosy >= 7
   if (!city) {
     const supabase = getServerSupabase();
     if (supabase) {
@@ -327,7 +327,65 @@ async function Results({
           </div>
         );
       }
+      // If featured_top absent or empty, build directly from cosy_scores (>= 7), no external fallbacks
+      type CSH = { score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null } | null };
+      const { data: csData } = await supabase
+        .from('cosy_scores')
+        .select('score, score_final, hotel:hotel_id (id,slug,name,city,country,rating,price,affiliate_url)')
+        .order('score_final', { ascending: false, nullsFirst: false })
+        .order('score', { ascending: false })
+        .limit(50);
+      const picked = ((csData || []) as unknown as CSH[])
+        .filter((r) => r.hotel)
+        .map((r) => ({ r, s: (typeof r.score_final === 'number' ? Number(r.score_final) : (typeof r.score === 'number' ? Number(r.score) : 0)) }))
+        .filter(({ s }) => s >= 7.0);
+      const seen = new Set<string>();
+      const top = (await Promise.all(picked
+        .filter(({ r }) => {
+          const slug = String(r.hotel!.slug);
+          if (seen.has(slug)) return false; seen.add(slug); return true;
+        })
+        .slice(0, 9)
+        .map(async ({ r, s }) => {
+          const h = r.hotel!;
+          const resolvedImg = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || '/seal.svg';
+          return {
+            _id: String(h.id),
+            slug: String(h.slug),
+            name: String(h.name),
+            city: String(h.city || ''),
+            country: String(h.country || ''),
+            rating: typeof h.rating === 'number' ? h.rating : 0,
+            price: typeof h.price === 'number' ? h.price : NaN,
+            _cosy: s,
+            _img: resolvedImg,
+            affiliateUrl: (h.affiliate_url as string | null) || '',
+          };
+        })));
+      const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
+      const renderTop = (h: typeof top[number], idx: number) => (
+        <HotelTile
+          key={`${h.slug}-${h._img}`}
+          hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
+          href={detailsHref(h.slug)}
+          goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+          priority={idx === 0}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+        />
+      );
+      return (
+        <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+          <div className="col-span-full sr-only" aria-live="polite">Top cosy places</div>
+          {top.map((h, i) => renderTop(h, i))}
+        </div>
+      );
     }
+    // Supabase not configured; do not use external fallbacks
+    return (
+      <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+        <div className="col-span-full" aria-live="polite">Backend not configured</div>
+      </div>
+    );
   }
 
   // Compute results from merged list
