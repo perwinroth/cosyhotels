@@ -9,6 +9,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const now = new Date();
   const routes: MetadataRoute.Sitemap = [];
+  // Root homepage (English default)
+  routes.push({ url: `${base}/`, lastModified: now, changeFrequency: "weekly", priority: 0.9 });
   for (const locale of locales) {
     routes.push({ url: `${base}/${locale}`, lastModified: now, changeFrequency: "weekly", priority: 0.8 });
     routes.push({ url: `${base}/${locale}/hotels`, lastModified: now, changeFrequency: "weekly", priority: 0.7 });

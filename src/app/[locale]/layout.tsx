@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     canonical: "/",
     languages: Object.fromEntries([
       ...locales.map((l) => [l, `/${l}`]),
-      ["x-default", "/en"],
+      ["x-default", "/"],
     ]),
   },
   openGraph: {
@@ -48,7 +48,7 @@ export default async function LocaleLayout({
       <body className={`antialiased bg-white text-zinc-900`}>
         <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur">
           <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-            <Link href={`/${locale}`} className="flex items-center gap-2 font-semibold tracking-tight">
+            <Link href={`/`} className="flex items-center gap-2 font-semibold tracking-tight">
               <Image src="/seal.svg" alt={site.name} width={40} height={40} priority />
               <span className="sr-only">{site.name}</span>
               <span aria-hidden className="text-lg font-semibold uppercase tracking-wide text-[#0EA5A4]">Get cosy</span>
