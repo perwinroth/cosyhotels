@@ -52,7 +52,8 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
     }
     const res = await query.limit(1);
     const data = res.data;
-    let { count, error } = res as { count: number | null; error: any };
+    let count = res.count ?? 0;
+    const error: unknown = res.error;
     let img: string | null = null;
     let first = (data || [])[0] as { id?: string; name?: string; slug?: string; city?: string | null } | undefined;
     if (first && first.id) {
@@ -74,7 +75,7 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
       const d2 = (b.data || []) as Array<{ id?: string; name?: string; slug?: string; city?: string | null }>;
       count = d1.length + d2.length;
       first = d1[0] || d2[0] || undefined;
-      error = null;
+      // ignore error here; union queries handled above
     }
 
     // If we have no cached image but there is a first row, resolve one via helper and persist
