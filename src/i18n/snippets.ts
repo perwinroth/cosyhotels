@@ -5,6 +5,7 @@ type Parts = {
   reviewsCount?: number;
   cues: string[]; // canonical cue keys
   idealLevel?: 'budget' | 'mid-range' | 'upscale' | 'luxury' | 'warm';
+  cosy?: number; // 0..10 cosy score when available
 };
 
 const cueMap: Record<string, Record<string, string>> = {
@@ -158,9 +159,9 @@ const ideals: Record<string, Record<string, string>> = {
 
 const templates: Record<string, string[]> = {
   en: [
-    `If you're looking for a cosy hotel in {city}, {name} is a top pick. We rate it {rating}{reviews} thanks to {cues}. Ideal if you want {ideal}.`,
-    `Searching for a cosy hotel in {city}? {name} stands out. We rate it {rating}{reviews} thanks to {cues}. Ideal if you want {ideal}.`,
-    `{name} is among the cosiest hotels in {city}. We rate it {rating}{reviews} thanks to {cues}. Ideal if you want {ideal}.`,
+    `If you're looking for a cosy hotel in {city}, {name} is a top pick. {rating} thanks to {cues}. Ideal if you want {ideal}.`,
+    `Searching for a cosy hotel in {city}? {name} stands out. {rating} thanks to {cues}. Ideal if you want {ideal}.`,
+    `{name} is among the cosiest hotels in {city}. {rating} thanks to {cues}. Ideal if you want {ideal}.`,
   ],
   fr: [
     `Si vous cherchez un hôtel chaleureux à {city}, {name} est un excellent choix. Nous lui attribuons {rating}{reviews} grâce à {cues}. Idéal si vous souhaitez {ideal}.`,
@@ -236,7 +237,9 @@ export function buildCosySnippet(locale: string, parts: Parts) {
   const cues = parts.cues.map((k) => cuesLocMap[k] || k).filter(Boolean).slice(0, 3);
   const cuesText = cues.length ? cues.join(', ') : (loc === 'en' ? 'its intimate scale and warm design' : undefined);
   const ideal = idealLocMap[parts.idealLevel || 'warm'];
-  const rating = fmtRating(loc, parts.rating, parts.reviewsCount);
+  const base = fmtRating(loc, parts.rating, parts.reviewsCount);
+  const cosy = typeof parts.cosy === 'number' ? `Cosy ${parts.cosy.toFixed(1)}/10` : '';
+  const rating = [base ? `Guest rating ${base}` : '', cosy].filter(Boolean).join(' · ');
   const dict = { city: parts.city, name: parts.name, cues: cuesText || '', ideal, rating, reviews: '' } as Record<string, string>;
   const t = templates[loc] || templates.en;
   const idx = (parts.name.length + parts.city.length * 7) % t.length;

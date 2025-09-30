@@ -197,6 +197,7 @@ export default async function GuidePage({ params }: Props) {
     const snippet = buildCosySnippet(params.locale, {
       city: String(h.city || cityName),
       name: String(h.name),
+      cosy: s,
       rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined,
       reviewsCount: undefined,
       cues: [],
