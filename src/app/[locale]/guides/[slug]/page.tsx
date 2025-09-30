@@ -6,6 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { buildCosySnippet } from "@/i18n/snippets";
 import Image from "next/image";
 import { getImageForHotel } from "@/lib/hotelImages";
+import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
 import { locales } from "@/i18n/locales";
@@ -61,14 +62,18 @@ export default async function GuidePage({ params }: Props) {
   }
   let cg = getCityGuide(params.slug);
   if (!cg) {
-    // Build a lightweight city guide from slug aliases so guides never 404
     const slug = params.slug.toLowerCase();
+    // Only allow lightweight fallback for city-style slugs ending with -cosy-hotel
+    if (!slug.endsWith('-cosy-hotel')) {
+      notFound();
+    }
     const aliases: Record<string, string> = {
-      'new-york': 'New York', 'nyc': 'New York', 'new-york-city': 'New York',
-      'san-francisco': 'San Francisco', 'sf': 'San Francisco',
-      'los-angeles': 'Los Angeles', 'la': 'Los Angeles',
+      'new-york-cosy-hotel': 'New York', 'nyc-cosy-hotel': 'New York', 'new-york-city-cosy-hotel': 'New York',
+      'san-francisco-cosy-hotel': 'San Francisco', 'sf-cosy-hotel': 'San Francisco',
+      'los-angeles-cosy-hotel': 'Los Angeles', 'la-cosy-hotel': 'Los Angeles',
     };
-    const pretty = aliases[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+    const base = slug.replace(/-cosy-hotel$/, '');
+    const pretty = aliases[slug] || base.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
     cg = { city: pretty, slug: params.slug } as unknown as ReturnType<typeof getCityGuide>;
   }
   const cityName = String((cg as { city: string }).city);
