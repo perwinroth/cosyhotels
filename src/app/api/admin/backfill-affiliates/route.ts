@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { buildAffiliateUrl, bookingSearchUrl, expediaSearchUrl, type Provider } from "@/lib/affiliates";
 
@@ -12,18 +12,11 @@ function vendorUrl(vendor: 'booking' | 'expedia', h: HotelRow) {
   return expediaSearchUrl({ name: h.name, city: h.city, country: h.country });
 }
 
-export async function POST(req: Request) {
-  const url = new URL(req.url);
-  const vendor = (url.searchParams.get('vendor') || 'booking').toLowerCase() as 'booking' | 'expedia';
-  const provider = (url.searchParams.get('provider') || 'generic').toLowerCase() as Provider;
+async function run(vendor: 'booking' | 'expedia', provider: Provider, overwrite = false) {
   const db = getServerSupabase();
-  if (!db) return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
-
-  const { data } = await db
-    .from('hotels')
-    .select('id,slug,name,city,country,affiliate_url')
-    .is('affiliate_url', null)
-    .limit(2000);
+  if (!db) return { error: 'Supabase not configured' } as const;
+  const sel = db.from('hotels').select('id,slug,name,city,country,affiliate_url').limit(2000);
+  const { data } = overwrite ? await sel : await sel.is('affiliate_url', null);
   const rows = (data || []) as HotelRow[];
   let processed = 0, updated = 0;
   for (const h of rows) {
@@ -34,6 +27,24 @@ export async function POST(req: Request) {
     const { error } = await db.from('hotels').update({ affiliate_url: urlFinal }).eq('id', h.id);
     if (!error) updated++;
   }
-  return NextResponse.json({ vendor, provider, processed, updated });
+  return { vendor, provider, overwrite, processed, updated } as const;
 }
 
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const vendor = (url.searchParams.get('vendor') || 'booking').toLowerCase() as 'booking' | 'expedia';
+  const provider = (url.searchParams.get('provider') || 'generic').toLowerCase() as Provider;
+  const overwrite = (url.searchParams.get('overwrite') || 'false').toLowerCase() === 'true';
+  const res = await run(vendor, provider, overwrite);
+  if ('error' in res) return NextResponse.json(res, { status: 500 });
+  return NextResponse.json(res);
+}
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const vendor = (url.searchParams.get('vendor') || 'booking').toLowerCase() as 'booking' | 'expedia';
+  const provider = (url.searchParams.get('provider') || 'generic').toLowerCase() as Provider;
+  const overwrite = (url.searchParams.get('overwrite') || 'false').toLowerCase() === 'true';
+  after(async () => { try { await run(vendor, provider, overwrite); } catch (e) { try { console.error('backfill_affiliates_error', e); } catch {} } });
+  return NextResponse.json({ scheduled: true, vendor, provider, overwrite }, { status: 202 });
+}

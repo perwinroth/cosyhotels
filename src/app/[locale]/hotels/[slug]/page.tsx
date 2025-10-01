@@ -8,6 +8,7 @@ import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import { cosyScore, cosyParts } from "@/lib/scoring/cosy";
 import { buildCosySnippet } from "@/i18n/snippets";
+import { bookingSearchUrl, expediaSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { generateHotelSlug } from "@/lib/slug";
 import { getOSMContext } from "@/lib/context/osm";
@@ -241,6 +242,9 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   // Will compute local cosy after deriving text cues
 
   const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
+  // Build dual vendor links on the fly for detail page CTAs
+  const bookingUrl = buildAffiliateUrl(bookingSearchUrl({ name, city, country }), { provider: 'generic' });
+  const expediaUrl = buildAffiliateUrl(expediaSearchUrl({ name, city, country }), { provider: 'generic' });
 
   // Optional debug view (only when ?debug=true)
   const debug = (typeof searchParams?.debug === 'string' && searchParams?.debug === 'true');
@@ -424,16 +428,10 @@ export default async function HotelDetail({ params, searchParams }: Props) {
         <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
           Back to results
         </a>
-        {goHref && (
-          <a
-            className="ml-auto inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-4 py-2 hover:bg-zinc-50"
-            href={goHref}
-            target="_blank"
-            rel="noopener nofollow sponsored"
-          >
-            Visit website →
-          </a>
-        )}
+        <div className="ml-auto flex gap-2">
+          <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={`/go/${hotel?.slug || params.slug}?provider=booking`} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
+          <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={`/go/${hotel?.slug || params.slug}?provider=expedia`} target="_blank" rel="noopener nofollow sponsored">View on Expedia</a>
+        </div>
       </div>
       {/* Per-hotel FAQ */}
       <section className="mt-6">

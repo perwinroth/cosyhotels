@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 // Curated hotels removed; resolve via Supabase or Places fallback
-import { type Provider } from "@/lib/affiliates";
+import { type Provider, bookingSearchUrl, expediaSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getDetails } from "@/lib/places";
 
@@ -14,31 +14,41 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     try {
       const { data } = await supabase
         .from("hotels")
-        .select("id,slug,affiliate_url,website")
+        .select("id,slug,affiliate_url,website,name,city,country")
         .or(`slug.eq.${id},id.eq.${id}`)
         .single();
       if (data) {
         slug = String(data.slug);
         hotelId = String(data.id);
-        target = data.affiliate_url || data.website || "/";
+        // Optional: Accept provider and clickId
+        const url = new URL(req.url);
+        const providerParam = url.searchParams.get("provider");
+        const isProvider = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact","booking","expedia"].includes(p);
+        const pv = (isProvider(providerParam) ? providerParam : undefined) as Provider | undefined;
+        // If a specific vendor is requested, compute deep link on the fly
+        if (providerParam === 'booking') {
+          const base = bookingSearchUrl({ name: String((data as any).name || ''), city: (data as any).city || null, country: (data as any).country || null });
+          target = buildAffiliateUrl(base, { provider: 'generic' });
+        } else if (providerParam === 'expedia') {
+          const base = expediaSearchUrl({ name: String((data as any).name || ''), city: (data as any).city || null, country: (data as any).country || null });
+          target = buildAffiliateUrl(base, { provider: 'generic' });
+        } else {
+          target = data.affiliate_url || data.website || "/";
+        }
       }
     } catch {}
   }
   if (target === "/") {
-    // Treat id as Google Place ID: try to resolve website; fallback to Google Maps place URL
-    try {
-      const d = await getDetails(id);
-      if (d?.website) return NextResponse.redirect(d.website, { status: 302 });
-    } catch {}
-    return NextResponse.redirect(`https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(id)}`, { status: 302 });
+    // If Places disabled or no website found, go home
+    return NextResponse.redirect('/', { status: 302 });
   }
 
   // Optional: Accept provider and clickId
-  const url = new URL(req.url);
-  const providerParam = url.searchParams.get("provider");
-  const isProvider = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact"].includes(p);
-  const provider: Provider | undefined = isProvider(providerParam) ? providerParam : undefined;
-  const clickId = url.searchParams.get("clickId") || undefined;
+  const url2 = new URL(req.url);
+  const providerParam2 = url2.searchParams.get("provider");
+  const isProvider2 = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact","booking","expedia"].includes(p);
+  const provider: Provider | undefined = isProvider2(providerParam2) ? providerParam2 : undefined;
+  const clickId = url2.searchParams.get("clickId") || undefined;
   // target precomputed from Supabase (affiliate_url or website)
 
   // Log click (best-effort)

@@ -64,9 +64,11 @@ export default function AdminTools() {
       </section>
 
       <section className="mt-6 rounded border border-zinc-200 bg-white p-4">
-        <h2 className="font-medium">Backfill Affiliates (Booking)</h2>
+        <h2 className="font-medium">Backfill Affiliates</h2>
         <div className="mt-2 flex gap-2">
-          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=booking`, { method: 'POST' })}>POST /api/admin/backfill-affiliates?vendor=booking</button>
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=booking`, { method: 'POST' })}>Booking (fill empty)</button>
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=expedia`, { method: 'POST' })}>Expedia (fill empty)</button>
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=expedia&overwrite=true`, { method: 'POST' })}>Expedia (overwrite all)</button>
         </div>
         {backfillAffiliates.resp && (
           <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(backfillAffiliates.resp, null, 2)}</pre>
