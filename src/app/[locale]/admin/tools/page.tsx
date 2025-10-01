@@ -43,6 +43,7 @@ export default function AdminTools() {
   const refreshTopDaily = useAction();
   const ensureFeatured = useAction();
   const guidesCoverage = useAction();
+  const amenitiesStats = useAction();
 
   const base = ""; // same origin
 
@@ -153,6 +154,16 @@ export default function AdminTools() {
         </div>
         {guidesCoverage.resp && (
           <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(guidesCoverage.resp, null, 2)}</pre>
+        )}
+      </section>
+
+      <section className="mt-6 rounded border border-zinc-200 bg-white p-4">
+        <h2 className="font-medium">Amenities Stats</h2>
+        <div className="mt-2 flex gap-2">
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={amenitiesStats.loading} onClick={() => amenitiesStats.run(`${base}/api/health/amenities-stats`)}>GET /api/health/amenities-stats</button>
+        </div>
+        {amenitiesStats.resp && (
+          <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(amenitiesStats.resp, null, 2)}</pre>
         )}
       </section>
     </div>

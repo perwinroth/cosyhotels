@@ -13,6 +13,21 @@ const KEYWORDS = {
   pet: [/\bpet[- ]?friendly\b/i, /\bpets? allowed\b/i, /\bdogs?\b/i, /\bmascotas\b/i, /\bchiens?\b/i, /\bhunde\b/i],
 };
 
+const CANON: Record<string, string> = {
+  'spa': 'Spa',
+  'sauna': 'Sauna',
+  'rooftop': 'Rooftop',
+  'roof terrace': 'Rooftop',
+  'dachterrasse': 'Rooftop',
+  'toit-terrasse': 'Rooftop',
+  'azotea': 'Rooftop',
+  'pet-friendly': 'Pet-friendly',
+  'pets allowed': 'Pet-friendly',
+  'dog': 'Pet-friendly',
+  'dogs': 'Pet-friendly',
+  'mascotas': 'Pet-friendly',
+};
+
 function inferAmenities(desc: string | null | undefined): string[] {
   const d = (desc || '').toLowerCase();
   const add: string[] = [];
@@ -23,6 +38,19 @@ function inferAmenities(desc: string | null | undefined): string[] {
   if (KEYWORDS.pet.some(test)) add.push('Pet-friendly');
   // dedupe
   return Array.from(new Set(add));
+}
+
+function normalizeAmenityValues(list: string[] | null | undefined): string[] {
+  if (!Array.isArray(list)) return [];
+  const out = new Set<string>();
+  for (const raw of list) {
+    if (!raw) continue;
+    const lc = String(raw).toLowerCase();
+    const canon = CANON[lc];
+    if (canon) out.add(canon);
+    else out.add(raw); // keep unknowns as-is
+  }
+  return Array.from(out);
 }
 
 async function backfill(loopLimit = 5000, pageSize = 500) {
@@ -39,7 +67,7 @@ async function backfill(loopLimit = 5000, pageSize = 500) {
     const rows = data as unknown as HotelRow[];
     for (const row of rows) {
       processed++;
-      const current = Array.isArray(row.amenities) ? row.amenities.filter(Boolean) as string[] : [];
+      const current = normalizeAmenityValues(row.amenities);
       const adds = inferAmenities(row.description);
       if (adds.length === 0) continue;
       const next = Array.from(new Set([...current, ...adds]));
@@ -63,4 +91,3 @@ export async function POST() {
   if ('error' in res) return NextResponse.json(res, { status: 500 });
   return NextResponse.json(res);
 }
-
