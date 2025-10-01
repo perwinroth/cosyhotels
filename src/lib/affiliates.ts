@@ -50,3 +50,26 @@ export function buildAffiliateUrl(baseUrl: string, opts?: { provider?: Provider;
 export function hotelAffiliateUrl(hotel: Hotel, opts?: { provider?: Provider; campaign?: string; content?: string; clickId?: string }) {
   return buildAffiliateUrl(hotel.affiliateUrl, opts);
 }
+
+// Vendor deep link builders (free, no API)
+export function bookingSearchUrl(input: { name?: string; city?: string | null; country?: string | null }) {
+  const name = (input.name || '').trim();
+  const city = (input.city || '').trim();
+  const country = (input.country || '').trim();
+  let ss = '';
+  if (name && city) ss = `${name}, ${city}`;
+  else if (city && country) ss = `${city}, ${country}`;
+  else ss = name || city || country || '';
+  return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(ss)}`;
+}
+
+export function expediaSearchUrl(input: { name?: string; city?: string | null; country?: string | null }) {
+  const name = (input.name || '').trim();
+  const city = (input.city || '').trim();
+  const country = (input.country || '').trim();
+  const dest = [city, country].filter(Boolean).join(', ');
+  const u = new URL('https://www.expedia.com/Hotel-Search');
+  if (dest) u.searchParams.set('destination', dest);
+  if (name) u.searchParams.set('keyword', name);
+  return u.toString();
+}
