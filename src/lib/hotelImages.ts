@@ -24,6 +24,7 @@ export async function getImageForHotel(name: string, city?: string, maxWidth = 8
     }
   } catch {}
   const q = city ? `${name} ${city}` : name;
+  if (process.env.DISABLE_PLACES === 'true') return null;
   const res = await searchText(q);
   const ref = res.results?.[0]?.photos?.[0]?.photo_reference;
   if (!ref) return null;

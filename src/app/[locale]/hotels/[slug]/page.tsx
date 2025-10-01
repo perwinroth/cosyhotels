@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
   // Fallback to Places for metadata
-  const d = await getDetails(params.slug);
+  const d = process.env.DISABLE_PLACES === 'true' ? null : await getDetails(params.slug);
   if (d) {
     const title = `${d.name} | ${site.name}`;
     const description = d.formatted_address || "Cosy boutique stay.";
@@ -126,7 +126,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   if (!hotel && db) {
     // Upsert minimal record so subsequent visits use Supabase
     const placeId = params.slug;
-    const d = await getDetails(placeId);
+    const d = process.env.DISABLE_PLACES === 'true' ? null : await getDetails(placeId);
     if (d) {
       const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
       const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
@@ -183,7 +183,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
 
   // If hotel exists but has no cosy score yet, compute a base score from details and persist
   if (db && hotel && cosy == null) {
-    const d: PlaceDetails | null = isPlaceDetails(gDetails) ? gDetails : (hotel.source_id ? await getDetails(hotel.source_id) : null);
+    const d: PlaceDetails | null = (process.env.DISABLE_PLACES === 'true') ? null : (isPlaceDetails(gDetails) ? gDetails : (hotel.source_id ? await getDetails(hotel.source_id) : null));
     if (d) {
       const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
       const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");

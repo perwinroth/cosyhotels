@@ -132,6 +132,7 @@ async function runJob() {
 }
 
 export async function POST() {
+  if (process.env.DISABLE_PLACES === 'true') return NextResponse.json({ scheduled: false, disabled: true }, { status: 200 });
   after(async () => {
     try {
       await runJob();

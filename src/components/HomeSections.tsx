@@ -42,8 +42,10 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
     const q = city.trim();
     if (!q) { setSuggestions([]); return; }
     const t = setTimeout(async () => {
+      if (process.env.NEXT_PUBLIC_DISABLE_PLACES === 'true') { setSuggestions([]); return; }
       try {
         const res = await fetch(`/api/places/search?query=${encodeURIComponent(q)}`);
+        if (!res.ok) { setSuggestions([]); return; }
         const json = await res.json();
         const uniq = new Map<string, { city: string; country: string }>();
         for (const r of (json.results || [])) {
@@ -56,9 +58,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         }
         setSuggestions(Array.from(uniq.values()));
         setShowSuggest(true);
-      } catch {
-        setSuggestions([]);
-      }
+      } catch { setSuggestions([]); }
     }, 300);
     return () => clearTimeout(t);
   }, [city]);

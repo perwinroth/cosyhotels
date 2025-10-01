@@ -39,6 +39,7 @@ export default function AdminTools() {
   const env = useAction();
   const backfillAmenities = useAction();
   const backfillImages = useAction();
+  const ogImages = useAction();
   const refreshCity = useAction();
   const refreshTopDaily = useAction();
   const ensureFeatured = useAction();
@@ -78,8 +79,15 @@ export default function AdminTools() {
           <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillImages.loading} onClick={() => backfillImages.run(`${base}/api/admin/backfill-images`, { method: 'POST' })}>POST /api/admin/backfill-images</button>
           <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillImages.loading} onClick={() => backfillImages.run(`${base}/api/admin/backfill-images`)}>GET (schedule)</button>
         </div>
+        <div className="mt-2 flex gap-2">
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={ogImages.loading} onClick={() => ogImages.run(`${base}/api/admin/fetch-og-images`, { method: 'POST' })}>POST /api/admin/fetch-og-images</button>
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={ogImages.loading} onClick={() => ogImages.run(`${base}/api/admin/fetch-og-images`)}>GET (schedule)</button>
+        </div>
         {backfillImages.resp && (
           <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(backfillImages.resp, null, 2)}</pre>
+        )}
+        {ogImages.resp && (
+          <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(ogImages.resp, null, 2)}</pre>
         )}
       </section>
 

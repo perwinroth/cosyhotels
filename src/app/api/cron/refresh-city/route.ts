@@ -108,6 +108,7 @@ async function runForCity(city: string, country?: string, opts?: { max?: number;
 }
 
 export async function GET(req: Request) {
+  if (process.env.DISABLE_PLACES === 'true') return NextResponse.json({ scheduled: false, disabled: true }, { status: 200 });
   const url = new URL(req.url);
   const city = url.searchParams.get("city");
   const country = url.searchParams.get("country") || undefined;
@@ -124,6 +125,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (process.env.DISABLE_PLACES === 'true') return NextResponse.json({ scheduled: false, disabled: true }, { status: 200 });
   const url = new URL(req.url);
   const city = url.searchParams.get("city");
   const country = url.searchParams.get("country") || undefined;

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
+  if (process.env.DISABLE_PLACES === 'true') return new Response('Disabled', { status: 404 });
   const { searchParams } = new URL(req.url);
   const ref = searchParams.get("ref");
   const maxwidth = searchParams.get("maxwidth") || "800";

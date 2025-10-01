@@ -25,6 +25,9 @@ type GResult = {
 };
 
 export async function searchText(query: string, pagetoken?: string, revalidateSeconds = 10800): Promise<PlaceSearchResponse> {
+  if (process.env.DISABLE_PLACES === 'true') {
+    return { results: [] };
+  }
   const key = process.env.GOOGLE_MAPS_API_KEY;
   if (!key) return { results: [] };
   const params = new URLSearchParams({ query, key });
@@ -68,6 +71,7 @@ export type PlaceDetails = {
 };
 
 export async function getDetails(placeId: string, revalidateSeconds = 86400): Promise<PlaceDetails | null> {
+  if (process.env.DISABLE_PLACES === 'true') return null;
   const key = process.env.GOOGLE_MAPS_API_KEY;
   if (!key) return null;
   const fields = [
@@ -94,6 +98,7 @@ export async function getDetails(placeId: string, revalidateSeconds = 86400): Pr
 }
 
 export function photoUrl(ref: string, maxwidth = 800) {
+  if (process.env.DISABLE_PLACES === 'true') return '';
   // If no API key, return placeholder to avoid broken images in production
   if (!process.env.GOOGLE_MAPS_API_KEY) return "/seal.svg";
   // Use our proxy endpoint so the API key stays server-side
