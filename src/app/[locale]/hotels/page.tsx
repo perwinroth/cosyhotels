@@ -10,6 +10,7 @@ import HotelTile from "@/components/HotelTile";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { amadeusSearchHotels, amadeusGetHotelDetails } from "@/lib/vendors/amadeus";
 import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
+import { cosyScore } from "@/lib/scoring/cosy";
 
 // Type guard to narrow out nulls from arrays
 function nonNull<T>(x: T | null | undefined): x is T { return x != null; }
@@ -264,16 +265,20 @@ async function Results({
           const name = (d?.name || '').trim();
           const cityName = (d?.city || c) || '';
           const country = (d?.country || '') || '';
-          const slug = `${name || s.id}-${cityName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+          if (!name) continue;
+          const slug = `am-${s.id}`;
           const affiliateBase = bookingSearchUrl({ name, city: cityName, country });
           const affiliateUrl = buildAffiliateUrl(affiliateBase);
-          picks.push({ slug, name: name || s.id, city: cityName, country, rating: 0, price: NaN, _cosy: 7.0, _img: '/seal.svg', affiliateUrl });
+          const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
+          const cosy = cosyScore({ rating: rating10 });
+          picks.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: '/seal.svg', affiliateUrl });
           if (picks.length >= 9) break;
         }
         if (picks.length >= 9) break;
       } catch {}
     }
     if (picks.length) {
+      picks.sort((a, b) => b._cosy - a._cosy);
       return (
         <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
           <div className="col-span-full sr-only" aria-live="polite">Top cosy places (live)</div>
@@ -282,7 +287,7 @@ async function Results({
               key={`${h.slug}-${i}`}
               hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
               href={`/${locale}/hotels/${h.slug}`}
-              goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+              goHref={h.affiliateUrl}
               priority={i === 0}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
             />
@@ -357,12 +362,16 @@ async function Results({
         const name = (d?.name || '').trim();
         const cityName = (d?.city || city) || '';
         const country = (d?.country || '') || '';
-        const slug = `${name || s.id}-${cityName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+        if (!name) continue;
+        const slug = `am-${s.id}`;
         const affiliateBase = bookingSearchUrl({ name, city: cityName, country });
         const affiliateUrl = buildAffiliateUrl(affiliateBase);
-        items.push({ slug, name: name || s.id, city: cityName, country, rating: 0, price: NaN, _cosy: 7.0, _img: '/seal.svg', affiliateUrl });
+        const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
+        const cosy = cosyScore({ rating: rating10 });
+        items.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: '/seal.svg', affiliateUrl });
       }
       if (items.length) {
+        items.sort((a, b) => b._cosy - a._cosy);
         return (
           <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
             <div className="col-span-full sr-only" aria-live="polite">{items.length} results in {city} (live)</div>
@@ -371,7 +380,7 @@ async function Results({
                 key={`${h.slug}-${i}`}
                 hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
                 href={`/${locale}/hotels/${h.slug}`}
-                goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+                goHref={h.affiliateUrl}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
               />
             ))}

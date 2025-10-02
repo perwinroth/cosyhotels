@@ -43,7 +43,54 @@ export default async function HotelDetail({ params }: Props) {
     .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count")
     .eq("slug", params.slug)
     .maybeSingle();
-  if (!hotel) return notFound();
+  if (!hotel) {
+    // Live fallback for Amadeus slugs: am-<id>
+    if (params.slug.startsWith('am-')) {
+      const id = params.slug.slice(3);
+      try {
+        const { amadeusGetHotelDetails } = await import('@/lib/vendors/amadeus');
+        const { bookingSearchUrl, buildAffiliateUrl } = await import('@/lib/affiliates');
+        const d = await amadeusGetHotelDetails(id);
+        if (!d) return notFound();
+        const name = d.name || 'Hotel';
+        const city = d.city || '';
+        const country = d.country || '';
+        const affiliateBase = bookingSearchUrl({ name, city, country });
+        const affiliateUrl = buildAffiliateUrl(affiliateBase);
+        const rating5 = typeof d.rating10 === 'number' ? d.rating10 / 2 : undefined;
+        const cosy = typeof d.rating10 === 'number' ? d.rating10 : 7.0;
+        return (
+          <div className="mx-auto max-w-3xl px-4 py-8">
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
+            <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
+            <div className="mt-3 relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
+              <Image src={'/seal.svg'} alt={`${name}`} fill priority className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
+            </div>
+            <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy.toFixed(1)} out of 10`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-zinc-600">Cosy score</div>
+                  <div className="text-2xl font-semibold">{cosy.toFixed(1)}<span className="text-base text-zinc-500">/10</span></div>
+                </div>
+                <span />
+              </div>
+            </div>
+            <div className="mt-5 flex items-center gap-3">
+              <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
+                Back to results
+              </a>
+              <div className="ml-auto flex gap-2">
+                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={affiliateUrl} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
+              </div>
+            </div>
+          </div>
+        );
+      } catch {
+        return notFound();
+      }
+    }
+    return notFound();
+  }
 
   const { data: scoreRow } = await db
     .from("cosy_scores")

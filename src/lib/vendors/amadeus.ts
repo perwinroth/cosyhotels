@@ -115,10 +115,12 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
   const name = strDeep(first, ['hotel','name']) || '';
   const city = strDeep(first, ['hotel','address','cityName']);
   const country = strDeep(first, ['hotel','address','countryCode']);
-  const address = strDeep(first, ['hotel','address','lines']) || null; // lines may be array; fallback to null
+  // Address lines may be array; skip for now (null)
+  const address = null;
   const lat = numDeep(first, ['hotel','geoCode','latitude']);
   const lng = numDeep(first, ['hotel','geoCode','longitude']);
-  const rating = strDeep(first, ['hotel','rating']);
+  const ratingStr = strDeep(first, ['hotel','rating']);
+  const stars = ratingStr ? Number(ratingStr) : NaN;
   const details: AmadeusHotelDetails = {
     id: hotelId,
     name,
@@ -127,7 +129,7 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
     country: country || null,
     latitude: lat ?? null,
     longitude: lng ?? null,
-    rating10: rating ? null : null,
+    rating10: Number.isFinite(stars) ? stars * 2 : null,
     reviewsCount: null,
     website: null,
     images: [],
@@ -135,4 +137,3 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
   };
   return details;
 }
-
