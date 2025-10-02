@@ -2,13 +2,14 @@ import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { bookingSearchHotels, bookingGetHotelDetails, type BookingHotelDetails, type BookingHotelSummary } from "@/lib/vendors/booking";
 import { expediaSearchHotels, expediaGetHotelDetails, type ExpediaHotelDetails, type ExpediaHotelSummary } from "@/lib/vendors/expedia";
+import { amadeusSearchHotels, amadeusGetHotelDetails, type AmadeusHotelDetails, type AmadeusHotelSummary } from "@/lib/vendors/amadeus";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { bookingSearchUrl, expediaSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 
-type Vendor = 'booking' | 'expedia';
+type Vendor = 'booking' | 'expedia' | 'amadeus';
 
-type CombinedSummary = BookingHotelSummary | ExpediaHotelSummary;
-type CombinedDetails = BookingHotelDetails | ExpediaHotelDetails | CombinedSummary;
+type CombinedSummary = BookingHotelSummary | ExpediaHotelSummary | AmadeusHotelSummary;
+type CombinedDetails = BookingHotelDetails | ExpediaHotelDetails | AmadeusHotelDetails | CombinedSummary;
 
 function pickWebsite(x: CombinedDetails): string | null {
   return 'website' in x && typeof x.website === 'string' ? x.website : null;
@@ -35,18 +36,20 @@ async function run(vendor: Vendor, city: string, limit = 100) {
   if (!db) return { error: 'Supabase not configured' } as const;
 
   // 1) Search vendor for a city
-  const summaries: CombinedSummary[] = vendor === 'booking'
-    ? await bookingSearchHotels(city)
-    : await expediaSearchHotels(city);
+  let summaries: CombinedSummary[] = [];
+  if (vendor === 'booking') summaries = await bookingSearchHotels(city);
+  else if (vendor === 'expedia') summaries = await expediaSearchHotels(city);
+  else if (vendor === 'amadeus') summaries = await amadeusSearchHotels(city);
   const list = summaries.slice(0, limit);
 
   let upserted = 0, updated = 0; const scanned = list.length;
   for (const s of list as CombinedSummary[]) {
     try {
       // 2) Fetch details to get images/amenities when available
-      const d: CombinedDetails | null = vendor === 'booking'
-        ? await bookingGetHotelDetails(s.id)
-        : await expediaGetHotelDetails(s.id);
+      let d: CombinedDetails | null = null;
+      if (vendor === 'booking') d = await bookingGetHotelDetails(s.id);
+      else if (vendor === 'expedia') d = await expediaGetHotelDetails(s.id);
+      else if (vendor === 'amadeus') d = await amadeusGetHotelDetails(s.id);
       const details = d || s;
       const name = details.name || s.name;
       const cityName = details.city || s.city || city;
@@ -62,9 +65,9 @@ async function run(vendor: Vendor, city: string, limit = 100) {
         .map((x) => x.replace(/\bpet(s)?\b/i, 'Pet-friendly'));
 
       // 3) Build affiliate URL if empty
-      const affiliate = vendor === 'booking'
-        ? bookingSearchUrl({ name, city: cityName || null, country })
-        : expediaSearchUrl({ name, city: cityName || null, country });
+      const affiliate = vendor === 'expedia'
+        ? expediaSearchUrl({ name, city: cityName || null, country })
+        : bookingSearchUrl({ name, city: cityName || null, country });
       const affiliateUrl = buildAffiliateUrl(affiliate);
 
       // 4) Upsert hotel
