@@ -259,7 +259,7 @@ async function Results({
     if (supabase) {
       type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null; amenities?: string[] | null };
       type CS = { hotel_id: string; score: number | null; score_final: number | null };
-      let query = supabase
+      const query = supabase
         .from('hotels')
         .select('id,slug,name,city,country,rating,price,affiliate_url,amenities')
         .ilike('city', `%${city}%`)
@@ -313,4 +313,3 @@ async function Results({
   // No city and no data: render nothing (no fallbacks)
   return <div className="grid md:grid-cols-3 gap-3 auto-rows-fr" />;
 }
-

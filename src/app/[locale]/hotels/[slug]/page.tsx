@@ -8,17 +8,7 @@ import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { shimmer } from "@/lib/image";
 
-type HotelRow = {
-  id: string;
-  slug: string;
-  name: string;
-  city: string | null;
-  country: string | null;
-  website: string | null;
-  affiliate_url: string | null;
-  rating: number | null;
-  reviews_count: number | null;
-};
+// Using implicit types from Supabase rows to avoid unused warnings
 
 type Props = { params: { slug: string; locale: string } };
 

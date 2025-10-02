@@ -41,19 +41,18 @@ export async function bookingSearchHotels(city: string): Promise<BookingHotelSum
   url.searchParams.set('city', city);
   const res = await fetch(url.toString(), { headers: bookingHeaders(), next: { revalidate: 3600 } });
   if (!res.ok) return [];
-  const json = await res.json();
-  // Map vendor payload -> summary
-  const arr: any[] = Array.isArray(json?.hotels) ? json.hotels : [];
-  return arr.map((h) => ({
-    id: String(h.id || h.hotel_id || ''),
-    name: String(h.name || h.title || ''),
-    address: h.address || null,
-    city: h.city || null,
-    country: h.country || null,
-    latitude: (typeof h.latitude === 'number' ? h.latitude : null),
-    longitude: (typeof h.longitude === 'number' ? h.longitude : null),
-    rating10: (typeof h.review_score === 'number' ? Number(h.review_score) : null),
-    reviewsCount: (typeof h.review_count === 'number' ? Number(h.review_count) : null),
+  const json: unknown = await res.json();
+  const list = getArray(json, 'hotels');
+  return list.map((h) => ({
+    id: str(h, 'id') || str(h, 'hotel_id') || '',
+    name: str(h, 'name') || str(h, 'title') || '',
+    address: str(h, 'address'),
+    city: str(h, 'city'),
+    country: str(h, 'country'),
+    latitude: num(h, 'latitude'),
+    longitude: num(h, 'longitude'),
+    rating10: num(h, 'review_score'),
+    reviewsCount: num(h, 'review_count'),
   }));
 }
 
@@ -63,23 +62,32 @@ export async function bookingGetHotelDetails(id: string): Promise<BookingHotelDe
   const url = new URL(`/v1/hotels/${encodeURIComponent(id)}`, base);
   const res = await fetch(url.toString(), { headers: bookingHeaders(), next: { revalidate: 86400 } });
   if (!res.ok) return null;
-  const h = await res.json();
-  const images: string[] = Array.isArray(h?.images) ? h.images.map((i: any) => String(i.url || i.src)).filter(Boolean) : [];
-  const amenities: string[] = Array.isArray(h?.amenities) ? h.amenities.map((a: any) => String(a.name || a)).filter(Boolean) : [];
+  const h: unknown = await res.json();
+  const images: string[] = getArray(h, 'images')
+    .map((i) => (str(i, 'url') || str(i, 'src')))
+    .filter((u): u is string => !!u);
+  const amenities: string[] = getArray(h, 'amenities')
+    .map((a) => (typeof a === 'string' ? a : (str(a, 'name') || null)))
+    .filter((v): v is string => !!v);
   const out: BookingHotelDetails = {
-    id: String(h.id || ''),
-    name: String(h.name || ''),
-    address: h.address || null,
-    city: h.city || null,
-    country: h.country || null,
-    latitude: (typeof h.latitude === 'number' ? h.latitude : null),
-    longitude: (typeof h.longitude === 'number' ? h.longitude : null),
-    rating10: (typeof h.review_score === 'number' ? Number(h.review_score) : null),
-    reviewsCount: (typeof h.review_count === 'number' ? Number(h.review_count) : null),
-    website: h.website || null,
+    id: str(h, 'id') || '',
+    name: str(h, 'name') || '',
+    address: str(h, 'address'),
+    city: str(h, 'city'),
+    country: str(h, 'country'),
+    latitude: num(h, 'latitude'),
+    longitude: num(h, 'longitude'),
+    rating10: num(h, 'review_score'),
+    reviewsCount: num(h, 'review_count'),
+    website: str(h, 'website'),
     images,
     amenities,
   };
   return out;
 }
 
+// helpers
+function isObj(x: unknown): x is Record<string, unknown> { return typeof x === 'object' && x !== null; }
+function getArray(obj: unknown, key: string): unknown[] { if (isObj(obj)) { const v = obj[key]; if (Array.isArray(v)) return v as unknown[]; } return []; }
+function str(obj: unknown, key: string): string | null { if (!isObj(obj)) return null; const v = obj[key]; if (typeof v === 'string') return v; if (typeof v === 'number') return String(v); return null; }
+function num(obj: unknown, key: string): number | null { if (!isObj(obj)) return null; const v = obj[key]; if (typeof v === 'number') return v; return null; }

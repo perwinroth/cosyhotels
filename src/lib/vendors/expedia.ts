@@ -37,18 +37,18 @@ export async function expediaSearchHotels(city: string): Promise<ExpediaHotelSum
   url.searchParams.set('city', city);
   const res = await fetch(url.toString(), { headers: expediaHeaders(), next: { revalidate: 3600 } });
   if (!res.ok) return [];
-  const json = await res.json();
-  const arr: any[] = Array.isArray(json?.results) ? json.results : [];
+  const json: unknown = await res.json();
+  const arr = getArray(json, 'results');
   return arr.map((h) => ({
-    id: String(h.id || h.property_id || ''),
-    name: String(h.name || h.title || ''),
-    address: h.address || null,
-    city: h.city || h.location?.city || null,
-    country: h.country || h.location?.country || null,
-    latitude: (typeof h.latitude === 'number' ? h.latitude : (typeof h.location?.lat === 'number' ? h.location.lat : null)),
-    longitude: (typeof h.longitude === 'number' ? h.longitude : (typeof h.location?.lng === 'number' ? h.location.lng : null)),
-    rating10: (typeof h.rating === 'number' ? Number(h.rating) : null),
-    reviewsCount: (typeof h.reviews === 'number' ? Number(h.reviews) : null),
+    id: str(h, 'id') || str(h, 'property_id') || '',
+    name: str(h, 'name') || str(h, 'title') || '',
+    address: str(h, 'address'),
+    city: str(h, 'city') || strDeep(h, ['location','city']),
+    country: str(h, 'country') || strDeep(h, ['location','country']),
+    latitude: num(h, 'latitude') ?? numDeep(h, ['location','lat']),
+    longitude: num(h, 'longitude') ?? numDeep(h, ['location','lng']),
+    rating10: num(h, 'rating'),
+    reviewsCount: num(h, 'reviews'),
   }));
 }
 
@@ -58,24 +58,33 @@ export async function expediaGetHotelDetails(id: string): Promise<ExpediaHotelDe
   const url = new URL(`/v3/properties/content/${encodeURIComponent(id)}`, base);
   const res = await fetch(url.toString(), { headers: expediaHeaders(), next: { revalidate: 86400 } });
   if (!res.ok) return null;
-  const h = await res.json();
-  const imgsRaw = (Array.isArray(h?.images) ? h.images : (Array.isArray(h?.media) ? h.media : [])) as any[];
-  const images = imgsRaw.map((i) => String(i.url || i.href || i.src)).filter(Boolean);
-  const amenities: string[] = Array.isArray(h?.amenities) ? h.amenities.map((a: any) => String(a.name || a)).filter(Boolean) : [];
+  const h: unknown = await res.json();
+  const imgsRaw = getArray(h, 'images').length ? getArray(h, 'images') : getArray(h, 'media');
+  const images = imgsRaw.map((i) => (str(i, 'url') || str(i, 'href') || str(i, 'src'))).filter((u): u is string => !!u);
+  const amenities: string[] = getArray(h, 'amenities')
+    .map((a) => (typeof a === 'string' ? a : (str(a, 'name') || null)))
+    .filter((v): v is string => !!v);
   const out: ExpediaHotelDetails = {
-    id: String(h.id || h.property_id || id),
-    name: String(h.name || ''),
-    address: h.address || null,
-    city: h.city || h.location?.city || null,
-    country: h.country || h.location?.country || null,
-    latitude: (typeof h.latitude === 'number' ? h.latitude : (typeof h.location?.lat === 'number' ? h.location.lat : null)),
-    longitude: (typeof h.longitude === 'number' ? h.longitude : (typeof h.location?.lng === 'number' ? h.location.lng : null)),
-    rating10: (typeof h.rating === 'number' ? Number(h.rating) : null),
-    reviewsCount: (typeof h.reviews === 'number' ? Number(h.reviews) : null),
-    website: h.website || null,
+    id: str(h, 'id') || str(h, 'property_id') || id,
+    name: str(h, 'name') || '',
+    address: str(h, 'address'),
+    city: str(h, 'city') || strDeep(h, ['location','city']),
+    country: str(h, 'country') || strDeep(h, ['location','country']),
+    latitude: num(h, 'latitude') ?? numDeep(h, ['location','lat']),
+    longitude: num(h, 'longitude') ?? numDeep(h, ['location','lng']),
+    rating10: num(h, 'rating'),
+    reviewsCount: num(h, 'reviews'),
+    website: str(h, 'website'),
     images,
     amenities,
   };
   return out;
 }
 
+// helpers
+function isObj(x: unknown): x is Record<string, unknown> { return typeof x === 'object' && x !== null; }
+function getArray(obj: unknown, key: string): unknown[] { if (isObj(obj)) { const v = obj[key]; if (Array.isArray(v)) return v as unknown[]; } return []; }
+function str(obj: unknown, key: string): string | null { if (!isObj(obj)) return null; const v = obj[key]; if (typeof v === 'string') return v; if (typeof v === 'number') return String(v); return null; }
+function num(obj: unknown, key: string): number | null { if (!isObj(obj)) return null; const v = obj[key]; if (typeof v === 'number') return v; return null; }
+function strDeep(obj: unknown, path: string[]): string | null { let cur: unknown = obj; for (const k of path) { if (!isObj(cur)) return null; cur = cur[k]; } return typeof cur === 'string' ? cur : null; }
+function numDeep(obj: unknown, path: string[]): number | null { let cur: unknown = obj; for (const k of path) { if (!isObj(cur)) return null; cur = cur[k]; } return typeof cur === 'number' ? cur : null; }
