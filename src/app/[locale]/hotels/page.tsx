@@ -8,6 +8,8 @@ import { cityGuides } from "@/data/cityGuides";
 import { getImageForHotel } from "@/lib/hotelImages";
 import HotelTile from "@/components/HotelTile";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { amadeusSearchHotels, amadeusGetHotelDetails } from "@/lib/vendors/amadeus";
+import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 
 // Type guard to narrow out nulls from arrays
 function nonNull<T>(x: T | null | undefined): x is T { return x != null; }
@@ -251,6 +253,43 @@ async function Results({
         );
       }
     }
+    // Live fallback: query Amadeus for a few popular cities and compose a list
+    const seedCities = ["Paris","Rome","Lisbon","Barcelona","Amsterdam","Berlin","Tokyo","Kyoto","New York"]; // simple seed
+    const picks: Array<{ slug: string; name: string; city: string; country: string; rating: number; price: number; _cosy: number; _img: string; affiliateUrl: string }> = [];
+    for (const c of seedCities) {
+      try {
+        const summaries = await amadeusSearchHotels(c);
+        for (const s of summaries.slice(0, 3)) {
+          const d = await amadeusGetHotelDetails(s.id);
+          const name = (d?.name || '').trim();
+          const cityName = (d?.city || c) || '';
+          const country = (d?.country || '') || '';
+          const slug = `${name || s.id}-${cityName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+          const affiliateBase = bookingSearchUrl({ name, city: cityName, country });
+          const affiliateUrl = buildAffiliateUrl(affiliateBase);
+          picks.push({ slug, name: name || s.id, city: cityName, country, rating: 0, price: NaN, _cosy: 7.0, _img: '/seal.svg', affiliateUrl });
+          if (picks.length >= 9) break;
+        }
+        if (picks.length >= 9) break;
+      } catch {}
+    }
+    if (picks.length) {
+      return (
+        <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+          <div className="col-span-full sr-only" aria-live="polite">Top cosy places (live)</div>
+          {picks.map((h, i) => (
+            <HotelTile
+              key={`${h.slug}-${i}`}
+              hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
+              href={`/${locale}/hotels/${h.slug}`}
+              goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+              priority={i === 0}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+            />
+          ))}
+        </div>
+      );
+    }
   }
 
   // City search: Supabase-only
@@ -309,6 +348,37 @@ async function Results({
         </div>
       );
     }
+    // Live search via Amadeus if Supabase unavailable or empty
+    try {
+      const summaries = await amadeusSearchHotels(city);
+      const items: Array<{ slug: string; name: string; city: string; country: string; rating: number; price: number; _cosy: number; _img: string; affiliateUrl: string }> = [];
+      for (const s of summaries.slice(0, 24)) {
+        const d = await amadeusGetHotelDetails(s.id);
+        const name = (d?.name || '').trim();
+        const cityName = (d?.city || city) || '';
+        const country = (d?.country || '') || '';
+        const slug = `${name || s.id}-${cityName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+        const affiliateBase = bookingSearchUrl({ name, city: cityName, country });
+        const affiliateUrl = buildAffiliateUrl(affiliateBase);
+        items.push({ slug, name: name || s.id, city: cityName, country, rating: 0, price: NaN, _cosy: 7.0, _img: '/seal.svg', affiliateUrl });
+      }
+      if (items.length) {
+        return (
+          <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
+            <div className="col-span-full sr-only" aria-live="polite">{items.length} results in {city} (live)</div>
+            {items.map((h, i) => (
+              <HotelTile
+                key={`${h.slug}-${i}`}
+                hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
+                href={`/${locale}/hotels/${h.slug}`}
+                goHref={h.affiliateUrl ? `/go/${h.slug}` : undefined}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
+              />
+            ))}
+          </div>
+        );
+      }
+    } catch {}
   }
   // No city and no data: render nothing (no fallbacks)
   return <div className="grid md:grid-cols-3 gap-3 auto-rows-fr" />;
