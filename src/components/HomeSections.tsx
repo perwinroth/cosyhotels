@@ -37,12 +37,13 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
     router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
   }
 
-  // Fetch Google Places suggestions for city input (free text remains allowed)
+  // Fetch suggestions only when Places explicitly enabled
   useEffect(() => {
     const q = city.trim();
     if (!q) { setSuggestions([]); return; }
     const t = setTimeout(async () => {
-      if (process.env.NEXT_PUBLIC_DISABLE_PLACES === 'true') { setSuggestions([]); return; }
+      const placesDisabled = process.env.NEXT_PUBLIC_DISABLE_PLACES !== 'false';
+      if (placesDisabled) { setSuggestions([]); return; }
       try {
         const res = await fetch(`/api/places/search?query=${encodeURIComponent(q)}`);
         if (!res.ok) { setSuggestions([]); return; }

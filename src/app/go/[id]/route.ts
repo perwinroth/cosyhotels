@@ -24,15 +24,17 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
         hotelId = String(h.id);
         // Optional: Accept provider and clickId
         const url = new URL(req.url);
-        const providerParam = url.searchParams.get("provider");
-        const isProvider = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact","booking","expedia"].includes(p);
+        const vendorParam = url.searchParams.get("provider"); // vendor: booking|expedia
+        const networkParam = url.searchParams.get("network"); // network: impact|awin|cj|generic
+        const isNetwork = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact"].includes(p);
+        const network: Provider = isNetwork(networkParam) ? networkParam : 'generic';
         // If a specific vendor is requested, compute deep link on the fly
-        if (providerParam === 'booking') {
+        if (vendorParam === 'booking') {
           const base = bookingSearchUrl({ name: String(h.name || ''), city: h.city || null, country: h.country || null });
-          target = buildAffiliateUrl(base, { provider: 'generic' });
-        } else if (providerParam === 'expedia') {
+          target = buildAffiliateUrl(base, { provider: network });
+        } else if (vendorParam === 'expedia') {
           const base = expediaSearchUrl({ name: String(h.name || ''), city: h.city || null, country: h.country || null });
-          target = buildAffiliateUrl(base, { provider: 'generic' });
+          target = buildAffiliateUrl(base, { provider: network });
         } else {
           target = h.affiliate_url || h.website || "/";
         }
@@ -46,9 +48,9 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
 
   // Optional: Accept provider and clickId
   const url2 = new URL(req.url);
-  const providerParam2 = url2.searchParams.get("provider");
-  const isProvider2 = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact","booking","expedia"].includes(p);
-  const provider: Provider | undefined = isProvider2(providerParam2) ? providerParam2 : undefined;
+  const networkParam2 = url2.searchParams.get("network");
+  const isNetwork2 = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact"].includes(p);
+  const provider: Provider | undefined = isNetwork2(networkParam2) ? networkParam2 : undefined;
   const clickId = url2.searchParams.get("clickId") || undefined;
   // target precomputed from Supabase (affiliate_url or website)
 

@@ -5,6 +5,9 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import slugify from "slugify";
 
 export async function POST(req: Request) {
+  if (process.env.DISABLE_PLACES === 'true') {
+    return NextResponse.json({ error: 'Places disabled' }, { status: 404 });
+  }
   const supabase = getServerSupabase();
   if (!supabase) return NextResponse.redirect("/admin/candidates");
 

@@ -1,17 +1,12 @@
-// Supabase-first detail page with Places fallback and upsert
+// Hotel detail (Supabase-only; no Google Places fallback or upsert)
 import { notFound, permanentRedirect } from "next/navigation";
 import Image from "next/image";
-import { shimmer } from "@/lib/image";
-import { getDetails, photoUrl, type PlaceDetails } from "@/lib/places";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
-import { cosyScore, cosyParts } from "@/lib/scoring/cosy";
 import { buildCosySnippet } from "@/i18n/snippets";
-import { bookingSearchUrl, expediaSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { generateHotelSlug } from "@/lib/slug";
-import { getOSMContext } from "@/lib/context/osm";
+import { shimmer } from "@/lib/image";
 
 type HotelRow = {
   id: string;
@@ -23,457 +18,112 @@ type HotelRow = {
   affiliate_url: string | null;
   rating: number | null;
   reviews_count: number | null;
-  source_id: string | null;
-  lat?: number | null;
-  lng?: number | null;
 };
 
-type Props = { params: { slug: string; locale: string }; searchParams?: Record<string, string | string[] | undefined> };
+type Props = { params: { slug: string; locale: string } };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { slug: string; locale: string } }): Promise<Metadata> {
   const languages = Object.fromEntries([
     ...locales.map((l) => [l, `/${l}/hotels/${params.slug}`]),
     ["x-default", `/en/hotels/${params.slug}`],
   ]);
   const url = `/${params.locale}/hotels/${params.slug}`;
-  // Try Supabase first by slug or source_id
   const db = getServerSupabase();
   if (db) {
-    const { data: h1 } = await db
+    const { data: h } = await db
       .from("hotels")
-      .select("name, city, country, source_id, slug")
+      .select("name, city, country, slug")
       .eq("slug", params.slug)
       .maybeSingle();
-    const hotel = h1 || (await db.from("hotels").select("name, city, country, source_id, slug").eq("source_id", params.slug).maybeSingle()).data || null;
-    if (hotel) {
-      const title = `${hotel.name} | ${site.name}`;
-      const description = [hotel.city, hotel.country].filter(Boolean).join(", ") || "Cosy boutique stay.";
+    if (h) {
+      const title = `${h.name} | ${site.name}`;
+      const description = [h.city, h.country].filter(Boolean).join(", ") || "Cosy boutique stay.";
       return { title, description, alternates: { canonical: url, languages } };
     }
-  }
-  // Fallback to Places for metadata
-  const d = process.env.DISABLE_PLACES === 'true' ? null : await getDetails(params.slug);
-  if (d) {
-    const title = `${d.name} | ${site.name}`;
-    const description = d.formatted_address || "Cosy boutique stay.";
-    const ref = d.photos?.[0]?.photo_reference;
-    const ogImg = ref ? photoUrl(ref, 1200) : "/logo-seal.svg";
-    return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: ogImg, width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description, images: [ogImg] } };
   }
   return { alternates: { canonical: url, languages } };
 }
 
-export default async function HotelDetail({ params, searchParams }: Props) {
+export default async function HotelDetail({ params }: Props) {
   const db = getServerSupabase();
-  let hotel: HotelRow | null = null;
-  let cosy: number | null = null;
+  if (!db) return notFound();
 
-  if (db) {
-    // Try by slug first (tiles link using hotel.slug), then by source_id (Place ID)
-    const { data: hBySlug } = await db
-      .from("hotels")
-      .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,source_id,lat,lng")
-      .eq("slug", params.slug)
-      .maybeSingle();
-    hotel = hBySlug || null;
-    if (!hotel) {
-      const { data: hBySrc } = await db
-        .from("hotels")
-        .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,source_id,lat,lng")
-        .eq("source_id", params.slug)
-        .maybeSingle();
-      hotel = hBySrc || null;
-    }
-    if (hotel) {
-      const { data: scoreRow } = await db
-        .from("cosy_scores")
-        .select("score,score_final")
-        .eq("hotel_id", hotel.id)
-        .maybeSingle();
-      cosy = (scoreRow?.score_final as number | null) ?? (scoreRow?.score as number | null) ?? null;
-    }
-  }
+  const { data: hotel } = await db
+    .from("hotels")
+    .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count")
+    .eq("slug", params.slug)
+    .maybeSingle();
+  if (!hotel) return notFound();
 
-  // If not in Supabase, fetch from Places and upsert to DB
-  let name = hotel?.name || "";
-  let city = (hotel?.city as string | null) || "";
-  let country = (hotel?.country as string | null) || "";
-  let website = hotel?.website || null;
-  const affiliateUrl = hotel?.affiliate_url || null;
-  let image: string = "/logo-seal.svg";
+  const { data: scoreRow } = await db
+    .from("cosy_scores")
+    .select("score,score_final")
+    .eq("hotel_id", hotel.id)
+    .maybeSingle();
+  const cosy = (scoreRow?.score_final as number | null) ?? (scoreRow?.score as number | null) ?? null;
 
-  // Try fast Supabase-backed data first (images + cues) to avoid blocking on Places
-  // Use unknown + a type guard to avoid TSX control-flow oddities with intrinsics
-  let gDetails: unknown = null;
-  const isPlaceDetails = (x: unknown): x is PlaceDetails => !!x && typeof x === 'object';
-  let cityTop: { rating5: number | null; reviews_count: number | null; cues: string[] | null; image_url: string | null } | null = null;
-  let cachedImageUrl: string | null = null;
-  if (db && hotel) {
-    const { data: img } = await db
-      .from('hotel_images')
-      .select('url')
-      .eq('hotel_id', hotel.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    cachedImageUrl = (img?.url as string | undefined) || null;
-    const { data: ct } = await db
-      .from('city_top')
-      .select('rating5,reviews_count,cues,image_url')
-      .eq('hotel_id', hotel.id)
-      .maybeSingle();
-    if (ct) cityTop = ct as unknown as typeof cityTop;
-  }
-  if (!hotel && db) {
-    // Upsert minimal record so subsequent visits use Supabase
-    const placeId = params.slug;
-    const d = process.env.DISABLE_PLACES === 'true' ? null : await getDetails(placeId);
-    if (d) {
-      const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
-      const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
-      const countryName = parts.length ? parts[parts.length - 1] : '';
-      const am: string[] = [];
-      const sLower = (d.editorial_summary?.overview || d.formatted_address || '').toLowerCase();
-      if (sLower.includes("spa")) am.push("Spa");
-      if (sLower.includes("sauna")) am.push("Sauna");
-      if (sLower.includes("fireplace")) am.push("Fireplace");
-      if (sLower.includes("bath")) am.push("Bathtub");
-      if (sLower.includes("rooftop")) am.push("Rooftop");
-      if (sLower.includes("garden")) am.push("Garden");
-      if (sLower.includes("bar")) am.push("Bar");
-      if (sLower.includes("restaurant")) am.push("Restaurant");
-      const slug = await generateHotelSlug(db!, d.name || params.slug, cityName, countryName);
-      const { data: inserted } = await db
-        .from("hotels")
-        .upsert({
-          source: "google-places",
-          source_id: d.place_id,
-          slug,
-          name: d.name,
-          address: d.formatted_address || null,
-          city: cityName,
-          country: countryName,
-          lat: d.geometry?.location.lat ?? null,
-          lng: d.geometry?.location.lng ?? null,
-          rating: d.rating ? Number((d.rating * 2).toFixed(1)) : null,
-          reviews_count: d.user_ratings_total ?? null,
-          rooms_count: null,
-          amenities: am.length ? am : null,
-          description: d.editorial_summary?.overview || d.formatted_address || null,
-          website: d.website || null,
-          affiliate_url: null,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "slug" })
-        .select("id,slug,name,city,country,website,affiliate_url,source_id,rating,reviews_count")
-        .single();
-      if (inserted) {
-        hotel = inserted as unknown as HotelRow;
-        const base = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am, description: `${d.name}. ${d.editorial_summary?.overview || d.formatted_address || ''}`, name: d.name, website: d.website, reviewsCount: d.user_ratings_total ?? undefined, city: cityName });
-        await db.from("cosy_scores").upsert({ hotel_id: inserted.id, score: base, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
-        cosy = base; // until cron normalizes and sets score_final
-      }
-    }
-  }
+  const { data: img } = await db
+    .from('hotel_images')
+    .select('url')
+    .eq('hotel_id', hotel.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const image = (img?.url as string | undefined) || "/logo-seal.svg";
 
-  if (!hotel && !isPlaceDetails(gDetails)) return notFound();
+  // Use DB values to compose concise snippet
+  const rating5 = typeof hotel.rating === 'number' ? Number(hotel.rating) / 2 : undefined;
+  const cosyDisplay = typeof cosy === 'number' ? cosy : undefined;
+  const cosySnippet = buildCosySnippet(params.locale, {
+    city: String(hotel.city || ''),
+    name: String(hotel.name),
+    rating: rating5,
+    reviewsCount: (typeof hotel.reviews_count === 'number' ? hotel.reviews_count : undefined),
+    cues: [],
+    idealLevel: 'warm',
+  });
 
-  // Redirect to canonical SEO slug if the URL uses a Place ID or old slug
-  if (hotel && params.slug !== hotel.slug) {
+  // Redirect to canonical SEO slug if any mismatch (future-safe)
+  if (params.slug !== hotel.slug) {
     permanentRedirect(`/${params.locale}/hotels/${hotel.slug}`);
   }
 
-  // If hotel exists but has no cosy score yet, compute a base score from details and persist
-  if (db && hotel && cosy == null) {
-    const d: PlaceDetails | null = (process.env.DISABLE_PLACES === 'true') ? null : (isPlaceDetails(gDetails) ? gDetails : (hotel.source_id ? await getDetails(hotel.source_id) : null));
-    if (d) {
-      const parts = (d.formatted_address || "").split(',').map(s => s.trim()).filter(Boolean);
-      const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
-      const summary = d.editorial_summary?.overview || d.formatted_address || '';
-      const am2: string[] = [];
-      const t = summary.toLowerCase();
-      if (t.includes("spa")) am2.push("Spa");
-      if (t.includes("sauna")) am2.push("Sauna");
-      if (t.includes("fireplace")) am2.push("Fireplace");
-      if (t.includes("bath")) am2.push("Bathtub");
-      if (t.includes("rooftop")) am2.push("Rooftop");
-      if (t.includes("garden")) am2.push("Garden");
-      if (t.includes("bar")) am2.push("Bar");
-      if (t.includes("restaurant")) am2.push("Restaurant");
-      const base = cosyScore({ rating: d.rating ? d.rating * 2 : undefined, amenities: am2, description: `${d.name}. ${summary}`, name: d.name, website: d.website, reviewsCount: d.user_ratings_total ?? undefined, city: cityName });
-      await db.from("cosy_scores").upsert({ hotel_id: hotel.id, score: base, computed_at: new Date().toISOString() }, { onConflict: "hotel_id" });
-      cosy = base;
-    }
-  }
-
-  // Resolve fields for UI
-  name = name || hotel?.name || "Hotel";
-  if (!city || !country) {
-    let addr = "";
-    if (isPlaceDetails(gDetails)) {
-      addr = gDetails.formatted_address || "";
-    }
-    const parts = addr.split(',').map(s => s.trim()).filter(Boolean);
-    city = city || (parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || ""));
-    country = country || (parts.length ? parts[parts.length - 1] : "");
-  }
-  {
-    const fromDetails = isPlaceDetails(gDetails) ? (gDetails.website ?? null) : null;
-    website = website || fromDetails;
-  }
-  // Prefer cached Supabase image first; only hit Places if nothing cached
-  if (cachedImageUrl) image = cachedImageUrl;
-  else {
-    const cto: unknown = cityTop;
-    let imgTop: string | null = null;
-    if (cto && typeof cto === 'object' && 'image_url' in cto) {
-      imgTop = (cto as { image_url: string | null }).image_url ?? null;
-    }
-    if (imgTop) image = imgTop;
-    else {
-      const placeId = hotel?.source_id || params.slug;
-      gDetails = await getDetails(placeId);
-      let ref: string | undefined = undefined;
-      if (isPlaceDetails(gDetails)) {
-        ref = gDetails.photos?.[0]?.photo_reference;
-      }
-      image = ref ? photoUrl(ref, 1200) : image;
-    }
-  }
-  // Will compute local cosy after deriving text cues
-
-  // CTA links are built on the fly via /go provider parameter; no precompute needed here
-
-  // Optional debug view (only when ?debug=true)
-  const debug = (typeof searchParams?.debug === 'string' && searchParams?.debug === 'true');
-
-  // Build richer cosy snippet (<= ~160 chars) using Places cues
-  let detailsRating: number | undefined = undefined;
-  let detailsReviews: number | undefined = undefined;
-  let priceLevel: number | undefined = undefined;
-  let overviewTxt = '';
-  let addrTxt = '';
-  if (isPlaceDetails(gDetails)) {
-    detailsRating = gDetails.rating;
-    detailsReviews = gDetails.user_ratings_total ?? undefined;
-    priceLevel = gDetails.price_level;
-    overviewTxt = gDetails.editorial_summary?.overview || '';
-    addrTxt = gDetails.formatted_address || '';
-  }
-  let topRating5: number | null = null;
-  let topReviews: number | null = null;
-  let topCues: string[] | null = null;
-  {
-    const cto: unknown = cityTop;
-    if (cto && typeof cto === 'object') {
-      const s = cto as { rating5?: number | null; reviews_count?: number | null; cues?: string[] | null };
-      topRating5 = s.rating5 ?? null;
-      topReviews = s.reviews_count ?? null;
-      topCues = s.cues ?? null;
-    }
-  }
-  const rating5 = topRating5 ?? (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : detailsRating);
-  const reviewsTotal = topReviews ?? (detailsReviews ?? hotel?.reviews_count ?? undefined);
-  const priceText = typeof priceLevel === 'number' ? ['budget','budget','mid-range','upscale','luxury'][Math.max(0, Math.min(4, priceLevel))] : undefined;
-  const textSrc = `${overviewTxt} ${addrTxt}`.toLowerCase();
-  // Compute robust local cosy using current signals + OSM context, then take max with DB cosy
-  const inferredAmenities: string[] = [];
-  if (textSrc.includes('fireplace') || textSrc.includes('stove') || textSrc.includes('log fire')) inferredAmenities.push('fireplace');
-  if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) inferredAmenities.push('bathtub');
-  if (textSrc.includes('spa')) inferredAmenities.push('spa');
-  if (textSrc.includes('sauna')) inferredAmenities.push('sauna');
-  if (textSrc.includes('garden') || textSrc.includes('courtyard')) inferredAmenities.push('garden');
-  if (textSrc.includes('rooftop') || textSrc.includes('terrace')) inferredAmenities.push('rooftop');
-  const rating10 = (typeof hotel?.rating === 'number') ? Number(hotel?.rating) : (typeof detailsRating === 'number' ? detailsRating * 2 : undefined);
-  let lat: number | null = null, lng: number | null = null;
-  if (isPlaceDetails(gDetails)) { lat = gDetails.geometry?.location.lat ?? null; lng = gDetails.geometry?.location.lng ?? null; }
-  else if (hotel && typeof hotel.lat === 'number' && typeof hotel.lng === 'number') { lat = hotel.lat; lng = hotel.lng; }
-  let ctx = { natureProximity: 0, nightlifeDensity: 0, walkability: 0 };
-  try { if (lat != null && lng != null) ctx = await getOSMContext(lat, lng); } catch {}
-  const localCosy = cosyScore({ rating: rating10, amenities: inferredAmenities, description: textSrc, name, website: website || undefined, city, country, reviewsCount: (typeof reviewsTotal === 'number' ? reviewsTotal : undefined) }, ctx);
-  const cosyDisplay = typeof cosy === 'number' ? Math.max(cosy, localCosy) : localCosy;
-  const cues: string[] = [];
-  if (topCues && topCues.length) {
-    for (const k of topCues) {
-      if (k === 'spa') cues.push('a soothing spa');
-      if (k === 'sauna') cues.push('a calming sauna');
-      if (k === 'tubs') cues.push('soaking tubs');
-      if (k === 'fireplace') cues.push('fireside warmth');
-      if (k === 'garden') cues.push('a quiet garden');
-      if (k === 'rooftop') cues.push('a rooftop view');
-    }
-  } else if (isPlaceDetails(gDetails)) {
-    if (textSrc.includes('fireplace')) cues.push('fireside warmth');
-    if (textSrc.includes('bathtub') || textSrc.includes('soaking') || textSrc.includes('bath')) cues.push('soaking tubs');
-    if (textSrc.includes('spa')) cues.push('a soothing spa');
-    if (textSrc.includes('sauna')) cues.push('a calming sauna');
-    if (textSrc.includes('garden')) cues.push('a quiet garden');
-    if (textSrc.includes('rooftop')) cues.push('a rooftop view');
-  }
-  // Pull hints from reviews text without quoting
-  if (isPlaceDetails(gDetails) && gDetails.reviews && gDetails.reviews.length) {
-    const joined = gDetails.reviews.map((r) => (r.text || '').toLowerCase()).join(' ');
-    if (joined.includes('quiet') && !cues.includes('a quiet vibe')) cues.push('a tranquil vibe');
-    if (joined.includes('romantic') && !cues.includes('a romantic feel')) cues.push('a romantic feel');
-  }
-  // cues already processed into cueKeys; buildCosySnippet will handle phrasing
-  // buildCosySnippet composes localized review phrase using rating/reviewsTotal
-  const cueKeys: string[] = [];
-  if (cues.includes('a soothing spa')) cueKeys.push('spa');
-  if (cues.includes('a calming sauna')) cueKeys.push('sauna');
-  if (cues.includes('soaking tubs')) cueKeys.push('tubs');
-  if (cues.includes('fireside warmth')) cueKeys.push('fireplace');
-  if (cues.includes('a quiet garden')) cueKeys.push('garden');
-  if (cues.includes('a rooftop view')) cueKeys.push('rooftop');
-  if (cues.includes('a tranquil vibe')) cueKeys.push('tranquil');
-  if (cues.includes('a romantic feel')) cueKeys.push('romantic');
-  const idealLevel: 'budget' | 'mid-range' | 'upscale' | 'luxury' | 'warm' = (priceText === 'budget' || priceText === 'mid-range' || priceText === 'upscale' || priceText === 'luxury') ? (priceText as 'budget' | 'mid-range' | 'upscale' | 'luxury') : 'warm';
-  const cosySnippet = buildCosySnippet(params.locale, {
-    city: city || '',
-    name,
-    rating: rating5,
-    reviewsCount: reviewsTotal || undefined,
-    cues: cueKeys,
-    idealLevel,
-  });
-
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      {/* Title, address, snippet */}
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
-      <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
+      <h1 className="mt-4 text-3xl font-semibold tracking-tight">{hotel.name}</h1>
+      <div className="mt-1 text-zinc-600">{[hotel.city, hotel.country].filter(Boolean).join(', ')}</div>
       <p className="mt-3 text-sm text-zinc-700">{cosySnippet}</p>
 
       <div className="mt-3 relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
-        <Image src={image} alt={`${name}`} fill priority className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
+        <Image src={image} alt={`${hotel.name}`} fill priority className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
       </div>
-      {/* Hotel structured data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Hotel',
-            name,
-            url: `/${params.locale}/hotels/${hotel?.slug || params.slug}`,
-            image,
-            address: {
-              '@type': 'PostalAddress',
-              addressLocality: city || undefined,
-              addressCountry: country || undefined,
-            },
-            aggregateRating: (() => {
-              const r5 = (isPlaceDetails(gDetails) && typeof gDetails.rating === 'number') ? Number(gDetails.rating) : (typeof hotel?.rating === 'number' ? Number(hotel?.rating) / 2 : undefined);
-              return r5 ? { '@type': 'AggregateRating', ratingValue: Number(r5.toFixed(1)), bestRating: 5, worstRating: 1 } : undefined;
-            })(),
-          })
-        }}
-      />
-      
-      <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${(cosyDisplay).toFixed(1)} out of 10`}>
+
+      <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'} out of 10`}>
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm text-zinc-600">Cosy score</div>
-            <div className="text-2xl font-semibold">{cosyDisplay.toFixed(1)}<span className="text-base text-zinc-500">/10</span></div>
+            <div className="text-2xl font-semibold">{cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'}<span className="text-base text-zinc-500">/10</span></div>
           </div>
           <span />
         </div>
       </div>
 
-      {debug && (() => {
-        // Compute a local breakdown for transparency
-        const inferredAmenities: string[] = [];
-        const t = textSrc || '';
-        if (t.includes('spa')) inferredAmenities.push('spa');
-        if (t.includes('sauna')) inferredAmenities.push('sauna');
-        if (t.includes('fireplace')) inferredAmenities.push('fireplace');
-        if (t.includes('bath') || t.includes('tub')) inferredAmenities.push('bathtub');
-        if (t.includes('garden')) inferredAmenities.push('garden');
-        if (t.includes('rooftop')) inferredAmenities.push('rooftop');
-        const rating10 = (typeof hotel?.rating === 'number') ? Number(hotel.rating) : (typeof rating5 === 'number' ? rating5 * 2 : undefined);
-        const ct = (cityTop as unknown) as { reviews_count?: number } | null;
-        const ctReviews = (ct && typeof ct.reviews_count === 'number') ? ct.reviews_count : undefined;
-        const pdReviews = (isPlaceDetails(gDetails) && typeof gDetails.user_ratings_total === 'number') ? gDetails.user_ratings_total : undefined;
-        const reviewsCount = ctReviews ?? pdReviews ?? (typeof hotel?.reviews_count === 'number' ? hotel.reviews_count : undefined);
-        const parts = cosyParts({
-          rating: rating10,
-          amenities: inferredAmenities,
-          description: textSrc,
-          name,
-          website: website || undefined,
-          city,
-          reviewsCount: (typeof reviewsCount === 'number' ? reviewsCount : undefined),
-        });
-        return (
-          <details className="mt-3 rounded-lg border border-dashed border-zinc-300 bg-white p-3">
-            <summary className="cursor-pointer font-medium">Debug: scoring breakdown</summary>
-            <pre className="mt-2 whitespace-pre-wrap text-xs text-zinc-700">{JSON.stringify({
-              ui_display: Number(cosyDisplay.toFixed(1)),
-              local_recomputed: Number(parts.raw.toFixed(2)),
-              parts: parts.parts,
-              context: {
-                rating10,
-                inferredAmenities,
-                reviewsCount,
-                hasCityTop: Boolean(cityTop),
-              }
-            }, null, 2)}</pre>
-          </details>
-        );
-      })()}
-      
       <div className="mt-5 flex items-center gap-3">
         <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
           Back to results
         </a>
         <div className="ml-auto flex gap-2">
-          <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={`/go/${hotel?.slug || params.slug}?provider=booking`} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
-          <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={`/go/${hotel?.slug || params.slug}?provider=expedia`} target="_blank" rel="noopener nofollow sponsored">View on Expedia</a>
+          {(() => {
+            const net = process.env.NEXT_PUBLIC_AFFILIATE_NETWORK === 'impact' ? '&network=impact' : '';
+            return (
+              <>
+                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={`/go/${hotel.slug}?provider=booking${net}`} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
+                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={`/go/${hotel.slug}?provider=expedia${net}`} target="_blank" rel="noopener nofollow sponsored">View on Expedia</a>
+              </>
+            );
+          })()}
         </div>
       </div>
-      {/* Per-hotel FAQ */}
-      <section className="mt-6">
-        <details className="rounded-lg border border-zinc-200 bg-white p-3 md:p-4">
-          <summary className="cursor-pointer font-medium">Frequently asked questions</summary>
-          <div className="mt-2 space-y-3">
-            <div>
-              <div className="font-medium">What makes {name} a cosy hotel?</div>
-              <p className="text-sm text-zinc-600">{(() => {
-                const cues: string[] = [];
-                const sum = (isPlaceDetails(gDetails) ? `${gDetails.editorial_summary?.overview || ''} ${gDetails.formatted_address || ''}` : '').toLowerCase();
-                if (sum.includes('fireplace')) cues.push('a fireplace');
-                if (sum.includes('bath') || sum.includes('bathtub')) cues.push('bathtubs');
-                if (sum.includes('spa')) cues.push('a spa');
-                if (sum.includes('sauna')) cues.push('sauna');
-                if (sum.includes('garden')) cues.push('a garden');
-                const tail = cues.length ? `thanks to ${cues.slice(0,2).join(' and ')}` : 'for its small scale and warm design';
-                return `${name} feels cosy ${tail}.`;
-              })()}</p>
-            </div>
-            <div>
-              <div className="font-medium">Where is {name} located?</div>
-              <p className="text-sm text-zinc-600">{[city, country].filter(Boolean).join(', ')}.</p>
-            </div>
-            <div>
-              <div className="font-medium">Is {name} suitable for a romantic getaway?</div>
-              <p className="text-sm text-zinc-600">Yes — its cosy vibe and amenities make it a good pick for couples.</p>
-            </div>
-          </div>
-        </details>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'FAQPage',
-              mainEntity: [
-                { '@type': 'Question', name: `What makes ${name} a cosy hotel?`, acceptedAnswer: { '@type': 'Answer', text: `${name} feels cosy for its intimate scale and warm design.` } },
-                { '@type': 'Question', name: `Where is ${name} located?`, acceptedAnswer: { '@type': 'Answer', text: `${[city, country].filter(Boolean).join(', ')}.` } },
-                { '@type': 'Question', name: `Is ${name} suitable for a romantic getaway?`, acceptedAnswer: { '@type': 'Answer', text: `Yes — its cosy vibe and amenities make it a good pick for couples.` } },
-              ],
-            }),
-          }}
-        />
-      </section>
     </div>
   );
 }

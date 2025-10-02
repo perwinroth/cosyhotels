@@ -46,6 +46,9 @@ export default function AdminTools() {
   const guidesCoverage = useAction();
   const amenitiesStats = useAction();
   const backfillAffiliates = useAction();
+  const vendorAction = useAction();
+  const [vendorCity, setVendorCity] = useState("");
+  const [vendor, setVendor] = useState<'booking'|'expedia'>('booking');
 
   const base = ""; // same origin
 
@@ -69,9 +72,27 @@ export default function AdminTools() {
           <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=booking`, { method: 'POST' })}>Booking (fill empty)</button>
           <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=expedia`, { method: 'POST' })}>Expedia (fill empty)</button>
           <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=expedia&overwrite=true`, { method: 'POST' })}>Expedia (overwrite all)</button>
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=booking&provider=impact`, { method: 'POST' })}>Booking (Impact)</button>
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={backfillAffiliates.loading} onClick={() => backfillAffiliates.run(`${base}/api/admin/backfill-affiliates?vendor=expedia&provider=impact`, { method: 'POST' })}>Expedia (Impact)</button>
         </div>
         {backfillAffiliates.resp && (
           <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(backfillAffiliates.resp, null, 2)}</pre>
+        )}
+      </section>
+
+      <section className="mt-6 rounded border border-zinc-200 bg-white p-4">
+        <h2 className="font-medium">Vendor Backfill (Booking / Expedia)</h2>
+        <div className="mt-2 flex gap-2 items-center">
+          <select className="border rounded px-2 py-1" value={vendor} onChange={(e) => setVendor(e.target.value as 'booking'|'expedia')}>
+            <option value="booking">Booking</option>
+            <option value="expedia">Expedia</option>
+          </select>
+          <input className="border rounded px-2 py-1 flex-1" placeholder="City (e.g., Paris)" value={vendorCity} onChange={(e) => setVendorCity(e.target.value)} />
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={!vendorCity || vendorAction.loading} onClick={() => vendorAction.run(`${base}/api/admin/backfill-vendors?vendor=${vendor}&city=${encodeURIComponent(vendorCity)}`, { method: 'POST' })}>Run now</button>
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={!vendorCity || vendorAction.loading} onClick={() => vendorAction.run(`${base}/api/admin/backfill-vendors?vendor=${vendor}&city=${encodeURIComponent(vendorCity)}`)}>Schedule</button>
+        </div>
+        {vendorAction.resp && (
+          <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(vendorAction.resp, null, 2)}</pre>
         )}
       </section>
 

@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   description: site.description,
   verification: {
     google: "vLnmpBYFWSQt5fNGXPQ5uYkLRQM_9GA7GcBQjR9jReo",
+    other: {
+      'impact-site-verification': '62d9ebe5-297e-48ad-8542-54ddc8680420',
+    },
   },
   alternates: {
     canonical: "/",
