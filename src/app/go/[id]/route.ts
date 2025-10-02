@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Curated hotels removed; resolve via Supabase or Places fallback
 import { type Provider, bookingSearchUrl, expediaSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { getDetails } from "@/lib/places";
+// no Places usage in go redirect
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -18,22 +18,23 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
         .or(`slug.eq.${id},id.eq.${id}`)
         .single();
       if (data) {
-        slug = String(data.slug);
-        hotelId = String(data.id);
+        type Row = { id: string; slug: string; affiliate_url: string | null; website: string | null; name: string | null; city: string | null; country: string | null };
+        const h = data as unknown as Row;
+        slug = String(h.slug);
+        hotelId = String(h.id);
         // Optional: Accept provider and clickId
         const url = new URL(req.url);
         const providerParam = url.searchParams.get("provider");
         const isProvider = (p: string | null): p is Provider => !!p && ["generic","awin","cj","impact","booking","expedia"].includes(p);
-        const pv = (isProvider(providerParam) ? providerParam : undefined) as Provider | undefined;
         // If a specific vendor is requested, compute deep link on the fly
         if (providerParam === 'booking') {
-          const base = bookingSearchUrl({ name: String((data as any).name || ''), city: (data as any).city || null, country: (data as any).country || null });
+          const base = bookingSearchUrl({ name: String(h.name || ''), city: h.city || null, country: h.country || null });
           target = buildAffiliateUrl(base, { provider: 'generic' });
         } else if (providerParam === 'expedia') {
-          const base = expediaSearchUrl({ name: String((data as any).name || ''), city: (data as any).city || null, country: (data as any).country || null });
+          const base = expediaSearchUrl({ name: String(h.name || ''), city: h.city || null, country: h.country || null });
           target = buildAffiliateUrl(base, { provider: 'generic' });
         } else {
-          target = data.affiliate_url || data.website || "/";
+          target = h.affiliate_url || h.website || "/";
         }
       }
     } catch {}

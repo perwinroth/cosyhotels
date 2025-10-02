@@ -241,10 +241,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   }
   // Will compute local cosy after deriving text cues
 
-  const goHref = (affiliateUrl || website) ? (website || affiliateUrl || undefined) : `/go/${params.slug}`;
-  // Build dual vendor links on the fly for detail page CTAs
-  const bookingUrl = buildAffiliateUrl(bookingSearchUrl({ name, city, country }), { provider: 'generic' });
-  const expediaUrl = buildAffiliateUrl(expediaSearchUrl({ name, city, country }), { provider: 'generic' });
+  // CTA links are built on the fly via /go provider parameter; no precompute needed here
 
   // Optional debug view (only when ?debug=true)
   const debug = (typeof searchParams?.debug === 'string' && searchParams?.debug === 'true');
