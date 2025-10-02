@@ -162,7 +162,7 @@ async function Results({
           .select("hotel_id,score,score_final")
           .in("hotel_id", ids);
         const cosyMap = new Map((cosyRows as CosyRow[] | null | undefined || []).map((r) => [String(r.hotel_id), (typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null))]));
-        let chosen = await Promise.all((frows as unknown as FTRow[]).map(async (r) => {
+        const chosen = await Promise.all((frows as unknown as FTRow[]).map(async (r) => {
           const h = byId.get(String(r.hotel_id));
           if (!h) return null;
           const resolvedImg = r.image_url || (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || "/seal.svg";
