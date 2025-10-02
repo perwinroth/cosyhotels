@@ -180,10 +180,10 @@ async function Results({
             affiliateUrl: (h.affiliate_url as string | null) || "",
           };
         }));
-        chosen = chosen.filter(nonNull).filter((c) => c._cosy >= 7.0);
-        if (chosen.length) {
+        const list = chosen.filter(nonNull).filter((c) => c._cosy >= 7.0);
+        if (list.length) {
           const detailsHref = (slug: string) => `/${locale}/hotels/${slug}`;
-          const renderTop = (h: typeof chosen[number], idx: number) => (
+          const renderTop = (h: typeof list[number], idx: number) => (
             <HotelTile
               key={`${h.slug}-${h._img}`}
               hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
@@ -196,7 +196,7 @@ async function Results({
           return (
             <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
               <div className="col-span-full sr-only" aria-live="polite">Featured cosy places</div>
-              {chosen.map((h, i) => renderTop(h, i))}
+              {list.map((h, i) => renderTop(h, i))}
             </div>
           );
         }
