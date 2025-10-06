@@ -261,9 +261,9 @@ async function Results({
     for (const c of seedCities) {
       try {
         const summaries = await amadeusSearchHotels(c);
-        for (const s of summaries.slice(0, 3)) {
+        for (const s of summaries.slice(0, 8)) {
           const d = await amadeusGetHotelDetails(s.id);
-          const name = (d?.name || '').trim();
+          const name = (d?.name || s.name || '').trim();
           const cityName = (d?.city || c) || '';
           const country = (d?.country || '') || '';
           if (!name) continue;
@@ -271,7 +271,7 @@ async function Results({
           const affiliateBase = bookingSearchUrl({ name, city: cityName, country });
           const affiliateUrl = buildAffiliateUrl(affiliateBase);
           const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
-          const cosy = cosyScore({ rating: rating10 });
+          const cosy = typeof rating10 === 'number' ? cosyScore({ rating: rating10 }) : 6.8;
           const img = await getVendorImageCached(slug, name, cityName, country);
           picks.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
           if (picks.length >= 9) break;
@@ -359,9 +359,9 @@ async function Results({
     try {
       const summaries = await amadeusSearchHotels(city);
       const items: Array<{ slug: string; name: string; city: string; country: string; rating: number; price: number; _cosy: number; _img: string; affiliateUrl: string }> = [];
-      for (const s of summaries.slice(0, 24)) {
+      for (const s of summaries.slice(0, 48)) {
         const d = await amadeusGetHotelDetails(s.id);
-        const name = (d?.name || '').trim();
+        const name = (d?.name || s.name || '').trim();
         const cityName = (d?.city || city) || '';
         const country = (d?.country || '') || '';
         if (!name) continue;
@@ -369,7 +369,7 @@ async function Results({
         const affiliateBase = bookingSearchUrl({ name, city: cityName, country });
         const affiliateUrl = buildAffiliateUrl(affiliateBase);
         const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
-        const cosy = cosyScore({ rating: rating10 });
+        const cosy = typeof rating10 === 'number' ? cosyScore({ rating: rating10 }) : 6.8;
         const img = await getVendorImageCached(slug, name, cityName, country);
         items.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
       }
