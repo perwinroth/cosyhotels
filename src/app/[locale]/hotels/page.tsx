@@ -287,10 +287,11 @@ async function Results({
     if (picks.length) {
       const filtered = picks.filter((h) => h._cosy >= 7.0);
       filtered.sort((a, b) => b._cosy - a._cosy);
+      const finalList = filtered.slice(0, 9);
       return (
         <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
           <div className="col-span-full sr-only" aria-live="polite">Top cosy places (live)</div>
-          {filtered.map((h, i) => (
+          {finalList.map((h, i) => (
             <HotelTile
               key={`${h.slug}-${i}`}
               hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
@@ -384,10 +385,11 @@ async function Results({
       if (items.length) {
         const filtered = items.filter((h) => h._cosy >= 7.0);
         filtered.sort((a, b) => b._cosy - a._cosy);
+        const finalList = filtered.slice(0, 21);
         return (
           <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
-            <div className="col-span-full sr-only" aria-live="polite">{filtered.length} results in {city} (live)</div>
-            {filtered.map((h, i) => (
+            <div className="col-span-full sr-only" aria-live="polite">{finalList.length} results in {city} (live)</div>
+            {finalList.map((h, i) => (
               <HotelTile
                 key={`${h.slug}-${i}`}
                 hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
