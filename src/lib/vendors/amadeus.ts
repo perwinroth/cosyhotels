@@ -85,10 +85,10 @@ export async function amadeusSearchHotels(city: string): Promise<AmadeusHotelSum
   if (!res.ok) return [];
   const json: unknown = await res.json();
   const arr = getArray(json, 'data');
-  // This endpoint returns hotelIds primarily; details will be fetched via getHotelDetails
+  // This endpoint returns hotelId and name
   return arr.map((h) => ({
     id: str(h, 'hotelId') || '',
-    name: '',
+    name: str(h, 'name') || '',
     address: null,
     city,
     country: null,
@@ -107,6 +107,18 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
   url.searchParams.set('includeClosed', 'false');
   url.searchParams.set('bestRateOnly', 'false');
   url.searchParams.set('view', 'FULL');
+  // Provide simple dates to increase data availability
+  try {
+    const today = new Date();
+    const checkIn = new Date(today.getTime() + 14 * 86400000);
+    const checkOut = new Date(today.getTime() + 15 * 86400000);
+    const ci = checkIn.toISOString().slice(0, 10);
+    const co = checkOut.toISOString().slice(0, 10);
+    url.searchParams.set('adults', '2');
+    url.searchParams.set('roomQuantity', '1');
+    url.searchParams.set('checkInDate', ci);
+    url.searchParams.set('checkOutDate', co);
+  } catch {}
   const res = await fetch(url.toString(), { headers, next: { revalidate: 3600 } });
   if (!res.ok) return null;
   const json: unknown = await res.json();
