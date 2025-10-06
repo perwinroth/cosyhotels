@@ -17,10 +17,21 @@ export type TileHotel = {
 export default function HotelTile({ hotel, href, goHref, priority = false, sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" }: { hotel: TileHotel; href: string; goHref?: string; priority?: boolean; sizes?: string }) {
   const h = hotel;
   const cosyText = h.cosy.toFixed(1);
+  const isRemote = typeof h.image === 'string' && /^https?:\/\//.test(h.image);
   return (
     <div className="overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full" aria-label={`${h.name}, Cosy ${cosyText}`} data-cosy={cosyText}>
       <Link href={href} className="relative aspect-[4/3] bg-zinc-100 block">
-        <Image src={h.image || "/seal.svg"} alt={`${h.name} – ${h.city}`} fill className="object-cover" placeholder="blur" priority={priority} blurDataURL={shimmer(1200, 800)} sizes={sizes} />
+        <Image
+          src={h.image || "/seal.svg"}
+          alt={`${h.name} – ${h.city}`}
+          fill
+          className="object-cover"
+          placeholder="blur"
+          priority={priority}
+          blurDataURL={shimmer(1200, 800)}
+          sizes={sizes}
+          unoptimized={isRemote}
+        />
         {h.cosy >= 7.0 ? (
           <div className="absolute left-2 bottom-2">
             <div className="flex items-center gap-1 bg-[#0EA5A4] text-white text-xs px-3 py-1 rounded-full shadow">
