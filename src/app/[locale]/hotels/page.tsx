@@ -272,7 +272,8 @@ async function Results({
           const affiliateUrl = buildAffiliateUrl(affiliateBase);
           const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
           const cosy = typeof rating10 === 'number' ? cosyScore({ rating: rating10 }) : 6.8;
-          const img = await getVendorImageCached(slug, name, cityName, country);
+          const imgDirect = Array.isArray(d?.images) && d!.images && d!.images[0] ? d!.images[0] : null;
+          const img = imgDirect || await getVendorImageCached(slug, name, cityName, country);
           picks.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
           if (picks.length >= 9) break;
         }
@@ -280,11 +281,12 @@ async function Results({
       } catch {}
     }
     if (picks.length) {
-      picks.sort((a, b) => b._cosy - a._cosy);
+      const filtered = picks.filter((h) => h._cosy >= 7.0);
+      filtered.sort((a, b) => b._cosy - a._cosy);
       return (
         <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
           <div className="col-span-full sr-only" aria-live="polite">Top cosy places (live)</div>
-          {picks.map((h, i) => (
+          {filtered.map((h, i) => (
             <HotelTile
               key={`${h.slug}-${i}`}
               hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
@@ -370,15 +372,17 @@ async function Results({
         const affiliateUrl = buildAffiliateUrl(affiliateBase);
         const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
         const cosy = typeof rating10 === 'number' ? cosyScore({ rating: rating10 }) : 6.8;
-        const img = await getVendorImageCached(slug, name, cityName, country);
+        const imgDirect = Array.isArray(d?.images) && d!.images && d!.images[0] ? d!.images[0] : null;
+        const img = imgDirect || await getVendorImageCached(slug, name, cityName, country);
         items.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
       }
       if (items.length) {
-        items.sort((a, b) => b._cosy - a._cosy);
+        const filtered = items.filter((h) => h._cosy >= 7.0);
+        filtered.sort((a, b) => b._cosy - a._cosy);
         return (
           <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
-            <div className="col-span-full sr-only" aria-live="polite">{items.length} results in {city} (live)</div>
-            {items.map((h, i) => (
+            <div className="col-span-full sr-only" aria-live="polite">{filtered.length} results in {city} (live)</div>
+            {filtered.map((h, i) => (
               <HotelTile
                 key={`${h.slug}-${i}`}
                 hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, price: isFinite(h.price as number) ? (h.price as number) : undefined, image: h._img, cosy: h._cosy }}
