@@ -287,7 +287,7 @@ async function Results({
     if (picks.length) {
       const filtered = picks.filter((h) => h._cosy >= 7.0);
       filtered.sort((a, b) => b._cosy - a._cosy);
-      const finalList = filtered.slice(0, 9);
+      const finalList = (filtered.length ? filtered : picks.sort((a,b)=>b._cosy - a._cosy)).slice(0, 9);
       return (
         <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
           <div className="col-span-full sr-only" aria-live="polite">Top cosy places (live)</div>
@@ -385,7 +385,7 @@ async function Results({
       if (items.length) {
         const filtered = items.filter((h) => h._cosy >= 7.0);
         filtered.sort((a, b) => b._cosy - a._cosy);
-        const finalList = filtered.slice(0, 21);
+        const finalList = (filtered.length ? filtered : items.sort((a,b)=>b._cosy - a._cosy)).slice(0, 21);
         return (
           <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
             <div className="col-span-full sr-only" aria-live="polite">{finalList.length} results in {city} (live)</div>
