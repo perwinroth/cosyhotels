@@ -11,6 +11,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { amadeusSearchHotels, amadeusGetHotelDetails } from "@/lib/vendors/amadeus";
 import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { cosyScore } from "@/lib/scoring/cosy";
+import { getVendorImageCached } from "@/lib/imageVendor";
 
 // Type guard to narrow out nulls from arrays
 function nonNull<T>(x: T | null | undefined): x is T { return x != null; }
@@ -271,7 +272,8 @@ async function Results({
           const affiliateUrl = buildAffiliateUrl(affiliateBase);
           const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
           const cosy = cosyScore({ rating: rating10 });
-          picks.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: '/seal.svg', affiliateUrl });
+          const img = await getVendorImageCached(slug, name, cityName, country);
+          picks.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
           if (picks.length >= 9) break;
         }
         if (picks.length >= 9) break;
@@ -368,7 +370,8 @@ async function Results({
         const affiliateUrl = buildAffiliateUrl(affiliateBase);
         const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
         const cosy = cosyScore({ rating: rating10 });
-        items.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: '/seal.svg', affiliateUrl });
+        const img = await getVendorImageCached(slug, name, cityName, country);
+        items.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
       }
       if (items.length) {
         items.sort((a, b) => b._cosy - a._cosy);

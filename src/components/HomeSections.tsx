@@ -37,27 +37,17 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
     router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
   }
 
-  // Fetch suggestions only when Places explicitly enabled
+  // Fetch city suggestions via Amadeus
   useEffect(() => {
     const q = city.trim();
     if (!q) { setSuggestions([]); return; }
     const t = setTimeout(async () => {
-      const placesDisabled = process.env.NEXT_PUBLIC_DISABLE_PLACES !== 'false';
-      if (placesDisabled) { setSuggestions([]); return; }
       try {
-        const res = await fetch(`/api/places/search?query=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/amadeus/cities?q=${encodeURIComponent(q)}`);
         if (!res.ok) { setSuggestions([]); return; }
         const json = await res.json();
-        const uniq = new Map<string, { city: string; country: string }>();
-        for (const r of (json.results || [])) {
-          const parts = String(r.formatted_address || "").split(',').map((s: string) => s.trim()).filter(Boolean);
-          const cityName = parts.length >= 2 ? parts[parts.length - 2] : (parts[0] || "");
-          const country = parts.length ? parts[parts.length - 1] : '';
-          const key = `${cityName}|${country}`;
-          if (cityName && country && !uniq.has(key)) uniq.set(key, { city: cityName, country });
-          if (uniq.size >= 8) break;
-        }
-        setSuggestions(Array.from(uniq.values()));
+        const arr = Array.isArray(json?.results) ? json.results : [];
+        setSuggestions(arr.slice(0, 8));
         setShowSuggest(true);
       } catch { setSuggestions([]); }
     }, 300);
