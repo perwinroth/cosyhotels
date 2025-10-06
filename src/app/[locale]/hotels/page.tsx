@@ -141,10 +141,12 @@ async function Results({
   const allowedSort: ReadonlyArray<Sort> = ["cosy-desc", "cosy-asc"];
   const isSort = (v: unknown): v is Sort => typeof v === "string" && allowedSort.includes(v as Sort);
   const sort: Sort = isSort(params.sort) ? (params.sort as Sort) : "cosy-desc";
+  // Force Amadeus-first listings; set to false to re-enable DB paths if needed
+  const SKIP_DB_LISTINGS = true;
 
   // Front page: Featured top 9, else top from cosy_scores
   if (!city) {
-    const supabase = getServerSupabase();
+    const supabase = SKIP_DB_LISTINGS ? null : getServerSupabase();
     if (supabase) {
       type FTRow = { position: number; score: number | null; image_url: string | null; hotel_id: string };
       type HotelBasic = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null };
@@ -257,10 +259,12 @@ async function Results({
     }
     // Live fallback: query Amadeus for a few popular cities and compose a list
     const seedCities = ["Paris","Rome","Lisbon","Barcelona","Amsterdam","Berlin","Tokyo","Kyoto","New York"]; // simple seed
+    try { console.info(JSON.stringify({ list_front_amadeus_seed: seedCities })); } catch {}
     const picks: Array<{ slug: string; name: string; city: string; country: string; rating: number; price: number; _cosy: number; _img: string; affiliateUrl: string }> = [];
     for (const c of seedCities) {
       try {
         const summaries = await amadeusSearchHotels(c);
+        try { console.info(JSON.stringify({ list_front_city: c, count: summaries.length })); } catch {}
         for (const s of summaries.slice(0, 8)) {
           const d = await amadeusGetHotelDetails(s.id);
           const name = (d?.name || s.name || '').trim();
@@ -303,7 +307,7 @@ async function Results({
 
   // City search: prefer Amadeus live results; only show Supabase if it returns > 0
   if (city) {
-    const supabase = getServerSupabase();
+    const supabase = SKIP_DB_LISTINGS ? null : getServerSupabase();
     if (supabase) {
       type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; price: number | null; affiliate_url: string | null; amenities?: string[] | null };
       type CS = { hotel_id: string; score: number | null; score_final: number | null };
@@ -360,6 +364,7 @@ async function Results({
     // Live search via Amadeus if Supabase unavailable or empty
     try {
       const summaries = await amadeusSearchHotels(city);
+      try { console.info(JSON.stringify({ list_city_amadeus: city, count: summaries.length })); } catch {}
       const items: Array<{ slug: string; name: string; city: string; country: string; rating: number; price: number; _cosy: number; _img: string; affiliateUrl: string }> = [];
       for (const s of summaries.slice(0, 48)) {
         const d = await amadeusGetHotelDetails(s.id);
