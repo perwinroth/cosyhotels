@@ -299,7 +299,7 @@ async function Results({
     }
   }
 
-  // City search: Supabase-only
+  // City search: prefer Amadeus live results; only show Supabase if it returns > 0
   if (city) {
     const supabase = getServerSupabase();
     if (supabase) {
@@ -340,7 +340,7 @@ async function Results({
         _img: (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg',
         affiliateUrl: (h.affiliate_url as string | null) || '',
       })));
-      return (
+      if (list.length) return (
         <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
           <div className="col-span-full sr-only" aria-live="polite">{list.length} result{list.length === 1 ? '' : 's'} in {city}</div>
           {list.map((h, i) => (
