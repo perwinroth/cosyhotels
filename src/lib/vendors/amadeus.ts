@@ -133,12 +133,19 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
   const lng = numDeep(first, ['hotel','geoCode','longitude']);
   const ratingStr = strDeep(first, ['hotel','rating']);
   const stars = ratingStr ? Number(ratingStr) : NaN;
-  // Try media images if available
+  // Try media images if available (avoid any by using type guards)
   let images: string[] = [];
-  const hotelObj = isObj(first) && isObj(first.hotel) ? (first.hotel as Record<string, unknown>) : null;
-  if (hotelObj && Array.isArray((hotelObj as any).media)) {
-    images = ((hotelObj as any).media as unknown[])
-      .map((m) => (isObj(m) ? (str(m, 'uri') || str(m, 'url')) : null))
+  const hotelObj = isObj(first) && isObj((first as Record<string, unknown>).hotel)
+    ? ((first as Record<string, unknown>).hotel as Record<string, unknown>)
+    : null;
+  const mediaVal: unknown = hotelObj ? hotelObj['media'] : undefined;
+  if (Array.isArray(mediaVal)) {
+    images = (mediaVal as unknown[])
+      .map((m: unknown) => {
+        if (!isObj(m)) return null;
+        const u = str(m, 'uri') || str(m, 'url');
+        return u || null;
+      })
       .filter((u): u is string => !!u);
   }
   const details: AmadeusHotelDetails = {
