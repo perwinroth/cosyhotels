@@ -30,15 +30,30 @@ export async function GET(req: Request) {
       headers: { authorization: `Bearer ${token}` }, next: { revalidate: 3600 }
     });
     if (!r.ok) return NextResponse.json({ results: [] });
-    const j = await r.json();
-    const out = (Array.isArray(j?.data) ? j.data : []).map((c: any) => ({
-      city: String(c?.address?.cityName || c?.iataCode || ''),
-      country: String(c?.address?.countryCode || ''),
-      iata: String(c?.iataCode || ''),
-    })).filter((x: any) => x.city && x.country);
+    const j: unknown = await r.json();
+    type RawRec = { iataCode?: unknown; address?: { cityName?: unknown; countryCode?: unknown } | unknown };
+    const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+    const str = (v: unknown): string => (typeof v === 'string' ? v : (typeof v === 'number' ? String(v) : ''));
+    const arr: unknown[] = isObj(j) && Array.isArray((j as { data?: unknown }).data)
+      ? ((j as { data: unknown[] }).data)
+      : [];
+    const out = arr.map((rec): { city: string; country: string; iata: string } | null => {
+      if (!isObj(rec)) return null;
+      const r = rec as RawRec;
+      const iata = str(r.iataCode);
+      let city = '';
+      let country = '';
+      if (isObj(r.address)) {
+        const addr = r.address as { cityName?: unknown; countryCode?: unknown };
+        city = str(addr.cityName);
+        country = str(addr.countryCode);
+      }
+      if (!city) city = iata;
+      if (!city || !country) return null;
+      return { city, country, iata };
+    }).filter((x): x is { city: string; country: string; iata: string } => !!x);
     return NextResponse.json({ results: out.slice(0, 8) });
   } catch {
     return NextResponse.json({ results: [] });
   }
 }
-
