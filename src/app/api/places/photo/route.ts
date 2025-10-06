@@ -1,8 +1,13 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
-  if (process.env.DISABLE_PLACES === 'true') return new Response('Disabled', { status: 404 });
+  // Backwards-compatibility: if Places is disabled, serve a placeholder image so
+  // legacy cached URLs don't 404 and break tiles.
+  if (process.env.DISABLE_PLACES === 'true') {
+    // Redirect to a stable placeholder in public/
+    return NextResponse.redirect('/seal.svg', { status: 302 });
+  }
   const { searchParams } = new URL(req.url);
   const ref = searchParams.get("ref");
   const maxwidth = searchParams.get("maxwidth") || "800";
