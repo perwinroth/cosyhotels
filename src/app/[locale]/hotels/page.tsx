@@ -11,7 +11,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { amadeusSearchHotels, amadeusGetHotelDetails } from "@/lib/vendors/amadeus";
 import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { cosyScore } from "@/lib/scoring/cosy";
-import { getVendorImageCached, getVendorImageAny } from "@/lib/imageVendor";
+import { getVendorImageAny } from "@/lib/imageVendor";
 
 // Type guard to narrow out nulls from arrays
 function nonNull<T>(x: T | null | undefined): x is T { return x != null; }
@@ -286,7 +286,7 @@ async function Results({
     }
     if (picks.length) {
       // Enforce cosy >= 7 for front page; expand pool until we find 9 if needed
-      let pool = picks.filter((h) => h._cosy >= 7.0);
+      const pool = picks.filter((h) => h._cosy >= 7.0);
       // If not enough, try scanning more per city
       if (pool.length < 9) {
         for (const c of seedCities) {
