@@ -383,9 +383,9 @@ async function Results({
         items.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
       }
       if (items.length) {
-        const filtered = items.filter((h) => h._cosy >= 7.0);
-        filtered.sort((a, b) => b._cosy - a._cosy);
-        const finalList = (filtered.length ? filtered : items.sort((a,b)=>b._cosy - a._cosy)).slice(0, 21);
+        // City search: show top 21 by cosy (no cosy threshold), as requested
+        const sorted = [...items].sort((a, b) => b._cosy - a._cosy);
+        const finalList = sorted.slice(0, 21);
         return (
           <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
             <div className="col-span-full sr-only" aria-live="polite">{finalList.length} results in {city} (live)</div>
