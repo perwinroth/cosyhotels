@@ -11,7 +11,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { amadeusSearchHotels, amadeusGetHotelDetails } from "@/lib/vendors/amadeus";
 import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { cosyScore } from "@/lib/scoring/cosy";
-import { getVendorImageCached } from "@/lib/imageVendor";
+import { getVendorImageCached, getVendorImageAny } from "@/lib/imageVendor";
 
 // Type guard to narrow out nulls from arrays
 function nonNull<T>(x: T | null | undefined): x is T { return x != null; }
@@ -277,7 +277,7 @@ async function Results({
           const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
           const cosy = typeof rating10 === 'number' ? cosyScore({ rating: rating10 }) : 6.8;
           const imgDirect = Array.isArray(d?.images) && d!.images && d!.images[0] ? d!.images[0] : null;
-          const img = imgDirect || await getVendorImageCached(slug, name, cityName, country);
+          const img = imgDirect || await getVendorImageAny(slug, name, cityName, country);
           picks.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
           if (picks.length >= 9) break;
         }
@@ -285,9 +285,36 @@ async function Results({
       } catch {}
     }
     if (picks.length) {
-      const filtered = picks.filter((h) => h._cosy >= 7.0);
-      filtered.sort((a, b) => b._cosy - a._cosy);
-      const finalList = (filtered.length ? filtered : picks.sort((a,b)=>b._cosy - a._cosy)).slice(0, 9);
+      // Enforce cosy >= 7 for front page; expand pool until we find 9 if needed
+      let pool = picks.filter((h) => h._cosy >= 7.0);
+      // If not enough, try scanning more per city
+      if (pool.length < 9) {
+        for (const c of seedCities) {
+          try {
+            const summaries = await amadeusSearchHotels(c);
+            for (const s of summaries.slice(8, 24)) {
+              const d = await amadeusGetHotelDetails(s.id);
+              const name = (d?.name || s.name || '').trim();
+              const cityName = (d?.city || c) || '';
+              const country = (d?.country || '') || '';
+              if (!name) continue;
+              const slug = `am-${s.id}`;
+              const r10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
+              const cosy2 = typeof r10 === 'number' ? cosyScore({ rating: r10 }) : 6.8;
+              if (cosy2 >= 7.0) {
+                const imgDirect = Array.isArray(d?.images) && d!.images && d!.images[0] ? d!.images[0] : null;
+                const img = imgDirect || await getVendorImageAny(slug, name, cityName, country);
+                const affiliateBase = bookingSearchUrl({ name, city: cityName, country });
+                const affiliateUrl = buildAffiliateUrl(affiliateBase);
+                pool.push({ slug, name, city: cityName, country, rating: r10 || 0, price: NaN, _cosy: cosy2, _img: img || '/seal.svg', affiliateUrl });
+                if (pool.length >= 12) break;
+              }
+            }
+          } catch {}
+          if (pool.length >= 12) break;
+        }
+      }
+      const finalList = pool.sort((a,b)=>b._cosy - a._cosy).slice(0, 9);
       return (
         <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
           <div className="col-span-full sr-only" aria-live="polite">Top cosy places (live)</div>
@@ -379,7 +406,7 @@ async function Results({
         const rating10 = typeof d?.rating10 === 'number' ? d.rating10 : undefined;
         const cosy = typeof rating10 === 'number' ? cosyScore({ rating: rating10 }) : 6.8;
         const imgDirect = Array.isArray(d?.images) && d!.images && d!.images[0] ? d!.images[0] : null;
-        const img = imgDirect || await getVendorImageCached(slug, name, cityName, country);
+        const img = imgDirect || await getVendorImageAny(slug, name, cityName, country);
         items.push({ slug, name, city: cityName, country, rating: rating10 || 0, price: NaN, _cosy: cosy, _img: img || '/seal.svg', affiliateUrl });
       }
       if (items.length) {
