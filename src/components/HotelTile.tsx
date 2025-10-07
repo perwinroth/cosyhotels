@@ -18,11 +18,12 @@ export default function HotelTile({ hotel, href, goHref, priority = false, sizes
   const h = hotel;
   const cosyText = h.cosy.toFixed(1);
   const isRemote = typeof h.image === 'string' && /^https?:\/\//.test(h.image);
+  const src = isRemote ? `/api/proxy/image?url=${encodeURIComponent(h.image!)}` : (h.image || '/seal.svg');
   return (
     <div className="overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full" aria-label={`${h.name}, Cosy ${cosyText}`} data-cosy={cosyText}>
       <Link href={href} className="relative aspect-[4/3] bg-zinc-100 block">
         <Image
-          src={h.image || "/seal.svg"}
+          src={src}
           alt={`${h.name} – ${h.city}`}
           fill
           className="object-cover"
@@ -30,7 +31,7 @@ export default function HotelTile({ hotel, href, goHref, priority = false, sizes
           priority={priority}
           blurDataURL={shimmer(1200, 800)}
           sizes={sizes}
-          unoptimized={isRemote}
+          unoptimized={false}
         />
         {h.cosy >= 7.0 ? (
           <div className="absolute left-2 bottom-2">
