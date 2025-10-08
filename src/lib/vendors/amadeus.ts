@@ -132,10 +132,9 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
       const r2 = await fetch(hUrl.toString(), { headers, next: { revalidate: 3600 } });
       if (r2.ok) {
         const j2: unknown = await r2.json();
-        const d2 = Array.isArray((j2 as any)?.data) ? (j2 as any).data[0] : null;
-        if (d2) {
-          first = { hotel: d2 } as unknown;
-        }
+        const dataArr = getArray(j2, 'data');
+        const d2 = dataArr[0];
+        if (d2) first = { hotel: d2 } as unknown;
       }
     } catch {}
   }
