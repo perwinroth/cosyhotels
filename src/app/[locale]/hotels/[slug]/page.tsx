@@ -11,7 +11,7 @@ import { getVendorImageCached } from "@/lib/imageVendor";
 
 // Using implicit types from Supabase rows to avoid unused warnings
 
-type Props = { params: { slug: string; locale: string } };
+type Props = { params: { slug: string; locale: string }, searchParams?: { [k: string]: string | string[] | undefined } };
 
 export async function generateMetadata({ params }: { params: { slug: string; locale: string } }): Promise<Metadata> {
   const languages = Object.fromEntries([
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
   return { alternates: { canonical: url, languages } };
 }
 
-export default async function HotelDetail({ params }: Props) {
+export default async function HotelDetail({ params, searchParams }: Props) {
   // Handle Amadeus slugs first so live tiles never 404
   if (params.slug.startsWith('am-')) {
     const id = params.slug.slice(3);
@@ -43,15 +43,18 @@ export default async function HotelDetail({ params }: Props) {
       const { amadeusGetHotelDetails } = await import('@/lib/vendors/amadeus');
       const { bookingSearchUrl, buildAffiliateUrl } = await import('@/lib/affiliates');
       const d = await amadeusGetHotelDetails(id);
-      if (!d) return notFound();
-      const name = d.name || 'Hotel';
-      const city = d.city || '';
-      const country = d.country || '';
+      const qName = typeof searchParams?.name === 'string' ? searchParams!.name : '';
+      const qCity = typeof searchParams?.city === 'string' ? searchParams!.city : '';
+      const qCountry = typeof searchParams?.country === 'string' ? searchParams!.country : '';
+      const name = (d?.name || qName || 'Hotel');
+      const city = (d?.city || qCity || '');
+      const country = (d?.country || qCountry || '');
       const affiliateBase = bookingSearchUrl({ name, city, country });
       const affiliateUrl = buildAffiliateUrl(affiliateBase);
-      const cosy = typeof d.rating10 === 'number' ? d.rating10 : 7.0;
-      const imgDirect = Array.isArray(d.images) && d.images[0] ? d.images[0] : null;
-      const image = imgDirect || await getVendorImageCached(params.slug, name, city, country) || '/seal.svg';
+      const cosy = typeof d?.rating10 === 'number' ? d!.rating10 : 7.0;
+      const imgParam = typeof searchParams?.img === 'string' ? searchParams!.img : '';
+      const imgDirect = Array.isArray(d?.images) && d!.images[0] ? d!.images[0] : null;
+      const image = imgDirect || imgParam || await getVendorImageCached(params.slug, name, city, country) || '/seal.svg';
       return (
         <div className="mx-auto max-w-3xl px-4 py-8">
           <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>

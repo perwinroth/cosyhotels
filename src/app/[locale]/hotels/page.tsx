@@ -112,7 +112,7 @@ async function Results({ searchParams, locale }: { searchParams: { [k: string]: 
           <HotelTile
             key={`${h.slug}-${i}`}
             hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, image: h._img, cosy: h._cosy }}
-            href={`/${locale}/hotels/${h.slug}`}
+            href={`/${locale}/hotels/${h.slug}?name=${encodeURIComponent(h.name)}&city=${encodeURIComponent(h.city)}&country=${encodeURIComponent(h.country)}&img=${encodeURIComponent(h._img)}`}
             goHref={h.affiliateUrl}
             priority={i === 0}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
@@ -137,7 +137,7 @@ async function Results({ searchParams, locale }: { searchParams: { [k: string]: 
         <HotelTile
           key={`${h.slug}-${i}`}
           hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, image: h._img, cosy: h._cosy }}
-          href={`/${locale}/hotels/${h.slug}`}
+          href={`/${locale}/hotels/${h.slug}?name=${encodeURIComponent(h.name)}&city=${encodeURIComponent(h.city)}&country=${encodeURIComponent(h.country)}&img=${encodeURIComponent(h._img)}`}
           goHref={h.affiliateUrl}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
         />
@@ -145,4 +145,3 @@ async function Results({ searchParams, locale }: { searchParams: { [k: string]: 
     </div>
   );
 }
-

@@ -14,7 +14,15 @@ export async function getVendorImageCached(id: string, name: string, city?: stri
   // Try fetching OG image from Booking search page
   try {
     const base = bookingSearchUrl({ name, city: city || '', country: country || '' });
-    const res = await fetch(base, { redirect: 'follow', next: { revalidate: 86400 } });
+    const res = await fetch(base, {
+      redirect: 'follow',
+      next: { revalidate: 86400 },
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.9'
+      }
+    });
     if (!res.ok) return null;
     const html = await res.text();
     const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i);
@@ -36,7 +44,15 @@ export async function getVendorImageAny(id: string, name: string, city?: string,
     const dest = [city || '', country || ''].filter(Boolean).join(', ');
     if (dest) u.searchParams.set('destination', dest);
     if (name) u.searchParams.set('keyword', name);
-    const res = await fetch(u.toString(), { redirect: 'follow', next: { revalidate: 86400 } });
+    const res = await fetch(u.toString(), {
+      redirect: 'follow',
+      next: { revalidate: 86400 },
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.9'
+      }
+    });
     if (!res.ok) return null;
     const html = await res.text();
     const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i);
