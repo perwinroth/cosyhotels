@@ -55,8 +55,25 @@ export async function getVendorImageAny(id: string, name: string, city?: string,
     });
     if (!res.ok) return null;
     const html = await res.text();
-    const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i);
-    const img = m ? m[1] : null;
+    // Robust meta extraction: og:image, og:image:secure_url, twitter:image, and JSON-LD image
+    const patterns = [
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i,
+      /<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']+)/i,
+      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)/i,
+    ];
+    let img: string | null = null;
+    for (const re of patterns) { const m = html.match(re); if (m && m[1]) { img = m[1]; break; } }
+    if (!img) {
+      const ld = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i);
+      if (ld && ld[1]) {
+        try {
+          const json = JSON.parse(ld[1]);
+          const i = (json && (json.image || (json.images && json.images[0]))) as string | undefined;
+          if (i) img = i;
+        } catch {}
+      }
+    }
+    if (img && img.startsWith('//')) img = 'https:' + img;
     const supabase = getServerSupabase();
     if (img && supabase) {
       try { await supabase.from('hotel_images').insert({ hotel_id: id, url: img }); } catch {}
