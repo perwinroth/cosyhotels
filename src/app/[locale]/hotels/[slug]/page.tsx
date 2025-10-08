@@ -7,6 +7,7 @@ import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { shimmer } from "@/lib/image";
+import { cosyScore } from "@/lib/scoring/cosy";
 import { getVendorImageCached } from "@/lib/imageVendor";
 
 // Using implicit types from Supabase rows to avoid unused warnings
@@ -51,7 +52,17 @@ export default async function HotelDetail({ params, searchParams }: Props) {
       const country = (d?.country || qCountry || '');
       const affiliateBase = bookingSearchUrl({ name, city, country });
       const affiliateUrl = buildAffiliateUrl(affiliateBase);
-      const cosy = typeof d?.rating10 === 'number' ? d!.rating10 : 7.0;
+      // Use the same cosy scoring as tiles to ensure consistency
+      const rating10 = typeof d?.rating10 === 'number' ? d!.rating10 : undefined;
+      const cosy = typeof rating10 === 'number' ? cosyScore({ rating: rating10 }) : (() => {
+        const n = name.toLowerCase();
+        let s = 6.6;
+        const boost = ["boutique","design","charm","charming","cozy","cosy","intimate","romantic","maison","atelier","residenza","palazzo"];
+        const penal = ["marriott","hilton","hyatt","accor","radisson","kempinski","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham"];
+        if (boost.some(k=>n.includes(k))) s += 0.8;
+        if (penal.some(k=>n.includes(k))) s -= 0.8;
+        return Math.max(5.0, Math.min(9.5, s));
+      })();
       const imgParam = typeof searchParams?.img === 'string' ? searchParams!.img : '';
       const imgDirect = Array.isArray(d?.images) && d!.images[0] ? d!.images[0] : null;
       const image = imgDirect || imgParam || await getVendorImageCached(params.slug, name, city, country) || '/seal.svg';
