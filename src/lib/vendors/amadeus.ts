@@ -107,18 +107,7 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
   url.searchParams.set('includeClosed', 'true');
   url.searchParams.set('bestRateOnly', 'false');
   url.searchParams.set('view', 'FULL');
-  // Provide simple dates to increase data availability
-  try {
-    const today = new Date();
-    const checkIn = new Date(today.getTime() + 14 * 86400000);
-    const checkOut = new Date(today.getTime() + 15 * 86400000);
-    const ci = checkIn.toISOString().slice(0, 10);
-    const co = checkOut.toISOString().slice(0, 10);
-    url.searchParams.set('adults', '2');
-    url.searchParams.set('roomQuantity', '1');
-    url.searchParams.set('checkInDate', ci);
-    url.searchParams.set('checkOutDate', co);
-  } catch {}
+  // No dates: we only need static hotel object (name, address, media)
   const res = await fetch(url.toString(), { headers, next: { revalidate: 3600 } });
   if (!res.ok) return null;
   const json: unknown = await res.json();
@@ -147,14 +136,24 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
   const lng = numDeep(first, ['hotel','geoCode','longitude']);
   const ratingStr = strDeep(first, ['hotel','rating']);
   const stars = ratingStr ? Number(ratingStr) : NaN;
-  // Try media images if available (avoid any by using type guards)
+  // Try media/images arrays if available (avoid any by using type guards)
   let images: string[] = [];
   const hotelObj = isObj(first) && isObj((first as Record<string, unknown>).hotel)
     ? ((first as Record<string, unknown>).hotel as Record<string, unknown>)
     : null;
   const mediaVal: unknown = hotelObj ? hotelObj['media'] : undefined;
+  const imagesVal: unknown = hotelObj ? hotelObj['images'] : undefined;
   if (Array.isArray(mediaVal)) {
     images = (mediaVal as unknown[])
+      .map((m: unknown) => {
+        if (!isObj(m)) return null;
+        const u = str(m, 'uri') || str(m, 'url');
+        return u || null;
+      })
+      .filter((u): u is string => !!u);
+  }
+  if (!images.length && Array.isArray(imagesVal)) {
+    images = (imagesVal as unknown[])
       .map((m: unknown) => {
         if (!isObj(m)) return null;
         const u = str(m, 'uri') || str(m, 'url');
