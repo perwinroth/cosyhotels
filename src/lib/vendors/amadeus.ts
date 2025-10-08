@@ -104,7 +104,7 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
   if (!headers) return null;
   const url = new URL(`${baseUrl()}/v3/shopping/hotel-offers`);
   url.searchParams.set('hotelIds', hotelId);
-  url.searchParams.set('includeClosed', 'false');
+  url.searchParams.set('includeClosed', 'true');
   url.searchParams.set('bestRateOnly', 'false');
   url.searchParams.set('view', 'FULL');
   // Provide simple dates to increase data availability
@@ -123,7 +123,22 @@ export async function amadeusGetHotelDetails(hotelId: string): Promise<AmadeusHo
   if (!res.ok) return null;
   const json: unknown = await res.json();
   const arr = getArray(json, 'data');
-  const first = arr[0];
+  let first = arr[0];
+  // If offers are unavailable (no data), fall back to reference data by hotelId for static info
+  if (!first) {
+    try {
+      const hUrl = new URL(`${baseUrl()}/v1/reference-data/locations/hotels/by-hotel`);
+      hUrl.searchParams.set('hotelId', hotelId);
+      const r2 = await fetch(hUrl.toString(), { headers, next: { revalidate: 3600 } });
+      if (r2.ok) {
+        const j2: unknown = await r2.json();
+        const d2 = Array.isArray((j2 as any)?.data) ? (j2 as any).data[0] : null;
+        if (d2) {
+          first = { hotel: d2 } as unknown;
+        }
+      }
+    } catch {}
+  }
   const name = strDeep(first, ['hotel','name']) || '';
   const city = strDeep(first, ['hotel','address','cityName']);
   const country = strDeep(first, ['hotel','address','countryCode']);
