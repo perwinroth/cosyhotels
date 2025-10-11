@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "ship": "bash scripts/git-ship.sh",
+    "backfill:images": "curl -sS -X POST http://localhost:3000/api/admin/backfill-images || true",
+    "ensure:featured": "curl -sS http://localhost:3000/api/cron/ensure-featured || true",
     "scrape:cosyhotels": "node scripts/scrape-cosyhotels.mjs",
     "model:high": "bash scripts/set-model.sh gpt-5",
     "model:fast": "bash scripts/set-model.sh o4-mini",
