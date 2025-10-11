@@ -10,6 +10,7 @@ import { amadeusSearchHotels, amadeusGetHotelDetails } from "@/lib/vendors/amade
 import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { getVendorImageAny } from "@/lib/imageVendor";
+import { getHotelImages } from "@/lib/hotelImages";
 
 type Tile = {
   slug: string; name: string; city: string; country: string;
@@ -84,7 +85,14 @@ async function buildTileFromAmadeus(id: string, fallbackName: string, fallbackCi
   const r10 = typeof d?.rating10 === 'number' ? d!.rating10 : NaN;
   const cosy = Number.isFinite(r10) ? cosyScore({ rating: r10 }) : cosyFromName(name);
   const media = Array.isArray(d?.images) && d!.images[0] ? d!.images[0] : null;
-  const img = media || await getVendorImageAny(slug, name, city, country) || '/seal.svg';
+  let img = media || await getVendorImageAny(slug, name, city, country) || '';
+  if (!img) {
+    try {
+      const r = await getHotelImages({ hotelId: id, name, city: city || undefined, topN: 3 });
+      img = r.images[0]?.url || '';
+    } catch {}
+  }
+  if (!img) img = '/seal.svg';
   const affiliateUrl = buildAffiliateUrl(bookingSearchUrl({ name, city, country }));
   return { slug, name, city, country, rating: Number.isFinite(r10) ? r10 : 0, _cosy: cosy, _img: img, affiliateUrl };
 }

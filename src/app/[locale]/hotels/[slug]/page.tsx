@@ -9,6 +9,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { shimmer } from "@/lib/image";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { getVendorImageCached } from "@/lib/imageVendor";
+import { getImageForHotel } from "@/lib/hotelImages";
 
 // Using implicit types from Supabase rows to avoid unused warnings
 
@@ -65,7 +66,10 @@ export default async function HotelDetail({ params, searchParams }: Props) {
       })();
       const imgParam = typeof searchParams?.img === 'string' ? searchParams!.img : '';
       const imgDirect = Array.isArray(d?.images) && d!.images[0] ? d!.images[0] : null;
-      const image = imgDirect || imgParam || await getVendorImageCached(params.slug, name, city, country) || '/seal.svg';
+      const rawImage = imgDirect || imgParam || await getVendorImageCached(params.slug, name, city, country) || '/seal.svg';
+      const image = (typeof rawImage === 'string' && /^https?:\/\//.test(rawImage))
+        ? `/api/proxy/image?url=${encodeURIComponent(rawImage)}`
+        : rawImage;
       return (
         <div className="mx-auto max-w-3xl px-4 py-8">
           <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
@@ -121,7 +125,17 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
-  const image = (img?.url as string | undefined) || "/logo-seal.svg";
+  let resolved = (img?.url as string | undefined) || '';
+  if (!resolved) {
+    try {
+      resolved = await getImageForHotel(String(hotel.name), String(hotel.city || ''), 800, String(hotel.slug), String(hotel.id)) || '';
+      if (resolved) { try { await db.from('hotel_images').insert({ hotel_id: hotel.id, url: resolved }); } catch {} }
+    } catch {}
+  }
+  const rawImage = resolved || "/logo-seal.svg";
+  const image = (typeof rawImage === 'string' && /^https?:\/\//.test(rawImage))
+    ? `/api/proxy/image?url=${encodeURIComponent(rawImage)}`
+    : rawImage;
 
   // Use DB values to compose concise snippet
   const rating5 = typeof hotel.rating === 'number' ? Number(hotel.rating) / 2 : undefined;
