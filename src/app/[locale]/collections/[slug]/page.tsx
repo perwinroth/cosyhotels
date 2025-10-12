@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getImageForHotel } from "@/lib/hotelImages";
+import { placeholderUrl } from "@/lib/image";
 import type { Metadata } from "next";
 import { getCollection } from "@/data/collections";
 import { cosyBadgeClass } from "@/lib/scoring/cosy";
@@ -131,7 +132,7 @@ export default async function CollectionPage({ params }: Props) {
     return {
       _id: String(h.id), slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''),
       rating: typeof h.rating === 'number' ? h.rating : 0, price: typeof h.price === 'number' ? h.price : undefined,
-      _cosy: s, _img: url || '/logo-seal.svg',
+      _cosy: s, _img: url || placeholderUrl,
     };
   }));
   return (

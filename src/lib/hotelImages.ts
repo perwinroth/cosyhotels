@@ -36,7 +36,8 @@ type CacheEntry = {
 
 const CACHE_TTL_MS = parseInt(process.env.HOTEL_IMAGE_CACHE_TTL_MS || '86400000', 10); // 24h
 const REQUEST_TIMEOUT_MS = parseInt(process.env.HOTEL_IMAGE_TIMEOUT_MS || '8000', 10);
-const PLACEHOLDER_URL = process.env.HOTEL_IMAGE_PLACEHOLDER_URL || 'https://placehold.co/800x600?text=Hotel+Image';
+// Use a raster format to avoid Next/Image rejecting SVGs through the optimizer
+const PLACEHOLDER_URL = process.env.HOTEL_IMAGE_PLACEHOLDER_URL || 'https://placehold.co/800x600.jpg?text=Hotel+Image';
 
 const cache = new Map<string, CacheEntry>();
 

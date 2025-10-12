@@ -6,7 +6,7 @@ import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { shimmer } from "@/lib/image";
+import { shimmer, placeholderUrl } from "@/lib/image";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { getVendorImageCached } from "@/lib/imageVendor";
 import { getImageForHotel } from "@/lib/hotelImages";
@@ -66,7 +66,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
       })();
       const imgParam = typeof searchParams?.img === 'string' ? searchParams!.img : '';
       const imgDirect = Array.isArray(d?.images) && d!.images[0] ? d!.images[0] : null;
-      const rawImage = imgDirect || imgParam || await getVendorImageCached(params.slug, name, city, country) || '/seal.svg';
+      const rawImage = imgDirect || imgParam || await getVendorImageCached(params.slug, name, city, country) || placeholderUrl;
       const image = (typeof rawImage === 'string' && /^https?:\/\//.test(rawImage))
         ? `/api/proxy/image?url=${encodeURIComponent(rawImage)}`
         : rawImage;
@@ -132,7 +132,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
       if (resolved) { try { await db.from('hotel_images').insert({ hotel_id: hotel.id, url: resolved }); } catch {} }
     } catch {}
   }
-  const rawImage = resolved || "/logo-seal.svg";
+  const rawImage = resolved || placeholderUrl;
   const image = (typeof rawImage === 'string' && /^https?:\/\//.test(rawImage))
     ? `/api/proxy/image?url=${encodeURIComponent(rawImage)}`
     : rawImage;

@@ -7,6 +7,7 @@ import { buildCosySnippet } from "@/i18n/snippets";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { getImageForHotel } from "@/lib/hotelImages";
+import { placeholderUrl } from "@/lib/image";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
@@ -235,7 +236,7 @@ export default async function GuidePage({ params }: Props) {
 
   const chosen = await Promise.all(take.map(async ({ h, s }) => {
     const cached = imgMap.get(String(h.id));
-    const img = cached || (await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id))) || '/seal.svg';
+    const img = cached || (await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id))) || placeholderUrl;
     const snippet = buildCosySnippet(params.locale, {
       city: String(h.city || cityName),
       name: String(h.name),

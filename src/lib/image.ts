@@ -16,3 +16,5 @@ export function shimmer(width: number, height: number) {
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
+// Raster placeholder URL for safe Next/Image optimization
+export const placeholderUrl = 'https://placehold.co/800x600.jpg?text=Hotel+Image';

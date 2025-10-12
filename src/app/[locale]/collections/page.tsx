@@ -6,6 +6,7 @@ import { messages as i18n } from "@/i18n/messages";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getImageForHotel } from "@/lib/hotelImages";
+import { placeholderUrl } from "@/lib/image";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   const languages = Object.fromEntries([
@@ -102,7 +103,7 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
           <Link key={c.slug} href={`/${params.locale}/collections/${c.slug}`} className="block rounded-xl border border-zinc-200 overflow-hidden hover:shadow-sm bg-white">
             <div className="relative aspect-[16/9] bg-zinc-100">
               <Image
-                src={c.img || '/logo-seal.svg'}
+                src={c.img || placeholderUrl}
                 alt={c.name ? `${c.name}` : c.title}
                 fill
                 className="object-cover"

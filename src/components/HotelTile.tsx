@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { shimmer } from "@/lib/image";
+import { shimmer, placeholderUrl } from "@/lib/image";
 import { cosyBadgeClass } from "@/lib/scoring/cosy";
 
 export type TileHotel = {
@@ -17,8 +17,9 @@ export type TileHotel = {
 export default function HotelTile({ hotel, href, goHref, priority = false, sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px" }: { hotel: TileHotel; href: string; goHref?: string; priority?: boolean; sizes?: string }) {
   const h = hotel;
   const cosyText = h.cosy.toFixed(1);
-  const isRemote = typeof h.image === 'string' && /^https?:\/\//.test(h.image);
-  const src = isRemote ? `/api/proxy/image?url=${encodeURIComponent(h.image!)}` : (h.image || '/seal.svg');
+  const raw = h.image || placeholderUrl;
+  const isRemote = /^https?:\/\//.test(raw);
+  const src = isRemote ? `/api/proxy/image?url=${encodeURIComponent(raw)}` : raw;
   return (
     <div className="overflow-hidden rounded-2xl border brand-border hover:shadow-md bg-white h-full" aria-label={`${h.name}, Cosy ${cosyText}`} data-cosy={cosyText}>
       <Link href={href} className="relative aspect-[4/3] bg-zinc-100 block">
