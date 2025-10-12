@@ -9,13 +9,32 @@ type EnsureFeaturedOk = { ensured: boolean; inserted?: number; have?: number };
 type EnsureFeaturedErr = { error: string };
 type EnsureFeaturedResult = EnsureFeaturedOk | EnsureFeaturedErr;
 
-async function ensureFeatured(): Promise<EnsureFeaturedResult> {
+async function ensureFeatured(force = false): Promise<EnsureFeaturedResult> {
   const db = getServerSupabase();
   if (!db) return { error: 'Supabase not configured' };
   // Current rows
-  const { data: cur } = await db.from('featured_top').select('position').order('position', { ascending: true }).limit(9);
+  const { data: cur } = await db.from('featured_top').select('position,hotel_id,image_url').order('position', { ascending: true }).limit(9);
   const have = (cur || []).length;
-  if (have >= 9) return { ensured: false, have };
+  if (have >= 9 && !force) {
+    // Backfill missing images for existing featured rows
+    const rows = (cur || []) as Array<{ position: number; hotel_id: string | null; image_url: string | null }>;
+    let updated = 0;
+    for (const r of rows) {
+      if (r.image_url) continue;
+      if (!r.hotel_id) continue;
+      try {
+        const { data: h } = await db
+          .from('hotels')
+          .select('name,city,slug')
+          .eq('id', r.hotel_id)
+          .maybeSingle();
+        if (!h) continue;
+        const url = await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(r.hotel_id));
+        if (url) { await db.from('featured_top').update({ image_url: url }).eq('position', r.position); updated++; }
+      } catch {}
+    }
+    return { ensured: false, have };
+  }
 
   type Row = { score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; affiliate_url: string | null } | null };
   const { data: rows } = await db
@@ -50,15 +69,19 @@ async function ensureFeatured(): Promise<EnsureFeaturedResult> {
   return { ensured: true, inserted: inserts.length };
 }
 
-export async function POST() {
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const force = url.searchParams.get('force') === '1';
   after(async () => {
-    try { await ensureFeatured(); } catch (e) { try { console.error('ensure_featured_error', e); } catch {} }
+    try { await ensureFeatured(force); } catch (e) { try { console.error('ensure_featured_error', e); } catch {} }
   });
   return NextResponse.json({ scheduled: true }, { status: 202 });
 }
 
-export async function GET() {
-  const res: EnsureFeaturedResult = await ensureFeatured();
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const force = url.searchParams.get('force') === '1';
+  const res: EnsureFeaturedResult = await ensureFeatured(force);
   if ('error' in res) return NextResponse.json(res, { status: 500 });
   return NextResponse.json(res);
 }
