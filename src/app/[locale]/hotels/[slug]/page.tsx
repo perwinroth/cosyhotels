@@ -126,6 +126,16 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     .limit(1)
     .maybeSingle();
   let resolved = (img?.url as string | undefined) || '';
+  // If legacy Places URL, try to refresh to a vendor/website image and persist
+  if (resolved.startsWith('/api/places/photo')) {
+    try {
+      const fresh = await getImageForHotel(String(hotel.name), String(hotel.city || ''), String(hotel.slug), String(hotel.id));
+      if (fresh) {
+        resolved = fresh;
+        try { await db.from('hotel_images').insert({ hotel_id: hotel.id, url: fresh }); } catch {}
+      }
+    } catch {}
+  }
   if (!resolved) {
     try {
       resolved = await getImageForHotel(String(hotel.name), String(hotel.city || ''), String(hotel.slug), String(hotel.id)) || '';
