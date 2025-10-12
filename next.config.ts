@@ -11,14 +11,9 @@ const nextConfig: NextConfig = {
     imageSizes: [400, 600, 800],
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
-      { protocol: 'https', hostname: 'www.cosyhotelroom.com', pathname: '/api/places/photo' },
+      // Allow our own proxy endpoint in production hostname
       { protocol: 'https', hostname: 'www.cosyhotelroom.com', pathname: '/api/proxy/image' },
       { protocol: 'https', hostname: 'www.cosyhotelroom.com', pathname: '/api/proxy/image/**' },
-      { protocol: 'https', hostname: 'www.cosyhotelroom.com', pathname: '/api/places/photo/**' },
-      { protocol: 'https', hostname: 'cosyhotelroom.com', pathname: '/api/places/photo/**' },
-      { protocol: 'https', hostname: 'maps.googleapis.com', pathname: '/**' },
-      { protocol: 'https', hostname: 'lh3.googleusercontent.com', pathname: '/**' },
-      { protocol: 'https', hostname: 'lh5.googleusercontent.com', pathname: '/**' },
     ],
     // Increase CDN cache time for optimized results
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
