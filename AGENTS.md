@@ -36,7 +36,6 @@
 
 ## Security & Configuration Tips
 - Copy `.env.example` → `.env`.
-- Required: `NEXT_PUBLIC_SITE_URL`, Supabase keys, `GOOGLE_MAPS_API_KEY`. Optional: `OPENAI_MODEL`.
+- Required: `NEXT_PUBLIC_SITE_URL`, Supabase keys. Optional: `OPENAI_MODEL`.
 - Do not commit secrets. `NEXT_PUBLIC_*` keys are client-visible.
 - External API calls live in `src/lib` and should be server-side where possible.
-
