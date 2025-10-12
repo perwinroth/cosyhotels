@@ -310,6 +310,25 @@ export async function getImagesForHotels(hotels: Array<{ hotelId: string; name: 
   return results;
 }
 
+// Convenience wrapper used across pages/routes to fetch a single representative image URL
+// for a hotel. It leverages the pipeline (Amadeus → website → search → placeholder) and
+// returns the first image URL if available, otherwise null.
+export async function getImageForHotel(
+  name: string,
+  city: string = '',
+  _maxWidth: number = 800,
+  slug?: string,
+  hotelId?: string,
+): Promise<string | null> {
+  const key = hotelId || slug || `${name}:${city}`;
+  try {
+    const { images } = await getHotelImages({ hotelId: key, name, city, topN: 3 });
+    return images[0]?.url || null;
+  } catch {
+    return null;
+  }
+}
+
 /* ========================
    Environment variables (optional)
    ========================
