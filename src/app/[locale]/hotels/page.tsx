@@ -17,8 +17,6 @@ type Tile = {
   rating: number; _cosy: number; _img: string; affiliateUrl: string;
 }
 
-function nonNull<T>(x: T | null | undefined): x is T { return x != null; }
-
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   const languages = Object.fromEntries([
     ...locales.map((l) => [l, `/${l}/hotels`]),

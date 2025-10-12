@@ -128,7 +128,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   let resolved = (img?.url as string | undefined) || '';
   if (!resolved) {
     try {
-      resolved = await getImageForHotel(String(hotel.name), String(hotel.city || ''), 800, String(hotel.slug), String(hotel.id)) || '';
+      resolved = await getImageForHotel(String(hotel.name), String(hotel.city || ''), String(hotel.slug), String(hotel.id)) || '';
       if (resolved) { try { await db.from('hotel_images').insert({ hotel_id: hotel.id, url: resolved }); } catch {} }
     } catch {}
   }

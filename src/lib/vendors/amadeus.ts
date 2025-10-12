@@ -25,7 +25,6 @@ let cachedToken: { value: string; exp: number } | null = null;
 function isObj(x: unknown): x is Record<string, unknown> { return typeof x === 'object' && x !== null; }
 function getArray(obj: unknown, key: string): unknown[] { if (isObj(obj)) { const v = obj[key]; if (Array.isArray(v)) return v as unknown[]; } return []; }
 function str(obj: unknown, key: string): string | null { if (!isObj(obj)) return null; const v = obj[key]; if (typeof v === 'string') return v; if (typeof v === 'number') return String(v); return null; }
-function num(obj: unknown, key: string): number | null { if (!isObj(obj)) return null; const v = obj[key]; if (typeof v === 'number') return v; return null; }
 function pick(obj: unknown, keys: string[]): unknown { let cur: unknown = obj; for (const k of keys) { if (!isObj(cur)) return null; cur = cur[k]; } return cur; }
 function strDeep(obj: unknown, path: string[]): string | null { const v = pick(obj, path); return typeof v === 'string' ? v : null; }
 function numDeep(obj: unknown, path: string[]): number | null { const v = pick(obj, path); return typeof v === 'number' ? v : null; }

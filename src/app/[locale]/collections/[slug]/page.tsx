@@ -123,7 +123,7 @@ export default async function CollectionPage({ params }: Props) {
     let url = imgMap.get(String(h.id)) || '';
     if (!url) {
       // Resolve via hotelImages pipeline (Amadeus → website → search → placeholder); caches result in Supabase
-      url = (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '';
+      url = (await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id))) || '';
       if (url) {
         try { await supabase.from('hotel_images').insert({ hotel_id: h.id, url }); } catch {}
       }

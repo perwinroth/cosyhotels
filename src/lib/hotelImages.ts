@@ -51,13 +51,13 @@ async function headOrGet(url: string): Promise<{ ok: boolean; type?: string; wid
   try {
     const res = await withTimeout(url, { method: 'HEAD' });
     if (res.ok) return { ok: true, type: res.headers.get('content-type') || undefined };
-  } catch (_) {
+  } catch {
     // fall through to GET
   }
   try {
     const res = await withTimeout(url, { method: 'GET' });
     return { ok: res.ok, type: res.headers.get('content-type') || undefined };
-  } catch (_) {
+  } catch {
     return { ok: false };
   }
 }
@@ -85,6 +85,11 @@ async function getAmadeusToken(): Promise<string | null> {
   }
 }
 
+type AmadeusMediaItem = { uri?: string; url?: string; link?: string; type?: string; category?: string };
+type AmadeusPhotoItem = { uri?: string; url?: string; link?: string; type?: string; category?: string };
+type CombinedItem = { uri?: string; url?: string; link?: string; type?: string; category?: string };
+type AmadeusDataItem = { media?: AmadeusMediaItem[]; photos?: AmadeusPhotoItem[] };
+
 async function fetchAmadeusHotelImages(hotelId: string, view: 'SMALL' | 'FULL' = 'FULL'): Promise<ImageMeta[] | null> {
   const token = await getAmadeusToken();
   if (!token) return null;
@@ -96,12 +101,12 @@ async function fetchAmadeusHotelImages(hotelId: string, view: 'SMALL' | 'FULL' =
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return null;
-    const json = await res.json();
+    const json = (await res.json()) as { data?: AmadeusDataItem[] };
     // Support common shapes: data[].media[] or data[].photos[]
-    const data = Array.isArray(json?.data) ? json.data : [];
-    const mediaItems: any[] = data.flatMap((d: any) => d?.media || d?.photos || []);
+    const data: AmadeusDataItem[] = Array.isArray(json?.data) ? json!.data! : [];
+    const mediaItems: CombinedItem[] = data.flatMap((d) => (d.media as CombinedItem[] | undefined) || (d.photos as CombinedItem[] | undefined) || []);
     const candidates = mediaItems
-      .map((m: any) => {
+      .map((m: CombinedItem) => {
         const url = m?.uri || m?.url || m?.link || null;
         if (!url) return null;
         const type = m?.type || m?.category;
@@ -316,7 +321,6 @@ export async function getImagesForHotels(hotels: Array<{ hotelId: string; name: 
 export async function getImageForHotel(
   name: string,
   city: string = '',
-  _maxWidth: number = 800,
   slug?: string,
   hotelId?: string,
 ): Promise<string | null> {

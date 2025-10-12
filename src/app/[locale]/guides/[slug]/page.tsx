@@ -235,7 +235,7 @@ export default async function GuidePage({ params }: Props) {
 
   const chosen = await Promise.all(take.map(async ({ h, s }) => {
     const cached = imgMap.get(String(h.id));
-    const img = cached || (await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id))) || '/seal.svg';
+    const img = cached || (await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id))) || '/seal.svg';
     const snippet = buildCosySnippet(params.locale, {
       city: String(h.city || cityName),
       name: String(h.name),

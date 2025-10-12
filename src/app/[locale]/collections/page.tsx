@@ -81,7 +81,7 @@ export default async function CollectionsIndex({ params }: { params: { locale: s
     // If we have no cached image but there is a first row, resolve one via helper and persist
     if (!img && first && first.id) {
       try {
-        const resolved = await getImageForHotel(String(first.name || ''), String(first.city || ''), 600, String(first.slug || ''), String(first.id));
+        const resolved = await getImageForHotel(String(first.name || ''), String(first.city || ''), String(first.slug || ''), String(first.id));
         if (resolved) {
           img = resolved;
           await supabase.from('hotel_images').insert({ hotel_id: first.id, url: resolved });

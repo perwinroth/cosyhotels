@@ -24,7 +24,7 @@ async function run(limit = 200) {
     if (has) continue;
     processed++;
     try {
-      const url = await getImageForHotel(String(r.name), String(r.city || ''), 600, String(r.slug), String(r.id));
+      const url = await getImageForHotel(String(r.name), String(r.city || ''), String(r.slug), String(r.id));
       if (url) { await db.from('hotel_images').insert({ hotel_id: r.id, url }); updated++; }
     } catch {}
   }
@@ -41,4 +41,3 @@ export async function POST() {
   if ('error' in res) return NextResponse.json(res, { status: 500 });
   return NextResponse.json(res);
 }
-

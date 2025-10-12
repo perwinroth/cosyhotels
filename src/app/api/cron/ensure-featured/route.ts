@@ -43,7 +43,7 @@ async function ensureFeatured(): Promise<EnsureFeaturedResult> {
     position: i + 1,
     hotel_id: h.id,
     score: s,
-    image_url: await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || '/seal.svg',
+    image_url: await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id)) || '/seal.svg',
   })));
   await db.from('featured_top').delete().neq('position', -1);
   if (inserts.length) await db.from('featured_top').insert(inserts);

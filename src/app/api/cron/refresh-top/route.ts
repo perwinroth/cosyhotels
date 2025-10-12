@@ -241,7 +241,7 @@ async function runJob() {
       position: idx + 1,
       hotel_id: p.hotel.id,
       score: p.final,
-      image_url: await getImageForHotel(String(p.hotel.name), String(p.hotel.city || ''), 800, String(p.hotel.slug), String(p.hotel.id)) || '/seal.svg',
+      image_url: await getImageForHotel(String(p.hotel.name), String(p.hotel.city || ''), String(p.hotel.slug), String(p.hotel.id)) || '/seal.svg',
     })));
     if (inserts.length) await db.from("featured_top").insert(inserts);
   } catch (e) { try { console.error("normalization_or_featured_error", e); } catch {} }
@@ -256,7 +256,7 @@ async function runJob() {
     const list = (topRows || []) as unknown as Array<{ score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; city: string | null } | null }>;
     for (const r of list) {
       const h = r.hotel; if (!h) continue;
-      try { await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)); } catch {}
+      try { await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id)); } catch {}
     }
   } catch (e) { try { console.error('precompute_images_error', e); } catch {} }
   // 5) Precompute top-9 per city for guides (RLS-safe, no embedded joins)
@@ -327,7 +327,7 @@ async function runJob() {
             }
           }
         } catch {}
-        const image_url = await getImageForHotel(String(h.name), String(h.city || ''), 800, String(h.slug), String(h.id)) || '/seal.svg';
+        const image_url = await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id)) || '/seal.svg';
         inserts.push({ city, rank, hotel_id: h.id, score: s, image_url, rating5: rating5 ?? null, reviews_count: reviews ?? null, cues, updated_at: new Date().toISOString() });
         rank++;
       }
