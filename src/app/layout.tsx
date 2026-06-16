@@ -8,6 +8,7 @@ import Toaster from "@/components/Toaster";
 export const metadata: Metadata = {
   title: "Get Cosy – Find cosy hotel rooms",
   description: "Curated cosy getaways.",
+  other: { "verify-admitad": "fcd0c8cf9848b219283de8fda4c1ee95" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
