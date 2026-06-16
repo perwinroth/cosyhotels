@@ -93,10 +93,29 @@ async function fromWebsite(website?: string | null): Promise<ResolvedImage | nul
   if (!website) return null;
   const html = await fetchText(website);
   if (!html) return null;
-  const img = extractMetaImage(html, website);
-  if (!img) return null;
-  if (!/(logo|icon|sprite|favicon|placeholder)/i.test(img) && await headOk(img)) {
-    return { url: img, source: 'website', attribution: null };
+  // 1) og:image / twitter:image / JSON-LD (best — curated hero shot)
+  const meta = extractMetaImage(html, website);
+  if (meta && !/(logo|icon|sprite|favicon|placeholder)/i.test(meta) && await headOk(meta)) {
+    return { url: meta, source: 'website', attribution: null };
+  }
+  // 2) Fallback: scan <img> + CSS background-image for the first large photo.
+  const JUNK = /(logo|icon|sprite|favicon|thumb|avatar|pixel|spacer|blank|placeholder|banner-ad|loader|btn|button|arrow|flag|badge|seal|whatsapp|facebook|instagram|twitter|payment|visa|mastercard|cookie|map)/i;
+  const cand: string[] = [];
+  for (const m of html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+)["']/gi)) {
+    const u = abs(m[1], website);
+    if (u && /\.(jpe?g|png|webp|avif)(\?|$)/i.test(u) && !JUNK.test(u)) cand.push(u);
+  }
+  for (const m of html.matchAll(/background(?:-image)?\s*:\s*url\(["']?([^"')]+)/gi)) {
+    const u = abs(m[1], website);
+    if (u && /\.(jpe?g|png|webp|avif)(\?|$)/i.test(u) && !JUNK.test(u)) cand.push(u);
+  }
+  // Validate the first few; return the first that is a live image.
+  const seen = new Set<string>();
+  for (const u of cand) {
+    if (seen.has(u)) continue;
+    seen.add(u);
+    if (await headOk(u)) return { url: u, source: 'website', attribution: null };
+    if (seen.size >= 6) break;
   }
   return null;
 }
