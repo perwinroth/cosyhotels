@@ -91,51 +91,8 @@ async function Results({ searchParams, locale }: { searchParams: { [k: string]: 
   const city = typeof searchParams.city === 'string' && searchParams.city.trim() ? searchParams.city.trim() : undefined;
 
   if (!city) {
-    // Fast path: use curated featured_top from Supabase if available (avoids heavy vendor/API calls)
-    try {
-      const db = getServerSupabase();
-      if (db) {
-        type Row = { position: number; score: number; image_url: string | null; hotel: { slug: string; name: string; city: string | null; country: string | null; rating: number | null } | null };
-        const { data } = await db
-          .from('featured_top')
-          .select('position,score,image_url, hotel:hotel_id (slug,name,city,country,rating)')
-          .order('position', { ascending: true })
-          .limit(9);
-        const rows = (data || []) as unknown as Row[];
-        const tiles: Tile[] = rows
-          .map((r) => {
-            const h = r.hotel; if (!h) return null;
-            return {
-              slug: String(h.slug),
-              name: String(h.name),
-              city: String(h.city || ''),
-              country: String(h.country || ''),
-              rating: typeof h.rating === 'number' ? h.rating : 0,
-              _cosy: Number(r.score) || 0,
-              _img: r.image_url || '',
-              affiliateUrl: ''
-            } as Tile;
-          })
-          .filter((x): x is Tile => !!x);
-        if (tiles.length) {
-          return (
-            <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
-              <div className="col-span-full sr-only" aria-live="polite">Top cosy places</div>
-              {tiles.map((h, i) => (
-                <HotelTile
-                  key={`${h.slug}-${i}`}
-                  hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, image: h._img, cosy: h._cosy }}
-                  href={`/${locale}/hotels/${h.slug}`}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
-                />
-              ))}
-            </div>
-          );
-        }
-      }
-    } catch {}
-
-    // Fallback: sample a few cosy seed cities via free OSM (no API keys).
+    // Homepage: show live cosy picks from photo-rich seed cities (free OSM).
+    // (We intentionally do NOT use the stale Supabase featured_top table.)
     const seeds = ["Paris", "Rome", "Lisbon"];
     const picks: Tile[] = [];
     for (const c of seeds) {
