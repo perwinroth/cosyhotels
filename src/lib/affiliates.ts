@@ -36,6 +36,9 @@ const providerParams: Record<Provider, { subIdParam?: string }> = {
   impact: { subIdParam: "subId1" },
 };
 
+// Travelpayouts marker (partner id). Wraps outbound hotel links so clicks earn.
+const TP_MARKER = "740458";
+
 export function buildAffiliateUrl(baseUrl: string, opts?: { provider?: Provider; campaign?: string; content?: string; clickId?: string }) {
   const u = new URL(baseUrl);
   u.searchParams.set("utm_source", site.affiliate.source);
@@ -44,7 +47,12 @@ export function buildAffiliateUrl(baseUrl: string, opts?: { provider?: Provider;
   if (opts?.content) u.searchParams.set("utm_content", opts.content);
   const p = providerParams[opts?.provider || "generic"];
   if (p.subIdParam && opts?.clickId) u.searchParams.set(p.subIdParam, String(opts.clickId));
-  return u.toString();
+  // Wrap via Travelpayouts redirect so the click is attributed to the marker.
+  const tp = new URL("https://tp.media/r");
+  tp.searchParams.set("marker", TP_MARKER);
+  tp.searchParams.set("p", "4115"); // Booking.com program id on Travelpayouts
+  tp.searchParams.set("u", u.toString());
+  return tp.toString();
 }
 
 export function hotelAffiliateUrl(hotel: Hotel, opts?: { provider?: Provider; campaign?: string; content?: string; clickId?: string }) {
