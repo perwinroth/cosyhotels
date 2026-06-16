@@ -14,23 +14,28 @@ export async function POST(req: Request) {
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
 
-  let hotel: { id: string; slug: string; name: string; city: string | null } | null = null;
+  type HotelRow = { id: string; slug: string; name: string; city: string | null };
+  let hotel: HotelRow | null = null;
   if (id) {
     const { data } = await db.from('hotels').select('id,slug,name,city').eq('id', id).maybeSingle();
-    hotel = (data as typeof hotel) || null;
+    hotel = (data as unknown as HotelRow) || null;
   } else if (slug) {
     const { data } = await db.from('hotels').select('id,slug,name,city').eq('slug', slug).maybeSingle();
-    hotel = (data as typeof hotel) || null;
+    hotel = (data as unknown as HotelRow) || null;
   } else {
     return NextResponse.json({ error: 'Provide slug or id' }, { status: 400 });
   }
   if (!hotel) return NextResponse.json({ error: 'Hotel not found' }, { status: 404 });
+  const hotelId: string = hotel.id;
+  const hotelName: string = hotel.name;
+  const hotelCity: string = String(hotel.city || '');
+  const hotelSlug: string = hotel.slug;
 
   if (!force) {
     const { data: has } = await db
       .from('hotel_images')
       .select('url')
-      .eq('hotel_id', hotel.id)
+      .eq('hotel_id', hotelId)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -40,9 +45,9 @@ export async function POST(req: Request) {
     }
   }
 
-  const fresh = await getImageForHotel(String(hotel.name), String(hotel.city || ''), String(hotel.slug), String(hotel.id));
+  const fresh = await getImageForHotel(hotelName, hotelCity, hotelSlug, hotelId);
   if (fresh) {
-    await db.from('hotel_images').insert({ hotel_id: hotel.id, url: fresh });
+    await db.from('hotel_images').insert({ hotel_id: hotelId, url: fresh });
     return NextResponse.json({ ok: true, url: fresh });
   }
   return NextResponse.json({ ok: false, url: null });

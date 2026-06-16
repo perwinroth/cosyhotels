@@ -1,4 +1,4 @@
-// Hotels listing (Amadeus-first; no Google Places)
+// Hotels listing — OpenStreetMap-first (free, no API key). Amadeus removed.
 export const revalidate = 300;
 import { SearchBar } from "@/components/HomeSections";
 import type { Metadata } from "next";
@@ -7,11 +7,10 @@ import { messages } from "@/i18n/messages";
 import { cityGuides } from "@/data/cityGuides";
 import HotelTile from "@/components/HotelTile";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { amadeusSearchHotels, amadeusGetHotelDetails } from "@/lib/vendors/amadeus";
+import { osmSearchHotels, type OSMHotel } from "@/lib/vendors/osm";
+import { osmCosyScore } from "@/lib/scoring/osmCosy";
 import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
-import { cosyScore } from "@/lib/scoring/cosy";
 import { getVendorImageAny } from "@/lib/imageVendor";
-import { getHotelImages } from "@/lib/hotelImages";
 
 type Tile = {
   slug: string; name: string; city: string; country: string;
@@ -64,36 +63,52 @@ export default function HotelsPage({ searchParams, params }: { searchParams: { [
   );
 }
 
-function cosyFromName(name: string): number {
-  const n = name.toLowerCase();
-  let score = 6.6;
-  const boost = ["boutique","design","charm","charming","cozy","cosy","intimate","romantic","maison","atelier","residenza","palazzo"];
-  const penal = ["marriott","hilton","hyatt","accor","radisson","kempinski","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham"];
-  if (boost.some((k) => n.includes(k))) score += 0.8;
-  if (penal.some((k) => n.includes(k))) score -= 0.8;
-  return Math.max(5.0, Math.min(9.5, score));
+// Fetch og:image directly from a hotel's own website (the most reliable free source).
+async function ogImageFromWebsite(website?: string | null): Promise<string | null> {
+  if (!website) return null;
+  try {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(website, {
+      redirect: 'follow',
+      next: { revalidate: 86400 },
+      signal: controller.signal,
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      },
+    }).finally(() => clearTimeout(id));
+    if (!res.ok) return null;
+    const html = await res.text();
+    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i)
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+      || html.match(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)/i);
+    let url = og ? og[1] : null;
+    if (url && url.startsWith('//')) url = 'https:' + url;
+    if (url) { try { return new URL(url, website).toString(); } catch { return url; } }
+    return null;
+  } catch { return null; }
 }
 
-async function buildTileFromAmadeus(id: string, fallbackName: string, fallbackCity: string, fallbackCountry: string): Promise<Tile | null> {
-  const d = await amadeusGetHotelDetails(id);
-  const name = (d?.name || fallbackName || '').trim();
-  const city = (d?.city || fallbackCity || '').trim();
-  const country = (d?.country || fallbackCountry || '').trim();
-  if (!name) return null;
-  const slug = `am-${id}`;
-  const r10 = typeof d?.rating10 === 'number' ? d!.rating10 : NaN;
-  const cosy = Number.isFinite(r10) ? cosyScore({ rating: r10 }) : cosyFromName(name);
-  const media = Array.isArray(d?.images) && d!.images[0] ? d!.images[0] : null;
-  let img = media || await getVendorImageAny(slug, name, city, country) || '';
-  if (!img) {
-    try {
-      const r = await getHotelImages({ hotelId: id, name, city: city || undefined, topN: 3 });
-      img = r.images[0]?.url || '';
-    } catch {}
-  }
+async function buildTileFromOSM(h: OSMHotel): Promise<Tile> {
+  const cosy = osmCosyScore(h).cosy;
+  const name = h.name;
+  const city = h.city || '';
+  const country = h.country || '';
+  const slug = `osm-${h.id.replace(/[^a-z0-9]+/gi, '-')}`;
+  // Image: 1) hotel's own website og:image  2) booking/expedia OG fallback  3) seal
+  let img = await ogImageFromWebsite(h.website);
+  if (!img) img = await getVendorImageAny(slug, name, city, country);
   if (!img) img = '/seal.svg';
   const affiliateUrl = buildAffiliateUrl(bookingSearchUrl({ name, city, country }));
-  return { slug, name, city, country, rating: Number.isFinite(r10) ? r10 : 0, _cosy: cosy, _img: img, affiliateUrl };
+  // Map OSM stars (0..5) onto the 0..10 rating field the tile expects.
+  const rating = h.stars && Number.isFinite(h.stars) ? h.stars * 2 : 0;
+  return { slug, name, city, country, rating, _cosy: cosy, _img: img, affiliateUrl };
+}
+
+function detailHref(locale: string, h: Tile): string {
+  const q = `name=${encodeURIComponent(h.name)}&city=${encodeURIComponent(h.city)}&country=${encodeURIComponent(h.country)}&img=${encodeURIComponent(h._img)}`;
+  return `/${locale}/hotels/${h.slug}?${q}`;
 }
 
 async function Results({ searchParams, locale }: { searchParams: { [k: string]: string | string[] | undefined }, locale: string }) {
@@ -144,19 +159,20 @@ async function Results({ searchParams, locale }: { searchParams: { [k: string]: 
       }
     } catch {}
 
-    // Fallback: very light sampling from Amadeus to avoid timeouts
-    const seeds = ["Paris","Rome","Lisbon"];
+    // Fallback: sample a few cosy seed cities via free OSM (no API keys).
+    const seeds = ["Paris", "Rome", "Lisbon"];
     const picks: Tile[] = [];
     for (const c of seeds) {
-      const list = await amadeusSearchHotels(c);
-      for (const s of list.slice(0, 6)) {
-        const t = await buildTileFromAmadeus(s.id, s.name || '', c, '');
-        if (t && t._cosy >= 7.0) picks.push(t);
-        if (picks.length >= 9) break;
-      }
+      const hotels = await osmSearchHotels(c);
+      const scored = hotels
+        .map((h) => ({ h, cosy: osmCosyScore(h).cosy }))
+        .sort((a, b) => b.cosy - a.cosy)
+        .slice(0, 3);
+      const tiles = await Promise.all(scored.map((s) => buildTileFromOSM(s.h)));
+      for (const t of tiles) picks.push(t);
       if (picks.length >= 9) break;
     }
-    const top = picks.sort((a,b)=>b._cosy - a._cosy).slice(0, 9);
+    const top = picks.sort((a, b) => b._cosy - a._cosy).slice(0, 9);
     return (
       <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
         <div className="col-span-full sr-only" aria-live="polite">Top cosy places</div>
@@ -164,7 +180,7 @@ async function Results({ searchParams, locale }: { searchParams: { [k: string]: 
           <HotelTile
             key={`${h.slug}-${i}`}
             hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, image: h._img, cosy: h._cosy }}
-            href={`/${locale}/hotels/${h.slug}?name=${encodeURIComponent(h.name)}&city=${encodeURIComponent(h.city)}&country=${encodeURIComponent(h.country)}&img=${encodeURIComponent(h._img)}`}
+            href={detailHref(locale, h)}
             priority={i === 0}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
           />
@@ -173,22 +189,21 @@ async function Results({ searchParams, locale }: { searchParams: { [k: string]: 
     );
   }
 
-  // City search: top 21 by cosy
-  const ids = await amadeusSearchHotels(city);
-  const tiles: Tile[] = [];
-  for (const s of ids.slice(0, 60)) {
-    const t = await buildTileFromAmadeus(s.id, s.name || '', city, '');
-    if (t) tiles.push(t);
-  }
-  const top = tiles.sort((a,b)=>b._cosy - a._cosy).slice(0, 21);
+  // City search: free OSM lodging → cosy-rank → top 21.
+  const hotels = await osmSearchHotels(city);
+  const scored = hotels
+    .map((h) => ({ h, cosy: osmCosyScore(h).cosy }))
+    .sort((a, b) => b.cosy - a.cosy)
+    .slice(0, 21);
+  const tiles: Tile[] = await Promise.all(scored.map((s) => buildTileFromOSM(s.h)));
   return (
     <div className="grid md:grid-cols-3 gap-3 auto-rows-fr">
-      <div className="col-span-full sr-only" aria-live="polite">{top.length} results in {city}</div>
-      {top.map((h, i) => (
+      <div className="col-span-full sr-only" aria-live="polite">{tiles.length} results in {city}</div>
+      {tiles.map((h, i) => (
         <HotelTile
           key={`${h.slug}-${i}`}
           hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: h.rating, image: h._img, cosy: h._cosy }}
-          href={`/${locale}/hotels/${h.slug}?name=${encodeURIComponent(h.name)}&city=${encodeURIComponent(h.city)}&country=${encodeURIComponent(h.country)}&img=${encodeURIComponent(h._img)}`}
+          href={detailHref(locale, h)}
           goHref={h.affiliateUrl}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
         />
