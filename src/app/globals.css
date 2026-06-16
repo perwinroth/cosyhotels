@@ -1,28 +1,67 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Get Cosy — "Hygge Editorial" design system
+   Warm cream surfaces · serif display · terracotta + sage accents
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap');
+
 :root {
-  --background: #ffffff; /* white */
-  --foreground: #000000; /* black */
+  /* surfaces */
+  --background: #faf6ef;   /* warm cream */
+  --surface-2: #f3ebde;    /* deeper cream (footers, fills) */
+  --card: #fffdf9;         /* near-white card */
+  --foreground: #2b2420;   /* warm near-black ink */
+  --muted: #8c8178;        /* muted clay text */
+  --line: #e7ded2;         /* hairline borders */
+
+  /* accents */
+  --ember: #c2603a;        /* terracotta — primary accent, used sparingly */
+  --ember-ink: #a14e2f;    /* darker ember for text on cream */
+  --sage: #5c6b56;         /* very-cosy seal / success */
+
+  /* elevation */
+  --shadow: 0 1px 2px rgba(43,36,32,.04), 0 8px 24px rgba(43,36,32,.06);
+  --shadow-lg: 0 12px 40px rgba(43,36,32,.14);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-surface-2: var(--surface-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-ember: var(--ember);
+  --color-sage: var(--sage);
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
 }
-
-/* Disable dark inversion; always use brand light theme */
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Serif display for headings */
+h1, h2, h3, .font-display {
+  font-family: 'Fraunces', Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 a { color: inherit; text-decoration-color: currentColor; }
 a:hover { text-decoration: underline; }
 
-/* Brand helpers */
-.brand-price { color: #b45309; /* orange-700 */ }
-.brand-border { border-color: #e5e5e5; }
+/* Brand helpers (kept for backward compat, re-pointed to warm palette) */
+.brand-price { color: var(--ember-ink); }
+.brand-border { border-color: var(--line); }
+.brand-accent { color: var(--ember); }
+.brand-accent-bg { background: var(--ember); }
+.text-pretty { text-wrap: pretty; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

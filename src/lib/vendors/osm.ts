@@ -21,6 +21,8 @@ export type OSMHotel = {
   address?: string | null;
   city?: string | null;
   country?: string | null;
+  wikidata?: string | null;   // OSM 'wikidata' tag (Qxxxx) -> Wikimedia image
+  imageTag?: string | null;   // OSM 'image' tag (direct photo URL)
 };
 
 const UA = 'cosyhotels/1.0 (+https://cosyhotels.example; hotel discovery bot)';
@@ -38,7 +40,7 @@ function isObj(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
 
-async function fetchWithTimeout(url: string, init: RequestInit, ms = 30000): Promise<Response> {
+async function fetchWithTimeout(url: string, init: RequestInit, ms = 90000): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), ms);
   try {
@@ -133,27 +135,65 @@ function composeAddress(tags: Record<string, unknown>): string | null {
 
 // Lodging types we treat as cosy candidates. We EXCLUDE nothing here — the
 // cosy scorer decides; hostels/motels just tend to score low.
-const LODGING = ['hotel', 'guest_house', 'chalet', 'hostel', 'motel', 'apartment'];
+// NOTE: 'chalet' and 'apartment' are intentionally omitted from the default
+// net: outside dense tourist cities they are mostly private holiday cottages /
+// numbered cabins, not bookable cosy hotels, and they pollute results badly.
+const LODGING = ['hotel', 'guest_house', 'hostel', 'motel'];
+
+// Cap results per city. Cosy sites are curated; we don't need thousands.
+const MAX_RESULTS = 300;
+
+// Quality gate: is this OSM entry a real, bookable place to stay (not a pub,
+// restaurant, scout cabin, numbered holiday cottage, or junk tag)?
+function isRealLodging(name: string, tags: Record<string, unknown>, type: string): boolean {
+  const n = name.toLowerCase();
+
+  // 1) Name must be substantive (reject "Ev", "&hotel", single chars, etc.)
+  const clean = n.replace(/[^a-zà-ÿ0-9]/gi, '');
+  if (clean.length < 3) return false;
+
+  // 2) Reject names that are clearly food/drink venues mis-tagged as lodging.
+  //    'krog'/'krogen' = Swedish pub, 'pub', 'bar', 'restaurang', 'café'...
+  const FOOD = /\b(krog|krogen|pub|bar|brewery|bryggeri|restaurang|restaurant|trattoria|osteria|bistro|brasserie|taverna|café|kafé|coffee|pizzeria|grill|diner)\b/i;
+  if (FOOD.test(n)) return false;
+
+  // 3) Reject scout/holiday-cabin / numbered-cottage patterns (very common in
+  //    Nordic OSM): "stugby", "stuga", "scoutkår", "vandrarhem annex", or a
+  //    name that is basically a cadastral number like "Solgård 3:38 Hus".
+  const CABIN = /\b(stugby|stuga|stugor|scout|koloni|kolonistuga|campground|camping|caravan)\b/i;
+  if (CABIN.test(n)) return false;
+  if (/\d+:\d+/.test(n)) return false; // Swedish property designations e.g. 3:38
+
+  // 4) Type must be one we trust as a real establishment.
+  if (!LODGING.includes(type)) return false;
+
+  // 5) Heuristic: a real hotel/guesthouse usually has at least ONE corroborating
+  //    signal — stars, a website, rooms, an address, or the word hotel/hostel/
+  //    inn/guest in the name. A bare node with only a name is usually junk.
+  const hasSignal = !!(
+    tagStr(tags, 'stars') || tagStr(tags, 'website', 'contact:website') ||
+    tagStr(tags, 'rooms') || tagStr(tags, 'addr:street', 'contact:street') ||
+    tagStr(tags, 'phone', 'contact:phone') || tagStr(tags, 'wikidata') ||
+    /\b(hotel|hôtel|hostel|inn|guest|pension|pensionat|b&b|bed|herberge|albergo|ostello|auberge|gasthof|gästehaus|vandrarhem|värdshus|hotell)\b/i.test(n)
+  );
+  return hasSignal;
+}
 
 export async function osmSearchHotels(city: string): Promise<OSMHotel[]> {
   const box = await geocodeCity(city);
   if (!box) return [];
   const { south, west, north, east, country } = box;
   const bbox = `${south},${west},${north},${east}`;
-  const tourismFilter = LODGING.map((t) => `["tourism"="${t}"]`);
-  // nodes + ways, named only
-  const clauses = tourismFilter
-    .flatMap((f) => [
-      `node${f}["name"](${bbox});`,
-      `way${f}["name"](${bbox});`,
-    ])
-    .join('\n      ');
+  // IMPORTANT: a single regex-matched `nwr` clause is dramatically faster than
+  // 12 separate node/way clauses (which time out on Overpass). `nwr` matches
+  // nodes, ways AND relations in one pass; `out center` gives ways a centroid.
+  const typeRe = `^(${LODGING.join('|')})$`;
   const query = `
-    [out:json][timeout:30];
+    [out:json][timeout:60];
     (
-      ${clauses}
+      nwr["tourism"~"${typeRe}"]["name"](${bbox});
     );
-    out tags center 250;
+    out tags center ${MAX_RESULTS};
   `;
   const json = await overpass(query);
   if (!isObj(json) || !Array.isArray(json.elements)) return [];
@@ -164,6 +204,10 @@ export async function osmSearchHotels(city: string): Promise<OSMHotel[]> {
     const tags = isObj(el.tags) ? el.tags as Record<string, unknown> : {};
     const name = tagStr(tags, 'name');
     if (!name) continue;
+    const type = tagStr(tags, 'tourism') || 'hotel';
+    // QUALITY FILTER — OSM is noisy outside big tourist cities. Reject entries
+    // that are clearly not bookable cosy hotels, so the listing stays trustworthy.
+    if (!isRealLodging(name, tags, type)) continue;
     // coords: nodes have lat/lon; ways have center
     const center = isObj(el.center) ? el.center as Record<string, unknown> : null;
     const lat = typeof el.lat === 'number' ? el.lat : (typeof center?.lat === 'number' ? center.lat as number : NaN);
@@ -173,7 +217,6 @@ export async function osmSearchHotels(city: string): Promise<OSMHotel[]> {
     const stars = starsStr ? Number(starsStr) : null;
     const roomsStr = tagStr(tags, 'rooms');
     const rooms = roomsStr ? Number(roomsStr) : null;
-    const type = tagStr(tags, 'tourism') || 'hotel';
     const id = `${typeof el.type === 'string' ? el.type : 'node'}/${typeof el.id === 'number' ? el.id : ''}`;
     out.push({
       id,
@@ -188,6 +231,8 @@ export async function osmSearchHotels(city: string): Promise<OSMHotel[]> {
       address: composeAddress(tags),
       city: tagStr(tags, 'addr:city', 'contact:city') || city,
       country: country || null,
+      wikidata: tagStr(tags, 'wikidata', 'brand:wikidata'),
+      imageTag: tagStr(tags, 'image'),
     });
   }
   return out;

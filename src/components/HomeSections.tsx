@@ -72,7 +72,8 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
     >
       <div className="relative">
       <input
-        className="w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+        className="w-full rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2"
+        style={{ border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--foreground)' }}
         placeholder="Paris, Rome, Lisbon…"
         value={city}
         onChange={(e) => setCity(e.target.value)}
@@ -154,7 +155,8 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         )}
       </div>
       <button
-        className="rounded-lg bg-[#0EA5A4] text-white px-4 py-2 hover:bg-[#0B807F] active:translate-y-[1px] active:bg-[#0B807F] disabled:opacity-60 disabled:cursor-not-allowed"
+        className="rounded-lg text-white px-5 py-2.5 active:translate-y-[1px] disabled:opacity-60 disabled:cursor-not-allowed font-medium"
+        style={{ background: 'var(--ember)' }}
         disabled={submitting}
       >
         {submitting ? "Searching…" : "Search"}

@@ -51,19 +51,19 @@ export default async function LocaleLayout({
   const m = messages[locale as keyof typeof messages] ?? messages.en;
   return (
     <html lang={locale}>
-      <body className={`antialiased bg-white text-zinc-900`}>
-        <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur">
+      <body className={`antialiased`} style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <header className="sticky top-0 z-30 border-b" style={{ borderColor: 'var(--line)', background: 'rgba(250,246,239,0.85)', backdropFilter: 'blur(8px)' }}>
           <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-            <Link href={`/`} className="flex items-center gap-2 font-semibold tracking-tight">
+            <Link href={`/`} className="flex items-center gap-2.5 no-underline">
               <Image src="/seal.svg" alt={site.name} width={40} height={40} priority />
               <span className="sr-only">{site.name}</span>
-              <span aria-hidden className="text-lg font-semibold uppercase tracking-wide text-[#0EA5A4]">{m.brand?.name || 'Get Cosy'}</span>
+              <span aria-hidden className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>{m.brand?.name || 'Get Cosy'}</span>
             </Link>
-            <nav className="flex gap-4 text-sm items-center">
-              <Link href={`/${locale}/collections`} prefetch={false} className="hover:underline">{m.nav.collections}</Link>
-              <Link href={`/${locale}/guides`} prefetch={false} className="hover:underline">{m.nav.guides}</Link>
-              <Link href={`/${locale}/cosy-score`} prefetch={false} className="hover:underline">{m.nav.how}</Link>
-              <Link href={`/${locale}/cosy-score#seal`} prefetch={false} className="hover:underline">Seal of Approval</Link>
+            <nav className="flex gap-5 text-sm items-center" style={{ color: 'var(--muted)' }}>
+              <Link href={`/${locale}/collections`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.collections}</Link>
+              <Link href={`/${locale}/guides`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.guides}</Link>
+              <Link href={`/${locale}/cosy-score`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.how}</Link>
+              <Link href={`/${locale}/cosy-score#seal`} prefetch={false} className="font-medium no-underline hover:underline" style={{ color: 'var(--ember)' }}>Seal of Approval</Link>
               <LanguageSwitcher current={locale} />
             </nav>
           </div>

@@ -9,8 +9,8 @@ import HotelTile from "@/components/HotelTile";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { osmSearchHotels, type OSMHotel } from "@/lib/vendors/osm";
 import { osmCosyScore } from "@/lib/scoring/osmCosy";
+import { resolveHotelImage } from "@/lib/hotelImageFree";
 import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
-import { getVendorImageAny } from "@/lib/imageVendor";
 
 type Tile = {
   slug: string; name: string; city: string; country: string;
@@ -63,43 +63,19 @@ export default function HotelsPage({ searchParams, params }: { searchParams: { [
   );
 }
 
-// Fetch og:image directly from a hotel's own website (the most reliable free source).
-async function ogImageFromWebsite(website?: string | null): Promise<string | null> {
-  if (!website) return null;
-  try {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(website, {
-      redirect: 'follow',
-      next: { revalidate: 86400 },
-      signal: controller.signal,
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-      },
-    }).finally(() => clearTimeout(id));
-    if (!res.ok) return null;
-    const html = await res.text();
-    const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i)
-      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-      || html.match(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)/i);
-    let url = og ? og[1] : null;
-    if (url && url.startsWith('//')) url = 'https:' + url;
-    if (url) { try { return new URL(url, website).toString(); } catch { return url; } }
-    return null;
-  } catch { return null; }
-}
-
 async function buildTileFromOSM(h: OSMHotel): Promise<Tile> {
   const cosy = osmCosyScore(h).cosy;
   const name = h.name;
   const city = h.city || '';
   const country = h.country || '';
   const slug = `osm-${h.id.replace(/[^a-z0-9]+/gi, '-')}`;
-  // Image: 1) hotel's own website og:image  2) booking/expedia OG fallback  3) seal
-  let img = await ogImageFromWebsite(h.website);
-  if (!img) img = await getVendorImageAny(slug, name, city, country);
-  if (!img) img = '/seal.svg';
+  // Image: real photo only — hotel website og:image, name-matched Wikimedia,
+  // or wikidata. Honest placeholder if none found (no fake stock photos).
+  const resolved = await resolveHotelImage({
+    name, website: h.website, wikidata: h.wikidata, imageTag: h.imageTag,
+    lat: h.lat, lng: h.lng, city,
+  });
+  const img = resolved.url;
   const affiliateUrl = buildAffiliateUrl(bookingSearchUrl({ name, city, country }));
   // Map OSM stars (0..5) onto the 0..10 rating field the tile expects.
   const rating = h.stars && Number.isFinite(h.stars) ? h.stars * 2 : 0;
