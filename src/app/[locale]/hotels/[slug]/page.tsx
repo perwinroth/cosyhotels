@@ -6,6 +6,24 @@ import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cosyScore } from "@/lib/scoring/cosy";
+import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
+import { unstable_cache } from "next/cache";
+
+// Live OSM hotels aren't persisted, so we score them on the detail page with Claude.
+// Cached per (name, city, country) for 7 days so it's at most ~one paid call per hotel
+// regardless of how many times the page is viewed.
+const cachedOsmScore = unstable_cache(
+  async (name: string, city: string, country: string) => {
+    try {
+      const r = await claudeCosyScore({ name, city, country });
+      return { score10: r.score10, signals: r.signals, description: r.description };
+    } catch {
+      return null;
+    }
+  },
+  ["osm-claude-cosy"],
+  { revalidate: 60 * 60 * 24 * 7 }
+);
 
 // Using implicit types from Supabase rows to avoid unused warnings
 
@@ -86,6 +104,53 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     } catch {
       return notFound();
     }
+  }
+
+  // Live OSM slugs aren't in Supabase — render from query params + Claude score.
+  if (params.slug.startsWith('osm-')) {
+    const { bookingSearchUrl, buildAffiliateUrl } = await import('@/lib/affiliates');
+    const qName = typeof searchParams?.name === 'string' ? searchParams!.name : '';
+    const qCity = typeof searchParams?.city === 'string' ? searchParams!.city : '';
+    const qCountry = typeof searchParams?.country === 'string' ? searchParams!.country : '';
+    const name = qName || 'Hotel';
+    const city = qCity || '';
+    const country = qCountry || '';
+    const affiliateUrl = buildAffiliateUrl(bookingSearchUrl({ name, city, country }));
+    const scored = await cachedOsmScore(name, city, country);
+    const cosy = scored?.score10 ?? null;
+    const description = scored?.description || null;
+    const signals = scored?.signals || null;
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-8">
+        <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
+        <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
+        {description && <p className="mt-3 text-sm text-zinc-700">{description}</p>}
+        {signals && signals.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {signals.slice(0, 4).map((s) => (
+              <span key={s} className="text-xs px-2.5 py-1 rounded-full border border-zinc-200 text-zinc-600 bg-zinc-50">{s}</span>
+            ))}
+          </div>
+        )}
+        <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy != null ? cosy.toFixed(1) : '–'} out of 10`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-zinc-600">Cosy score</div>
+              <div className="text-2xl font-semibold">{cosy != null ? cosy.toFixed(1) : '–'}<span className="text-base text-zinc-500">/10</span></div>
+            </div>
+            <span />
+          </div>
+        </div>
+        <div className="mt-5 flex items-center gap-3">
+          <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
+            Back to results
+          </a>
+          <div className="ml-auto flex gap-2">
+            <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={affiliateUrl} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const db = getServerSupabase();
