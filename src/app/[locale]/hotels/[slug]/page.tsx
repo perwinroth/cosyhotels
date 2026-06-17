@@ -1,15 +1,11 @@
 // Hotel detail (Amadeus-first for am- slugs; Supabase otherwise)
 import { notFound, permanentRedirect } from "next/navigation";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { shimmer, placeholderUrl } from "@/lib/image";
 import { cosyScore } from "@/lib/scoring/cosy";
-import { getVendorImageCached } from "@/lib/imageVendor";
-import { getImageForHotel } from "@/lib/hotelImages";
 
 // Using implicit types from Supabase rows to avoid unused warnings
 
@@ -64,19 +60,10 @@ export default async function HotelDetail({ params, searchParams }: Props) {
         if (penal.some(k=>n.includes(k))) s -= 0.8;
         return Math.max(5.0, Math.min(9.5, s));
       })();
-      const imgParam = typeof searchParams?.img === 'string' ? searchParams!.img : '';
-      const imgDirect = Array.isArray(d?.images) && d!.images[0] ? d!.images[0] : null;
-      const rawImage = imgDirect || imgParam || await getVendorImageCached(params.slug, name, city, country) || placeholderUrl;
-      const image = (typeof rawImage === 'string' && /^https?:\/\//.test(rawImage))
-        ? `/api/proxy/image?url=${encodeURIComponent(rawImage)}`
-        : rawImage;
       return (
         <div className="mx-auto max-w-3xl px-4 py-8">
           <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
           <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
-          <div className="mt-3 relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
-            <Image src={image} alt={`${name}`} fill priority className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
-          </div>
           <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy.toFixed(1)} out of 10`}>
             <div className="flex items-center justify-between">
               <div>
@@ -113,39 +100,12 @@ export default async function HotelDetail({ params, searchParams }: Props) {
 
   const { data: scoreRow } = await db
     .from("cosy_scores")
-    .select("score,score_final")
+    .select("score,score_final,description,signals")
     .eq("hotel_id", hotel.id)
     .maybeSingle();
   const cosy = (scoreRow?.score_final as number | null) ?? (scoreRow?.score as number | null) ?? null;
-
-  const { data: img } = await db
-    .from('hotel_images')
-    .select('url')
-    .eq('hotel_id', hotel.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  let resolved = (img?.url as string | undefined) || '';
-  // If legacy Places URL, try to refresh to a vendor/website image and persist
-  if (resolved.startsWith('/api/places/photo')) {
-    try {
-      const fresh = await getImageForHotel(String(hotel.name), String(hotel.city || ''), String(hotel.slug), String(hotel.id));
-      if (fresh) {
-        resolved = fresh;
-        try { await db.from('hotel_images').insert({ hotel_id: hotel.id, url: fresh }); } catch {}
-      }
-    } catch {}
-  }
-  if (!resolved) {
-    try {
-      resolved = await getImageForHotel(String(hotel.name), String(hotel.city || ''), String(hotel.slug), String(hotel.id)) || '';
-      if (resolved) { try { await db.from('hotel_images').insert({ hotel_id: hotel.id, url: resolved }); } catch {} }
-    } catch {}
-  }
-  const rawImage = resolved || placeholderUrl;
-  const image = (typeof rawImage === 'string' && /^https?:\/\//.test(rawImage))
-    ? `/api/proxy/image?url=${encodeURIComponent(rawImage)}`
-    : rawImage;
+  const cosyDescription = (scoreRow?.description as string | null) ?? null;
+  const cosySignals = (scoreRow?.signals as string[] | null) ?? null;
 
   // Use DB values to compose concise snippet
   const rating5 = typeof hotel.rating === 'number' ? Number(hotel.rating) / 2 : undefined;
@@ -168,11 +128,15 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{hotel.name}</h1>
       <div className="mt-1 text-zinc-600">{[hotel.city, hotel.country].filter(Boolean).join(', ')}</div>
-      <p className="mt-3 text-sm text-zinc-700">{cosySnippet}</p>
+      <p className="mt-3 text-sm text-zinc-700">{cosyDescription ?? cosySnippet}</p>
 
-      <div className="mt-3 relative aspect-[4/3] w-full rounded-xl overflow-hidden border border-zinc-200">
-        <Image src={image} alt={`${hotel.name}`} fill priority className="object-cover" placeholder="blur" blurDataURL={shimmer(1200, 800)} sizes="(max-width: 768px) 100vw, 720px" />
-      </div>
+      {cosySignals && cosySignals.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {cosySignals.slice(0, 4).map((s) => (
+            <span key={s} className="text-xs px-2.5 py-1 rounded-full border border-zinc-200 text-zinc-600 bg-zinc-50">{s}</span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'} out of 10`}>
         <div className="flex items-center justify-between">

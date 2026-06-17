@@ -204,6 +204,13 @@ export function cosyScore(features: HotelFeatures, ctx: ContextSignals = {}) {
   return cosyParts(features, ctx).raw;
 }
 
+// Map a Claude 0–100 cosiness score to the brand's 0–10 scale used across UI/CI.
+// Keeps all existing badges, labels, normalization and the ≥7 front-data guard working.
+export function score100to10(score100: number) {
+  if (!Number.isFinite(score100)) return 0;
+  return Math.max(0, Math.min(10, score100 / 10));
+}
+
 // Helper for UI: map cosy score to brand color classes
 export function cosyBadgeClass(score: number) {
   if (score >= 7.5) return "bg-emerald-100 text-emerald-800"; // green

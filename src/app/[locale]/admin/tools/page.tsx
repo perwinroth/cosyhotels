@@ -49,6 +49,9 @@ export default function AdminTools() {
   const vendorAction = useAction();
   const [vendorCity, setVendorCity] = useState("");
   const [vendor, setVendor] = useState<'booking'|'expedia'|'amadeus'>('booking');
+  const cosyScoring = useAction();
+  const [scoringSlug, setScoringSlug] = useState("");
+  const [scoringCity, setScoringCity] = useState("");
 
   const base = ""; // same origin
 
@@ -63,6 +66,24 @@ export default function AdminTools() {
         </div>
         {env.resp && (
           <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(env.resp, null, 2)}</pre>
+        )}
+      </section>
+
+      <section className="mt-6 rounded border border-zinc-200 bg-white p-4">
+        <h2 className="font-medium">Cosy Scoring (Claude)</h2>
+        <div className="mt-2 flex gap-2 items-center">
+          <input className="border rounded px-2 py-1 flex-1" placeholder="Hotel slug" value={scoringSlug} onChange={(e) => setScoringSlug(e.target.value)} />
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={!scoringSlug || cosyScoring.loading} onClick={() => cosyScoring.run(`${base}/api/admin/score?slug=${encodeURIComponent(scoringSlug)}`, { method: 'POST' })}>Score hotel</button>
+        </div>
+        <div className="mt-2 flex gap-2 items-center">
+          <input className="border rounded px-2 py-1 flex-1" placeholder="City" value={scoringCity} onChange={(e) => setScoringCity(e.target.value)} />
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={!scoringCity || cosyScoring.loading} onClick={() => cosyScoring.run(`${base}/api/admin/score?city=${encodeURIComponent(scoringCity)}`, { method: 'POST' })}>Score city</button>
+        </div>
+        <div className="mt-2 flex gap-2">
+          <button className="px-3 py-1.5 rounded border hover:bg-zinc-50" disabled={cosyScoring.loading} onClick={() => cosyScoring.run(`${base}/api/cron/recompute-scores`, { method: 'POST' })}>Recompute stale (all)</button>
+        </div>
+        {cosyScoring.resp && (
+          <pre className="mt-2 text-xs whitespace-pre-wrap">{JSON.stringify(cosyScoring.resp, null, 2)}</pre>
         )}
       </section>
 
