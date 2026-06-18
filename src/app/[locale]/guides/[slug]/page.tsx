@@ -16,6 +16,33 @@ import { bboxFor } from "@/data/cityCoords";
 
 type Props = { params: { slug: string; locale: string } };
 
+// City-specific FAQ for GEO/SEO. Answers are method-based and honest — they describe how
+// we score cosiness rather than asserting unverifiable local facts.
+function cityFaqs(city: string): Array<{ q: string; a: string }> {
+  return [
+    {
+      q: `What makes a hotel in ${city} cosy?`,
+      a: `Cosiness is about warmth, intimacy and character: small room counts, fireplaces or soaking tubs, natural materials like wood and stone, and reviews where guests feel genuinely welcomed rather than processed. We rank ${city} hotels on exactly these signals.`,
+    },
+    {
+      q: `How are these ${city} hotels ranked?`,
+      a: `Each hotel gets a 0–10 cosy score from our scoring engine, which weighs property type and scale, amenities, the language guests use in reviews, and the setting. Independent and boutique stays tend to score higher than large chains.`,
+    },
+    {
+      q: `Are cosy hotels in ${city} more expensive than chain hotels?`,
+      a: `Not necessarily. Cosiness comes from character and scale, not price — many of the cosiest stays are small independents that cost less than a big-brand business hotel.`,
+    },
+    {
+      q: `Can I book these ${city} hotels directly?`,
+      a: `Yes. Every hotel links out to live availability and pricing so you can compare your dates and book on your preferred site.`,
+    },
+    {
+      q: `How often is this ${city} list updated?`,
+      a: `The list is regenerated regularly as cosy scores and availability change, so it reflects current picks rather than a static editorial list.`,
+    },
+  ];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const g = getGuide(params.slug);
   if (!g) {
@@ -30,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ...locales.map((l) => [l, `/${l}/guides/${cg.slug}`]),
         ["x-default", `/en/guides/${cg.slug}`],
       ]);
-      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary", title, description } };
+      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: "/logo-seal.svg", width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description } };
     }
     return {};
   }
@@ -263,11 +290,26 @@ export default async function GuidePage({ params }: Props) {
   const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
   const h1 = (m.guides?.h1_city || '{city} cosy hotels').replace('{city}', cityName);
   const intro = (m.guides?.intro_city || '9 handpicked cosy and romantic stays in {city}.').replace('{city}', cityName);
+  const tldr = `${cityName}'s cosiest hotels are small, characterful and warm — boutique boltholes over big chains. Below are our top handpicked stays, each ranked by our 0–10 cosy score.`;
+  const faqs = cityFaqs(cityName);
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{h1}</h1>
       <p className="mt-2 text-zinc-600">{intro}</p>
+      <p className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
+        <span className="font-semibold">TL;DR:</span> {tldr}
+      </p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <ol className="mt-6 space-y-6">
         {chosen.map((h, idx) => (
           <li key={`${h.slug}-${h._img}`} className="border border-zinc-200 rounded-xl bg-white">
@@ -296,6 +338,17 @@ export default async function GuidePage({ params }: Props) {
           </li>
         ))}
       </ol>
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold">Frequently asked questions</h2>
+        <dl className="mt-4 space-y-4">
+          {faqs.map((f) => (
+            <div key={f.q} className="border border-zinc-200 rounded-lg bg-white p-4">
+              <dt className="font-medium text-zinc-900">{f.q}</dt>
+              <dd className="mt-1.5 text-sm text-zinc-700">{f.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
     </div>
   );
 }

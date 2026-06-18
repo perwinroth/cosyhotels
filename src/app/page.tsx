@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import HotelsPage from "./[locale]/hotels/page";
+import Home from "./[locale]/page";
 
 export const metadata: Metadata = {
   alternates: {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootHome({ searchParams = {} as { [key: string]: string | string[] | undefined } }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
-  // Reuse the English hotels page as the root home
-  return <HotelsPage searchParams={searchParams} params={{ locale: 'en' }} />;
+export default function RootHome() {
+  // Render the localized homepage (hero, how-it-works, top hotels, browse-by-city, stats) for en.
+  return <Home params={{ locale: 'en' }} />;
 }

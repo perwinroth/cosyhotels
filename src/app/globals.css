@@ -1,11 +1,12 @@
+/* External @import rules MUST come before all other rules (incl. Tailwind's,
+   which expands into rules). Keep the font import first. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 /* ============================================================
    Get Cosy — "Hygge Editorial" design system
    Warm cream surfaces · serif display · terracotta + sage accents
    ============================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap');
 
 :root {
   /* surfaces */

@@ -95,11 +95,11 @@ async function fromWebsite(website?: string | null): Promise<ResolvedImage | nul
   if (!html) return null;
   // 1) og:image / twitter:image / JSON-LD (best — curated hero shot)
   const meta = extractMetaImage(html, website);
-  if (meta && !/(logo|icon|sprite|favicon|placeholder)/i.test(meta) && await headOk(meta)) {
+  if (meta && !/(logo|icon|sprite|favicon|placeholder|weather|bookcdn|polylang|\/mini\.)/i.test(meta) && await headOk(meta)) {
     return { url: meta, source: 'website', attribution: null };
   }
   // 2) Fallback: scan <img> + CSS background-image for the first large photo.
-  const JUNK = /(logo|icon|sprite|favicon|thumb|avatar|pixel|spacer|blank|placeholder|banner-ad|loader|btn|button|arrow|flag|badge|seal|whatsapp|facebook|instagram|twitter|payment|visa|mastercard|cookie|map)/i;
+  const JUNK = /(logo|icon|sprite|favicon|thumb|avatar|pixel|spacer|blank|placeholder|banner-ad|loader|btn|button|arrow|flag|badge|seal|whatsapp|facebook|instagram|twitter|payment|visa|mastercard|cookie|map|weather|bookcdn|polylang|\/mini\.|[a-z]{2}_[A-Z]{2}\.(?:png|jpe?g|svg))/i;
   const cand: string[] = [];
   for (const m of html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+)["']/gi)) {
     const u = abs(m[1], website);

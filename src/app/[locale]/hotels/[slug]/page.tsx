@@ -5,6 +5,7 @@ import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { bookingSearchUrl, expediaSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { unstable_cache } from "next/cache";
@@ -219,11 +220,14 @@ export default async function HotelDetail({ params, searchParams }: Props) {
         </a>
         <div className="ml-auto flex gap-2">
           {(() => {
-            const net = process.env.NEXT_PUBLIC_AFFILIATE_NETWORK === 'impact' ? '&network=impact' : '';
+            // Direct OTA links so Stay22 LMA can rewrite them into affiliate links.
+            const loc = { name: String(hotel.name), city: (hotel.city as string | null) ?? null, country: (hotel.country as string | null) ?? null };
+            const bookingUrl = buildAffiliateUrl(bookingSearchUrl(loc));
+            const expediaUrl = buildAffiliateUrl(expediaSearchUrl(loc));
             return (
               <>
-                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={`/go/${hotel.slug}?provider=booking${net}`} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
-                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={`/go/${hotel.slug}?provider=expedia${net}`} target="_blank" rel="noopener nofollow sponsored">View on Expedia</a>
+                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={bookingUrl} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
+                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={expediaUrl} target="_blank" rel="noopener nofollow sponsored">View on Expedia</a>
               </>
             );
           })()}
