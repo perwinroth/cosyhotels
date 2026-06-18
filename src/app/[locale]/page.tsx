@@ -103,10 +103,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
     <div>
       {/* HERO */}
       <section className="text-center px-4" style={{ padding: "74px 16px 58px", background: "radial-gradient(1100px 420px at 50% -8%, color-mix(in srgb, var(--ember) 13%, transparent), transparent 70%)" }}>
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full border" style={{ borderColor: "color-mix(in srgb, var(--ember) 30%, transparent)", background: "color-mix(in srgb, var(--ember) 13%, transparent)", color: "var(--ember)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-          ◆ AI-rated hotels for cosiness
-        </span>
-        <h1 className="mt-5 font-display font-semibold mx-auto" style={{ fontSize: "clamp(44px, 7vw, 66px)", lineHeight: 1.02, letterSpacing: "-0.025em", maxWidth: 780 }}>
+        <h1 className="font-display font-semibold mx-auto" style={{ fontSize: "clamp(44px, 7vw, 66px)", lineHeight: 1.02, letterSpacing: "-0.025em", maxWidth: 780 }}>
           Got <span style={{ fontStyle: "italic", fontWeight: 500, color: "var(--ember)" }}>cosy?</span>
         </h1>
         <p className="mt-4 mx-auto text-lg" style={{ color: "var(--muted)", maxWidth: 560, lineHeight: 1.5 }}>
