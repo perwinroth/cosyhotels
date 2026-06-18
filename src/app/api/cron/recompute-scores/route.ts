@@ -24,7 +24,7 @@ type HotelRow = {
 
 type ScoreRow = { hotel_id: string; scored_at: string | null };
 
-async function runBatch(force = false, limit = 100): Promise<{ processed: number; errors: number; ms: number }> {
+async function runBatch(force = false, limit = 100, city = ""): Promise<{ processed: number; errors: number; ms: number }> {
   const start = Date.now();
   const db = getServerSupabase();
   if (!db) throw new Error("Supabase not configured");
@@ -52,11 +52,12 @@ async function runBatch(force = false, limit = 100): Promise<{ processed: number
   const PAGE = 500;
   const toScore: HotelRow[] = [];
   for (let from = 0; toScore.length < limit; from += PAGE) {
-    const { data: page, error: hErr } = await db
+    let q = db
       .from("hotels")
       .select("id, name, city, country, website, rating, reviews_count, rooms_count, amenities, description, stars")
-      .order("id", { ascending: true })
-      .range(from, from + PAGE - 1);
+      .order("id", { ascending: true });
+    if (city) q = q.or(`city.ilike.%${city}%,address.ilike.%${city}%`);
+    const { data: page, error: hErr } = await q.range(from, from + PAGE - 1);
     if (hErr) throw new Error(hErr.message);
     const rows = (page || []) as HotelRow[];
     if (rows.length === 0) break;
@@ -144,9 +145,10 @@ export async function POST(req: Request) {
   const force = url.searchParams.get("force") === "1";
   const limitParam = url.searchParams.get("limit");
   const limit = limitParam ? Math.max(1, Math.min(500, Number(limitParam))) : 100;
+  const city = url.searchParams.get("city")?.trim() || "";
 
   try {
-    const result = await runBatch(force, limit);
+    const result = await runBatch(force, limit, city);
     return NextResponse.json(result);
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
@@ -158,9 +160,10 @@ export async function GET(req: Request) {
   const force = url.searchParams.get("force") === "1";
   const limitParam = url.searchParams.get("limit");
   const limit = limitParam ? Math.max(1, Math.min(500, Number(limitParam))) : 100;
+  const city = url.searchParams.get("city")?.trim() || "";
 
   after(async () => {
-    try { await runBatch(force, limit); } catch (e) { try { console.error("recompute_scores_error", e); } catch {} }
+    try { await runBatch(force, limit, city); } catch (e) { try { console.error("recompute_scores_error", e); } catch {} }
   });
   return NextResponse.json({ scheduled: true }, { status: 202 });
 }
