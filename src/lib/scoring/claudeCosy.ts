@@ -20,6 +20,7 @@ export type ClaudeCosy = {
 export type ClaudeCosyInput = HotelFeatures & {
   stars?: number;
   reviews?: string[]; // optional review snippets to feed the NLP signal
+  imageUrls?: string[]; // optional real photos — Claude vision assesses visible cosiness
 };
 
 export const COSY_SCORING_MODEL = process.env.COSY_SCORING_MODEL || "claude-sonnet-4-6";
@@ -92,6 +93,15 @@ export async function claudeCosyScore(input: ClaudeCosyInput): Promise<ClaudeCos
   const client = getClient();
   if (!client) throw new Error("ANTHROPIC_API_KEY not configured");
 
+  // Build a multimodal user message: the structured data plus any real photos (vision).
+  const content: Anthropic.ContentBlockParam[] = [{ type: "text", text: buildPayload(input) }];
+  for (const u of (input.imageUrls || []).slice(0, 3)) {
+    // Only http(s) raster URLs; webp/avif/png/jpg are fine for Claude vision.
+    if (/^https?:\/\/\S+\.(jpe?g|png|webp|gif)(\?|$)/i.test(u)) {
+      content.push({ type: "image", source: { type: "url", url: u } });
+    }
+  }
+
   const resp = await client.messages.create({
     model: COSY_SCORING_MODEL,
     max_tokens: 1024,
@@ -100,7 +110,7 @@ export async function claudeCosyScore(input: ClaudeCosyInput): Promise<ClaudeCos
     // Stable rubric cached so a scoring batch is ~cache-read priced per hotel.
     system: [{ type: "text", text: rubric(), cache_control: { type: "ephemeral" } }],
     output_config: { effort: "low", format: { type: "json_schema", schema: OUTPUT_SCHEMA } },
-    messages: [{ role: "user", content: buildPayload(input) }],
+    messages: [{ role: "user", content }],
   } as Anthropic.MessageCreateParamsNonStreaming);
 
   if (resp.stop_reason === "refusal") throw new Error("cosy_scoring_refused");

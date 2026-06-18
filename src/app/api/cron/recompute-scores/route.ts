@@ -69,6 +69,21 @@ async function runBatch(force = false, limit = 100): Promise<{ processed: number
     if (rows.length < PAGE) break;
   }
 
+  // Fetch one real photo per hotel for vision scoring (skip placeholders).
+  const imgByHotel = new Map<string, string>();
+  try {
+    const ids = toScore.map((h) => h.id);
+    for (let i = 0; i < ids.length; i += 200) {
+      const chunk = ids.slice(i, i + 200);
+      const { data: imgs } = await db.from("hotel_images").select("hotel_id,url").in("hotel_id", chunk);
+      for (const row of (imgs || []) as Array<{ hotel_id: string | null; url: string | null }>) {
+        const hid = row.hotel_id ? String(row.hotel_id) : "";
+        const url = row.url || "";
+        if (hid && url && !url.includes("placehold.co") && !imgByHotel.has(hid)) imgByHotel.set(hid, url);
+      }
+    }
+  } catch {}
+
   let processed = 0;
   let errors = 0;
 
@@ -89,6 +104,7 @@ async function runBatch(force = false, limit = 100): Promise<{ processed: number
             amenities: (h.amenities as string[] | null) ?? undefined,
             description: h.description ?? undefined,
             stars: h.stars ?? undefined,
+            imageUrls: imgByHotel.get(h.id) ? [imgByHotel.get(h.id) as string] : undefined,
           });
           const now = new Date().toISOString();
           const { error: uErr } = await db.from("cosy_scores").upsert(

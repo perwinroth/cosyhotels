@@ -48,6 +48,13 @@ cozy, charming, intimate, homey, welcoming, warm, romantic, quaint, snug, charac
 gemütlich, mysig, hyggelig, gezellig, accogliente, chaleureux, acogedor. Negative: noisy,
 corporate, cold, impersonal, busy lobby, bland, sterile, party hostel.
 
+**Photos (if one or more images are provided)** — a strong, direct signal. Assess what you
+actually see: warm vs cold lighting, natural materials (wood, stone, textiles), soft
+furnishings, fireplaces, plants/greenery, intimate human-scale spaces vs a large corporate
+lobby or sterile business room. A genuinely cosy-looking interior is strong positive
+evidence (and lets you raise confidence even when text is sparse); a generic corporate or
+bland room is negative. Describe only what is visible — do not over-read a single photo.
+
 **Location/setting** (only if known): mountain, forest, lake, countryside, village = higher.
 City centre, airport, business district = lower.
 
