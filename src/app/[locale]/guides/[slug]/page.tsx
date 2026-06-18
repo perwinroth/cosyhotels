@@ -232,9 +232,11 @@ export default async function GuidePage({ params }: Props) {
   });
   const sorted = scored
     .sort((a, b) => (b.exact - a.exact) || (b.mention - a.mention) || (b.s - a.s) || (b.tie - a.tie));
-  // Honest floor: only list genuinely cosy, real-scored hotels. NEVER pad with unscored
-  // (0.0) hotels just to fill the page — fewer honest results beats fake "cosy" ones.
-  const COSY_FLOOR = 6.5;
+  // PUBLIC GATE (two-score model): the secret 0–100 Claude score lives in cosy_scores.score_100
+  // (never surfaced). Anything below 50/100 (= 5.0/10) is "hidden" — kept in the DB for later
+  // re-review/upgrade, but never shown. Survivors surface their public /10 score (5.0–10.0),
+  // cosiest first; the homepage/top-of-list naturally features the highest. Never pad with 0.0.
+  const COSY_FLOOR = 5.0; // = 50/100 public gate
   const perBrand: Record<string, number> = {};
   const seen = new Set<string>();
   const picks: typeof sorted = [];
