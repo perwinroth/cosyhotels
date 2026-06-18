@@ -109,11 +109,16 @@ async function run() {
           if (img.source !== "placeholder") {
             await db.from("hotel_images").insert({ hotel_id: hid, url: img.url, attributions: img.attribution ?? null });
           }
-          const r = await claudeCosyScore({
-            name: h.name, city: h.city || t.city, country: h.country ?? undefined,
-            website: h.website ?? undefined, stars: h.stars ?? undefined,
-            imageUrls: img.source !== "placeholder" ? [img.url] : undefined,
-          });
+          const base = { name: h.name, city: h.city || t.city, country: h.country ?? undefined, website: h.website ?? undefined, stars: h.stars ?? undefined };
+          const hasImg = img.source !== "placeholder";
+          let r;
+          try {
+            r = await claudeCosyScore({ ...base, imageUrls: hasImg ? [img.url] : undefined });
+          } catch (e) {
+            // Bad/broken image URL can 400 the vision call — retry text-only so the hotel still scores.
+            if (hasImg) r = await claudeCosyScore(base);
+            else throw e;
+          }
           const now = new Date().toISOString();
           await db.from("cosy_scores").upsert({
             hotel_id: hid, score: r.score10, raw_score: r.score10, score_100: r.score100,
