@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
-// using precomputed city_top; no direct Places calls
-import { buildCosySnippet } from "@/i18n/snippets";
+import { cityFromSlug } from "@/lib/citySlug";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
@@ -42,6 +41,11 @@ function cityFaqs(city: string): Array<{ q: string; a: string }> {
   ];
 }
 
+// Strip leading postcode noise from polluted OSM city values ("211 21 Malmö" -> "Malmö").
+function cleanCity(city: string): string {
+  return city.replace(/^[\d\s.,-]+/, '').trim();
+}
+
 // Warm cosy-score badge colour (sage = very cosy → muted clay = mild).
 function cosyColor(score: number): string {
   if (score >= 7.8) return '#5c6b56';
@@ -55,8 +59,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!g) {
     const cg = getCityGuide(params.slug);
     if (cg) {
-      const titleBase = `${cg.city} cosy hotels – 9 handpicked stays`;
-      const descBase = `Our favourite cosy and romantic boutique hotels in ${cg.city}.`;
+      const titleBase = `${cg.city} cosy hotels – AI-scored for cosiness`;
+      const descBase = `Cosy and romantic boutique hotels in ${cg.city}, each scored 0–10 for cosiness by AI.`;
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
       const url = `/${params.locale}/guides/${cg.slug}`;
@@ -116,7 +120,9 @@ export default async function GuidePage({ params }: Props) {
       'los-angeles-cosy-hotel': 'Los Angeles', 'la-cosy-hotel': 'Los Angeles',
     };
     const base = slug.replace(/-cosy-hotel$/, '');
-    const pretty = aliases[slug] || base.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+    // Recover the real city name (with diacritics, e.g. "Malmö") from the known-city list;
+    // fall back to a prettified slug only if unknown.
+    const pretty = aliases[slug] || cityFromSlug(slug) || base.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
     cg = { city: pretty, slug: params.slug } as unknown as ReturnType<typeof getCityGuide>;
   }
   const cityName = String((cg as { city: string }).city);
@@ -185,14 +191,16 @@ export default async function GuidePage({ params }: Props) {
   const ids = hotels.map((h) => String(h.id));
   const { data: sRows } = await db
     .from('cosy_scores')
-    .select('hotel_id,score,score_final,signals')
+    .select('hotel_id,score,score_final,signals,description')
     .in('hotel_id', ids);
   const scoreMap = new Map<string, number>();
   const signalsMap = new Map<string, string[]>();
-  for (const r of ((sRows || []) as Array<CS & { signals: string[] | null }>)) {
+  const descMap = new Map<string, string>();
+  for (const r of ((sRows || []) as Array<CS & { signals: string[] | null; description: string | null }>)) {
     const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
     if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
     if (r.hotel_id && Array.isArray(r.signals)) signalsMap.set(String(r.hotel_id), r.signals);
+    if (r.hotel_id && typeof r.description === 'string' && r.description.trim()) descMap.set(String(r.hotel_id), r.description.trim());
   }
   // Score and prioritize exact city matches, apply basic chain diversity to avoid duplicates
   const chains = [
@@ -224,12 +232,14 @@ export default async function GuidePage({ params }: Props) {
   });
   const sorted = scored
     .sort((a, b) => (b.exact - a.exact) || (b.mention - a.mention) || (b.s - a.s) || (b.tie - a.tie));
-  const primary = sorted.filter((x) => x.s >= 7.0);
+  // Honest floor: only list genuinely cosy, real-scored hotels. NEVER pad with unscored
+  // (0.0) hotels just to fill the page — fewer honest results beats fake "cosy" ones.
+  const COSY_FLOOR = 6.5;
   const perBrand: Record<string, number> = {};
   const seen = new Set<string>();
   const picks: typeof sorted = [];
-  // First pass: cosy >= 7.0 with brand cap
-  for (const x of primary) {
+  for (const x of sorted) {
+    if (x.s < COSY_FLOOR) continue;
     const key = String(x.h.slug);
     if (seen.has(key)) continue;
     const bc = perBrand[x.brand] || 0;
@@ -237,20 +247,7 @@ export default async function GuidePage({ params }: Props) {
     seen.add(key);
     perBrand[x.brand] = bc + 1;
     picks.push(x);
-    if (picks.length >= 9) break;
-  }
-  // Second pass: top remaining regardless of score to guarantee 9 from our dataset
-  if (picks.length < 9) {
-    for (const x of sorted) {
-      if (picks.length >= 9) break;
-      const key = String(x.h.slug);
-      if (seen.has(key)) continue;
-      const bc = perBrand[x.brand] || 0;
-      if (bc >= 2 && x.brand !== 'independent') continue;
-      seen.add(key);
-      perBrand[x.brand] = bc + 1;
-      picks.push(x);
-    }
+    if (picks.length >= 12) break;
   }
   const take = picks;
   // Prefer cached images from Supabase to avoid slow/fragile lookups; fall back to Places-based helper
@@ -274,17 +271,11 @@ export default async function GuidePage({ params }: Props) {
     const cached = imgMap.get(String(h.id));
     const img = cached && !cached.includes('placehold.co') ? cached : null; // real photo only — no grey boxes
     const signals = (signalsMap.get(String(h.id)) || []).slice(0, 3);
-    const snippet = buildCosySnippet(params.locale, {
-      city: String(h.city || cityName),
-      name: String(h.name),
-      cosy: s,
-      rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined,
-      reviewsCount: undefined,
-      cues: [],
-      idealLevel: 'warm',
-    });
-    const cta = buildAffiliateUrl(bookingSearchUrl({ name: String(h.name), city: String(h.city || cityName), country: String(h.country || '') }));
-    return { slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), _cosy: s, _img: img, _signals: signals, snippet, cta };
+    // Real AI description only — never generic templated praise (which lied on 0.0 hotels).
+    const snippet = descMap.get(String(h.id)) || '';
+    const cleanedCity = cleanCity(String(h.city || '')) || cityName;
+    const cta = buildAffiliateUrl(bookingSearchUrl({ name: String(h.name), city: cleanedCity, country: String(h.country || '') }));
+    return { slug: String(h.slug), name: String(h.name), city: cleanedCity, country: String(h.country || ''), _cosy: s, _img: img, _signals: signals, snippet, cta };
   })
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
@@ -300,8 +291,10 @@ export default async function GuidePage({ params }: Props) {
   };
   const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
   const h1 = (m.guides?.h1_city || '{city} cosy hotels').replace('{city}', cityName);
-  const intro = (m.guides?.intro_city || '9 handpicked cosy and romantic stays in {city}.').replace('{city}', cityName);
-  const tldr = `${cityName}'s cosiest hotels are small, characterful and warm — boutique boltholes over big chains. Below are our top handpicked stays, each ranked by our 0–10 cosy score.`;
+  const intro = chosen.length
+    ? `Our ${chosen.length} cosiest hotel${chosen.length === 1 ? '' : 's'} in ${cityName}, ranked by AI cosy score.`
+    : `We’re still scoring cosy hotels in ${cityName}.`;
+  const tldr = `${cityName}'s cosiest hotels are small, characterful and warm — boutique boltholes over big chains. Each stay below is scored 0–10 for cosiness by our AI and ranked by that score.`;
   const faqs = cityFaqs(cityName);
   const faqJsonLd = {
     '@context': 'https://schema.org',
@@ -348,7 +341,7 @@ export default async function GuidePage({ params }: Props) {
                       ))}
                     </div>
                   )}
-                  <p className="mt-1.5 text-sm" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>
+                  {h.snippet && <p className="mt-1.5 text-sm" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>}
                   <div className="mt-3">
                     <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
                       Check availability

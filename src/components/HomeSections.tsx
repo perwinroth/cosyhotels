@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cities } from "@/data/cities";
 import { citiesLarge } from "@/data/cities_large";
+import { cityToSlug } from "@/lib/citySlug";
 
 // Combined, deduped city list for instant local autocomplete (replaces Amadeus).
 const ALL_CITIES: string[] = Array.from(new Set([...cities, ...citiesLarge])).sort();
@@ -62,7 +63,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         e.preventDefault();
         if (!city.trim()) return;
         // Route to the canonical city page (one consistent destination).
-        const slug = `${city.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}-cosy-hotel`;
+        const slug = cityToSlug(city);
         setSubmitting(true);
         router.push(`/${locale}/guides/${slug}`);
         setOpen(false);

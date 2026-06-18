@@ -49,7 +49,7 @@ export default function GuidesIndex({ params }: { params: { locale: string } }) 
                     {items.map((c) => (
                       <Link key={c.slug} href={`/${params.locale}/guides/${c.slug}`} className="block rounded-xl border border-zinc-200 p-4 hover:shadow-sm">
                         <h3 className="font-medium">{c.city} cosy hotels</h3>
-                        <p className="text-sm text-zinc-600 mt-1">9 handpicked cosy and romantic stays in {c.city}.</p>
+                        <p className="text-sm text-zinc-600 mt-1">Cosy and romantic stays in {c.city}, scored 0–10 for cosiness by AI.</p>
                       </Link>
                     ))}
                   </div>
