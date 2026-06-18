@@ -1,5 +1,6 @@
 import { site } from "@/config/site";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
@@ -106,7 +107,9 @@ export default async function Home({ params }: { params: { locale: string } }) {
           Every hotel scored by AI — warmth, character, intimacy. Not just stars.
         </p>
         <div className="mt-6 mx-auto max-w-2xl">
-          <SearchBar locale={locale} />
+          <Suspense fallback={<div className="h-11 rounded-lg border" style={{ borderColor: "var(--line)", background: "var(--card)" }} />}>
+            <SearchBar locale={locale} />
+          </Suspense>
         </div>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           {heroChips.map((c) => (
