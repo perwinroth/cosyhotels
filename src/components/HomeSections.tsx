@@ -60,10 +60,11 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        const sp = new URLSearchParams(searchParams.toString());
-        if (city) sp.set("city", city); else sp.delete("city");
+        if (!city.trim()) return;
+        // Route to the canonical city page (one consistent destination).
+        const slug = `${city.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}-cosy-hotel`;
         setSubmitting(true);
-        router.push(`/${locale}/hotels?${sp.toString()}`);
+        router.push(`/${locale}/guides/${slug}`);
         setOpen(false);
       }}
       className="relative grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_140px_auto] gap-2 md:gap-2"

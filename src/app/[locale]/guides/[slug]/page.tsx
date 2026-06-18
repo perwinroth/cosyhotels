@@ -6,8 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { buildCosySnippet } from "@/i18n/snippets";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
-import { getImageForHotel } from "@/lib/hotelImages";
-import { placeholderUrl } from "@/lib/image";
+import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
@@ -41,6 +40,14 @@ function cityFaqs(city: string): Array<{ q: string; a: string }> {
       a: `The list is regenerated regularly as cosy scores and availability change, so it reflects current picks rather than a static editorial list.`,
     },
   ];
+}
+
+// Warm cosy-score badge colour (sage = very cosy → muted clay = mild).
+function cosyColor(score: number): string {
+  if (score >= 7.8) return '#5c6b56';
+  if (score >= 6.8) return '#7c8a5f';
+  if (score >= 5.6) return '#b07a4a';
+  return '#a89b8c';
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -178,12 +185,14 @@ export default async function GuidePage({ params }: Props) {
   const ids = hotels.map((h) => String(h.id));
   const { data: sRows } = await db
     .from('cosy_scores')
-    .select('hotel_id,score,score_final')
+    .select('hotel_id,score,score_final,signals')
     .in('hotel_id', ids);
   const scoreMap = new Map<string, number>();
-  for (const r of ((sRows || []) as CS[])) {
+  const signalsMap = new Map<string, string[]>();
+  for (const r of ((sRows || []) as Array<CS & { signals: string[] | null }>)) {
     const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
     if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+    if (r.hotel_id && Array.isArray(r.signals)) signalsMap.set(String(r.hotel_id), r.signals);
   }
   // Score and prioritize exact city matches, apply basic chain diversity to avoid duplicates
   const chains = [
@@ -256,14 +265,15 @@ export default async function GuidePage({ params }: Props) {
     for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null }>) {
       const hid = row.hotel_id ? String(row.hotel_id) : '';
       const url = row.url ? String(row.url) : '';
-      if (!hid || !url) continue;
+      if (!hid || !url || url.includes('placehold.co')) continue;
       if (!imgMap.has(hid)) imgMap.set(hid, url);
     }
   } catch {}
 
-  const chosen = await Promise.all(take.map(async ({ h, s }) => {
+  const chosen = take.map(({ h, s }) => {
     const cached = imgMap.get(String(h.id));
-    const img = cached || (await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id))) || placeholderUrl;
+    const img = cached && !cached.includes('placehold.co') ? cached : null; // real photo only — no grey boxes
+    const signals = (signalsMap.get(String(h.id)) || []).slice(0, 3);
     const snippet = buildCosySnippet(params.locale, {
       city: String(h.city || cityName),
       name: String(h.name),
@@ -273,8 +283,9 @@ export default async function GuidePage({ params }: Props) {
       cues: [],
       idealLevel: 'warm',
     });
-    return { slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: s, _img: img, snippet };
-  }))
+    const cta = buildAffiliateUrl(bookingSearchUrl({ name: String(h.name), city: String(h.city || cityName), country: String(h.country || '') }));
+    return { slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), _cosy: s, _img: img, _signals: signals, snippet, cta };
+  })
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
   const listJsonLd = {
@@ -310,34 +321,52 @@ export default async function GuidePage({ params }: Props) {
       </p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
-      <ol className="mt-6 space-y-6">
-        {chosen.map((h, idx) => (
-          <li key={`${h.slug}-${h._img}`} className="border border-zinc-200 rounded-xl bg-white">
-            <div className="p-3 md:p-4">
-              <div className="flex items-baseline gap-3">
-                <div className="text-xl font-semibold tabular-nums">{idx + 1}.</div>
-                <h2 className="text-xl font-semibold">
-                  <a href={detailsHref(h.slug)} className="hover:underline">{h.name}</a>
-                </h2>
+      {chosen.length === 0 ? (
+        <p className="mt-6 rounded-lg border border-dashed px-4 py-6 text-sm" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }}>
+          We’re still adding cosy hotels for {cityName}. Check back soon.
+        </p>
+      ) : (
+        <ol className="mt-6 space-y-3">
+          {chosen.map((h, idx) => (
+            <li key={h.slug} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyColor(h._cosy), width: 56, height: 56, fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600 }}>
+                  {h._cosy.toFixed(1)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm tabular-nums" style={{ color: 'var(--muted)' }}>#{idx + 1}</span>
+                    <h2 className="text-lg font-semibold leading-tight">
+                      <a href={detailsHref(h.slug)} className="hover:underline">{h.name}</a>
+                    </h2>
+                  </div>
+                  <div className="text-sm" style={{ color: 'var(--muted)' }}>{[h.city, h.country].filter(Boolean).join(', ')}</div>
+                  {h._signals.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {h._signals.map((sig) => (
+                        <span key={sig} className="text-xs px-2 py-0.5 rounded-full border" style={{ borderColor: 'var(--line)', color: 'var(--muted)', background: 'var(--surface-2)' }}>{sig}</span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-1.5 text-sm" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>
+                  <div className="mt-3">
+                    <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
+                      Check availability
+                    </a>
+                  </div>
+                </div>
+                {h._img && (
+                  <a href={detailsHref(h.slug)} className="flex-shrink-0 hidden sm:block">
+                    <div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}>
+                      <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(h._img)} />
+                    </div>
+                  </a>
+                )}
               </div>
-              <p className="mt-2 text-sm text-zinc-700">{h.snippet}</p>
-            </div>
-            <a href={detailsHref(h.slug)}>
-              <div className="relative w-full aspect-[4/3] rounded-b-xl overflow-hidden">
-                <Image
-                  src={h._img}
-                  alt={`${h.name} – ${h.city}`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 800px"
-                  quality={70}
-                  unoptimized={/^https?:\/\//.test(h._img)}
-                />
-              </div>
-            </a>
-          </li>
-        ))}
-      </ol>
+            </li>
+          ))}
+        </ol>
+      )}
       <section className="mt-12">
         <h2 className="text-xl font-semibold">Frequently asked questions</h2>
         <dl className="mt-4 space-y-4">
