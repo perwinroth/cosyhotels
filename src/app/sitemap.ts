@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { collections } from "@/data/collections";
 import { guides } from "@/data/guides";
 import { cityGuides } from "@/data/cityGuides";
 import { locales } from "@/i18n/locales";
@@ -13,11 +12,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   routes.push({ url: `${base}/`, lastModified: now, changeFrequency: "weekly", priority: 0.9 });
   for (const locale of locales) {
     routes.push({ url: `${base}/${locale}`, lastModified: now, changeFrequency: "weekly", priority: 0.8 });
-    routes.push({ url: `${base}/${locale}/hotels`, lastModified: now, changeFrequency: "weekly", priority: 0.7 });
-    for (const c of collections) {
-      routes.push({ url: `${base}/${locale}/collections/${c.slug}`, lastModified: now, changeFrequency: "weekly", priority: 0.6 });
-    }
-    routes.push({ url: `${base}/${locale}/collections`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
     for (const g of guides) {
       routes.push({ url: `${base}/${locale}/guides/${g.slug}`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
     }
@@ -25,6 +19,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       routes.push({ url: `${base}/${locale}/guides/${cg.slug}`, lastModified: now, changeFrequency: "weekly", priority: 0.7 });
     }
     routes.push({ url: `${base}/${locale}/guides`, lastModified: now, changeFrequency: "monthly", priority: 0.4 });
+    routes.push({ url: `${base}/${locale}/cosy-score`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
+    routes.push({ url: `${base}/${locale}/for-hotels`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
   }
 
   // Add dynamic hotel detail URLs from Supabase, paginated to avoid timeouts

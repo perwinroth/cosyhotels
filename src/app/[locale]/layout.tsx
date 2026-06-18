@@ -60,7 +60,6 @@ export default async function LocaleLayout({
               <span aria-hidden className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>{m.brand?.name || 'Get Cosy'}</span>
             </Link>
             <nav className="flex gap-5 text-sm items-center" style={{ color: 'var(--muted)' }}>
-              <Link href={`/${locale}/collections`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.collections}</Link>
               <Link href={`/${locale}/guides`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.guides}</Link>
               <Link href={`/${locale}/cosy-score`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.how}</Link>
               <Link href={`/${locale}/for-hotels`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">For hotels</Link>

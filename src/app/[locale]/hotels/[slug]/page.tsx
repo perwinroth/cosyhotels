@@ -53,6 +53,9 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
 }
 
 export default async function HotelDetail({ params, searchParams }: Props) {
+  // Live OSM/Amadeus detail paths are retired — they served junk, scored per-visitor (cost),
+  // and broke consistency. Only persisted, pre-scored Supabase hotels are served now.
+  if (params.slug.startsWith('osm-') || params.slug.startsWith('am-')) return notFound();
   // Handle Amadeus slugs first so live tiles never 404
   if (params.slug.startsWith('am-')) {
     const id = params.slug.slice(3);
