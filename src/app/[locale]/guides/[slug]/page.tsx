@@ -312,11 +312,7 @@ export default async function GuidePage({ params }: Props) {
       <p className="mt-2" style={{ color: 'var(--muted)' }}>{intro}</p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
-      {chosen.length === 0 ? (
-        <p className="mt-6 rounded-lg border border-dashed px-4 py-6 text-sm" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }}>
-          We’re still adding cosy hotels for {cityName}. Check back soon.
-        </p>
-      ) : (
+      {chosen.length > 0 && (
         <ol className="mt-6 space-y-3">
           {chosen.map((h, idx) => (
             <li key={h.slug} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
