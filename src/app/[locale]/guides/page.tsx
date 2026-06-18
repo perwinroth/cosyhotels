@@ -17,8 +17,8 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
 export default function GuidesIndex({ params }: { params: { locale: string } }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">Guides</h1>
-      <p className="mt-2 text-muted">Editorial advice and planning resources.</p>
+      <h1 className="font-display text-3xl font-semibold">Find a cosy stay</h1>
+      <p className="mt-2 text-muted">Browse our AI-scored cosy hotels, city by city.</p>
       <div className="mt-6 grid md:grid-cols-2 gap-4">
         {guides.map((g) => (
           <Link key={g.slug} href={`/${params.locale}/guides/${g.slug}`} className="block rounded-xl border border-line p-4 hov">

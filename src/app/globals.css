@@ -61,6 +61,17 @@ a:hover { text-decoration: underline; }
 .hov { transition: background .15s ease, border-color .15s ease; }
 .hov:hover { background: color-mix(in srgb, var(--card) 80%, var(--foreground) 9%); }
 
+/* Long-form editorial typography for content pages (About, Privacy, etc.) */
+.longform { max-width: 68ch; }
+.longform p { color: var(--muted); line-height: 1.75; margin: 0 0 1.15em; font-size: 1.05rem; }
+.longform > p:first-of-type { color: var(--foreground); font-size: 1.2rem; line-height: 1.6; }
+.longform strong, .longform li strong { color: var(--foreground); font-weight: 600; }
+.longform a { color: var(--ember); text-decoration: underline; text-underline-offset: 2px; }
+.longform h2 { font-family: 'Fraunces', Georgia, serif; font-size: 1.5rem; font-weight: 600; color: var(--foreground); margin: 1.9em 0 .5em; letter-spacing: -0.01em; }
+.longform h3 { font-family: 'Fraunces', Georgia, serif; font-size: 1.2rem; font-weight: 600; margin: 1.5em 0 .4em; }
+.longform ul { margin: 0 0 1.2em; padding-left: 1.25em; list-style: disc; }
+.longform li { color: var(--muted); line-height: 1.7; margin-bottom: .5em; }
+
 /* Brand helpers */
 .brand-price { color: var(--ember-ink); }
 .brand-border { border-color: var(--line); }

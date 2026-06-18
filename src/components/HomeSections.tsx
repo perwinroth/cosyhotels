@@ -81,13 +81,13 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
       />
       {showSuggest && suggestions.length > 0 && (
-        <div className="absolute mt-1 w-full z-20 rounded-md border border-zinc-200 bg-white shadow">
+        <div className="absolute mt-1 w-full z-20 rounded-md border border-line bg-card shadow">
           <ul className="max-h-64 overflow-auto">
             {suggestions.map((s, i) => (
               <li key={`${s}-${i}`}>
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-2 hover:bg-zinc-50"
+                  className="w-full text-left px-3 py-2 hov"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => { setCity(s); setShowSuggest(false); }}
                 >
@@ -104,12 +104,12 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="rounded-lg px-4 py-2 border border-zinc-300 hover:bg-zinc-50"
+          className="rounded-lg px-4 py-2 border border-line hov"
         >
           Filter
         </button>
         {open && (
-          <div className="absolute right-0 mt-1 z-30 w-[300px] rounded-lg border border-zinc-200 bg-white shadow p-3">
+          <div className="absolute right-0 mt-1 z-30 w-[300px] rounded-lg border border-line bg-card shadow p-3">
             <div className="text-sm font-medium mb-2">Sort by</div>
             <div className="flex flex-col gap-1 text-sm mb-3">
               {[
@@ -141,7 +141,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
                       if (active) next.delete(a); else next.add(a);
                       update({ amenities: Array.from(next) });
                     }}
-                    className={`px-3 py-1.5 text-sm rounded-full border focus:outline-none focus:ring-2 focus:ring-zinc-300 ${active ? 'border-emerald-600 text-emerald-700 bg-emerald-50' : 'border-zinc-300 text-black bg-white'}`}
+                    className={`px-3 py-1.5 text-sm rounded-full border focus:outline-none focus:ring-2 focus:ring-zinc-300 ${active ? 'text-ember' : 'border-line text-foreground bg-card'}`}
                   >
                     {a}
                   </button>
@@ -149,7 +149,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
               })}
             </div>
             <div className="mt-3 text-right">
-              <button type="button" className="text-sm px-3 py-1.5 rounded border brand-border hover:bg-zinc-50" onClick={() => setOpen(false)}>Close</button>
+              <button type="button" className="text-sm px-3 py-1.5 rounded border brand-border hov" onClick={() => setOpen(false)}>Close</button>
             </div>
           </div>
         )}

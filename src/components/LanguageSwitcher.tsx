@@ -18,8 +18,8 @@ export default function LanguageSwitcher({ current }: { current: string }) {
   return (
     <div className="relative">
       <details className="group">
-        <summary className="cursor-pointer list-none text-sm text-zinc-700">{current.toUpperCase()}</summary>
-        <div className="absolute right-0 mt-2 w-44 rounded-lg border border-zinc-200 bg-white shadow">
+        <summary className="cursor-pointer list-none text-sm" style={{ color: 'var(--muted)' }}>{current.toUpperCase()}</summary>
+        <div className="absolute right-0 mt-2 w-44 rounded-lg border" style={{ borderColor: 'var(--line)', background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
           <ul className="p-1 text-sm">
             {locales.map((l) => {
               const label = languageNames[l] || l.toUpperCase();
@@ -28,9 +28,9 @@ export default function LanguageSwitcher({ current }: { current: string }) {
               return (
                 <li key={l}>
                   {isActive ? (
-                    <span className="block px-2 py-1 text-zinc-500 cursor-default">{label}</span>
+                    <span className="block px-2 py-1 cursor-default" style={{ color: 'var(--muted)' }}>{label}</span>
                   ) : (
-                    <Link className="block px-2 py-1 hover:bg-zinc-50" href={href} hrefLang={l} lang={l}>
+                    <Link className="block px-2 py-1 rounded hov" href={href} hrefLang={l} lang={l}>
                       {label}
                     </Link>
                   )}

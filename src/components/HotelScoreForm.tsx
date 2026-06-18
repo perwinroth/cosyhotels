@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-type Result = { score10: number; signals: string[]; description: string; confidence: string };
+type Result = { score10: number; score100: number; signals: string[]; description: string; confidence: string };
 
 export default function HotelScoreForm() {
   const [form, setForm] = useState({ name: "", city: "", country: "", website: "", description: "", amenities: "" });
@@ -80,17 +80,26 @@ export default function HotelScoreForm() {
       <div>
         {result ? (
           <div className="rounded-2xl border p-6" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
-            <div className="text-sm" style={{ color: "var(--muted)" }}>Your cosy score</div>
-            <div className="font-display text-5xl font-semibold mt-1">
-              {result.score10.toFixed(1)}<span className="text-2xl" style={{ color: "var(--muted)" }}>/10</span>
+            <div className="text-sm" style={{ color: "var(--muted)" }}>Cosy score</div>
+            <div className="font-display text-5xl font-semibold mt-1" style={{ color: result.score100 >= 50 ? "var(--sage)" : "var(--ember)" }}>
+              {result.score100}<span className="text-2xl" style={{ color: "var(--muted)" }}>/100</span>
+            </div>
+            <div className="mt-2 text-sm font-medium" style={{ color: result.score100 >= 50 ? "var(--sage)" : "var(--ember)" }}>
+              {result.score100 >= 50 ? "✓ Cosy enough to be listed on Got Cosy?" : "Not cosy enough to be listed yet — 50+ needed."}
             </div>
             {result.description && <p className="mt-3 text-sm" style={{ color: "var(--foreground)" }}>{result.description}</p>}
             {result.signals?.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {result.signals.map((s) => (
-                  <span key={s} className="text-xs px-2.5 py-1 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--muted)", background: "var(--surface-2)" }}>{s}</span>
+                  <span key={s} className="text-xs px-2.5 py-1 rounded-full border" style={{ borderColor: "color-mix(in srgb, var(--sage) 24%, transparent)", color: "var(--sage)", background: "color-mix(in srgb, var(--sage) 13%, transparent)" }}>{s}</span>
                 ))}
               </div>
+            )}
+            {result.score100 < 50 && (
+              <p className="mt-4 text-sm" style={{ color: "var(--muted)", lineHeight: 1.65 }}>
+                <span className="font-medium" style={{ color: "var(--foreground)" }}>What makes a stay cosy: </span>
+                small room counts · fireplaces or wood stoves · warm, low lighting · soft textiles &amp; natural materials · an intimate lounge, library or bar · character over corporate. Add these (and real photos), then resubmit.
+              </p>
             )}
             <div className="mt-3 text-xs" style={{ color: "var(--muted)" }}>Confidence: {result.confidence}</div>
           </div>

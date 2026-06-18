@@ -8,10 +8,10 @@ export const metadata: Metadata = {
 export default function CosyScorePage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-3xl font-semibold tracking-tight">Cosy score</h1>
+      <h1 className="font-display text-4xl font-semibold tracking-tight">Cosy score</h1>
       <p className="mt-2" style={{ color: 'var(--muted)' }}>A transparent, evolving heuristic to estimate how cosy a place feels.</p>
 
-      <div className="prose prose-invert mt-6">
+      <div className="longform mt-6">
         <h2 id="seal">Seal of approval</h2>
         <p>
           We add a small seal badge to places with a <strong>Cosy score of 7.0 or higher</strong>. It’s a simple indicator that the hotel likely delivers that warm, relaxed feel we look for.

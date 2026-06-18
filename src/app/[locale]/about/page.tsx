@@ -13,8 +13,8 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-3xl font-semibold tracking-tight">About</h1>
-      <div className="prose prose-zinc mt-6">
+      <h1 className="font-display text-4xl font-semibold tracking-tight">About</h1>
+      <div className="longform mt-6">
         <p>
           Cosy Hotel Room helps travellers find warm, characterful boutique stays. We highlight places that feel intimate and welcoming — not just highly rated.
         </p>
