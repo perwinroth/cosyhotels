@@ -4,7 +4,7 @@
     { "path": "/api/admin/backfill-images-free", "schedule": "30 3 * * *" },
     { "path": "/api/cron/ensure-featured", "schedule": "15 3 * * *" },
     { "path": "/api/cron/grow", "schedule": "0 6 * * 1" },
-    { "path": "/api/cron/populate", "schedule": "*/5 * * * *" }
+    { "path": "/api/cron/populate", "schedule": "0 4 * * *" }
   ]
 }
 
