@@ -1,10 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { cities } from "@/data/cities";
+import { citiesLarge } from "@/data/cities_large";
+
+// Combined, deduped city list for instant local autocomplete (replaces Amadeus).
+const ALL_CITIES: string[] = Array.from(new Set([...cities, ...citiesLarge])).sort();
 
 export function SearchBar({ locale = "en" }: { locale?: string }) {
   const [city, setCity] = useState("");
-  const [suggestions, setSuggestions] = useState<Array<{ city: string; country: string }>>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggest, setShowSuggest] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -37,21 +42,14 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
     router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
   }
 
-  // Fetch city suggestions via Amadeus
+  // Local city suggestions — free, instant, no external API (Amadeus removed).
   useEffect(() => {
-    const q = city.trim();
+    const q = city.trim().toLowerCase();
     if (!q) { setSuggestions([]); return; }
-    const t = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/amadeus/cities?q=${encodeURIComponent(q)}`);
-        if (!res.ok) { setSuggestions([]); return; }
-        const json = await res.json();
-        const arr = Array.isArray(json?.results) ? json.results : [];
-        setSuggestions(arr.slice(0, 8));
-        setShowSuggest(true);
-      } catch { setSuggestions([]); }
-    }, 300);
-    return () => clearTimeout(t);
+    const starts = ALL_CITIES.filter((c) => c.toLowerCase().startsWith(q));
+    const contains = ALL_CITIES.filter((c) => !c.toLowerCase().startsWith(q) && c.toLowerCase().includes(q));
+    setSuggestions([...starts, ...contains].slice(0, 8));
+    setShowSuggest(true);
   }, [city]);
 
   const amenityOptions = [
@@ -84,14 +82,14 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         <div className="absolute mt-1 w-full z-20 rounded-md border border-zinc-200 bg-white shadow">
           <ul className="max-h-64 overflow-auto">
             {suggestions.map((s, i) => (
-              <li key={`${s.city}-${s.country}-${i}`}>
+              <li key={`${s}-${i}`}>
                 <button
                   type="button"
                   className="w-full text-left px-3 py-2 hover:bg-zinc-50"
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => { setCity(s.city); setShowSuggest(false); }}
+                  onClick={() => { setCity(s); setShowSuggest(false); }}
                 >
-                  {s.city}, <span className="text-zinc-500">{s.country}</span>
+                  {s}
                 </button>
               </li>
             ))}
