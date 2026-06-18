@@ -1,30 +1,31 @@
 /* External @import rules MUST come before all other rules (incl. Tailwind's,
    which expands into rules). Keep the font import first. */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ============================================================
-   Get Cosy — "Hygge Editorial" design system
-   Warm cream surfaces · serif display · terracotta + sage accents
+   Got Cosy? — "Boutique Nocturne" design system
+   Deep forest-charcoal surfaces · serif display · amber + sage accents
    ============================================================ */
 
 :root {
   /* surfaces */
-  --background: #faf6ef;   /* warm cream */
-  --surface-2: #f3ebde;    /* deeper cream (footers, fills) */
-  --card: #fffdf9;         /* near-white card */
-  --foreground: #2b2420;   /* warm near-black ink */
-  --muted: #8c8178;        /* muted clay text */
-  --line: #e7ded2;         /* hairline borders */
+  --background: #0F1512;   /* deep forest-charcoal */
+  --surface-2: #0B100E;    /* deeper (footer, fills) */
+  --card: #18201C;         /* raised card */
+  --foreground: #F3EEE6;   /* warm cream ink */
+  --muted: #9DA89F;        /* muted sage-grey text */
+  --line: #2A332D;         /* hairline borders */
 
   /* accents */
-  --ember: #c2603a;        /* terracotta — primary accent, used sparingly */
-  --ember-ink: #a14e2f;    /* darker ember for text on cream */
-  --sage: #5c6b56;         /* very-cosy seal / success */
+  --ember: #E08A4B;        /* amber — primary accent / CTA */
+  --ember-ink: #E89A5E;    /* lighter amber for accent text on dark */
+  --sage: #7FB7A2;         /* sage — secondary / success */
+  --gold: #D8B25A;         /* gold — top score */
 
   /* elevation */
-  --shadow: 0 1px 2px rgba(43,36,32,.04), 0 8px 24px rgba(43,36,32,.06);
-  --shadow-lg: 0 12px 40px rgba(43,36,32,.14);
+  --shadow: 0 1px 2px rgba(0,0,0,.30), 0 16px 40px rgba(0,0,0,.36);
+  --shadow-lg: 0 24px 60px rgba(0,0,0,.45);
 }
 
 @theme inline {
@@ -56,7 +57,11 @@ h1, h2, h3, .font-display {
 a { color: inherit; text-decoration-color: currentColor; }
 a:hover { text-decoration: underline; }
 
-/* Brand helpers (kept for backward compat, re-pointed to warm palette) */
+/* Subtle hover for cards/chips (replaces hardcoded light hovers) */
+.hov { transition: background .15s ease, border-color .15s ease; }
+.hov:hover { background: color-mix(in srgb, var(--card) 80%, var(--foreground) 9%); }
+
+/* Brand helpers */
 .brand-price { color: var(--ember-ink); }
 .brand-border { border-color: var(--line); }
 .brand-accent { color: var(--ember); }

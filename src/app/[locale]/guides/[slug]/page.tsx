@@ -309,7 +309,7 @@ export default async function GuidePage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{h1}</h1>
-      <p className="mt-2 text-zinc-600">{intro}</p>
+      <p className="mt-2" style={{ color: 'var(--muted)' }}>{intro}</p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       {chosen.length === 0 ? (
@@ -362,9 +362,9 @@ export default async function GuidePage({ params }: Props) {
         <h2 className="text-xl font-semibold">Frequently asked questions</h2>
         <dl className="mt-4 space-y-4">
           {faqs.map((f) => (
-            <div key={f.q} className="border border-zinc-200 rounded-lg bg-white p-4">
-              <dt className="font-medium text-zinc-900">{f.q}</dt>
-              <dd className="mt-1.5 text-sm text-zinc-700">{f.a}</dd>
+            <div key={f.q} className="border rounded-lg p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+              <dt className="font-medium" style={{ color: 'var(--foreground)' }}>{f.q}</dt>
+              <dd className="mt-1.5 text-sm" style={{ color: 'var(--muted)' }}>{f.a}</dd>
             </div>
           ))}
         </dl>

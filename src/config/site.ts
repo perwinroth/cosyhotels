@@ -1,8 +1,8 @@
 export const site = {
-  name: "Get Cosy",
+  name: "Got Cosy?",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.cosyhotelroom.com",
-  tagline: "Cosy hotel rooms & boutique hotels",
-  description: "Discover cosy hotel rooms, boutique hotels, and romantic getaways around the world.",
+  tagline: "AI-rated cosy hotels",
+  description: "Hotels ranked by cosiness — scored 0–10 by AI for warmth, character and intimacy, not just stars.",
   affiliate: {
     source: "get-cosy",
     medium: "affiliate",

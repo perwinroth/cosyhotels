@@ -193,44 +193,35 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     permanentRedirect(`/${params.locale}/hotels/${hotel.slug}`);
   }
 
+  const badge = typeof cosyDisplay === 'number'
+    ? (cosyDisplay >= 9 ? '#D8B25A' : cosyDisplay >= 7.8 ? '#7FB7A2' : cosyDisplay >= 6.8 ? '#7c8a5f' : cosyDisplay >= 5.6 ? '#b07a4a' : '#a89b8c')
+    : '#a89b8c';
+  const loc = { name: String(hotel.name), city: (hotel.city as string | null) ?? null, country: (hotel.country as string | null) ?? null };
+  const bookingUrl = buildAffiliateUrl(bookingSearchUrl(loc));
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight">{hotel.name}</h1>
-      <div className="mt-1 text-zinc-600">{[hotel.city, hotel.country].filter(Boolean).join(', ')}</div>
-      <p className="mt-3 text-sm text-zinc-700">{cosyDescription ?? cosySnippet}</p>
+    <div className="mx-auto max-w-3xl px-4 py-10">
+      <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>
+      <div className="mt-1.5 text-base" style={{ color: 'var(--muted)' }}>{[hotel.city, hotel.country].filter(Boolean).join(', ')}</div>
 
-      {cosySignals && cosySignals.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {cosySignals.slice(0, 4).map((s) => (
-            <span key={s} className="text-xs px-2.5 py-1 rounded-full border border-zinc-200 text-zinc-600 bg-zinc-50">{s}</span>
-          ))}
+      <div className="mt-6 flex items-center gap-5 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
+        <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 76, height: 76, background: badge, color: '#16201C', fontSize: 28 }} aria-label={`Cosy score ${cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'} out of 10`}>
+          {cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'}<span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', opacity: 0.8 }}>COSY</span>
         </div>
-      )}
-
-      <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'} out of 10`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm text-zinc-600">Cosy score</div>
-            <div className="text-2xl font-semibold">{cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'}<span className="text-base text-zinc-500">/10</span></div>
-          </div>
-          <span />
+        <div className="flex-1 min-w-0">
+          {(cosyDescription ?? cosySnippet) && <p className="text-[15px]" style={{ color: 'var(--foreground)' }}>{cosyDescription ?? cosySnippet}</p>}
+          {cosySignals && cosySignals.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {cosySignals.slice(0, 4).map((s) => (
+                <span key={s} className="text-xs px-3 py-1 rounded-full border" style={{ background: 'color-mix(in srgb, var(--sage) 13%, transparent)', color: 'var(--sage)', borderColor: 'color-mix(in srgb, var(--sage) 24%, transparent)' }}>{s}</span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="mt-5 flex items-center gap-3">
-        <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
-          Back to results
-        </a>
-        <div className="ml-auto flex gap-2">
-          {(() => {
-            // Direct OTA links so Stay22 LMA can rewrite them into affiliate links.
-            const loc = { name: String(hotel.name), city: (hotel.city as string | null) ?? null, country: (hotel.country as string | null) ?? null };
-            const bookingUrl = buildAffiliateUrl(bookingSearchUrl(loc));
-            return (
-              <a className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 font-medium no-underline" style={{ background: 'var(--ember)' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored">Check availability</a>
-            );
-          })()}
-        </div>
+      <div className="mt-6 flex items-center gap-3">
+        <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={`/${params.locale}/guides`}>← Browse guides</a>
+        <a className="ml-auto rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored">Check availability</a>
       </div>
     </div>
   );

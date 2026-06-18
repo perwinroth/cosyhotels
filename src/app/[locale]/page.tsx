@@ -5,8 +5,17 @@ import Link from "next/link";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityGuides } from "@/data/cityGuides";
-import HotelTile from "@/components/HotelTile";
+import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { SearchBar } from "@/components/HomeSections";
+
+// Warm cosy-score badge colour (gold = top → sage → olive → muted clay).
+function cosyColor(s: number): string {
+  if (s >= 9) return "#D8B25A";
+  if (s >= 7.8) return "#7FB7A2";
+  if (s >= 6.8) return "#7c8a5f";
+  if (s >= 5.6) return "#b07a4a";
+  return "#a89b8c";
+}
 
 export const revalidate = 3600;
 
@@ -84,108 +93,97 @@ export default async function Home({ params }: { params: { locale: string } }) {
 
   let chips: CityChip[] = [];
   let top: TopHotel[] = [];
-  let totalHotels = 0;
   if (db) {
     [chips, top] = await Promise.all([cityChips(db), topHotels(db)]);
-    const { count } = await db.from("hotels").select("id", { count: "exact", head: true });
-    totalHotels = count ?? 0;
   }
   // Fallback chips from the curated list if the DB is unavailable.
   const heroChips = (chips.length ? chips : cityGuides.map((g) => ({ city: g.city, slug: g.slug, count: 0 }))).slice(0, 6);
-  const browseChips = (chips.length ? chips : cityGuides.map((g) => ({ city: g.city, slug: g.slug, count: 0 }))).slice(0, 12);
-  const citiesCovered = cityGuides.length;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      {/* 1. HERO */}
-      <section className="text-center py-8 md:py-12">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full border" style={{ borderColor: "var(--line)", background: "var(--card)", color: "var(--ember-ink)" }}>
-          AI-rated for cosiness
+    <div>
+      {/* HERO */}
+      <section className="text-center px-4" style={{ padding: "74px 16px 58px", background: "radial-gradient(1100px 420px at 50% -8%, color-mix(in srgb, var(--ember) 13%, transparent), transparent 70%)" }}>
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full border" style={{ borderColor: "color-mix(in srgb, var(--ember) 30%, transparent)", background: "color-mix(in srgb, var(--ember) 13%, transparent)", color: "var(--ember)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          ◆ AI-rated for cosiness
         </span>
-        <h1 className="mt-4 font-display text-4xl md:text-5xl font-semibold tracking-tight">Find your perfect cosy stay</h1>
-        <p className="mt-3 mx-auto max-w-2xl text-base md:text-lg" style={{ color: "var(--muted)" }}>
-          Every hotel scored by AI — warmth, character, intimacy. Not just stars.
+        <h1 className="mt-5 font-display font-semibold mx-auto" style={{ fontSize: "clamp(44px, 7vw, 66px)", lineHeight: 1.02, letterSpacing: "-0.025em", maxWidth: 780 }}>
+          Got <span style={{ fontStyle: "italic", fontWeight: 500, color: "var(--ember)" }}>cosy?</span>
+        </h1>
+        <p className="mt-4 mx-auto text-lg" style={{ color: "var(--muted)", maxWidth: 560, lineHeight: 1.5 }}>
+          Our AI&apos;s got you — hotels ranked by cosiness, not stars.
         </p>
-        <div className="mt-6 mx-auto max-w-2xl">
-          <Suspense fallback={<div className="h-11 rounded-lg border" style={{ borderColor: "var(--line)", background: "var(--card)" }} />}>
+        <div className="mt-7 mx-auto" style={{ maxWidth: 580 }}>
+          <Suspense fallback={<div className="h-12 rounded-2xl border" style={{ borderColor: "var(--line)", background: "var(--card)" }} />}>
             <SearchBar locale={locale} />
           </Suspense>
         </div>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
           {heroChips.map((c) => (
-            <Link key={c.slug} href={`/${locale}/guides/${c.slug}`} prefetch={false} className="text-sm px-3 py-1.5 rounded-full border no-underline hover:bg-[#f3ebde]" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
+            <Link key={c.slug} href={`/${locale}/guides/${c.slug}`} prefetch={false} className="hov text-sm px-4 py-2 rounded-full border no-underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
               {c.city}
             </Link>
           ))}
         </div>
       </section>
 
-      {/* 2. HOW IT WORKS */}
-      <section className="mt-12">
-        <div className="grid md:grid-cols-3 gap-4">
-          {[
-            { n: "1", t: "AI analyses each hotel", d: "Photos, reviews, amenities, room count, and setting — read together, not in isolation." },
-            { n: "2", t: "Cosiness signals are weighted", d: "Fireplaces, warm lighting, soft furnishings, intimate size — scored on a single cosy scale." },
-            { n: "3", t: "You find your perfect stay", d: "Browse by city, sort by score, and book through the hotel's booking link." },
-          ].map((s) => (
-            <div key={s.n} className="rounded-2xl border bg-card p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
-              <div className="flex items-center justify-center rounded-2xl text-white font-display text-lg" style={{ background: "var(--sage)", width: 44, height: 44 }}>{s.n}</div>
-              <h3 className="mt-3 font-display text-lg font-medium">{s.t}</h3>
-              <p className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>{s.d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 3. HIGHEST COSY SCORES */}
-      {top.length > 0 && (
-        <section className="mt-14">
-          <h2 className="font-display text-2xl font-semibold">Highest cosy scores</h2>
-          <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>The cosiest stays our AI has scored so far.</p>
-          <div className="mt-5 grid md:grid-cols-3 gap-3 auto-rows-fr">
-            {top.map((h) => (
-              <HotelTile
-                key={h.slug}
-                hotel={{ slug: h.slug, name: h.name, city: h.city, country: h.country, rating: 0, image: h.image, cosy: h.cosy, signals: h.signals }}
-                href={`/${locale}/hotels/${h.slug}`}
-              />
+      <div className="mx-auto max-w-5xl px-4">
+        {/* HOW IT WORKS */}
+        <section className="mt-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              { n: "1", t: "AI reads every hotel", d: "Photos, reviews, amenities, room count and setting — judged together, not in isolation." },
+              { n: "2", t: "Cosiness signals are weighted", d: "Fireplaces, warm light, soft textiles, intimate scale — scored on one 0–10 cosy scale." },
+              { n: "3", t: "You book one with soul", d: "We surface the cosiest, explain why, and link you straight to availability." },
+            ].map((s) => (
+              <div key={s.n} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
+                <div className="flex items-center justify-center rounded-xl font-display font-semibold text-lg" style={{ background: "var(--sage)", color: "#16201C", width: 42, height: 42 }}>{s.n}</div>
+                <h3 className="mt-3.5 font-display text-lg font-medium">{s.t}</h3>
+                <p className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>{s.d}</p>
+              </div>
             ))}
           </div>
         </section>
-      )}
 
-      {/* 4. BROWSE BY CITY */}
-      <section className="mt-14">
-        <h2 className="font-display text-2xl font-semibold">Browse by city</h2>
-        <ul className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-2">
-          {browseChips.map((c) => (
-            <li key={c.slug}>
-              <Link href={`/${locale}/guides/${c.slug}`} prefetch={false} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2.5 no-underline hover:bg-[#f3ebde]" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-                <span className="font-medium">{c.city}</span>
-                {c.count > 0 && <span className="text-xs" style={{ color: "var(--muted)" }}>{c.count}</span>}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* 5. STATS BAR */}
-      <section className="mt-14 mb-4">
-        <div className="grid grid-cols-3 gap-3 rounded-2xl border p-6 text-center" style={{ borderColor: "var(--line)", background: "var(--surface-2)" }}>
-          <div>
-            <div className="font-display text-3xl font-semibold">{totalHotels ? totalHotels.toLocaleString() : "—"}</div>
-            <div className="mt-1 text-xs uppercase tracking-wide" style={{ color: "var(--muted)" }}>Hotels scored</div>
-          </div>
-          <div>
-            <div className="font-display text-3xl font-semibold">{citiesCovered}</div>
-            <div className="mt-1 text-xs uppercase tracking-wide" style={{ color: "var(--muted)" }}>Cities covered</div>
-          </div>
-          <div>
-            <div className="font-display text-3xl font-semibold">0–10</div>
-            <div className="mt-1 text-xs uppercase tracking-wide" style={{ color: "var(--muted)" }}>Cosy score scale</div>
-          </div>
-        </div>
-      </section>
+        {/* HIGHEST COSY SCORES */}
+        {top.length > 0 && (
+          <section className="mt-14">
+            <div className="flex items-baseline justify-between mb-5">
+              <h2 className="font-display text-2xl font-semibold">Highest cosy scores</h2>
+              <span className="text-sm" style={{ color: "var(--muted)" }}>The cosiest stays our AI has scored</span>
+            </div>
+            <ol className="space-y-3">
+              {top.map((h, i) => {
+                const cta = buildAffiliateUrl(bookingSearchUrl({ name: h.name, city: h.city, country: h.country }));
+                return (
+                  <li key={h.slug} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
+                    <div className="flex items-center gap-5">
+                      <span className="text-sm tabular-nums" style={{ color: "var(--muted)", width: 16 }}>{i + 1}</span>
+                      <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 64, height: 64, background: cosyColor(h.cosy), color: "#16201C", fontSize: 23 }}>
+                        {h.cosy.toFixed(1)}<span style={{ fontFamily: "Inter", fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", opacity: 0.8 }}>COSY</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display text-xl font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="no-underline hover:underline">{h.name}</a></h3>
+                        <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>
+                        {h.signals.length > 0 && (
+                          <div className="mt-2.5 flex flex-wrap gap-1.5">
+                            {h.signals.map((s) => (
+                              <span key={s} className="text-xs px-3 py-1 rounded-full border" style={{ background: "color-mix(in srgb, var(--sage) 13%, transparent)", color: "var(--sage)", borderColor: "color-mix(in srgb, var(--sage) 24%, transparent)" }}>{s}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <a href={cta} target="_blank" rel="noopener nofollow sponsored" className="flex-none rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+            <div className="text-center mt-6">
+              <Link href={`/${locale}/guides`} prefetch={false} className="inline-block rounded-xl px-7 py-3 font-medium no-underline" style={{ color: "var(--ember)", border: "1px solid color-mix(in srgb, var(--ember) 35%, transparent)" }}>Explore all city guides →</Link>
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

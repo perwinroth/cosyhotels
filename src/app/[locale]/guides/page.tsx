@@ -18,12 +18,12 @@ export default function GuidesIndex({ params }: { params: { locale: string } }) 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">Guides</h1>
-      <p className="mt-2 text-zinc-600">Editorial advice and planning resources.</p>
+      <p className="mt-2 text-muted">Editorial advice and planning resources.</p>
       <div className="mt-6 grid md:grid-cols-2 gap-4">
         {guides.map((g) => (
-          <Link key={g.slug} href={`/${params.locale}/guides/${g.slug}`} className="block rounded-xl border border-zinc-200 p-4 hover:shadow-sm">
+          <Link key={g.slug} href={`/${params.locale}/guides/${g.slug}`} className="block rounded-xl border border-line p-4 hov">
             <h2 className="font-medium">{g.title}</h2>
-            <p className="text-sm text-zinc-600 mt-1">{g.excerpt}</p>
+            <p className="text-sm text-muted mt-1">{g.excerpt}</p>
           </Link>
         ))}
       </div>
@@ -47,9 +47,9 @@ export default function GuidesIndex({ params }: { params: { locale: string } }) 
                   <h2 className="text-lg font-medium">{region}</h2>
                   <div className="mt-3 grid md:grid-cols-2 gap-4">
                     {items.map((c) => (
-                      <Link key={c.slug} href={`/${params.locale}/guides/${c.slug}`} className="block rounded-xl border border-zinc-200 p-4 hover:shadow-sm">
+                      <Link key={c.slug} href={`/${params.locale}/guides/${c.slug}`} className="block rounded-xl border border-line p-4 hov">
                         <h3 className="font-medium">{c.city} cosy hotels</h3>
-                        <p className="text-sm text-zinc-600 mt-1">Cosy and romantic stays in {c.city}, scored 0–10 for cosiness by AI.</p>
+                        <p className="text-sm text-muted mt-1">Cosy and romantic stays in {c.city}, scored 0–10 for cosiness by AI.</p>
                       </Link>
                     ))}
                   </div>
