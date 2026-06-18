@@ -3,7 +3,6 @@ import Link from "next/link";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import "../globals.css";
-import { messages } from "@/i18n/messages";
 import Analytics from "@/components/Analytics";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -47,7 +46,6 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
-  const m = messages[locale as keyof typeof messages] ?? messages.en;
   return (
     <html lang={locale}>
       <body className={`antialiased`} style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
@@ -58,9 +56,9 @@ export default async function LocaleLayout({
               <span className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>Got Cosy?</span>
             </Link>
             <nav className="flex gap-7 text-sm items-center" style={{ color: 'var(--muted)' }}>
-              <Link href={`/${locale}/guides`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">{m.nav.guides}</Link>
-              <Link href={`/${locale}/cosy-score`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">{m.nav.how}</Link>
-              <Link href={`/${locale}/for-hotels`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">For hotels</Link>
+              <Link href={`/${locale}/guides`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">City guides</Link>
+              <Link href={`/${locale}/cosy-score`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Cosy score</Link>
+              <Link href={`/${locale}/for-hotels`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Get your cosy score</Link>
               <Link href={`/${locale}/guides`} prefetch={false} className="no-underline font-medium rounded-[10px] px-4 py-2" style={{ background: 'var(--foreground)', color: '#16201C' }}>Find a stay</Link>
               <LanguageSwitcher current={locale} />
             </nav>
