@@ -5,7 +5,7 @@ import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { bookingSearchUrl, expediaSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
+import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { unstable_cache } from "next/cache";
@@ -97,7 +97,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
               Back to results
             </a>
             <div className="ml-auto flex gap-2">
-              <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={affiliateUrl} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
+              <a className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 font-medium no-underline" style={{ background: 'var(--ember)' }} href={affiliateUrl} target="_blank" rel="noopener nofollow sponsored">Check availability</a>
             </div>
           </div>
         </div>
@@ -223,12 +223,8 @@ export default async function HotelDetail({ params, searchParams }: Props) {
             // Direct OTA links so Stay22 LMA can rewrite them into affiliate links.
             const loc = { name: String(hotel.name), city: (hotel.city as string | null) ?? null, country: (hotel.country as string | null) ?? null };
             const bookingUrl = buildAffiliateUrl(bookingSearchUrl(loc));
-            const expediaUrl = buildAffiliateUrl(expediaSearchUrl(loc));
             return (
-              <>
-                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={bookingUrl} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
-                <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={expediaUrl} target="_blank" rel="noopener nofollow sponsored">View on Expedia</a>
-              </>
+              <a className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 font-medium no-underline" style={{ background: 'var(--ember)' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored">Check availability</a>
             );
           })()}
         </div>

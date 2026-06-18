@@ -292,9 +292,8 @@ export default async function GuidePage({ params }: Props) {
   const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
   const h1 = (m.guides?.h1_city || '{city} cosy hotels').replace('{city}', cityName);
   const intro = chosen.length
-    ? `Our ${chosen.length} cosiest hotel${chosen.length === 1 ? '' : 's'} in ${cityName}, ranked by AI cosy score.`
+    ? `${cityName}'s cosiest places to stay — scored 0–10 for warmth and character by our AI, ranked best first.`
     : `We’re still scoring cosy hotels in ${cityName}.`;
-  const tldr = `${cityName}'s cosiest hotels are small, characterful and warm — boutique boltholes over big chains. Each stay below is scored 0–10 for cosiness by our AI and ranked by that score.`;
   const faqs = cityFaqs(cityName);
   const faqJsonLd = {
     '@context': 'https://schema.org',
@@ -309,9 +308,6 @@ export default async function GuidePage({ params }: Props) {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{h1}</h1>
       <p className="mt-2 text-zinc-600">{intro}</p>
-      <p className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
-        <span className="font-semibold">TL;DR:</span> {tldr}
-      </p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       {chosen.length === 0 ? (
