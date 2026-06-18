@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="stay22-lma" strategy="afterInteractive">
           {`(function (s, t, a, y, twenty, two) {
               s.Stay22 = s.Stay22 || {};
-              s.Stay22.params = { lmaID: '${process.env.NEXT_PUBLIC_STAY22_LMAID || "6a338dfdaa5b4cd4a2d2ad6c"}' };
+              s.Stay22.params = { lmaID: '${process.env.NEXT_PUBLIC_STAY22_LMAID || "6a346ecbb0b5e9d8d1e48a12"}' };
               twenty = t.createElement(a);
               two = t.getElementsByTagName(a)[0];
               twenty.async = 1;
