@@ -46,17 +46,19 @@ function rubric(): string {
 
 // JSON-schema can't enforce numeric ranges or array lengths — we instruct those in the
 // prompt and clamp/trim in code. additionalProperties:false is required for strict output.
+// Order matters: signals/penalties/description are produced BEFORE the score, so the model
+// reasons from evidence and then derives the number (more accurate than score-first).
 const OUTPUT_SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
-    score: { type: "integer", description: "Cosiness 0–100; higher is cosier." },
-    signals: { type: "array", items: { type: "string" }, description: "Top 3–5 cosy signals, user-facing." },
+    signals: { type: "array", items: { type: "string" }, description: "Top 3–5 cosy signals found in the data, user-facing. Must be grounded in the input." },
     penalties: { type: "array", items: { type: "string" }, description: "Top 1–3 anti-cosy signals." },
-    description: { type: "string", description: "One warm sentence shown to users." },
-    confidence: { type: "string", enum: ["low", "medium", "high"] },
+    description: { type: "string", description: "One warm, truthful sentence shown to users; no claims beyond the data." },
+    score: { type: "integer", description: "Cosiness 0–100 derived from the signals/penalties above. Use the middle band (45–60) when data is sparse." },
+    confidence: { type: "string", enum: ["low", "medium", "high"], description: "Based on how much real evidence was available, not how cosy the hotel is." },
   },
-  required: ["score", "signals", "penalties", "description", "confidence"],
+  required: ["signals", "penalties", "description", "score", "confidence"],
 } as const;
 
 function buildPayload(input: ClaudeCosyInput): string {
@@ -93,6 +95,7 @@ export async function claudeCosyScore(input: ClaudeCosyInput): Promise<ClaudeCos
   const resp = await client.messages.create({
     model: COSY_SCORING_MODEL,
     max_tokens: 1024,
+    temperature: 0, // deterministic, consistent scores across runs
     thinking: { type: "disabled" },
     // Stable rubric cached so a scoring batch is ~cache-read priced per hotel.
     system: [{ type: "text", text: rubric(), cache_control: { type: "ephemeral" } }],
