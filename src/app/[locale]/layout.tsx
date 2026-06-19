@@ -4,7 +4,6 @@ import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import "../globals.css";
 import Analytics from "@/components/Analytics";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import HeaderSearch from "@/components/HeaderSearch";
 
 export const metadata: Metadata = {
@@ -60,7 +59,7 @@ export default async function LocaleLayout({
               <Link href={`/${locale}/cosy-score`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Cosy score</Link>
               <Link href={`/${locale}/for-hotels`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Get your cosy score</Link>
               <HeaderSearch locale={locale} />
-              <LanguageSwitcher current={locale} />
+              {/* Language switcher hidden until translations ship (all locales currently render English). */}
             </nav>
           </div>
         </header>

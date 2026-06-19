@@ -16,15 +16,19 @@ type Props = { params: { slug: string; locale: string } };
 
 // City-specific FAQ for GEO/SEO. Answers are method-based and honest — they describe how
 // we score cosiness rather than asserting unverifiable local facts.
-function cityFaqs(city: string): Array<{ q: string; a: string }> {
+function cityFaqs(city: string, opts?: { count?: number; topName?: string; topScore?: number }): Array<{ q: string; a: string }> {
+  const n = opts?.count || 0;
+  const lead = opts?.topName ? ` In ${city}, that currently puts ${opts.topName} on top${opts?.topScore ? ` at ${opts.topScore.toFixed(1)}/10` : ''}.` : '';
   return [
     {
       q: `What makes a hotel in ${city} cosy?`,
-      a: `Cosiness is about warmth, intimacy and character: small room counts, fireplaces or soaking tubs, natural materials like wood and stone, and reviews where guests feel genuinely welcomed rather than processed. We rank ${city} hotels on exactly these signals.`,
+      a: `Cosiness is about warmth, intimacy and character: small room counts, fireplaces or soaking tubs, natural materials like wood and stone, and reviews where guests feel genuinely welcomed rather than processed. We rank ${city} hotels on exactly these signals.${lead}`,
     },
     {
-      q: `How are these ${city} hotels ranked?`,
-      a: `Each hotel gets a 0–10 cosy score from our scoring engine, which weighs property type and scale, amenities, the language guests use in reviews, and the setting. Independent and boutique stays tend to score higher than large chains.`,
+      q: `How many cosy hotels in ${city} have you scored?`,
+      a: n > 0
+        ? `We've AI-scored ${n} cosy ${n === 1 ? 'hotel' : 'hotels'} in ${city} that clear our cosiness bar (5+/10). Each gets a 0–10 score weighing property type and scale, amenities, the language guests use in reviews, and the setting — independent and boutique stays tend to score highest.`
+        : `We're still scoring cosy hotels in ${city} — check back shortly. Each gets a 0–10 score weighing scale, amenities, guest-review language and setting.`,
     },
     {
       q: `Are cosy hotels in ${city} more expensive than chain hotels?`,
@@ -293,10 +297,13 @@ export default async function GuidePage({ params }: Props) {
   };
   const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
   const h1 = (m.guides?.h1_city || '{city} cosy hotels').replace('{city}', cityName);
+  // Data-derived, unique-per-city intro (no two pages read the same): real cosy count + top pick.
+  const cosyCount = sorted.filter((x) => x.s >= COSY_FLOOR).length;
+  const topPick = chosen[0];
   const intro = chosen.length
-    ? `${cityName}'s cosiest places to stay — scored 0–10 for warmth and character by our AI, ranked best first.`
+    ? `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy${topPick ? ` — led by ${topPick.name} at ${topPick._cosy.toFixed(1)}/10` : ''}. Here are the cosiest, ranked best first.`
     : `We’re still scoring cosy hotels in ${cityName}.`;
-  const faqs = cityFaqs(cityName);
+  const faqs = cityFaqs(cityName, { count: cosyCount, topName: topPick?.name, topScore: topPick?._cosy });
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
