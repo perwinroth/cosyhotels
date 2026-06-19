@@ -1,40 +1,30 @@
-// Pinterest pin image generator — 1000×1500 vertical "cosiest hotels in {City}" card,
-// rendered from live cosy-score data. Every publish path (Blotato/n8n) consumes this URL.
-//   GET /api/social/pin?city=Paris
+// Pinterest pin image generator — 1000×1500 vertical "cosiest hotels in {City}" card.
+// FETCH-FREE: an in-route Supabase fetch crashes the edge ImageResponse worker, so hotel
+// data is passed in via the `items` query param (built by /api/social/next, which fetches).
+//   GET /api/social/pin?city=Paris&items=Maison Lautrec~9.4|Le Pigalle~7.9
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-// Keep only glyphs the default font can render (ASCII + Latin accents). Anything beyond
-// (emoji, CJK, exotic symbols) makes satori attempt a dynamic font fetch and blanks the image.
+// ASCII + Latin-1 only — other glyphs make satori attempt a (failing) dynamic font fetch.
 function safe(s: string): string {
-  return (s || "").replace(/…/g, "...").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-").replace(/[^\x20-\u00ff]/g, "").trim();
+  return (s || "").replace(/…/g, "...").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-").replace(/[^\x20-ÿ]/g, "").trim();
 }
 
 export async function GET(req: Request) {
-  const city = safe(new URL(req.url).searchParams.get("city")?.trim() || "Europe");
-  const top: Array<{ name: string; score: number }> = [];
-  // Edge-safe data fetch via Supabase REST (supabase-js doesn't run in edge).
-  const SUPA = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-  if (SUPA && KEY) {
-    try {
-      // Filter by city server-side (!inner) returning a few rows — fast + reliable in edge.
-      // (Pulling 400 rows and filtering timed out and cached blank images.)
-      const q = encodeURIComponent(`*${city}*`);
-      const url = `${SUPA}/rest/v1/cosy_scores?select=score,score_final,hotel:hotel_id!inner(name,city)&score=gte.5&hotel.city=ilike.${q}&order=score.desc&limit=12`;
-      const res = await fetch(url, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
-      const data = res.ok ? await res.json() : [];
-      const seen = new Set<string>();
-      for (const r of (data || []) as Array<{ score: number | null; score_final: number | null; hotel: { name: string } | null }>) {
-        const nm = safe(r.hotel?.name || "");
-        if (!nm || seen.has(nm)) continue;
-        seen.add(nm);
-        top.push({ name: nm, score: (typeof r.score_final === "number" ? r.score_final : Number(r.score)) || 0 });
-        if (top.length >= 5) break;
-      }
-    } catch { /* render with empty list */ }
-  }
+  const params = new URL(req.url).searchParams;
+  const city = safe(params.get("city")?.trim() || "Europe");
+  const top = (params.get("items") || "")
+    .split("|")
+    .map((part) => {
+      const i = part.lastIndexOf("~");
+      if (i < 0) return null;
+      const name = safe(part.slice(0, i));
+      const score = Number(part.slice(i + 1)) || 0;
+      return name ? { name, score } : null;
+    })
+    .filter(Boolean)
+    .slice(0, 5) as Array<{ name: string; score: number }>;
 
   const color = (s: number) => (s >= 9 ? "#D8B25A" : s >= 7.8 ? "#7FB7A2" : s >= 6.8 ? "#7c8a5f" : "#b07a4a");
 
