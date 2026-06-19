@@ -39,7 +39,7 @@ export async function GET(req: Request) {
           <span style={{ color: "#E08A4B", fontStyle: "italic" }}>{city}</span>
         </div>
         {topScore > 0 && (
-          <div style={{ fontSize: 34, color: "#9DA89F", marginTop: 24 }}>{`${top.length} hand-scored cosy stays - up to ${topScore.toFixed(1)}/10`}</div>
+          <div style={{ fontSize: 34, color: "#9DA89F", marginTop: 24 }}>{`${top.length} AI-scored cosy stays - up to ${topScore.toFixed(1)}/10`}</div>
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 50, flex: 1 }}>
           {lines.map((line, i) => (
