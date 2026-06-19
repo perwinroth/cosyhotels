@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
-// using precomputed city_top; no direct Places calls
-import { buildCosySnippet } from "@/i18n/snippets";
+import { cityFromSlug } from "@/lib/citySlug";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
-import { getImageForHotel } from "@/lib/hotelImages";
-import { placeholderUrl } from "@/lib/image";
+import { stay22AllezUrl } from "@/lib/affiliates";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
@@ -16,13 +14,57 @@ import { bboxFor } from "@/data/cityCoords";
 
 type Props = { params: { slug: string; locale: string } };
 
+// City-specific FAQ for GEO/SEO. Answers are method-based and honest — they describe how
+// we score cosiness rather than asserting unverifiable local facts.
+function cityFaqs(city: string, opts?: { count?: number; topName?: string; topScore?: number }): Array<{ q: string; a: string }> {
+  const n = opts?.count || 0;
+  const lead = opts?.topName ? ` In ${city}, that currently puts ${opts.topName} on top${opts?.topScore ? ` at ${opts.topScore.toFixed(1)}/10` : ''}.` : '';
+  return [
+    {
+      q: `What makes a hotel in ${city} cosy?`,
+      a: `Cosiness is about warmth, intimacy and character: small room counts, fireplaces or soaking tubs, natural materials like wood and stone, and reviews where guests feel genuinely welcomed rather than processed. We rank ${city} hotels on exactly these signals.${lead}`,
+    },
+    {
+      q: `How many cosy hotels in ${city} have you scored?`,
+      a: n > 0
+        ? `We've AI-scored ${n} cosy ${n === 1 ? 'hotel' : 'hotels'} in ${city} that clear our cosiness bar (5+/10). Each gets a 0–10 score weighing property type and scale, amenities, the language guests use in reviews, and the setting — independent and boutique stays tend to score highest.`
+        : `We're still scoring cosy hotels in ${city} — check back shortly. Each gets a 0–10 score weighing scale, amenities, guest-review language and setting.`,
+    },
+    {
+      q: `Are cosy hotels in ${city} more expensive than chain hotels?`,
+      a: `Not necessarily. Cosiness comes from character and scale, not price — many of the cosiest stays are small independents that cost less than a big-brand business hotel.`,
+    },
+    {
+      q: `Can I book these ${city} hotels directly?`,
+      a: `Yes. Every hotel links out to live availability and pricing so you can compare your dates and book on your preferred site.`,
+    },
+    {
+      q: `How often is this ${city} list updated?`,
+      a: `The list is regenerated regularly as cosy scores and availability change, so it reflects current picks rather than a static editorial list.`,
+    },
+  ];
+}
+
+// Strip leading postcode noise from polluted OSM city values ("211 21 Malmö" -> "Malmö").
+function cleanCity(city: string): string {
+  return city.replace(/^[\d\s.,-]+/, '').trim();
+}
+
+// Warm cosy-score badge colour (sage = very cosy → muted clay = mild).
+function cosyColor(score: number): string {
+  if (score >= 7.8) return '#5c6b56';
+  if (score >= 6.8) return '#7c8a5f';
+  if (score >= 5.6) return '#b07a4a';
+  return '#a89b8c';
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const g = getGuide(params.slug);
   if (!g) {
     const cg = getCityGuide(params.slug);
     if (cg) {
-      const titleBase = `${cg.city} cosy hotels – 9 handpicked stays`;
-      const descBase = `Our favourite cosy and romantic boutique hotels in ${cg.city}.`;
+      const titleBase = `${cg.city} cosy hotels – AI-scored for cosiness`;
+      const descBase = `Cosy and romantic boutique hotels in ${cg.city}, each scored 0–10 for cosiness by AI.`;
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
       const url = `/${params.locale}/guides/${cg.slug}`;
@@ -30,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ...locales.map((l) => [l, `/${l}/guides/${cg.slug}`]),
         ["x-default", `/en/guides/${cg.slug}`],
       ]);
-      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary", title, description } };
+      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: "/logo-seal.svg", width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description } };
     }
     return {};
   }
@@ -82,7 +124,9 @@ export default async function GuidePage({ params }: Props) {
       'los-angeles-cosy-hotel': 'Los Angeles', 'la-cosy-hotel': 'Los Angeles',
     };
     const base = slug.replace(/-cosy-hotel$/, '');
-    const pretty = aliases[slug] || base.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+    // Recover the real city name (with diacritics, e.g. "Malmö") from the known-city list;
+    // fall back to a prettified slug only if unknown.
+    const pretty = aliases[slug] || cityFromSlug(slug) || base.replace(/-/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
     cg = { city: pretty, slug: params.slug } as unknown as ReturnType<typeof getCityGuide>;
   }
   const cityName = String((cg as { city: string }).city);
@@ -90,7 +134,7 @@ export default async function GuidePage({ params }: Props) {
   // Source guide hotels from Supabase with robust city matching and diversity
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
-  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null; source?: string | null; source_id?: string | null };
+  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null; source?: string | null; source_id?: string | null; lat?: number | null; lng?: number | null };
   type CS = { hotel_id: string; score: number | null; score_final: number | null };
   // Build robust variants for the city (handles common local names)
   const base = cityName.trim();
@@ -128,7 +172,7 @@ export default async function GuidePage({ params }: Props) {
   const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
   const { data: hRows } = await db
     .from('hotels')
-    .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id')
+    .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id,lat,lng')
     .or(`${orCity},${orAddr}`)
     .limit(800);
   let hotels = ((hRows || []) as HB[]).filter(Boolean);
@@ -149,14 +193,22 @@ export default async function GuidePage({ params }: Props) {
     }
   }
   const ids = hotels.map((h) => String(h.id));
-  const { data: sRows } = await db
-    .from('cosy_scores')
-    .select('hotel_id,score,score_final')
-    .in('hotel_id', ids);
   const scoreMap = new Map<string, number>();
-  for (const r of ((sRows || []) as CS[])) {
-    const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
-    if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+  const signalsMap = new Map<string, string[]>();
+  const descMap = new Map<string, string>();
+  // Chunk the .in() — a single query with hundreds of UUIDs makes a too-long URL that 400s,
+  // which silently dropped ALL scores for big cities (e.g. Edinburgh → empty "still scoring").
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data: sRows } = await db
+      .from('cosy_scores')
+      .select('hotel_id,score,score_final,signals,description')
+      .in('hotel_id', ids.slice(i, i + 150));
+    for (const r of ((sRows || []) as Array<CS & { signals: string[] | null; description: string | null }>)) {
+      const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
+      if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+      if (r.hotel_id && Array.isArray(r.signals)) signalsMap.set(String(r.hotel_id), r.signals);
+      if (r.hotel_id && typeof r.description === 'string' && r.description.trim()) descMap.set(String(r.hotel_id), r.description.trim());
+    }
   }
   // Score and prioritize exact city matches, apply basic chain diversity to avoid duplicates
   const chains = [
@@ -188,12 +240,16 @@ export default async function GuidePage({ params }: Props) {
   });
   const sorted = scored
     .sort((a, b) => (b.exact - a.exact) || (b.mention - a.mention) || (b.s - a.s) || (b.tie - a.tie));
-  const primary = sorted.filter((x) => x.s >= 7.0);
+  // PUBLIC GATE (two-score model): the secret 0–100 Claude score lives in cosy_scores.score_100
+  // (never surfaced). Anything below 50/100 (= 5.0/10) is "hidden" — kept in the DB for later
+  // re-review/upgrade, but never shown. Survivors surface their public /10 score (5.0–10.0),
+  // cosiest first; the homepage/top-of-list naturally features the highest. Never pad with 0.0.
+  const COSY_FLOOR = 5.0; // = 50/100 public gate
   const perBrand: Record<string, number> = {};
   const seen = new Set<string>();
   const picks: typeof sorted = [];
-  // First pass: cosy >= 7.0 with brand cap
-  for (const x of primary) {
+  for (const x of sorted) {
+    if (x.s < COSY_FLOOR) continue;
     const key = String(x.h.slug);
     if (seen.has(key)) continue;
     const bc = perBrand[x.brand] || 0;
@@ -201,20 +257,7 @@ export default async function GuidePage({ params }: Props) {
     seen.add(key);
     perBrand[x.brand] = bc + 1;
     picks.push(x);
-    if (picks.length >= 9) break;
-  }
-  // Second pass: top remaining regardless of score to guarantee 9 from our dataset
-  if (picks.length < 9) {
-    for (const x of sorted) {
-      if (picks.length >= 9) break;
-      const key = String(x.h.slug);
-      if (seen.has(key)) continue;
-      const bc = perBrand[x.brand] || 0;
-      if (bc >= 2 && x.brand !== 'independent') continue;
-      seen.add(key);
-      perBrand[x.brand] = bc + 1;
-      picks.push(x);
-    }
+    if (picks.length >= 12) break;
   }
   const take = picks;
   // Prefer cached images from Supabase to avoid slow/fragile lookups; fall back to Places-based helper
@@ -229,25 +272,21 @@ export default async function GuidePage({ params }: Props) {
     for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null }>) {
       const hid = row.hotel_id ? String(row.hotel_id) : '';
       const url = row.url ? String(row.url) : '';
-      if (!hid || !url) continue;
+      if (!hid || !url || url.includes('placehold.co')) continue;
       if (!imgMap.has(hid)) imgMap.set(hid, url);
     }
   } catch {}
 
-  const chosen = await Promise.all(take.map(async ({ h, s }) => {
+  const chosen = take.map(({ h, s }) => {
     const cached = imgMap.get(String(h.id));
-    const img = cached || (await getImageForHotel(String(h.name), String(h.city || ''), String(h.slug), String(h.id))) || placeholderUrl;
-    const snippet = buildCosySnippet(params.locale, {
-      city: String(h.city || cityName),
-      name: String(h.name),
-      cosy: s,
-      rating: typeof h.rating === 'number' ? Number(h.rating) / 2 : undefined,
-      reviewsCount: undefined,
-      cues: [],
-      idealLevel: 'warm',
-    });
-    return { slug: String(h.slug), name: String(h.name), city: String(h.city || ''), country: String(h.country || ''), rating: 0, _cosy: s, _img: img, snippet };
-  }))
+    const img = cached && !cached.includes('placehold.co') ? cached : null; // real photo only — no grey boxes
+    const signals = (signalsMap.get(String(h.id)) || []).slice(0, 3);
+    // Real AI description only — never generic templated praise (which lied on 0.0 hotels).
+    const snippet = descMap.get(String(h.id)) || '';
+    const cleanedCity = cleanCity(String(h.city || '')) || cityName;
+    const cta = stay22AllezUrl({ name: String(h.name), city: cleanedCity, country: String(h.country || ''), lat: h.lat ?? null, lng: h.lng ?? null, campaign: `guide-${params.locale}` });
+    return { slug: String(h.slug), name: String(h.name), city: cleanedCity, country: String(h.country || ''), _cosy: s, _img: img, _signals: signals, snippet, cta };
+  })
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
   const listJsonLd = {
@@ -262,40 +301,74 @@ export default async function GuidePage({ params }: Props) {
   };
   const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
   const h1 = (m.guides?.h1_city || '{city} cosy hotels').replace('{city}', cityName);
-  const intro = (m.guides?.intro_city || '9 handpicked cosy and romantic stays in {city}.').replace('{city}', cityName);
+  // Data-derived, unique-per-city intro (no two pages read the same): real cosy count + top pick.
+  const cosyCount = sorted.filter((x) => x.s >= COSY_FLOOR).length;
+  const topPick = chosen[0];
+  const intro = chosen.length
+    ? `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy${topPick ? ` — led by ${topPick.name} at ${topPick._cosy.toFixed(1)}/10` : ''}. Here are the cosiest, ranked best first.`
+    : `We’re still scoring cosy hotels in ${cityName}.`;
+  const faqs = cityFaqs(cityName, { count: cosyCount, topName: topPick?.name, topScore: topPick?._cosy });
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">{h1}</h1>
-      <p className="mt-2 text-zinc-600">{intro}</p>
+      <p className="mt-2" style={{ color: 'var(--muted)' }}>{intro}</p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
-      <ol className="mt-6 space-y-6">
-        {chosen.map((h, idx) => (
-          <li key={`${h.slug}-${h._img}`} className="border border-zinc-200 rounded-xl bg-white">
-            <div className="p-3 md:p-4">
-              <div className="flex items-baseline gap-3">
-                <div className="text-xl font-semibold tabular-nums">{idx + 1}.</div>
-                <h2 className="text-xl font-semibold">
-                  <a href={detailsHref(h.slug)} className="hover:underline">{h.name}</a>
-                </h2>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      {chosen.length > 0 && (
+        <ol className="mt-6 space-y-3">
+          {chosen.map((h, idx) => (
+            <li key={h.slug} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyColor(h._cosy), width: 56, height: 56, fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600 }}>
+                  {h._cosy.toFixed(1)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm tabular-nums" style={{ color: 'var(--muted)' }}>#{idx + 1}</span>
+                    <h2 className="text-lg font-semibold leading-tight">
+                      <a href={detailsHref(h.slug)} className="hover:underline">{h.name}</a>
+                    </h2>
+                  </div>
+                  <div className="text-sm" style={{ color: 'var(--muted)' }}>{[h.city, h.country].filter(Boolean).join(', ')}</div>
+                  {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>}
+                  <div className="mt-3">
+                    <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
+                      Check availability
+                    </a>
+                  </div>
+                </div>
+                {h._img && (
+                  <a href={detailsHref(h.slug)} className="flex-shrink-0 hidden sm:block">
+                    <div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}>
+                      <Image src={h._img} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(h._img)} />
+                    </div>
+                  </a>
+                )}
               </div>
-              <p className="mt-2 text-sm text-zinc-700">{h.snippet}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold">Frequently asked questions</h2>
+        <dl className="mt-4 space-y-4">
+          {faqs.map((f) => (
+            <div key={f.q} className="border rounded-lg p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+              <dt className="font-medium" style={{ color: 'var(--foreground)' }}>{f.q}</dt>
+              <dd className="mt-1.5 text-sm" style={{ color: 'var(--muted)' }}>{f.a}</dd>
             </div>
-            <a href={detailsHref(h.slug)}>
-              <div className="relative w-full aspect-[4/3] rounded-b-xl overflow-hidden">
-                <Image
-                  src={h._img}
-                  alt={`${h.name} – ${h.city}`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 800px"
-                  quality={70}
-                  unoptimized={/^https?:\/\//.test(h._img)}
-                />
-              </div>
-            </a>
-          </li>
-        ))}
-      </ol>
+          ))}
+        </dl>
+      </section>
     </div>
   );
 }

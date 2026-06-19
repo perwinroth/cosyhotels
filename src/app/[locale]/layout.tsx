@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import "../globals.css";
-import { messages } from "@/i18n/messages";
 import Analytics from "@/components/Analytics";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import HeaderSearch from "@/components/HeaderSearch";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -33,7 +31,6 @@ export const metadata: Metadata = {
     url: "/",
     title: `${site.name} – ${site.tagline}`,
     description: site.description,
-    images: [{ url: "/logo-seal.svg", width: 1200, height: 800 }],
   },
   robots: { index: true, follow: true },
   twitter: { card: "summary_large_image" },
@@ -48,23 +45,21 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
-  const m = messages[locale as keyof typeof messages] ?? messages.en;
   return (
     <html lang={locale}>
       <body className={`antialiased`} style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
-        <header className="sticky top-0 z-30 border-b" style={{ borderColor: 'var(--line)', background: 'rgba(250,246,239,0.85)', backdropFilter: 'blur(8px)' }}>
-          <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+        <header className="sticky top-0 z-30 border-b" style={{ borderColor: 'var(--line)', background: 'rgba(15,21,18,0.82)', backdropFilter: 'blur(12px)' }}>
+          <div className="mx-auto max-w-6xl px-4 h-[68px] flex items-center justify-between">
             <Link href={`/`} className="flex items-center gap-2.5 no-underline">
-              <Image src="/seal.svg" alt={site.name} width={40} height={40} priority />
-              <span className="sr-only">{site.name}</span>
-              <span aria-hidden className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>{m.brand?.name || 'Get Cosy'}</span>
+              <span aria-hidden className="flex items-center justify-center rounded-[11px] font-display font-bold" style={{ width: 36, height: 36, background: 'linear-gradient(135deg, var(--ember), var(--gold))', color: '#16201C', fontSize: 17 }}>c</span>
+              <span className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>Got Cosy?</span>
             </Link>
-            <nav className="flex gap-5 text-sm items-center" style={{ color: 'var(--muted)' }}>
-              <Link href={`/${locale}/collections`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.collections}</Link>
-              <Link href={`/${locale}/guides`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.guides}</Link>
-              <Link href={`/${locale}/cosy-score`} prefetch={false} className="hover:text-[#2b2420] no-underline hover:underline">{m.nav.how}</Link>
-              <Link href={`/${locale}/cosy-score#seal`} prefetch={false} className="font-medium no-underline hover:underline" style={{ color: 'var(--ember)' }}>Seal of Approval</Link>
-              <LanguageSwitcher current={locale} />
+            <nav className="flex gap-7 text-sm items-center" style={{ color: 'var(--muted)' }}>
+              <Link href={`/${locale}/guides`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">City guides</Link>
+              <Link href={`/${locale}/cosy-score`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Cosy score</Link>
+              <Link href={`/${locale}/for-hotels`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Get your cosy score</Link>
+              <HeaderSearch locale={locale} />
+              {/* Language switcher hidden until translations ship (all locales currently render English). */}
             </nav>
           </div>
         </header>

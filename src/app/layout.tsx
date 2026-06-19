@@ -15,14 +15,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        {/* Travelpayouts site verification */}
-        <Script id="travelpayouts" strategy="afterInteractive">
-          {`(function () {
-              var script = document.createElement("script");
-              script.async = 1;
-              script.src = 'https://emrldtp.com/NTQwNTM4.js?t=540538';
-              document.head.appendChild(script);
-          })();`}
+        {/* Stay22 LetMeAllez (LMA) — rewrites on-page OTA links into Stay22
+            affiliate links client-side. lmaID is public (visible in page source);
+            override via NEXT_PUBLIC_STAY22_LMAID. */}
+        <Script id="stay22-lma" strategy="afterInteractive">
+          {`(function (s, t, a, y, twenty, two) {
+              s.Stay22 = s.Stay22 || {};
+              s.Stay22.params = { lmaID: '${process.env.NEXT_PUBLIC_STAY22_LMAID || "6a346ecbb0b5e9d8d1e48a12"}' };
+              twenty = t.createElement(a);
+              two = t.getElementsByTagName(a)[0];
+              twenty.async = 1;
+              twenty.src = y;
+              two.parentNode.insertBefore(twenty, two);
+          })(window, document, 'script', 'https://scripts.stay22.com/letmeallez.js');`}
         </Script>
       </head>
       <body className="antialiased">

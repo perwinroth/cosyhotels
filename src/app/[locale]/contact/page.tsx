@@ -14,8 +14,8 @@ export default function ContactPage() {
   const email = "support@cosyhotelroom.com";
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-3xl font-semibold tracking-tight">Contact</h1>
-      <div className="prose prose-zinc mt-6">
+      <h1 className="font-display text-4xl font-semibold tracking-tight">Contact</h1>
+      <div className="longform mt-6">
         <p>
           We’d love to hear from you — suggestions for new cosy stays, corrections, or partnership enquiries.
         </p>

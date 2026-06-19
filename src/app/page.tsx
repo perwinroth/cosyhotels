@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
-import HotelsPage from "./[locale]/hotels/page";
+import Home from "./[locale]/page";
 
 export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  title: "Cosy Hotel Rooms & Boutique Hotels | Get Cosy",
-  description: "Discover cosy hotel rooms, boutique hotels, and romantic getaways worldwide. Curated picks with helpful filters.",
+  title: "Got Cosy? — AI-rated cosy hotels",
+  description: "Hotels ranked by cosiness — scored 0–10 by AI for warmth, character and intimacy, not just stars.",
   openGraph: {
-    title: "Cosy Hotel Rooms & Boutique Hotels",
-    description: "Discover cosy hotel rooms, boutique hotels, and romantic getaways worldwide.",
+    title: "Got Cosy? — AI-rated cosy hotels",
+    description: "Hotels ranked by cosiness — not just stars.",
     type: "website",
     url: "/",
-    images: [{ url: "/logo-seal.svg", width: 1200, height: 800 }],
   },
 };
 
-export default function RootHome({ searchParams = {} as { [key: string]: string | string[] | undefined } }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
-  // Reuse the English hotels page as the root home
-  return <HotelsPage searchParams={searchParams} params={{ locale: 'en' }} />;
+export default function RootHome() {
+  // Render the localized homepage (hero, how-it-works, top hotels, browse-by-city, stats) for en.
+  return <Home params={{ locale: 'en' }} />;
 }

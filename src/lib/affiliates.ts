@@ -36,9 +36,11 @@ const providerParams: Record<Provider, { subIdParam?: string }> = {
   impact: { subIdParam: "subId1" },
 };
 
-// Travelpayouts marker (partner id). Wraps outbound hotel links so clicks earn.
-const TP_MARKER = "740458";
-
+// Monetization is handled by Stay22's LetMeAllez (LMA) script, which rewrites the
+// on-page OTA links (booking.com / expedia) into Stay22 affiliate links client-side
+// (see the LMA <Script> in src/app/layout.tsx). For LMA to detect a link it must point
+// at the real OTA domain — so we deliberately return the plain OTA URL here and do NOT
+// wrap it in a redirector (a redirector would hide the OTA domain from LMA).
 export function buildAffiliateUrl(baseUrl: string, opts?: { provider?: Provider; campaign?: string; content?: string; clickId?: string }) {
   const u = new URL(baseUrl);
   u.searchParams.set("utm_source", site.affiliate.source);
@@ -47,16 +49,28 @@ export function buildAffiliateUrl(baseUrl: string, opts?: { provider?: Provider;
   if (opts?.content) u.searchParams.set("utm_content", opts.content);
   const p = providerParams[opts?.provider || "generic"];
   if (p.subIdParam && opts?.clickId) u.searchParams.set(p.subIdParam, String(opts.clickId));
-  // Wrap via Travelpayouts redirect so the click is attributed to the marker.
-  const tp = new URL("https://tp.media/r");
-  tp.searchParams.set("marker", TP_MARKER);
-  tp.searchParams.set("p", "4115"); // Booking.com program id on Travelpayouts
-  tp.searchParams.set("u", u.toString());
-  return tp.toString();
+  return u.toString();
 }
 
 export function hotelAffiliateUrl(hotel: Hotel, opts?: { provider?: Provider; campaign?: string; content?: string; clickId?: string }) {
   return buildAffiliateUrl(hotel.affiliateUrl, opts);
+}
+
+// Stay22 Allez deep link — resolves to the SPECIFIC hotel via coords + name (not a landmark
+// search). This is the canonical "Check availability" CTA. aid attributes the booking to us.
+const STAY22_AID = process.env.NEXT_PUBLIC_STAY22_AID || "6a346ecbb0b5e9d8d1e48a12";
+export function stay22AllezUrl(input: { name: string; city?: string | null; country?: string | null; lat?: number | null; lng?: number | null; campaign?: string }) {
+  const u = new URL("https://www.stay22.com/allez/roam");
+  u.searchParams.set("aid", STAY22_AID);
+  if (input.campaign) u.searchParams.set("campaign", input.campaign);
+  if (input.name) u.searchParams.set("hotelname", input.name);
+  const addr = [input.city, input.country].filter(Boolean).join(", ");
+  if (addr) u.searchParams.set("address", addr);
+  if (typeof input.lat === "number" && typeof input.lng === "number") {
+    u.searchParams.set("lat", String(input.lat));
+    u.searchParams.set("lng", String(input.lng));
+  }
+  return u.toString();
 }
 
 // Vendor deep link builders (free, no API)

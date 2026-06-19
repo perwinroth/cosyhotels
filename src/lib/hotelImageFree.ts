@@ -20,6 +20,10 @@ export type ResolvedImage = {
 const UA = 'cosyhotels/1.0 (+https://cosyhotels.example; image resolver)';
 const TIMEOUT = 8000;
 
+// Reject non-photo junk that hotels put in og:image / first <img>: logos, icons, flags,
+// QR codes, banners, payment/social badges, cookie/consent graphics, locale flags, SVGs.
+const JUNK_IMG = /(logo|icon|sprite|favicon|placeholder|weather|bookcdn|polylang|\/mini\.|qr[-_]?code|qrcode|\bflag\b|flags?\/|banner|cookie|consent|gdpr|badge|payment|visa|mastercard|paypal|coat[-_]?of[-_]?arms|emblem|crest|\.svg(\?|$)|[a-z]{2}[-_][A-Z]{2}\.(?:png|jpe?g|gif))/i;
+
 async function fetchText(url: string): Promise<string | null> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), TIMEOUT);
@@ -89,17 +93,18 @@ function extractMetaImage(html: string, base: string): string | null {
   return null;
 }
 
-async function fromWebsite(website?: string | null): Promise<ResolvedImage | null> {
+async function fromWebsite(website?: string | null, exclude?: Set<string>): Promise<ResolvedImage | null> {
   if (!website) return null;
   const html = await fetchText(website);
   if (!html) return null;
-  // 1) og:image / twitter:image / JSON-LD (best — curated hero shot)
+  // 1) og:image / twitter:image / JSON-LD (best — curated hero shot). Skip it when excluded
+  //    (it was already QA-rejected) so we fall through to the <img> scan / other sources.
   const meta = extractMetaImage(html, website);
-  if (meta && !/(logo|icon|sprite|favicon|placeholder)/i.test(meta) && await headOk(meta)) {
+  if (meta && !exclude?.has(meta) && !JUNK_IMG.test(meta) && await headOk(meta)) {
     return { url: meta, source: 'website', attribution: null };
   }
   // 2) Fallback: scan <img> + CSS background-image for the first large photo.
-  const JUNK = /(logo|icon|sprite|favicon|thumb|avatar|pixel|spacer|blank|placeholder|banner-ad|loader|btn|button|arrow|flag|badge|seal|whatsapp|facebook|instagram|twitter|payment|visa|mastercard|cookie|map)/i;
+  const JUNK = /(logo|icon|sprite|favicon|thumb|avatar|pixel|spacer|blank|placeholder|banner-ad|loader|btn|button|arrow|flag|badge|seal|whatsapp|facebook|instagram|twitter|payment|visa|mastercard|cookie|map|weather|bookcdn|polylang|\/mini\.|[a-z]{2}_[A-Z]{2}\.(?:png|jpe?g|svg))/i;
   const cand: string[] = [];
   for (const m of html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+)["']/gi)) {
     const u = abs(m[1], website);
@@ -112,7 +117,7 @@ async function fromWebsite(website?: string | null): Promise<ResolvedImage | nul
   // Validate the first few; return the first that is a live image.
   const seen = new Set<string>();
   for (const u of cand) {
-    if (seen.has(u)) continue;
+    if (seen.has(u) || exclude?.has(u)) continue;
     seen.add(u);
     if (await headOk(u)) return { url: u, source: 'website', attribution: null };
     if (seen.size >= 6) break;
@@ -213,25 +218,31 @@ export type ImageResolveInput = {
   lat?: number | null;
   lng?: number | null;
   city?: string | null;
+  exclude?: string[]; // URLs to skip (e.g. an image that already failed vision QA) so a
+                      // re-resolve returns a genuinely DIFFERENT photo, not the same junk.
 };
 
 // Main entry: returns the best free, cacheable image we can find.
 export async function resolveHotelImage(input: ImageResolveInput): Promise<ResolvedImage> {
+  const exclude = input.exclude?.length ? new Set(input.exclude) : undefined;
+  const notExcluded = (r: ResolvedImage | null): ResolvedImage | null =>
+    r && !exclude?.has(r.url) ? r : null;
+
   // 0) Direct OSM image tag (rare but authoritative)
-  if (input.imageTag && /^https?:\/\//i.test(input.imageTag) && await headOk(input.imageTag)) {
+  if (input.imageTag && /^https?:\/\//i.test(input.imageTag) && !exclude?.has(input.imageTag) && await headOk(input.imageTag)) {
     return { url: input.imageTag, source: 'website', attribution: null };
   }
 
-  // 1) Website og:image (best — the hotel's own photo)
-  const web = await fromWebsite(input.website);
+  // 1) Website og:image (best — the hotel's own photo); skips excluded URLs internally.
+  const web = await fromWebsite(input.website, exclude);
   if (web) return web;
 
   // 2) Wikidata image (free license)
-  const wiki = await fromWikidataQid(input.wikidata);
+  const wiki = notExcluded(await fromWikidataQid(input.wikidata));
   if (wiki) return wiki;
 
   // 3) Wikimedia Commons geosearch by coordinates, NAME-MATCHED only
-  const geo = await fromCommonsGeo(input.name, input.lat, input.lng);
+  const geo = notExcluded(await fromCommonsGeo(input.name, input.lat, input.lng));
   if (geo) return geo;
 
   // 4) Placeholder
