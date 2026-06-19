@@ -32,7 +32,7 @@ export default function OG() {
             marginBottom: 28,
           }}
         >
-          ◆ AI-rated hotels for cosiness
+          AI-rated hotels for cosiness
         </div>
         <div style={{ fontSize: 150, fontWeight: 700, letterSpacing: -3, display: "flex" }}>
           <span>Got&nbsp;</span>
