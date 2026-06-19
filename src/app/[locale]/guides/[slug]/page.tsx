@@ -337,7 +337,7 @@ export default async function GuidePage({ params }: Props) {
                   )}
                   {h.snippet && <p className="mt-1.5 text-sm" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>}
                   <div className="mt-3">
-                    <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
+                    <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
                       Check availability
                     </a>
                   </div>

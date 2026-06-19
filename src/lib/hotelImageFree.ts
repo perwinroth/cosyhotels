@@ -20,6 +20,10 @@ export type ResolvedImage = {
 const UA = 'cosyhotels/1.0 (+https://cosyhotels.example; image resolver)';
 const TIMEOUT = 8000;
 
+// Reject non-photo junk that hotels put in og:image / first <img>: logos, icons, flags,
+// QR codes, banners, payment/social badges, cookie/consent graphics, locale flags, SVGs.
+const JUNK_IMG = /(logo|icon|sprite|favicon|placeholder|weather|bookcdn|polylang|\/mini\.|qr[-_]?code|qrcode|\bflag\b|flags?\/|banner|cookie|consent|gdpr|badge|payment|visa|mastercard|paypal|coat[-_]?of[-_]?arms|emblem|crest|\.svg(\?|$)|[a-z]{2}[-_][A-Z]{2}\.(?:png|jpe?g|gif))/i;
+
 async function fetchText(url: string): Promise<string | null> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), TIMEOUT);
@@ -95,7 +99,7 @@ async function fromWebsite(website?: string | null): Promise<ResolvedImage | nul
   if (!html) return null;
   // 1) og:image / twitter:image / JSON-LD (best — curated hero shot)
   const meta = extractMetaImage(html, website);
-  if (meta && !/(logo|icon|sprite|favicon|placeholder|weather|bookcdn|polylang|\/mini\.)/i.test(meta) && await headOk(meta)) {
+  if (meta && !JUNK_IMG.test(meta) && await headOk(meta)) {
     return { url: meta, source: 'website', attribution: null };
   }
   // 2) Fallback: scan <img> + CSS background-image for the first large photo.

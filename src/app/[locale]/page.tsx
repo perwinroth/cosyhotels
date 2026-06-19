@@ -169,7 +169,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                           </div>
                         )}
                       </div>
-                      <a href={cta} target="_blank" rel="noopener nofollow sponsored" className="flex-none rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
+                      <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="flex-none rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
                     </div>
                   </li>
                 );
