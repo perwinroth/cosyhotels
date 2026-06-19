@@ -53,7 +53,7 @@ export async function GET(req: Request) {
                 <div style={{ fontSize: 40, fontWeight: 700 }}>{h.score.toFixed(1)}</div>
                 <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 2, fontFamily: "sans-serif" }}>COSY</div>
               </div>
-              <div style={{ fontSize: 40, fontWeight: 600, overflow: "hidden" }}>{h.name.length > 26 ? h.name.slice(0, 25) + "…" : h.name}</div>
+              <div style={{ fontSize: 40, fontWeight: 600, overflow: "hidden" }}>{h.name.length > 26 ? h.name.slice(0, 25) + "..." : h.name}</div>
             </div>
           ))}
           {top.length === 0 && <div style={{ fontSize: 40, color: "#9DA89F" }}>Discover cosy hotels at gotcosy.com</div>}
