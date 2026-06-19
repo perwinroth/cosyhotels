@@ -38,9 +38,20 @@ export async function GET(req: Request) {
 
   const color = (s: number) => (s >= 9 ? "#D8B25A" : s >= 7.8 ? "#7FB7A2" : s >= 6.8 ? "#7c8a5f" : "#b07a4a");
 
+  // Bundle the font into the function via import.meta.url (NOT an origin fetch — that 404'd
+  // and blanked images). This compiles the font bytes in, so satori always has a real font.
+  const [f400, f700] = await Promise.all([
+    fetch(new URL("./inter-400.woff", import.meta.url)).then((r) => r.arrayBuffer()),
+    fetch(new URL("./inter-700.woff", import.meta.url)).then((r) => r.arrayBuffer()),
+  ]);
+  const fonts = [
+    { name: "Inter", data: f400, weight: 400 as const, style: "normal" as const },
+    { name: "Inter", data: f700, weight: 700 as const, style: "normal" as const },
+  ];
+
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1d2a22,#0F1512)", color: "#F3EEE6", padding: 70 }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1d2a22,#0F1512)", color: "#F3EEE6", fontFamily: "Inter", padding: 70 }}>
         <div style={{ fontSize: 30, letterSpacing: 5, textTransform: "uppercase", color: "#E08A4B" }}>AI-rated for cosiness</div>
         <div style={{ display: "flex", flexDirection: "column", fontSize: 84, fontWeight: 700, letterSpacing: -2, marginTop: 18, lineHeight: 1.05 }}>
           <span>The cosiest hotels in</span>
@@ -65,6 +76,6 @@ export async function GET(req: Request) {
         </div>
       </div>
     ),
-    { width: 1000, height: 1500 }
+    { width: 1000, height: 1500, fonts }
   );
 }
