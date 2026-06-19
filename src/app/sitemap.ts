@@ -27,23 +27,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const db = getServerSupabase();
   if (db) {
     const pageSize = 1000;
+    // Only SURFACED hotels (cosy score ≥5), canonical /en locale only. This keeps the sitemap
+    // well under Vercel's 19MB limit and avoids indexing thin/hidden pages + locale duplicates.
     let from = 0;
-    // Loop up to 50k entries defensively
     for (let i = 0; i < 50; i++) {
       const to = from + pageSize - 1;
       const { data, error } = await db
-        .from('hotels')
-        .select('slug, updated_at')
-        .order('updated_at', { ascending: false })
+        .from('cosy_scores')
+        .select('score, hotel:hotel_id (slug, updated_at)')
+        .gte('score', 5)
         .range(from, to);
       if (error || !data || data.length === 0) break;
-      for (const row of data as Array<{ slug: string | null; updated_at: string | null }>) {
-        const slug = (row.slug || '').trim();
+      for (const row of data as unknown as Array<{ hotel: { slug: string | null; updated_at: string | null } | null }>) {
+        const slug = (row.hotel?.slug || '').trim();
         if (!slug) continue;
-        const lm = row.updated_at ? new Date(row.updated_at) : now;
-        for (const locale of locales) {
-          routes.push({ url: `${base}/${locale}/hotels/${slug}`, lastModified: lm, changeFrequency: 'weekly', priority: 0.6 });
-        }
+        const lm = row.hotel?.updated_at ? new Date(row.hotel.updated_at) : now;
+        routes.push({ url: `${base}/en/hotels/${slug}`, lastModified: lm, changeFrequency: 'weekly', priority: 0.6 });
       }
       if (data.length < pageSize) break;
       from += pageSize;
