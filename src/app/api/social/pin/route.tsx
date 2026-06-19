@@ -38,10 +38,25 @@ export async function GET(req: Request) {
 
   const color = (s: number) => (s >= 9 ? "#D8B25A" : s >= 7.8 ? "#7FB7A2" : s >= 6.8 ? "#7c8a5f" : "#b07a4a");
 
+  // Embed a bundled font so satori never attempts a dynamic font fetch (the cause of blank
+  // images). Fetched from our own origin; falls back to no-fonts if unavailable.
+  const origin = new URL(req.url).origin;
+  let fonts: Array<{ name: string; data: ArrayBuffer; weight: 400 | 700; style: "normal" }> | undefined;
+  try {
+    const [f4, f7] = await Promise.all([
+      fetch(`${origin}/fonts/inter-400.woff`).then((r) => r.arrayBuffer()),
+      fetch(`${origin}/fonts/inter-700.woff`).then((r) => r.arrayBuffer()),
+    ]);
+    fonts = [
+      { name: "Inter", data: f4, weight: 400, style: "normal" },
+      { name: "Inter", data: f7, weight: 700, style: "normal" },
+    ];
+  } catch { fonts = undefined; }
+
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1d2a22,#0F1512)", color: "#F3EEE6", fontFamily: "serif", padding: 70 }}>
-        <div style={{ fontSize: 30, letterSpacing: 5, textTransform: "uppercase", color: "#E08A4B", fontFamily: "sans-serif" }}>AI-rated for cosiness</div>
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1d2a22,#0F1512)", color: "#F3EEE6", fontFamily: "Inter", padding: 70 }}>
+        <div style={{ fontSize: 30, letterSpacing: 5, textTransform: "uppercase", color: "#E08A4B" }}>AI-rated for cosiness</div>
         <div style={{ display: "flex", flexDirection: "column", fontSize: 84, fontWeight: 700, letterSpacing: -2, marginTop: 18, lineHeight: 1.05 }}>
           <span>The cosiest hotels in</span>
           <span style={{ color: "#E08A4B", fontStyle: "italic" }}>{city}</span>
@@ -49,22 +64,22 @@ export async function GET(req: Request) {
         <div style={{ display: "flex", flexDirection: "column", gap: 22, marginTop: 60, flex: 1 }}>
           {top.map((h, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 26 }}>
-              <div style={{ fontSize: 34, color: "#9DA89F", fontFamily: "sans-serif", width: 36 }}>{i + 1}</div>
+              <div style={{ fontSize: 34, color: "#9DA89F", width: 36 }}>{i + 1}</div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: 104, height: 104, borderRadius: 26, background: color(h.score), color: "#16201C", flexShrink: 0 }}>
                 <div style={{ fontSize: 40, fontWeight: 700 }}>{h.score.toFixed(1)}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 2, fontFamily: "sans-serif" }}>COSY</div>
+                <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 2 }}>COSY</div>
               </div>
               <div style={{ fontSize: 40, fontWeight: 600, overflow: "hidden" }}>{h.name.length > 26 ? h.name.slice(0, 25) + "..." : h.name}</div>
             </div>
           ))}
           {top.length === 0 && <div style={{ fontSize: 40, color: "#9DA89F" }}>Discover cosy hotels at gotcosy.com</div>}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "sans-serif" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 38, fontWeight: 700 }}>Got Cosy?</div>
           <div style={{ fontSize: 30, color: "#D8B25A" }}>gotcosy.com</div>
         </div>
       </div>
     ),
-    { width: 1000, height: 1500 }
+    { width: 1000, height: 1500, fonts }
   );
 }
