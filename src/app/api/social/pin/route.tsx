@@ -38,24 +38,9 @@ export async function GET(req: Request) {
 
   const color = (s: number) => (s >= 9 ? "#D8B25A" : s >= 7.8 ? "#7FB7A2" : s >= 6.8 ? "#7c8a5f" : "#b07a4a");
 
-  // Embed a bundled font so satori never attempts a dynamic font fetch (the cause of blank
-  // images). Fetched from our own origin; falls back to no-fonts if unavailable.
-  const origin = new URL(req.url).origin;
-  let fonts: Array<{ name: string; data: ArrayBuffer; weight: 400 | 700; style: "normal" }> | undefined;
-  try {
-    const [f4, f7] = await Promise.all([
-      fetch(`${origin}/fonts/inter-400.woff`).then((r) => r.arrayBuffer()),
-      fetch(`${origin}/fonts/inter-700.woff`).then((r) => r.arrayBuffer()),
-    ]);
-    fonts = [
-      { name: "Inter", data: f4, weight: 400, style: "normal" },
-      { name: "Inter", data: f7, weight: 700, style: "normal" },
-    ];
-  } catch { fonts = undefined; }
-
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1d2a22,#0F1512)", color: "#F3EEE6", fontFamily: "Inter", padding: 70 }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1d2a22,#0F1512)", color: "#F3EEE6", padding: 70 }}>
         <div style={{ fontSize: 30, letterSpacing: 5, textTransform: "uppercase", color: "#E08A4B" }}>AI-rated for cosiness</div>
         <div style={{ display: "flex", flexDirection: "column", fontSize: 84, fontWeight: 700, letterSpacing: -2, marginTop: 18, lineHeight: 1.05 }}>
           <span>The cosiest hotels in</span>
@@ -80,6 +65,6 @@ export async function GET(req: Request) {
         </div>
       </div>
     ),
-    { width: 1000, height: 1500, fonts }
+    { width: 1000, height: 1500 }
   );
 }
