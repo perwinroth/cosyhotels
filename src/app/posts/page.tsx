@@ -21,22 +21,26 @@ export default async function PostsPage() {
   }
 
   const cities = await populatedCities(db);
-  // Build every pin in parallel; track failures so one bad city can't blank the gallery AND
-  // so we can show which cities aren't publishable (and why).
+  // Build pins with BOUNDED concurrency. Firing all (200+) Supabase queries at once
+  // overflows the stack in the concurrent fetch path (RangeError: Maximum call stack
+  // size exceeded) and hangs ~60s; small batches are reliable and fast.
   type Failure = { city: string; reason: string };
   const pins: CityPin[] = [];
   const failures: Failure[] = [];
-  await Promise.all(
-    cities.map(async (c) => {
-      try {
-        const pin = await cityPin(db, c.city, base);
-        if (pin.items.length > 0) pins.push(pin);
-        else failures.push({ city: c.city, reason: "no hotels scored ≥ 5" });
-      } catch (e) {
-        failures.push({ city: c.city, reason: e instanceof Error ? e.message : "pin build error" });
-      }
-    })
-  );
+  const CONCURRENCY = 8;
+  for (let i = 0; i < cities.length; i += CONCURRENCY) {
+    await Promise.all(
+      cities.slice(i, i + CONCURRENCY).map(async (c) => {
+        try {
+          const pin = await cityPin(db, c.city, base);
+          if (pin.items.length > 0) pins.push(pin);
+          else failures.push({ city: c.city, reason: "no hotels scored ≥ 5" });
+        } catch (e) {
+          failures.push({ city: c.city, reason: e instanceof Error ? e.message : "pin build error" });
+        }
+      })
+    );
+  }
   pins.sort((a, b) => a.city.localeCompare(b.city));
   failures.sort((a, b) => a.city.localeCompare(b.city));
 
@@ -74,7 +78,7 @@ export default async function PostsPage() {
             <div key={pin.city} style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" }}>
               {/* The actual pin image (1000×1500) shown at card width. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={pin.imageUrl} alt={`Pin for ${pin.city}`} style={{ width: "100%", display: "block", aspectRatio: "2 / 3", objectFit: "cover", background: "#0F1512" }} />
+              <img src={pin.imageUrl} alt={`Pin for ${pin.city}`} loading="lazy" decoding="async" style={{ width: "100%", display: "block", aspectRatio: "2 / 3", objectFit: "cover", background: "#0F1512" }} />
               <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{pin.title}</div>
                 <div style={{ fontSize: 13, color: "#C7CFC8", lineHeight: 1.5 }}>{pin.description}</div>
