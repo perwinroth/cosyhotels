@@ -5,7 +5,7 @@ import Link from "next/link";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityGuides } from "@/data/cityGuides";
-import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
+import { stay22AllezUrl } from "@/lib/affiliates";
 import { SearchBar } from "@/components/HomeSections";
 
 // Warm cosy-score badge colour (gold = top → sage → olive → muted clay).
@@ -29,7 +29,7 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   };
 }
 
-type TopHotel = { slug: string; name: string; city: string; country: string; cosy: number; signals: string[]; image?: string };
+type TopHotel = { slug: string; name: string; city: string; country: string; cosy: number; description: string; image?: string; lat?: number | null; lng?: number | null };
 type CityChip = { city: string; slug: string; count: number };
 
 // Live hotel count per curated city guide (matches the guide page's city/address matching).
@@ -47,10 +47,10 @@ async function cityChips(db: NonNullable<ReturnType<typeof getServerSupabase>>):
 }
 
 async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>): Promise<TopHotel[]> {
-  type Row = { score: number | null; score_final: number | null; signals: string[] | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null } | null };
+  type Row = { score: number | null; score_final: number | null; description: string | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; lat: number | null; lng: number | null } | null };
   const { data } = await db
     .from("cosy_scores")
-    .select("score, score_final, signals, hotel:hotel_id (id,slug,name,city,country)")
+    .select("score, score_final, description, hotel:hotel_id (id,slug,name,city,country,lat,lng)")
     .order("score_final", { ascending: false, nullsFirst: false })
     .order("score", { ascending: false })
     .limit(20);
@@ -67,7 +67,8 @@ async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>):
       city: h.city || "",
       country: h.country || "",
       cosy: typeof r.score_final === "number" ? r.score_final : Number(r.score) || 0,
-      signals: (r.signals || []).slice(0, 3),
+      description: r.description || "",
+      lat: h.lat, lng: h.lng,
     });
     if (picks.length >= 3) break;
   }
@@ -150,7 +151,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
             </div>
             <ol className="space-y-3">
               {top.map((h, i) => {
-                const cta = buildAffiliateUrl(bookingSearchUrl({ name: h.name, city: h.city, country: h.country }));
+                const cta = stay22AllezUrl({ name: h.name, city: h.city, country: h.country, lat: h.lat ?? null, lng: h.lng ?? null, campaign: `home-${locale}` });
                 return (
                   <li key={h.slug} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
                     <div className="flex items-center gap-5">
@@ -161,13 +162,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-display text-xl font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="no-underline hover:underline">{h.name}</a></h3>
                         <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>
-                        {h.signals.length > 0 && (
-                          <div className="mt-2.5 flex flex-wrap gap-1.5">
-                            {h.signals.map((s) => (
-                              <span key={s} className="text-xs px-3 py-1 rounded-full border" style={{ background: "color-mix(in srgb, var(--sage) 13%, transparent)", color: "var(--sage)", borderColor: "color-mix(in srgb, var(--sage) 24%, transparent)" }}>{s}</span>
-                            ))}
-                          </div>
-                        )}
+                        {h.description && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>}
                       </div>
                       <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="flex-none rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
                     </div>

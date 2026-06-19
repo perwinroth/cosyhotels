@@ -6,7 +6,7 @@ import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
+import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { unstable_cache } from "next/cache";
@@ -163,7 +163,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
 
   const { data: hotel } = await db
     .from("hotels")
-    .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count")
+    .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,lat,lng")
     .eq("slug", params.slug)
     .maybeSingle();
   if (!hotel) return notFound();
@@ -175,7 +175,6 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     .maybeSingle();
   const cosy = (scoreRow?.score_final as number | null) ?? (scoreRow?.score as number | null) ?? null;
   const cosyDescription = (scoreRow?.description as string | null) ?? null;
-  const cosySignals = (scoreRow?.signals as string[] | null) ?? null;
 
   // Real cached photo only (no placeholder).
   let photo: string | null = null;
@@ -206,8 +205,11 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   const badge = typeof cosyDisplay === 'number'
     ? (cosyDisplay >= 9 ? '#D8B25A' : cosyDisplay >= 7.8 ? '#7FB7A2' : cosyDisplay >= 6.8 ? '#7c8a5f' : cosyDisplay >= 5.6 ? '#b07a4a' : '#a89b8c')
     : '#a89b8c';
-  const loc = { name: String(hotel.name), city: (hotel.city as string | null) ?? null, country: (hotel.country as string | null) ?? null };
-  const bookingUrl = buildAffiliateUrl(bookingSearchUrl(loc));
+  const bookingUrl = stay22AllezUrl({
+    name: String(hotel.name), city: (hotel.city as string | null) ?? null, country: (hotel.country as string | null) ?? null,
+    lat: (hotel.lat as number | null) ?? null, lng: (hotel.lng as number | null) ?? null,
+    campaign: `detail-${params.locale}`,
+  });
   const hotelJsonLd = {
     "@context": "https://schema.org",
     "@type": "Hotel",
@@ -234,14 +236,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
           {cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'}<span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', opacity: 0.8 }}>COSY</span>
         </div>
         <div className="flex-1 min-w-0">
-          {(cosyDescription ?? cosySnippet) && <p className="text-[15px]" style={{ color: 'var(--foreground)' }}>{cosyDescription ?? cosySnippet}</p>}
-          {cosySignals && cosySignals.length > 0 && (
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {cosySignals.slice(0, 4).map((s) => (
-                <span key={s} className="text-xs px-3 py-1 rounded-full border" style={{ background: 'color-mix(in srgb, var(--sage) 13%, transparent)', color: 'var(--sage)', borderColor: 'color-mix(in srgb, var(--sage) 24%, transparent)' }}>{s}</span>
-              ))}
-            </div>
-          )}
+          {(cosyDescription ?? cosySnippet) && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{cosyDescription ?? cosySnippet}</p>}
         </div>
       </div>
 

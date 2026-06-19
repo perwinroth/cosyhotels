@@ -5,7 +5,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { cityFromSlug } from "@/lib/citySlug";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
-import { bookingSearchUrl, buildAffiliateUrl } from "@/lib/affiliates";
+import { stay22AllezUrl } from "@/lib/affiliates";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
@@ -130,7 +130,7 @@ export default async function GuidePage({ params }: Props) {
   // Source guide hotels from Supabase with robust city matching and diversity
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
-  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null; source?: string | null; source_id?: string | null };
+  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null; source?: string | null; source_id?: string | null; lat?: number | null; lng?: number | null };
   type CS = { hotel_id: string; score: number | null; score_final: number | null };
   // Build robust variants for the city (handles common local names)
   const base = cityName.trim();
@@ -168,7 +168,7 @@ export default async function GuidePage({ params }: Props) {
   const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
   const { data: hRows } = await db
     .from('hotels')
-    .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id')
+    .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id,lat,lng')
     .or(`${orCity},${orAddr}`)
     .limit(800);
   let hotels = ((hRows || []) as HB[]).filter(Boolean);
@@ -276,7 +276,7 @@ export default async function GuidePage({ params }: Props) {
     // Real AI description only — never generic templated praise (which lied on 0.0 hotels).
     const snippet = descMap.get(String(h.id)) || '';
     const cleanedCity = cleanCity(String(h.city || '')) || cityName;
-    const cta = buildAffiliateUrl(bookingSearchUrl({ name: String(h.name), city: cleanedCity, country: String(h.country || '') }));
+    const cta = stay22AllezUrl({ name: String(h.name), city: cleanedCity, country: String(h.country || ''), lat: h.lat ?? null, lng: h.lng ?? null, campaign: `guide-${params.locale}` });
     return { slug: String(h.slug), name: String(h.name), city: cleanedCity, country: String(h.country || ''), _cosy: s, _img: img, _signals: signals, snippet, cta };
   })
 
@@ -328,14 +328,7 @@ export default async function GuidePage({ params }: Props) {
                     </h2>
                   </div>
                   <div className="text-sm" style={{ color: 'var(--muted)' }}>{[h.city, h.country].filter(Boolean).join(', ')}</div>
-                  {h._signals.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {h._signals.map((sig) => (
-                        <span key={sig} className="text-xs px-2 py-0.5 rounded-full border" style={{ borderColor: 'var(--line)', color: 'var(--muted)', background: 'var(--surface-2)' }}>{sig}</span>
-                      ))}
-                    </div>
-                  )}
-                  {h.snippet && <p className="mt-1.5 text-sm" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>}
+                  {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>}
                   <div className="mt-3">
                     <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
                       Check availability

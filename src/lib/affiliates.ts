@@ -56,6 +56,23 @@ export function hotelAffiliateUrl(hotel: Hotel, opts?: { provider?: Provider; ca
   return buildAffiliateUrl(hotel.affiliateUrl, opts);
 }
 
+// Stay22 Allez deep link — resolves to the SPECIFIC hotel via coords + name (not a landmark
+// search). This is the canonical "Check availability" CTA. aid attributes the booking to us.
+const STAY22_AID = process.env.NEXT_PUBLIC_STAY22_AID || "6a346ecbb0b5e9d8d1e48a12";
+export function stay22AllezUrl(input: { name: string; city?: string | null; country?: string | null; lat?: number | null; lng?: number | null; campaign?: string }) {
+  const u = new URL("https://www.stay22.com/allez/roam");
+  u.searchParams.set("aid", STAY22_AID);
+  if (input.campaign) u.searchParams.set("campaign", input.campaign);
+  if (input.name) u.searchParams.set("hotelname", input.name);
+  const addr = [input.city, input.country].filter(Boolean).join(", ");
+  if (addr) u.searchParams.set("address", addr);
+  if (typeof input.lat === "number" && typeof input.lng === "number") {
+    u.searchParams.set("lat", String(input.lat));
+    u.searchParams.set("lng", String(input.lng));
+  }
+  return u.toString();
+}
+
 // Vendor deep link builders (free, no API)
 export function bookingSearchUrl(input: { name?: string; city?: string | null; country?: string | null }) {
   const name = (input.name || '').trim();

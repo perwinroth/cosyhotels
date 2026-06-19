@@ -84,8 +84,11 @@ stars with cosiness.
 - **signals**: the top 3–5 cosy signals you actually found *in the data*, in plain
   user-facing language (e.g. "Wood-burning fireplace in the lounge", "Only 12 rooms").
 - **penalties**: top 1–3 anti-cosy signals (internal). Empty list if none.
-- **description**: one warm, truthful sentence a traveller would read (e.g. "A snug mountain
-  inn with wood-burning stoves and just 12 rooms"). No marketing fluff, no quotes, no claims
-  beyond the data.
+- **description**: the ONLY user-facing prose (signals/penalties are internal — never shown).
+  Write 1–2 warm, vivid sentences like a boutique-hotel copywriter that make a traveller want
+  to book — evocative but truthful, grounded in the data. Weave the cosy details into flowing
+  prose; do NOT list them as bullet-style fragments. (e.g. "A characterful Parisian bolthole
+  where warm lighting, rich velvet drapes and playfully decorated rooms make every corner feel
+  personal and inviting.") No quotes, no claims beyond the data, no analyst phrasing.
 - **score**: integer 0–100, derived from the signals/penalties above.
 - **confidence**: low / medium / high, based on how much real data you had.

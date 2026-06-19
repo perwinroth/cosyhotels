@@ -5,6 +5,7 @@ import { locales } from "@/i18n/locales";
 import "../globals.css";
 import Analytics from "@/components/Analytics";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import HeaderSearch from "@/components/HeaderSearch";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -58,7 +59,7 @@ export default async function LocaleLayout({
               <Link href={`/${locale}/guides`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">City guides</Link>
               <Link href={`/${locale}/cosy-score`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Cosy score</Link>
               <Link href={`/${locale}/for-hotels`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Get your cosy score</Link>
-              <Link href={`/${locale}/guides`} prefetch={false} className="no-underline font-medium rounded-[10px] px-4 py-2" style={{ background: 'var(--foreground)', color: '#16201C' }}>Find a stay</Link>
+              <HeaderSearch locale={locale} />
               <LanguageSwitcher current={locale} />
             </nav>
           </div>
