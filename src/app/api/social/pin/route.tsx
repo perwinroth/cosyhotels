@@ -2,32 +2,31 @@
 // rendered from live cosy-score data. Every publish path (Blotato/n8n) consumes this URL.
 //   GET /api/social/pin?city=Paris
 import { ImageResponse } from "next/og";
-import { getServerSupabase } from "@/lib/supabase/server";
 
 export const runtime = "edge";
 
 export async function GET(req: Request) {
   const city = new URL(req.url).searchParams.get("city")?.trim() || "Europe";
-  const db = getServerSupabase();
   const top: Array<{ name: string; score: number }> = [];
-  if (db) {
-    const { data } = await db
-      .from("cosy_scores")
-      .select("score, score_final, hotel:hotel_id (name, city)")
-      .gte("score", 5)
-      .order("score_final", { ascending: false, nullsFirst: false })
-      .order("score", { ascending: false })
-      .limit(400);
-    const seen = new Set<string>();
-    for (const r of (data || []) as unknown as Array<{ score: number | null; score_final: number | null; hotel: { name: string; city: string | null } | null }>) {
-      const h = r.hotel;
-      if (!h?.name || !h.city) continue;
-      if (!h.city.toLowerCase().includes(city.toLowerCase())) continue;
-      if (seen.has(h.name)) continue;
-      seen.add(h.name);
-      top.push({ name: h.name, score: (typeof r.score_final === "number" ? r.score_final : Number(r.score)) || 0 });
-      if (top.length >= 5) break;
-    }
+  // Edge-safe data fetch via Supabase REST (supabase-js doesn't run in edge).
+  const SUPA = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (SUPA && KEY) {
+    try {
+      const url = `${SUPA}/rest/v1/cosy_scores?select=score,score_final,hotel:hotel_id(name,city)&score=gte.5&order=score_final.desc.nullslast,score.desc&limit=400`;
+      const res = await fetch(url, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
+      const data = res.ok ? await res.json() : [];
+      const seen = new Set<string>();
+      for (const r of (data || []) as Array<{ score: number | null; score_final: number | null; hotel: { name: string; city: string | null } | null }>) {
+        const h = r.hotel;
+        if (!h?.name || !h.city) continue;
+        if (!h.city.toLowerCase().includes(city.toLowerCase())) continue;
+        if (seen.has(h.name)) continue;
+        seen.add(h.name);
+        top.push({ name: h.name, score: (typeof r.score_final === "number" ? r.score_final : Number(r.score)) || 0 });
+        if (top.length >= 5) break;
+      }
+    } catch { /* render with empty list */ }
   }
 
   const color = (s: number) => (s >= 9 ? "#D8B25A" : s >= 7.8 ? "#7FB7A2" : s >= 6.8 ? "#7c8a5f" : "#b07a4a");
