@@ -26,28 +26,26 @@ export async function GET(req: Request) {
     .filter(Boolean)
     .slice(0, 5) as Array<{ name: string; score: number }>;
 
-  const color = (s: number) => (s >= 9 ? "#D8B25A" : s >= 7.8 ? "#7FB7A2" : s >= 6.8 ? "#7c8a5f" : "#b07a4a");
+  // Simple flat list of name lines (nested flex score-badge rows crash satori in this edge route).
+  const topScore = top.length ? Math.max(...top.map((h) => h.score)) : 0;
+  const lines = top.map((h) => `${h.name.length > 30 ? h.name.slice(0, 29) + "..." : h.name}  -  ${h.score.toFixed(1)}/10`);
 
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1d2a22,#0F1512)", color: "#F3EEE6", fontFamily: "sans-serif", padding: 70 }}>
         <div style={{ fontSize: 30, letterSpacing: 5, textTransform: "uppercase", color: "#E08A4B" }}>AI-rated for cosiness</div>
-        <div style={{ display: "flex", flexDirection: "column", fontSize: 84, fontWeight: 700, letterSpacing: -2, marginTop: 18, lineHeight: 1.05 }}>
+        <div style={{ display: "flex", flexDirection: "column", fontSize: 82, fontWeight: 700, letterSpacing: -2, marginTop: 18, lineHeight: 1.05 }}>
           <span>The cosiest hotels in</span>
           <span style={{ color: "#E08A4B", fontStyle: "italic" }}>{city}</span>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 22, marginTop: 60, flex: 1 }}>
-          {top.map((h, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 26 }}>
-              <div style={{ fontSize: 34, color: "#9DA89F", width: 36 }}>{i + 1}</div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: 104, height: 104, borderRadius: 26, background: color(h.score), color: "#16201C", flexShrink: 0 }}>
-                <div style={{ fontSize: 40, fontWeight: 700 }}>{h.score.toFixed(1)}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 2 }}>COSY</div>
-              </div>
-              <div style={{ fontSize: 40, fontWeight: 600, overflow: "hidden" }}>{h.name.length > 26 ? h.name.slice(0, 25) + "..." : h.name}</div>
-            </div>
+        {topScore > 0 && (
+          <div style={{ fontSize: 34, color: "#9DA89F", marginTop: 24 }}>{`${top.length} hand-scored cosy stays - up to ${topScore.toFixed(1)}/10`}</div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 50, flex: 1 }}>
+          {lines.map((line, i) => (
+            <div key={i} style={{ fontSize: 40, fontWeight: 600 }}>{`${i + 1}.  ${line}`}</div>
           ))}
-          {top.length === 0 && <div style={{ fontSize: 40, color: "#9DA89F" }}>Discover cosy hotels at gotcosy.com</div>}
+          {lines.length === 0 && <div style={{ fontSize: 40, color: "#9DA89F" }}>Discover cosy hotels at gotcosy.com</div>}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 38, fontWeight: 700 }}>Got Cosy?</div>
