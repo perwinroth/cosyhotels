@@ -193,18 +193,22 @@ export default async function GuidePage({ params }: Props) {
     }
   }
   const ids = hotels.map((h) => String(h.id));
-  const { data: sRows } = await db
-    .from('cosy_scores')
-    .select('hotel_id,score,score_final,signals,description')
-    .in('hotel_id', ids);
   const scoreMap = new Map<string, number>();
   const signalsMap = new Map<string, string[]>();
   const descMap = new Map<string, string>();
-  for (const r of ((sRows || []) as Array<CS & { signals: string[] | null; description: string | null }>)) {
-    const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
-    if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
-    if (r.hotel_id && Array.isArray(r.signals)) signalsMap.set(String(r.hotel_id), r.signals);
-    if (r.hotel_id && typeof r.description === 'string' && r.description.trim()) descMap.set(String(r.hotel_id), r.description.trim());
+  // Chunk the .in() — a single query with hundreds of UUIDs makes a too-long URL that 400s,
+  // which silently dropped ALL scores for big cities (e.g. Edinburgh → empty "still scoring").
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data: sRows } = await db
+      .from('cosy_scores')
+      .select('hotel_id,score,score_final,signals,description')
+      .in('hotel_id', ids.slice(i, i + 150));
+    for (const r of ((sRows || []) as Array<CS & { signals: string[] | null; description: string | null }>)) {
+      const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
+      if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+      if (r.hotel_id && Array.isArray(r.signals)) signalsMap.set(String(r.hotel_id), r.signals);
+      if (r.hotel_id && typeof r.description === 'string' && r.description.trim()) descMap.set(String(r.hotel_id), r.description.trim());
+    }
   }
   // Score and prioritize exact city matches, apply basic chain diversity to avoid duplicates
   const chains = [
