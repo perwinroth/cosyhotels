@@ -70,6 +70,8 @@ export async function cityPin(db: DB, city: string, base: string): Promise<CityP
       .from("hotel_images")
       .select("hotel_id,url,created_at")
       .in("hotel_id", ids)
+      // Hide images the vision QA confirmed as junk (vision_ok=false); keep unchecked (null) + good.
+      .or("vision_ok.is.null,vision_ok.is.true")
       .order("created_at", { ascending: false });
     for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null }>) {
       const hid = row.hotel_id ? String(row.hotel_id) : "";
