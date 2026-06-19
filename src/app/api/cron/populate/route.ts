@@ -163,12 +163,14 @@ async function run() {
     }
   }
 
-  // Update state. Done when no unscored candidates remain (all top scored, or scoring paused
-  // but ingest complete and nothing left to score under the cap).
+  // Update state. Done when no unscored candidates remain — OR when we attempted a batch and
+  // scored nothing new (the leftovers are persistently failing: bad data / refusals). Without
+  // this second clause one stuck hotel blocks the whole queue forever (it never reaches 0).
   const remaining = top.filter((h) => idMap.get(h.id) && !scoredSet.has(idMap.get(h.id)!)).length - scoredNow;
+  const stuck = scoringOn && toScore.length > 0 && scoredNow === 0; // tried, scored none → move on
   const prevScored = (await db.from("populate_state").select("hotels_scored").eq("city", t.city).maybeSingle()).data as { hotels_scored: number } | null;
   const totalScored = (prevScored?.hotels_scored ?? 0) + scoredNow;
-  const status = remaining <= 0 ? "done" : (scoringOn ? "ingested" : "ingested");
+  const status = (remaining <= 0 || stuck) ? "done" : "ingested";
   await db.from("populate_state").upsert({
     city: t.city, tier: t.tier, status,
     ingested_at: new Date().toISOString(), scored_at: scoredNow ? new Date().toISOString() : undefined,
