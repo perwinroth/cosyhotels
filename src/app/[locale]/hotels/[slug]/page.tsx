@@ -1,5 +1,6 @@
 // Hotel detail (Amadeus-first for am- slugs; Supabase otherwise)
 import { notFound, permanentRedirect } from "next/navigation";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
@@ -176,6 +177,15 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   const cosyDescription = (scoreRow?.description as string | null) ?? null;
   const cosySignals = (scoreRow?.signals as string[] | null) ?? null;
 
+  // Real cached photo only (no placeholder).
+  let photo: string | null = null;
+  try {
+    const { data: imgs } = await db.from("hotel_images").select("url,created_at").eq("hotel_id", hotel.id).order("created_at", { ascending: false });
+    for (const r of (imgs || []) as Array<{ url: string | null }>) {
+      if (r.url && !r.url.includes("placehold.co")) { photo = r.url; break; }
+    }
+  } catch {}
+
   // Use DB values to compose concise snippet
   const rating5 = typeof hotel.rating === 'number' ? Number(hotel.rating) / 2 : undefined;
   const cosyDisplay = typeof cosy === 'number' ? cosy : undefined;
@@ -198,10 +208,26 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     : '#a89b8c';
   const loc = { name: String(hotel.name), city: (hotel.city as string | null) ?? null, country: (hotel.country as string | null) ?? null };
   const bookingUrl = buildAffiliateUrl(bookingSearchUrl(loc));
+  const hotelJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Hotel",
+    name: String(hotel.name),
+    description: cosyDescription ?? undefined,
+    image: photo ?? undefined,
+    address: { "@type": "PostalAddress", addressLocality: String(hotel.city || ""), addressCountry: String(hotel.country || "") },
+    url: `${site.url}/${params.locale}/hotels/${hotel.slug}`,
+  };
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(hotelJsonLd) }} />
       <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>
       <div className="mt-1.5 text-base" style={{ color: 'var(--muted)' }}>{[hotel.city, hotel.country].filter(Boolean).join(', ')}</div>
+
+      {photo && (
+        <div className="relative mt-5 w-full overflow-hidden rounded-2xl" style={{ aspectRatio: "16/9", border: "1px solid var(--line)" }}>
+          <Image src={photo} alt={`${hotel.name} — ${hotel.city || ''}`} fill className="object-cover" sizes="(max-width:768px) 100vw, 768px" quality={70} unoptimized={/^https?:\/\//.test(photo)} />
+        </div>
+      )}
 
       <div className="mt-6 flex items-center gap-5 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
         <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 76, height: 76, background: badge, color: '#16201C', fontSize: 28 }} aria-label={`Cosy score ${cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'} out of 10`}>
