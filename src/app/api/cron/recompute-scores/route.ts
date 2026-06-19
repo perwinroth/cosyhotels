@@ -24,7 +24,7 @@ type HotelRow = {
 
 type ScoreRow = { hotel_id: string; scored_at: string | null };
 
-async function runBatch(force = false, limit = 100, city = ""): Promise<{ processed: number; errors: number; ms: number }> {
+async function runBatch(force = false, limit = 100, city = "", since = ""): Promise<{ processed: number; errors: number; ms: number }> {
   const start = Date.now();
   const db = getServerSupabase();
   if (!db) throw new Error("Supabase not configured");
@@ -40,9 +40,13 @@ async function runBatch(force = false, limit = 100, city = ""): Promise<{ proces
 
   const cutoff = new Date(Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const isStale = (id: string): boolean => {
-    if (force) return true;
     const scoredAt = scoredAtMap.get(id);
     if (!scoredAt) return true;
+    // force + a fixed `since` (captured once at sweep start, passed every batch) rescores
+    // everything scored before the sweep began, then CONVERGES — each rescore stamps
+    // scored_at=now > since, so the hotel drops out next batch. Bare force (no since) keeps
+    // the old "always stale" behavior (fine for a single batch, loops forever in a sweep).
+    if (force) return since ? scoredAt < since : true;
     return scoredAt < cutoff;
   };
 
@@ -146,9 +150,10 @@ export async function POST(req: Request) {
   const limitParam = url.searchParams.get("limit");
   const limit = limitParam ? Math.max(1, Math.min(500, Number(limitParam))) : 100;
   const city = url.searchParams.get("city")?.trim() || "";
+  const since = url.searchParams.get("since")?.trim() || "";
 
   try {
-    const result = await runBatch(force, limit, city);
+    const result = await runBatch(force, limit, city, since);
     return NextResponse.json(result);
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
@@ -161,9 +166,10 @@ export async function GET(req: Request) {
   const limitParam = url.searchParams.get("limit");
   const limit = limitParam ? Math.max(1, Math.min(500, Number(limitParam))) : 100;
   const city = url.searchParams.get("city")?.trim() || "";
+  const since = url.searchParams.get("since")?.trim() || "";
 
   after(async () => {
-    try { await runBatch(force, limit, city); } catch (e) { try { console.error("recompute_scores_error", e); } catch {} }
+    try { await runBatch(force, limit, city, since); } catch (e) { try { console.error("recompute_scores_error", e); } catch {} }
   });
   return NextResponse.json({ scheduled: true }, { status: 202 });
 }

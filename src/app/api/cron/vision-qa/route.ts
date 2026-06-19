@@ -19,7 +19,7 @@ export const maxDuration = 300;
 export const revalidate = 0;
 
 const COST_PER_CALL = 0.0017; // ~Haiku vision: ~1.5k input + ~30 output tokens
-const CONC = 4;
+const CONC = 8;
 
 type ImgRow = { id: string; hotel_id: string | null; url: string };
 type HotelRow = { id: string; name: string; website: string | null; city: string | null; lat: number | null; lng: number | null };
@@ -80,7 +80,14 @@ export async function GET(req: Request) {
   for (let i = 0; i < images.length; i += CONC) {
     await Promise.all(images.slice(i, i + CONC).map(async (img) => {
       try {
-        const v = await classifyHotelImage(toAbs(img.url)); calls++;
+        const abs = toAbs(img.url);
+        // Anthropic only fetches HTTPS — skip http:// instantly (no API call, no spend).
+        if (!/^https:\/\//i.test(abs)) {
+          await db.from("hotel_images").update({ vision_ok: false, vision_label: "unfetchable", vision_checked_at: stamp }).eq("id", img.id);
+          rejected++;
+          return;
+        }
+        const v = await classifyHotelImage(abs); calls++;
         if (v.ok) {
           await db.from("hotel_images").update({ vision_ok: true, vision_label: v.label, vision_checked_at: stamp }).eq("id", img.id);
           kept++;
@@ -102,8 +109,16 @@ export async function GET(req: Request) {
         // No usable photo — keep the row for audit but mark it hidden from carousels.
         await db.from("hotel_images").update({ vision_ok: false, vision_label: v.label, vision_checked_at: stamp }).eq("id", img.id);
         rejected++;
-      } catch {
-        // Leave vision_checked_at null so a later run retries (transient API/network error).
+      } catch (err) {
+        // Anthropic can't fetch some images (http://, robots.txt-blocked, dead, non-image).
+        // Mark those checked+false so the sweep CONVERGES instead of re-picking them forever.
+        // (The SDK already retried 429/5xx internally, so a thrown error here is ~terminal.)
+        const status = (err as { status?: number })?.status;
+        if (status === 400 || status === 404 || status === 403) {
+          await db.from("hotel_images").update({ vision_ok: false, vision_label: "unfetchable", vision_checked_at: stamp }).eq("id", img.id);
+          rejected++;
+        }
+        // else: transient (timeout/5xx after retries) — leave null so a later run retries.
       }
     }));
   }

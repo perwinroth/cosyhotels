@@ -96,13 +96,13 @@ export async function claudeCosyScore(input: ClaudeCosyInput): Promise<ClaudeCos
   // Build a multimodal user message: the structured data plus any real photos (vision).
   const content: Anthropic.ContentBlockParam[] = [{ type: "text", text: buildPayload(input) }];
   for (const u of (input.imageUrls || []).slice(0, 3)) {
-    // Only http(s) raster URLs; webp/avif/png/jpg are fine for Claude vision.
-    if (/^https?:\/\/\S+\.(jpe?g|png|webp|gif)(\?|$)/i.test(u)) {
+    // Only HTTPS raster URLs (Anthropic rejects http://); webp/png/jpg/gif are fine for vision.
+    if (/^https:\/\/\S+\.(jpe?g|png|webp|gif)(\?|$)/i.test(u)) {
       content.push({ type: "image", source: { type: "url", url: u } });
     }
   }
 
-  const resp = await client.messages.create({
+  const create = (msgContent: Anthropic.ContentBlockParam[]) => client.messages.create({
     model: COSY_SCORING_MODEL,
     max_tokens: 1024,
     temperature: 0, // deterministic, consistent scores across runs
@@ -110,8 +110,22 @@ export async function claudeCosyScore(input: ClaudeCosyInput): Promise<ClaudeCos
     // Stable rubric cached so a scoring batch is ~cache-read priced per hotel.
     system: [{ type: "text", text: rubric(), cache_control: { type: "ephemeral" } }],
     output_config: { effort: "low", format: { type: "json_schema", schema: OUTPUT_SCHEMA } },
-    messages: [{ role: "user", content }],
+    messages: [{ role: "user", content: msgContent }],
   } as Anthropic.MessageCreateParamsNonStreaming);
+
+  let resp: Anthropic.Message;
+  try {
+    resp = await create(content);
+  } catch (e) {
+    // Anthropic can't fetch some images (http://, robots.txt-blocked, dead). Rather than
+    // fail the whole hotel, retry text-only so it still gets a (slightly less informed) score.
+    const status = (e as { status?: number })?.status;
+    if (status === 400 && content.length > 1) {
+      resp = await create(content.filter((b) => b.type === "text"));
+    } else {
+      throw e;
+    }
+  }
 
   if (resp.stop_reason === "refusal") throw new Error("cosy_scoring_refused");
 
