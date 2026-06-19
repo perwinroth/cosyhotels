@@ -63,7 +63,10 @@ const SCHEMA = {
 export async function classifyHotelImage(url: string): Promise<ImageVerdict> {
   const client = getClient();
   if (!client) throw new Error("ANTHROPIC_API_KEY not configured");
-  if (!/^https?:\/\/\S+\.(jpe?g|png|webp|gif)(\?|$)/i.test(url)) {
+  // Accept any absolute http(s) URL — many real photos are extensionless (Google Places
+  // proxy, CDN transforms). Claude fetches by URL and judges the bytes, not the filename.
+  // Callers must absolutize relative URLs (e.g. /api/places/photo) before calling.
+  if (!/^https?:\/\//i.test(url)) {
     return { ok: false, label: "unloadable" };
   }
 

@@ -34,6 +34,26 @@ export async function GET(req: Request) {
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   if (!process.env.ANTHROPIC_API_KEY) return NextResponse.json({ error: "ANTHROPIC_API_KEY not set" }, { status: 500 });
 
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
+  // Absolutize relative URLs (Places proxy) and decode &amp; so the query string fetches correctly.
+  const toAbs = (u: string) => { const d = u.replace(/&amp;/g, "&"); return d.startsWith("/") ? base + d : d; };
+
+  if (dry) {
+    // True TOTAL of remaining unchecked images (not just one batch) so we can price the run.
+    const { count } = await db
+      .from("hotel_images")
+      .select("*", { count: "exact", head: true })
+      .is("vision_checked_at", null)
+      .not("url", "like", "%placehold.co%");
+    const { data: sample } = await db
+      .from("hotel_images").select("url").is("vision_checked_at", null).not("url", "like", "%placehold.co%").limit(10);
+    return NextResponse.json({
+      dry: true, remainingUnchecked: count ?? 0,
+      estCostUsd: +(((count ?? 0)) * COST_PER_CALL).toFixed(2),
+      sample: (sample || []).map((r) => (r as { url: string }).url),
+    });
+  }
+
   // Unchecked, real (non-placeholder) images. Placeholders are intentional and already hidden.
   const { data: imgRows, error: e1 } = await db
     .from("hotel_images")
@@ -44,14 +64,6 @@ export async function GET(req: Request) {
     .limit(limit);
   if (e1) return NextResponse.json({ error: e1.message }, { status: 500 });
   const images = (imgRows || []) as ImgRow[];
-
-  if (dry) {
-    return NextResponse.json({
-      dry: true, wouldProcess: images.length,
-      estCostUsd: +(images.length * COST_PER_CALL).toFixed(2),
-      sample: images.slice(0, 10).map((r) => r.url),
-    });
-  }
   if (!images.length) return NextResponse.json({ processed: 0, done: true });
 
   // Hotel detail for the replacement re-resolve (website/coords/name).
@@ -68,7 +80,7 @@ export async function GET(req: Request) {
   for (let i = 0; i < images.length; i += CONC) {
     await Promise.all(images.slice(i, i + CONC).map(async (img) => {
       try {
-        const v = await classifyHotelImage(img.url); calls++;
+        const v = await classifyHotelImage(toAbs(img.url)); calls++;
         if (v.ok) {
           await db.from("hotel_images").update({ vision_ok: true, vision_label: v.label, vision_checked_at: stamp }).eq("id", img.id);
           kept++;
@@ -79,7 +91,7 @@ export async function GET(req: Request) {
         if (!noReplace && h) {
           const r = await resolveHotelImage({ name: h.name, website: h.website, lat: h.lat, lng: h.lng, city: h.city, exclude: [img.url] });
           if (r.source !== "placeholder" && r.url !== img.url) {
-            const rv = await classifyHotelImage(r.url); calls++;
+            const rv = await classifyHotelImage(toAbs(r.url)); calls++;
             if (rv.ok) {
               await db.from("hotel_images").update({ url: r.url, attributions: r.attribution ?? null, vision_ok: true, vision_label: rv.label, vision_checked_at: stamp }).eq("id", img.id);
               replaced++;
