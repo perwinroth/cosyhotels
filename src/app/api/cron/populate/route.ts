@@ -10,6 +10,7 @@ import { osmSearchHotels, type OSMHotel } from "@/lib/vendors/osm";
 import { osmCosyScore } from "@/lib/scoring/osmCosy";
 import { resolveHotelImage } from "@/lib/hotelImageFree";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
+import { fetchPlaceReviews, reviewsEnabled } from "@/lib/placeReviews";
 import { targetCities, type TargetCity } from "@/data/targetCities";
 
 export const runtime = "nodejs";
@@ -19,6 +20,9 @@ const BATCH = 40;                       // hotels scored per invocation
 const USD_PER_SCORE = 0.011;            // approx vision cost per hotel
 const CAP_USD = Number(process.env.POPULATE_BUDGET_USD || "200");
 const TIER4_HEURISTIC_MIN = 6.0;        // long tail: only score the genuinely promising
+const REVIEWS_CAP_USD = Number(process.env.REVIEWS_BUDGET_USD || "50");
+const USD_PER_REVIEW = 0.04;            // approx Places searchText+atmosphere per hotel
+const REVIEW_TIERS = new Set([1]);      // fetch guest-review comments for Tier-1 cities only
 
 function slugify(s: string): string {
   return s.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "hotel";
@@ -29,6 +33,11 @@ type DB = NonNullable<ReturnType<typeof getServerSupabase>>;
 async function spent(db: DB): Promise<number> {
   const { data } = await db.from("populate_budget").select("spent_usd").eq("id", 1).maybeSingle();
   return Number((data as { spent_usd: number } | null)?.spent_usd ?? 0);
+}
+
+async function reviewsSpent(db: DB): Promise<number> {
+  const { data } = await db.from("populate_budget").select("reviews_spent_usd").eq("id", 1).maybeSingle();
+  return Number((data as { reviews_spent_usd: number } | null)?.reviews_spent_usd ?? 0);
 }
 
 async function nextCity(db: DB): Promise<TargetCity | null> {
@@ -97,6 +106,11 @@ async function run() {
   }
   const toScore = top.filter((h) => idMap.get(h.id) && !scoredSet.has(idMap.get(h.id)!)).slice(0, BATCH);
 
+  // Guest-review comments: Tier-1 only, hard-capped spend (Places searchText, derive-don't-store).
+  const revBudget = await reviewsSpent(db);
+  const reviewsOn = REVIEW_TIERS.has(t.tier) && reviewsEnabled() && revBudget < REVIEWS_CAP_USD;
+  let reviewFetches = 0;
+
   let scoredNow = 0, errors = 0;
   if (scoringOn && budget + toScore.length * USD_PER_SCORE <= CAP_USD + 1) {
     const CONC = 4;
@@ -109,7 +123,14 @@ async function run() {
           if (img.source !== "placeholder") {
             await db.from("hotel_images").insert({ hotel_id: hid, url: img.url, attributions: img.attribution ?? null });
           }
-          const base = { name: h.name, city: h.city || t.city, country: h.country ?? undefined, website: h.website ?? undefined, stars: h.stars ?? undefined };
+          // Read guest-review comments (Tier-1, within cap) so Claude reads the cosy language.
+          let reviews: string[] | undefined;
+          if (reviewsOn && revBudget + reviewFetches * USD_PER_REVIEW < REVIEWS_CAP_USD) {
+            reviewFetches++;
+            reviews = await fetchPlaceReviews(h.name, h.city || t.city, h.lat, h.lng);
+            if (!reviews.length) reviews = undefined;
+          }
+          const base = { name: h.name, city: h.city || t.city, country: h.country ?? undefined, website: h.website ?? undefined, stars: h.stars ?? undefined, reviews };
           const hasImg = img.source !== "placeholder";
           let r;
           try {
@@ -129,8 +150,16 @@ async function run() {
         } catch { errors++; }
       }));
     }
-    if (scoredNow) {
-      await db.from("populate_budget").update({ spent_usd: budget + scoredNow * USD_PER_SCORE, updated_at: new Date().toISOString() }).eq("id", 1);
+    if (scoredNow || reviewFetches) {
+      const { error: budErr } = await db.from("populate_budget").update({
+        spent_usd: budget + scoredNow * USD_PER_SCORE,
+        reviews_spent_usd: revBudget + reviewFetches * USD_PER_REVIEW,
+        updated_at: new Date().toISOString(),
+      }).eq("id", 1);
+      // Resilient: if the reviews column doesn't exist yet, still record the score spend.
+      if (budErr) {
+        await db.from("populate_budget").update({ spent_usd: budget + scoredNow * USD_PER_SCORE, updated_at: new Date().toISOString() }).eq("id", 1);
+      }
     }
   }
 
