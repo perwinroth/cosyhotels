@@ -5,9 +5,21 @@ import { cityToSlug } from "@/lib/citySlug";
 
 type DB = NonNullable<ReturnType<typeof getServerSupabase>>;
 
+// One hotel in the carousel/reel: its REAL photo + cosy score. Blotato turns slides[] into
+// the published carousel (one card per hotel). `instagram` is enriched downstream by n8n
+// (search the hotel's official handle from name+city) so the post can @mention them → repost.
+export type Slide = {
+  name: string;
+  city: string;
+  score: number;
+  photo: string;
+  instagram: string | null;
+};
+
 export type CityPin = {
   city: string;
-  imageUrl: string;
+  imageUrl: string;     // legacy satori text card — cover/fallback only, NOT the carousel
+  slides: Slide[];      // the real-photo carousel content (top cosy hotels WITH a real photo)
   title: string;
   description: string;
   link: string;
@@ -31,28 +43,60 @@ export async function cityPin(db: DB, city: string, base: string): Promise<CityP
   const cityTag = city.toLowerCase().replace(/[^a-z0-9]/g, "");
   const link = `${base}/en/guides/${slug}?utm_source=pinterest&utm_medium=social&utm_campaign=city-${slug.replace(/-cosy-hotel$/, "")}`;
 
+  // Pull more candidates than we need (24) so we can keep the top 5 that actually have a real
+  // photo — a photo-led carousel is what earns saves/reposts; a text card gets scrolled past.
   const { data } = await db
     .from("cosy_scores")
-    .select("score, score_final, hotel:hotel_id!inner(name, city)")
+    .select("hotel_id, score, score_final, hotel:hotel_id!inner(name, city)")
     .gte("score", 5)
     .ilike("hotel.city", `%${city}%`)
     .order("score", { ascending: false })
-    .limit(8);
+    .limit(24);
   const seen = new Set<string>();
-  const items: string[] = [];
-  for (const r of (data || []) as unknown as Array<{ score: number | null; score_final: number | null; hotel: { name: string } | null }>) {
+  const candidates: Array<{ id: string; name: string; score: number }> = [];
+  for (const r of (data || []) as unknown as Array<{ hotel_id: string | null; score: number | null; score_final: number | null; hotel: { name: string } | null }>) {
     const nm = (r.hotel?.name || "").replace(/[|~]/g, " ").trim();
-    if (!nm || seen.has(nm)) continue;
+    if (!nm || !r.hotel_id || seen.has(nm)) continue;
     seen.add(nm);
     const sc = (typeof r.score_final === "number" ? r.score_final : Number(r.score)) || 0;
-    items.push(`${nm}~${sc.toFixed(1)}`);
-    if (items.length >= 5) break;
+    candidates.push({ id: String(r.hotel_id), name: nm, score: sc });
   }
+
+  // Real photos for those hotels (newest first; skip placeholders).
+  const photoById = new Map<string, string>();
+  const ids = candidates.map((c) => c.id);
+  if (ids.length) {
+    const { data: imgRows } = await db
+      .from("hotel_images")
+      .select("hotel_id,url,created_at")
+      .in("hotel_id", ids)
+      .order("created_at", { ascending: false });
+    for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null }>) {
+      const hid = row.hotel_id ? String(row.hotel_id) : "";
+      const url = row.url ? String(row.url) : "";
+      if (!hid || !url || url.includes("placehold.co")) continue;
+      if (!photoById.has(hid)) photoById.set(hid, url);
+    }
+  }
+
+  // Top 5 cosy hotels that HAVE a real photo → the carousel.
+  const slides: Slide[] = [];
+  for (const c of candidates) {
+    const photo = photoById.get(c.id);
+    if (!photo) continue;
+    slides.push({ name: c.name, city, score: c.score, photo, instagram: null });
+    if (slides.length >= 5) break;
+  }
+
+  // Legacy text-card lines: prefer the slide hotels, else fall back to top scored candidates.
+  const itemsSource = slides.length ? slides : candidates.slice(0, 5);
+  const items = itemsSource.map((s) => `${s.name}~${s.score.toFixed(1)}`);
   const itemsParam = items.length ? `&items=${encodeURIComponent(items.join("|"))}` : "";
 
   return {
     city,
     imageUrl: `${base}/api/social/pin?city=${encodeURIComponent(city)}${itemsParam}`,
+    slides,
     title: `Cosy Hotels in ${city}: AI-Rated Boutique Stays`,
     description: `The cosiest hotels in ${city}, ranked by AI for warmth, character and intimacy — not just stars. Tap for the full ranking with cosy scores and to check availability. #cosyhotels #${cityTag}hotels #boutiquehotels #${cityTag}travel #romanticgetaway`,
     link,

@@ -33,7 +33,10 @@ export default async function PostsPage() {
       cities.slice(i, i + CONCURRENCY).map(async (c) => {
         try {
           const pin = await cityPin(db, c.city, base);
-          if (pin.items.length > 0) pins.push(pin);
+          // A photo carousel needs ≥1 real hotel photo. Distinguish "no scores" from
+          // "scored but no real photos" so we know what each city is missing.
+          if (pin.slides.length > 0) pins.push(pin);
+          else if (pin.items.length > 0) failures.push({ city: c.city, reason: "scored hotels have no real photos" });
           else failures.push({ city: c.city, reason: "no hotels scored ≥ 5" });
         } catch (e) {
           failures.push({ city: c.city, reason: e instanceof Error ? e.message : "pin build error" });
@@ -49,9 +52,10 @@ export default async function PostsPage() {
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Social posts → Blotato</h1>
         <p style={{ color: "#9DA89F", marginTop: 8, fontSize: 15 }}>
-          {pins.length} ready pin{pins.length === 1 ? "" : "s"} from {cities.length} populated cit{cities.length === 1 ? "y" : "ies"}.
-          This is the exact payload <code style={{ color: "#E08A4B" }}>/api/social/next</code> serves to the publish flow — cycle with{" "}
-          <code style={{ color: "#E08A4B" }}>?after=&lt;city&gt;</code>. Only cities with AI-scored hotels (score ≥ 5) appear.
+          {pins.length} ready carousel{pins.length === 1 ? "" : "s"} from {cities.length} populated cit{cities.length === 1 ? "y" : "ies"}.
+          Each is the exact <code style={{ color: "#E08A4B" }}>/api/social/next</code> payload — real photos of the top-5 cosy hotels
+          (score ≥ 5), one slide each. <code style={{ color: "#E08A4B" }}>@?</code> = hotel Instagram handle for n8n to enrich so the
+          post can @mention them. Cycle with <code style={{ color: "#E08A4B" }}>?after=&lt;city&gt;</code>.
         </p>
 
         {failures.length > 0 && (
@@ -76,16 +80,27 @@ export default async function PostsPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24, marginTop: 28 }}>
           {pins.map((pin) => (
             <div key={pin.city} style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-              {/* The actual pin image (1000×1500) shown at card width. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={pin.imageUrl} alt={`Pin for ${pin.city}`} loading="lazy" decoding="async" style={{ width: "100%", display: "block", aspectRatio: "2 / 3", objectFit: "cover", background: "#0F1512" }} />
+              {/* THE CAROUSEL — one real hotel photo per slide, name + score overlaid. This is what publishes. */}
+              <div style={{ display: "flex", overflowX: "auto", gap: 2, scrollSnapType: "x mandatory" }}>
+                {pin.slides.map((s, i) => (
+                  <div key={`${s.name}-${i}`} style={{ position: "relative", flex: "0 0 70%", scrollSnapAlign: "start", aspectRatio: "4 / 5", background: "#0F1512" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={s.photo} alt={s.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }} />
+                    <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(15,21,18,.85)", color: "#F3EEE6", fontSize: 12, fontWeight: 700, borderRadius: 6, padding: "2px 7px" }}>#{i + 1}</div>
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 10px 8px", background: "linear-gradient(transparent,rgba(15,21,18,.92))" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{s.name}</div>
+                      <div style={{ fontSize: 12, color: "#D8B25A", fontWeight: 700 }}>{s.score.toFixed(1)}/10 {s.instagram ? `· ${s.instagram}` : "· @? (n8n)"}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{pin.title}</div>
-                <div style={{ fontSize: 13, color: "#C7CFC8", lineHeight: 1.5 }}>{pin.description}</div>
-
                 <div style={{ fontSize: 12, color: "#9DA89F" }}>
-                  <strong style={{ color: "#E08A4B" }}>Board:</strong> {pin.board}
+                  {pin.slides.length} real-photo slide{pin.slides.length === 1 ? "" : "s"} · board: {pin.board}
                 </div>
+                <div style={{ fontSize: 13, color: "#C7CFC8", lineHeight: 1.5 }}>{pin.description}</div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {pin.tags.map((t) => (
@@ -95,27 +110,8 @@ export default async function PostsPage() {
                   ))}
                 </div>
 
-                <div style={{ fontSize: 12, color: "#9DA89F" }}>
-                  <strong style={{ color: "#E08A4B" }}>Hotels ({pin.items.length}):</strong>
-                  <ol style={{ margin: "6px 0 0", paddingLeft: 18, lineHeight: 1.6 }}>
-                    {pin.items.map((it) => {
-                      const i = it.lastIndexOf("~");
-                      const name = i >= 0 ? it.slice(0, i) : it;
-                      const score = i >= 0 ? it.slice(i + 1) : "";
-                      return (
-                        <li key={it}>
-                          {name} {score && <span style={{ color: "#D8B25A" }}>· {score}/10</span>}
-                        </li>
-                      );
-                    })}
-                  </ol>
-                </div>
-
                 <a href={pin.link} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#7FB4FF", wordBreak: "break-all" }}>
                   {pin.link}
-                </a>
-                <a href={pin.imageUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#9DA89F", wordBreak: "break-all" }}>
-                  image: {pin.imageUrl}
                 </a>
               </div>
             </div>
