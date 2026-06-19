@@ -4,7 +4,7 @@
 import { ImageResponse } from "next/og";
 import { getServerSupabase } from "@/lib/supabase/server";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 export async function GET(req: Request) {
   const city = new URL(req.url).searchParams.get("city")?.trim() || "Europe";
