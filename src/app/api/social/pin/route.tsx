@@ -19,17 +19,18 @@ export async function GET(req: Request) {
   const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
   if (SUPA && KEY) {
     try {
-      const url = `${SUPA}/rest/v1/cosy_scores?select=score,score_final,hotel:hotel_id(name,city)&score=gte.5&order=score_final.desc.nullslast,score.desc&limit=400`;
+      // Filter by city server-side (!inner) returning a few rows — fast + reliable in edge.
+      // (Pulling 400 rows and filtering timed out and cached blank images.)
+      const q = encodeURIComponent(`*${city}*`);
+      const url = `${SUPA}/rest/v1/cosy_scores?select=score,score_final,hotel:hotel_id!inner(name,city)&score=gte.5&hotel.city=ilike.${q}&order=score.desc&limit=12`;
       const res = await fetch(url, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
       const data = res.ok ? await res.json() : [];
       const seen = new Set<string>();
-      for (const r of (data || []) as Array<{ score: number | null; score_final: number | null; hotel: { name: string; city: string | null } | null }>) {
-        const h = r.hotel;
-        if (!h?.name || !h.city) continue;
-        if (!h.city.toLowerCase().includes(city.toLowerCase())) continue;
-        if (seen.has(h.name)) continue;
-        seen.add(h.name);
-        top.push({ name: safe(h.name) || h.name.replace(/[^\x20-\x7E]/g, "").trim() || "Hotel", score: (typeof r.score_final === "number" ? r.score_final : Number(r.score)) || 0 });
+      for (const r of (data || []) as Array<{ score: number | null; score_final: number | null; hotel: { name: string } | null }>) {
+        const nm = safe(r.hotel?.name || "");
+        if (!nm || seen.has(nm)) continue;
+        seen.add(nm);
+        top.push({ name: nm, score: (typeof r.score_final === "number" ? r.score_final : Number(r.score)) || 0 });
         if (top.length >= 5) break;
       }
     } catch { /* render with empty list */ }
