@@ -108,7 +108,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
           Got <span style={{ fontStyle: "italic", fontWeight: 500, color: "var(--ember)" }}>cosy?</span>
         </h1>
         <p className="mt-4 mx-auto text-lg" style={{ color: "var(--muted)", maxWidth: 560, lineHeight: 1.5 }}>
-          Our AI&apos;s got you — hotels ranked by cosiness, not stars.
+          Sure we do — our AI ranks hotels on cosiness, not stars.
         </p>
         <div className="mt-7 mx-auto" style={{ maxWidth: 580 }}>
           <Suspense fallback={<div className="h-12 rounded-2xl border" style={{ borderColor: "var(--line)", background: "var(--card)" }} />}>
