@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   const city = new URL(req.url).searchParams.get("city")?.trim() || "Europe";
   const db = getServerSupabase();
-  let top: Array<{ name: string; score: number }> = [];
+  const top: Array<{ name: string; score: number }> = [];
   if (db) {
     const { data } = await db
       .from("cosy_scores")
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
       .order("score", { ascending: false })
       .limit(400);
     const seen = new Set<string>();
-    for (const r of (data || []) as Array<{ score: number | null; score_final: number | null; hotel: { name: string; city: string | null } | null }>) {
+    for (const r of (data || []) as unknown as Array<{ score: number | null; score_final: number | null; hotel: { name: string; city: string | null } | null }>) {
       const h = r.hotel;
       if (!h?.name || !h.city) continue;
       if (!h.city.toLowerCase().includes(city.toLowerCase())) continue;
