@@ -35,8 +35,9 @@ export async function GET(req: Request) {
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#1d2a22,#0F1512)", color: "#F3EEE6", fontFamily: "serif", padding: 70 }}>
         <div style={{ fontSize: 30, letterSpacing: 5, textTransform: "uppercase", color: "#E08A4B", fontFamily: "sans-serif" }}>◆ AI-rated for cosiness</div>
-        <div style={{ fontSize: 88, fontWeight: 700, letterSpacing: -2, marginTop: 18, lineHeight: 1.04 }}>
-          The cosiest hotels in <span style={{ color: "#E08A4B", fontStyle: "italic" }}>{city}</span>
+        <div style={{ display: "flex", flexDirection: "column", fontSize: 84, fontWeight: 700, letterSpacing: -2, marginTop: 18, lineHeight: 1.05 }}>
+          <span>The cosiest hotels in</span>
+          <span style={{ color: "#E08A4B", fontStyle: "italic" }}>{city}</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 22, marginTop: 60, flex: 1 }}>
           {top.map((h, i) => (
