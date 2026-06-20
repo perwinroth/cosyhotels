@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { cityFromSlug } from "@/lib/citySlug";
+import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
+import { populatedCities } from "@/lib/social";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
@@ -333,6 +334,11 @@ export default async function GuidePage({ params }: Props) {
     ? `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy${topPick ? ` — led by ${topPick.name} at ${topPick._cosy.toFixed(1)}/10` : ''}. Here are the cosiest, ranked best first.`
     : `We’re still scoring cosy hotels in ${cityName}.`;
   const faqs = cityFaqs(cityName, { count: cosyCount, topName: topPick?.name, topScore: topPick?._cosy });
+  // Internal linking: other cosy city guides (crawl depth + link equity + keeps users on site).
+  const otherCities = (await populatedCities(db))
+    .filter((c) => c.city.toLowerCase() !== cityName.toLowerCase())
+    .sort((a, b) => b.hotels_scored - a.hotels_scored)
+    .slice(0, 18);
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -394,6 +400,18 @@ export default async function GuidePage({ params }: Props) {
           ))}
         </dl>
       </section>
+      {otherCities.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold">More cosy city guides</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {otherCities.map((c) => (
+              <a key={c.city} href={`/${params.locale}/guides/${cityToSlug(c.city)}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: 'var(--line)', color: 'var(--foreground)' }}>
+                Cosy hotels in {c.city}
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
