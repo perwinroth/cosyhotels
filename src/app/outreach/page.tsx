@@ -3,7 +3,7 @@
 // #1 lever for BOTH backlinks (SEO) and reposts (audience). Internal/noindexed.
 import type { Metadata } from "next";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { hotelPinImageUrl, hotelPinDescription, type Slide } from "@/lib/social";
+import { hotelPinImageUrl, type Slide } from "@/lib/social";
 import { displayCity, isLatin } from "@/lib/placeText";
 import { cityToSlug } from "@/lib/citySlug";
 
