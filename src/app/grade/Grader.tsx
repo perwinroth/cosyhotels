@@ -46,11 +46,11 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
 
   // Optimistic: advance the UI immediately, save in the background. Never block grading on
   // the network — the label is re-gradable and a hung request must not freeze the queue.
-  const submit = useCallback((verdict: Verdict, humanScore: number | null) => {
+  const submit = useCallback((verdict: Verdict, humanScore: number | null, linkOverride?: boolean) => {
     if (!cur) return;
     const payload = {
       hotelId: cur.hotelId, cosy_verdict: verdict, human_score: humanScore,
-      reasons: [...reasons], link_ok: linkOk, ai_score: cur.score, ai_confidence: cur.confidence,
+      reasons: [...reasons], link_ok: linkOverride ?? linkOk, ai_score: cur.score, ai_confidence: cur.confidence,
     };
     fetch("/api/grade", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
       .then((r) => { if (!r.ok) setFailed((f) => f + 1); })
@@ -65,6 +65,9 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
     if (v === "too_high" || v === "too_low") setPending(v); // reveal score picker
     else submit(v, null);
   }, [submit]);
+
+  // Wrong link = mislinked listing, nothing cosy to rate → log it and skip to the next.
+  const markLinkWrong = useCallback(() => submit("unsure", null, false), [submit]);
 
   const toggleReason = useCallback((k: string) => {
     setReasons((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; });
@@ -88,7 +91,7 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
       else if (e.key === "2") onVerdict("too_high");
       else if (e.key === "3") onVerdict("too_low");
       else if (e.key === "4" || k === "u") onVerdict("unsure");
-      else if (k === "k") setLinkOk(false);
+      else if (k === "k") markLinkWrong();
       else if (k === "j") setLinkOk(true);
       else if (k === "z") undo();
     };
@@ -111,7 +114,7 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
       </div>
       <Bar done={liveTotal} target={150} />
       <p style={{ fontSize: 12, color: C.muted, margin: "6px 0 14px" }}>
-        {ungradedCount} ungraded (borderline & flagged first). <b>1</b> right · <b>2</b> too high · <b>3</b> too low · <b>4</b> unsure · <b>j/k</b> link ok/wrong · <b>z</b> undo. On too high/low, tap or type the score you&apos;d give (<b>!</b>=10, Enter=skip).
+        {ungradedCount} ungraded (borderline & flagged first). <b>1</b> right · <b>2</b> too high · <b>3</b> too low · <b>4</b> unsure · <b>j</b> link ok · <b>k</b> link wrong → skip · <b>z</b> undo. On too high/low, tap or type the score you&apos;d give (<b>!</b>=10, Enter=skip).
       </p>
 
       {!cur ? (
@@ -162,7 +165,7 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
             <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "10px 0", flexWrap: "wrap" }}>
               <a href={cur.link} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: C.blue, textDecoration: "none", border: `1px solid ${C.line}`, borderRadius: 8, padding: "7px 12px" }}>Check link ↗</a>
               <button onClick={() => setLinkOk(true)} style={pill(linkOk === true, C.good)}>link right (j)</button>
-              <button onClick={() => setLinkOk(false)} style={pill(linkOk === false, C.bad)}>link wrong (k)</button>
+              <button onClick={markLinkWrong} style={pill(linkOk === false, C.bad)}>link wrong → skip (k)</button>
             </div>
 
             {/* Verdict, or the corrected-score picker when too high/low is pending */}
