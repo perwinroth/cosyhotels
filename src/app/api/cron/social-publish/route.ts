@@ -11,7 +11,7 @@
 //      BLOTATO_INSTAGRAM_ACCOUNT_ID (optional — when set, also posts to Instagram).
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { cityPin, hotelPinImageUrl, hotelPinDescription } from "@/lib/social";
+import { cityPin, hotelPinImageUrl, hotelPinDescription, populatedCities } from "@/lib/social";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -32,13 +32,24 @@ async function blotato(path: string, body: unknown, key: string) {
 
 export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
-  const city = sp.get("city")?.trim();
   const schedule = sp.get("schedule")?.trim() || "";
   const dry = sp.get("dry") === "1";
-  if (!city) return NextResponse.json({ error: "?city= is required" }, { status: 400 });
+  const auto = sp.get("auto") === "1";          // pick the city automatically (daily rotation)
+  const only = sp.get("only")?.trim() || "";    // "instagram" | "pinterest" | "" (both)
 
   const key = process.env.BLOTATO_API_KEY;
   if (!key) return NextResponse.json({ error: "BLOTATO_API_KEY not set" }, { status: 500 });
+
+  // Protect real posting: when CRON_SECRET is set, require it (Vercel cron sends it as a
+  // Bearer token; manual calls can pass ?key=). Dry runs are open.
+  const secret = process.env.CRON_SECRET;
+  if (!dry && secret) {
+    const auth = req.headers.get("authorization") || "";
+    if (auth !== `Bearer ${secret}` && sp.get("key") !== secret) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+  }
+
   const pinAccount = process.env.BLOTATO_PINTEREST_ACCOUNT_ID || "7575";
   const pinBoard = process.env.BLOTATO_PINTEREST_BOARD_ID || "";
   const igAccount = process.env.BLOTATO_INSTAGRAM_ACCOUNT_ID || "";
@@ -46,6 +57,16 @@ export async function GET(req: Request) {
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
+
+  // City: explicit ?city=, or auto-rotate one populated city per day.
+  let city = sp.get("city")?.trim() || "";
+  if (!city && auto) {
+    const cities = await populatedCities(db);
+    if (!cities.length) return NextResponse.json({ error: "no populated cities" }, { status: 404 });
+    const dayIdx = Math.floor(Date.now() / 86_400_000);
+    city = cities[dayIdx % cities.length].city;
+  }
+  if (!city) return NextResponse.json({ error: "?city= or ?auto=1 required" }, { status: 400 });
 
   const pin = await cityPin(db, city, base);
   if (!pin.slides.length) return NextResponse.json({ error: `no publishable slides for ${city}` }, { status: 422 });
@@ -78,7 +99,7 @@ export async function GET(req: Request) {
   };
 
   // 1) Pinterest — ONE pin per hotel (single image), best Pinterest format + max discovery.
-  if (pinBoard) {
+  if (pinBoard && only !== "instagram") {
     const pinResults: unknown[] = [];
     for (const s of pin.slides) {
       const hosted = await upload(hotelPinImageUrl(base, s));
@@ -99,7 +120,7 @@ export async function GET(req: Request) {
   }
 
   // 2) Instagram — ONE carousel of all the badge images (only if connected).
-  if (igAccount) {
+  if (igAccount && only !== "pinterest") {
     const hosted = (await Promise.all(badgeUrls.map(upload))).filter((u): u is string => !!u);
     results.instagram = hosted.length
       ? await blotato("/v2/posts", {
