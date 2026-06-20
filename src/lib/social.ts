@@ -62,15 +62,15 @@ export async function cityPin(db: DB, city: string, base: string): Promise<CityP
   // photo — a photo-led carousel is what earns saves/reposts; a text card gets scrolled past.
   const { data } = await db
     .from("cosy_scores")
-    .select("hotel_id, score, score_final, hotel:hotel_id!inner(name, city, instagram)")
+    .select("hotel_id, score, score_final, hotel:hotel_id!inner(name, name_en, city, instagram)")
     .gte("score", 5)
     .ilike("hotel.city", `%${city}%`)
     .order("score", { ascending: false })
     .limit(24);
   const seen = new Set<string>();
   const candidates: Array<{ id: string; name: string; score: number; instagram: string | null }> = [];
-  for (const r of (data || []) as unknown as Array<{ hotel_id: string | null; score: number | null; score_final: number | null; hotel: { name: string; instagram: string | null } | null }>) {
-    const nm = (r.hotel?.name || "").replace(/[|~]/g, " ").trim();
+  for (const r of (data || []) as unknown as Array<{ hotel_id: string | null; score: number | null; score_final: number | null; hotel: { name: string; name_en: string | null; instagram: string | null } | null }>) {
+    const nm = ((r.hotel?.name_en || r.hotel?.name) || "").replace(/[|~]/g, " ").trim();
     if (!nm || !r.hotel_id || seen.has(nm)) continue;
     seen.add(nm);
     const sc = (typeof r.score_final === "number" ? r.score_final : Number(r.score)) || 0;

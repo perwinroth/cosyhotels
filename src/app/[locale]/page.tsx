@@ -30,7 +30,7 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
   };
 }
 
-type TopHotel = { slug: string; name: string; city: string; country: string; cosy: number; description: string; image?: string; lat?: number | null; lng?: number | null };
+type TopHotel = { slug: string; name: string; name_en?: string | null; city: string; country: string; cosy: number; description: string; image?: string; lat?: number | null; lng?: number | null };
 type CityChip = { city: string; slug: string; count: number };
 
 // Live hotel count per curated city guide (matches the guide page's city/address matching).
@@ -48,10 +48,10 @@ async function cityChips(db: NonNullable<ReturnType<typeof getServerSupabase>>):
 }
 
 async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>): Promise<TopHotel[]> {
-  type Row = { score: number | null; score_final: number | null; description: string | null; hotel: { id: string; slug: string; name: string; city: string | null; country: string | null; lat: number | null; lng: number | null } | null };
+  type Row = { score: number | null; score_final: number | null; description: string | null; hotel: { id: string; slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat: number | null; lng: number | null } | null };
   const { data } = await db
     .from("cosy_scores")
-    .select("score, score_final, description, hotel:hotel_id (id,slug,name,city,country,lat,lng)")
+    .select("score, score_final, description, hotel:hotel_id (id,slug,name,name_en,city,country,lat,lng)")
     .order("score_final", { ascending: false, nullsFirst: false })
     .order("score", { ascending: false })
     .limit(20);
@@ -65,6 +65,7 @@ async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>):
     picks.push({
       slug: h.slug,
       name: h.name,
+      name_en: h.name_en,
       city: h.city || "",
       country: h.country || "",
       cosy: typeof r.score_final === "number" ? r.score_final : Number(r.score) || 0,
@@ -97,7 +98,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
   let top: TopHotel[] = [];
   if (db) {
     [chips, top] = await Promise.all([cityChips(db), topHotels(db)]);
-    top = top.filter((h) => isLatin(h.name)); // English site: skip non-Latin-named hotels
+    top = top.filter((h) => isLatin(h.name_en || h.name)); // English site: skip non-Latin-named hotels
   }
   // Fallback chips from the curated list if the DB is unavailable.
   const heroChips = (chips.length ? chips : cityGuides.map((g) => ({ city: g.city, slug: g.slug, count: 0 }))).slice(0, 6);
@@ -162,7 +163,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                         {h.cosy.toFixed(1)}<span style={{ fontFamily: "Inter", fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", opacity: 0.8 }}>COSY</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-display text-xl font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="no-underline hover:underline">{h.name}</a></h3>
+                        <h3 className="font-display text-xl font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="no-underline hover:underline">{h.name_en || h.name}</a></h3>
                         <div className="text-sm" style={{ color: "var(--muted)" }}>{placeLine(h.city, h.country)}</div>
                         {h.description && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>}
                         {/* Button below the text so it never overlaps a long hotel name. */}
