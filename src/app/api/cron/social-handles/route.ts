@@ -26,15 +26,17 @@ export async function GET(req: Request) {
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
 
-  // Featured-eligible (score >= 5), with a website, not yet checked.
+  // Drive by cosy_scores in SCORE ORDER (same selection as the carousel) so the hotels we
+  // actually feature get handles first — not arbitrary score>=5 hotels. Unchecked + has website.
   const base = () => {
     let q = db
-      .from("hotels")
-      .select("id,name,website,cosy_scores!inner(score)", dry ? { count: "exact", head: true } : {})
-      .gte("cosy_scores.score", 5)
-      .is("social_checked_at", null)
-      .not("website", "is", null);
-    if (city) q = q.or(`city.ilike.%${city}%,address.ilike.%${city}%`);
+      .from("cosy_scores")
+      .select("hotel:hotel_id!inner(id,name,website,city,social_checked_at)", dry ? { count: "exact", head: true } : {})
+      .gte("score", 5)
+      .is("hotel.social_checked_at", null)
+      .not("hotel.website", "is", null)
+      .order("score", { ascending: false });
+    if (city) q = q.ilike("hotel.city", `%${city}%`);
     return q;
   };
 
@@ -45,7 +47,14 @@ export async function GET(req: Request) {
 
   const { data, error } = await base().limit(limit);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  const rows = (data || []) as unknown as Row[];
+  const seen = new Set<string>();
+  const rows: Row[] = [];
+  for (const r of (data || []) as unknown as Array<{ hotel: Row | null }>) {
+    const h = r.hotel;
+    if (!h?.id || seen.has(h.id)) continue;
+    seen.add(h.id);
+    rows.push(h);
+  }
   if (!rows.length) return NextResponse.json({ processed: 0, done: true });
 
   const stamp = new Date().toISOString();
