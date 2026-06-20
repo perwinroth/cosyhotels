@@ -57,7 +57,7 @@ export async function GET(req: Request) {
       if (s.instagram || s.facebook || s.tiktok) withAny++;
       await db
         .from("hotels")
-        .update({ instagram: s.instagram, facebook: s.facebook, tiktok: s.tiktok, social_checked_at: stamp })
+        .update({ instagram: s.instagram, facebook: s.facebook, tiktok: s.tiktok, threads: s.threads, social_checked_at: stamp })
         .eq("id", h.id);
     }));
   }

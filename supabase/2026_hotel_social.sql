@@ -7,4 +7,5 @@ alter table public.hotels
   add column if not exists instagram text,
   add column if not exists facebook text,
   add column if not exists tiktok text,
+  add column if not exists threads text,   -- usually == instagram handle (Meta shares usernames)
   add column if not exists social_checked_at timestamptz;
