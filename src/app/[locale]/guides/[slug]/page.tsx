@@ -140,6 +140,13 @@ export default async function GuidePage({ params }: Props) {
   const base = cityName.trim();
   const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
   const vset = new Set<string>([base]);
+  // The slug→city fallback prettifies "aix-en-provence" to "Aix En Provence" (spaces), but
+  // hotels store "Aix-en-Provence" (hyphens), so `city.ilike.%Aix En Provence%` matches nothing
+  // and the page falsely shows "still scoring". Add hyphen/space variants (ilike is
+  // case-insensitive) so the hyphenated stored value matches. Fixes every multi-word city not
+  // in the cities data file.
+  vset.add(base.replace(/\s+/g, '-'));
+  vset.add(base.replace(/-/g, ' '));
   const localSynonyms: Record<string, string[]> = {
     'New York': ['New York City','NYC','Manhattan'],
     'New York City': ['New York','NYC','Manhattan'],
