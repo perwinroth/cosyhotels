@@ -46,6 +46,8 @@ export async function GET(req: Request) {
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
+  // Absolutize relative URLs (/api/places/photo) and decode &amp; — Blotato fetches by URL.
+  const toAbs = (u: string) => { const d = u.replace(/&amp;/g, "&"); return d.startsWith("/") ? base + d : d; };
 
   const pin = await cityPin(db, city, base);
   if (!pin.slides.length) return NextResponse.json({ error: `no publishable slides for ${city}` }, { status: 422 });
@@ -59,7 +61,7 @@ export async function GET(req: Request) {
       dry: true, city, slides: pin.slides.length,
       pinterest: { account: pinAccount, board: pinBoard || "(BLOTATO_PINTEREST_BOARD_ID unset)", title: pin.title, link: pin.link },
       instagram: igAccount ? { account: igAccount, caption: igCaption } : "(not connected — set BLOTATO_INSTAGRAM_ACCOUNT_ID)",
-      photos: pin.slides.map((s) => s.photo),
+      photos: pin.slides.map((s) => toAbs(s.photo)),
     });
   }
 
@@ -67,7 +69,7 @@ export async function GET(req: Request) {
   const mediaUrls: string[] = [];
   for (const s of pin.slides) {
     try {
-      const up = await blotato("/v2/media", { url: s.photo }, key);
+      const up = await blotato("/v2/media", { url: toAbs(s.photo) }, key);
       if (typeof up.url === "string") mediaUrls.push(up.url);
     } catch { /* skip an image Blotato can't fetch */ }
   }
