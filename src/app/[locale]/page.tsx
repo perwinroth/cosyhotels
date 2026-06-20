@@ -7,6 +7,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { cityGuides } from "@/data/cityGuides";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { SearchBar } from "@/components/HomeSections";
+import { placeLine, isLatin } from "@/lib/placeText";
 
 // Warm cosy-score badge colour (gold = top → sage → olive → muted clay).
 function cosyColor(s: number): string {
@@ -96,6 +97,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
   let top: TopHotel[] = [];
   if (db) {
     [chips, top] = await Promise.all([cityChips(db), topHotels(db)]);
+    top = top.filter((h) => isLatin(h.name)); // English site: skip non-Latin-named hotels
   }
   // Fallback chips from the curated list if the DB is unavailable.
   const heroChips = (chips.length ? chips : cityGuides.map((g) => ({ city: g.city, slug: g.slug, count: 0 }))).slice(0, 6);
@@ -154,17 +156,18 @@ export default async function Home({ params }: { params: { locale: string } }) {
                 const cta = stay22AllezUrl({ name: h.name, city: h.city, country: h.country, lat: h.lat ?? null, lng: h.lng ?? null, campaign: `home-${locale}` });
                 return (
                   <li key={h.slug} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
-                    <div className="flex items-center gap-5">
-                      <span className="text-sm tabular-nums" style={{ color: "var(--muted)", width: 16 }}>{i + 1}</span>
+                    <div className="flex items-start gap-5">
+                      <span className="text-sm tabular-nums mt-1" style={{ color: "var(--muted)", width: 16 }}>{i + 1}</span>
                       <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 64, height: 64, background: cosyColor(h.cosy), color: "#16201C", fontSize: 23 }}>
                         {h.cosy.toFixed(1)}<span style={{ fontFamily: "Inter", fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", opacity: 0.8 }}>COSY</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-display text-xl font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="no-underline hover:underline">{h.name}</a></h3>
-                        <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>
+                        <div className="text-sm" style={{ color: "var(--muted)" }}>{placeLine(h.city, h.country)}</div>
                         {h.description && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>}
+                        {/* Button below the text so it never overlaps a long hotel name. */}
+                        <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex mt-3 rounded-xl px-5 py-2.5 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
                       </div>
-                      <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="flex-none rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
                     </div>
                   </li>
                 );

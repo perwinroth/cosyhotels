@@ -11,6 +11,7 @@ import { notFound } from "next/navigation";
 import { translate } from "@/lib/i18n/translate";
 import { locales } from "@/i18n/locales";
 import { bboxFor } from "@/data/cityCoords";
+import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 
 type Props = { params: { slug: string; locale: string } };
 
@@ -46,10 +47,6 @@ function cityFaqs(city: string, opts?: { count?: number; topName?: string; topSc
 }
 
 // Strip leading postcode noise from polluted OSM city values ("211 21 Malmö" -> "Malmö").
-function cleanCity(city: string): string {
-  return city.replace(/^[\d\s.,-]+/, '').trim();
-}
-
 // Warm cosy-score badge colour (sage = very cosy → muted clay = mild).
 function cosyColor(score: number): string {
   if (score >= 7.8) return '#5c6b56';
@@ -257,6 +254,7 @@ export default async function GuidePage({ params }: Props) {
   const picks: typeof sorted = [];
   for (const x of sorted) {
     if (x.s < COSY_FLOOR) continue;
+    if (!isLatin(String(x.h.name))) continue; // English site: skip non-Latin-named hotels (no romanized name yet)
     const key = String(x.h.slug);
     if (seen.has(key)) continue;
     const bc = perBrand[x.brand] || 0;
@@ -290,9 +288,11 @@ export default async function GuidePage({ params }: Props) {
     const signals = (signalsMap.get(String(h.id)) || []).slice(0, 3);
     // Real AI description only — never generic templated praise (which lied on 0.0 hotels).
     const snippet = descMap.get(String(h.id)) || '';
-    const cleanedCity = cleanCity(String(h.city || '')) || cityName;
-    const cta = stay22AllezUrl({ name: String(h.name), city: cleanedCity, country: String(h.country || ''), lat: h.lat ?? null, lng: h.lng ?? null, campaign: `guide-${params.locale}` });
-    return { slug: String(h.slug), name: String(h.name), city: cleanedCity, country: String(h.country || ''), _cosy: s, _img: img, _signals: signals, snippet, cta };
+    // English display: non-Latin/postal cities fall back to the guide's city; "日本" → "Japan".
+    const cleanedCity = displayCity(String(h.city || ''), cityName);
+    const cleanedCountry = displayCountry(String(h.country || ''));
+    const cta = stay22AllezUrl({ name: String(h.name), city: cleanedCity, country: cleanedCountry, lat: h.lat ?? null, lng: h.lng ?? null, campaign: `guide-${params.locale}` });
+    return { slug: String(h.slug), name: String(h.name), city: cleanedCity, country: cleanedCountry, _cosy: s, _img: img, _signals: signals, snippet, cta };
   })
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
