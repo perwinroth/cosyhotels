@@ -23,3 +23,8 @@ create table if not exists public.hotel_grades (
 );
 create index if not exists hotel_grades_verdict_idx on public.hotel_grades(cosy_verdict);
 create index if not exists hotel_grades_linkok_idx on public.hotel_grades(link_ok);
+
+-- Owner-only data: enable RLS with NO policies so the public/anon API key is denied.
+-- The app reads/writes via the service-role key (getServerSupabase), which bypasses RLS,
+-- so /grade and /api/grade keep working. This clears the Supabase "RLS disabled" advisory.
+alter table public.hotel_grades enable row level security;
