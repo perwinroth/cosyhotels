@@ -4,6 +4,7 @@ import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { populatedCities } from "@/lib/social";
+import { FACETS, matchesFacet } from "@/lib/facets";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
@@ -334,6 +335,9 @@ export default async function GuidePage({ params }: Props) {
     ? `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy${topPick ? ` — led by ${topPick.name} at ${topPick._cosy.toFixed(1)}/10` : ''}. Here are the cosiest, ranked best first.`
     : `We’re still scoring cosy hotels in ${cityName}.`;
   const faqs = cityFaqs(cityName, { count: cosyCount, topName: topPick?.name, topScore: topPick?._cosy });
+  // Long-tail facet links — only facets actually backed by ≥2 of this city's hotels.
+  const citySlugBase = cityToSlug(cityName).replace(/-cosy-hotel$/, '');
+  const availableFacets = FACETS.filter((f) => chosen.filter((h) => matchesFacet(f, h._signals, h.snippet)).length >= 2);
   // Internal linking: other cosy city guides (crawl depth + link equity + keeps users on site).
   const otherCities = (await populatedCities(db))
     .filter((c) => c.city.toLowerCase() !== cityName.toLowerCase())
@@ -400,6 +404,18 @@ export default async function GuidePage({ params }: Props) {
           ))}
         </dl>
       </section>
+      {availableFacets.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold">Browse {cityName} by what makes a stay cosy</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {availableFacets.map((f) => (
+              <a key={f.slug} href={`/${params.locale}/cosy-hotels/${f.slug}/${citySlugBase}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: 'var(--line)', color: 'var(--foreground)' }}>
+                Cosy hotels {f.label} in {cityName}
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
       {otherCities.length > 0 && (
         <section className="mt-12">
           <h2 className="text-xl font-semibold">More cosy city guides</h2>
