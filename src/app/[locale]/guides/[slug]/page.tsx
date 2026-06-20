@@ -297,14 +297,31 @@ export default async function GuidePage({ params }: Props) {
   })
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gotcosy.com';
+  // ItemList of Hotel entities, each carrying OUR editorial cosy-score as a Review (author:
+  // Got Cosy) — honest (not user-review AggregateRating, which Google restricts for self-
+  // ranked items) and machine-readable so AI answer engines can cite the cosy scores.
   const listJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
+    name: `Cosiest hotels in ${cityName}`,
+    numberOfItems: chosen.length,
     itemListElement: chosen.map((h, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}${detailsHref(h.slug)}`,
-      name: h.name,
+      item: {
+        '@type': 'Hotel',
+        name: h.name,
+        url: `${siteUrl}${detailsHref(h.slug)}`,
+        ...(h._img && /^https?:\/\//.test(h._img) ? { image: h._img } : {}),
+        ...(h.city || h.country ? { address: { '@type': 'PostalAddress', ...(h.city ? { addressLocality: h.city } : {}), ...(h.country ? { addressCountry: h.country } : {}) } } : {}),
+        review: {
+          '@type': 'Review',
+          author: { '@type': 'Organization', name: 'Got Cosy' },
+          reviewRating: { '@type': 'Rating', ratingValue: Number(h._cosy.toFixed(1)), bestRating: 10, worstRating: 0, name: 'Cosy score' },
+          ...(h.snippet ? { reviewBody: h.snippet } : {}),
+        },
+      },
     })),
   };
   const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
