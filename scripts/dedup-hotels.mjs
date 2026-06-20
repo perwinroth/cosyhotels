@@ -52,6 +52,7 @@ if (RESTORE) {
   console.log(`=== RESTORE from ${RESTORE} (${b.hotels.length} hotels, ${b.scores.length} scores, ${b.repoints.length} child re-points) ===`)
   for (const part of chunk(b.hotels, 200)) { const { error } = await db.from('hotels').upsert(part, { onConflict: 'id' }); if (error) throw new Error('restore hotels: ' + error.message) }
   for (const part of chunk(b.scores, 200)) { const { error } = await db.from('cosy_scores').upsert(part, { onConflict: 'hotel_id' }); if (error) throw new Error('restore scores: ' + error.message) }
+  if (b.grades?.length) for (const part of chunk(b.grades, 200)) { const { error } = await db.from('hotel_grades').upsert(part, { onConflict: 'hotel_id' }); if (error) throw new Error('restore grades: ' + error.message) }
   // Move re-pointed children back: group by (table, originalHotelId) and update by child id.
   const byTarget = new Map()
   for (const r of b.repoints) { const k = r.table + '|' + r.from; (byTarget.get(k) || byTarget.set(k, []).get(k)).push(r.id) }
@@ -112,19 +113,23 @@ if (!EXECUTE) { console.log('\nDRY RUN — nothing written. --execute to merge (
 // ---------------- SNAPSHOT (before any write) ----------------
 console.log('\nSnapshotting before any delete...')
 const keepOf = new Map(); for (const p of plan) for (const d of p.drop) keepOf.set(d.id, p.keep.id)
-const backup = { ts: new Date().toISOString(), hotels: [], scores: [], repoints: [], redirects: [] }
+const backup = { ts: new Date().toISOString(), hotels: [], scores: [], repoints: [], grades: [], redirects: [] }
 backup.hotels = await rowsIn('hotels', 'id', dropIds, '*')
 backup.scores = await rowsIn('cosy_scores', 'hotel_id', dropIds, '*')
-for (const table of ['hotel_images', 'hotel_reviews', 'hotel_grades']) {
+// Re-point id-keyed children (images, reviews) to the keeper; record old owner for restore.
+for (const table of ['hotel_images', 'hotel_reviews']) {
   const kids = await rowsIn(table, 'hotel_id', dropIds, 'id,hotel_id')
   for (const r of kids) backup.repoints.push({ table, id: r.id, from: r.hotel_id, to: keepOf.get(r.hotel_id) })
 }
+// hotel_grades is keyed by hotel_id (no id col) — back the rows up and let them cascade-delete
+// with the dupe hotel (the owner re-grades keepers during grading; restore re-inserts these).
+backup.grades = await rowsIn('hotel_grades', 'hotel_id', dropIds, '*')
 for (const p of plan) for (const d of p.drop) if (d.slug && d.slug !== p.keep.slug) backup.redirects.push(d.slug)
 mkdirSync('scripts/backups', { recursive: true })
 const file = `scripts/backups/dedup-${backup.ts.replace(/[:.]/g, '-')}.json`
 writeFileSync(file, JSON.stringify(backup))
 console.log(`Backup written: ${file}`)
-console.log(`  hotels=${backup.hotels.length} scores=${backup.scores.length} childRepoints=${backup.repoints.length} redirects=${backup.redirects.length}`)
+console.log(`  hotels=${backup.hotels.length} scores=${backup.scores.length} childRepoints=${backup.repoints.length} grades=${backup.grades.length} redirects=${backup.redirects.length}`)
 if (backup.hotels.length !== dropIds.length) { console.error('ABORT: backup hotel count != planned deletes. Nothing was deleted.'); process.exit(1) }
 
 // ---------------- EXECUTE ----------------
