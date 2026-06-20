@@ -3,6 +3,7 @@
 // (Most live metrics — traffic, affiliate clicks, social reach — live in external dashboards;
 // this surfaces the in-app inventory + readiness and points you to the rest.)
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -66,10 +67,10 @@ export default async function GrowthPage() {
 
         <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Readiness</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 12 }}>
-          <a href="/today" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>📌 /today</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Manual Pinterest warm-up queue (pin-worthy hotels).</div></a>
-          <a href="/outreach" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>✉️ /outreach</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>{withInstagram.toLocaleString()} hotels with handles — DM their feature for backlinks + reposts.</div></a>
-          <a href="/posts" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🖼 /posts</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Exactly what publishes per city.</div></a>
-          <a href="/en/cosy-index" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🏆 /cosy-index</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Flagship ranking — share / pitch for backlinks.</div></a>
+          <Link href="/today" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>📌 /today</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Manual Pinterest warm-up queue (pin-worthy hotels).</div></Link>
+          <Link href="/outreach" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>✉️ /outreach</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>{withInstagram.toLocaleString()} hotels with handles — DM their feature for backlinks + reposts.</div></Link>
+          <Link href="/posts" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🖼 /posts</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Exactly what publishes per city.</div></Link>
+          <Link href="/en/cosy-index" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🏆 /cosy-index</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Flagship ranking — share / pitch for backlinks.</div></Link>
         </div>
 
         <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>External analytics — the numbers that matter</h2>
