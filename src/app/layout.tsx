@@ -8,7 +8,10 @@ import Toaster from "@/components/Toaster";
 export const metadata: Metadata = {
   title: "Get Cosy – Find cosy hotel rooms",
   description: "Curated cosy getaways.",
-  other: { "verify-admitad": "fcd0c8cf9848b219283de8fda4c1ee95" },
+  other: {
+    "verify-admitad": "fcd0c8cf9848b219283de8fda4c1ee95",
+    "p:domain_verify": "a104999227037e2d1f710928c1a6d755", // Pinterest domain claim (gotcosy.com)
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
