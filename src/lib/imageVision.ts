@@ -9,8 +9,10 @@ import Anthropic from "@anthropic-ai/sdk";
 // supported on Haiku and 400s, so we omit output_config.effort.)
 export const IMAGE_QA_MODEL = process.env.IMAGE_QA_MODEL || "claude-haiku-4-5";
 
-// Categories that ARE usable hotel imagery vs. the junk we want gone.
-const GOOD = new Set(["room", "exterior", "interior", "amenity", "view"]);
+// Categories that make a COMPELLING social pin. Tight detail crops (a single pillow, a
+// staircase), public landmarks (a cathedral), logos, badges, maps, stock placeholders and
+// text-images are all rejected — they don't make someone want to book.
+const GOOD = new Set(["room", "interior", "exterior", "amenity", "view"]);
 
 export type ImageVerdict = { ok: boolean; label: string };
 
@@ -23,23 +25,29 @@ function getClient(): Anthropic | null {
   return _client;
 }
 
-const SYSTEM = `You are an image classifier for a hotel website. You are shown ONE image and must decide what it depicts. Reply with the single best category and whether it is a genuine photograph of the hotel itself (its rooms, interiors, exterior, grounds, pool, restaurant, or view).
+const SYSTEM = `You are picking photos for a hotel's social media pin. The goal: an inviting, representative photo that makes a traveller want to BOOK. You are shown ONE image — classify it and decide if it's pin-worthy.
 
-Categories:
-- room: a guest room or suite
-- interior: lobby, lounge, hallway, spa, restaurant interior
-- exterior: the building, facade, entrance, garden, pool, terrace
-- amenity: a clear photo of a hotel facility (pool, gym, bar, breakfast spread laid in the hotel)
-- view: the view from the hotel
+PIN-WORTHY categories (a wide, attractive, representative shot of the hotel):
+- room: a guest room or suite, shown as a room (bed + space visible), not a tight detail
+- interior: a lobby, lounge, bar, restaurant interior, or spa — the SPACE, inviting
+- exterior: the hotel's own building/facade/entrance, garden, terrace, or pool
+- amenity: a clear, attractive hotel facility (pool, restaurant, bar, courtyard)
+- view: a beautiful view from the hotel
+
+REJECT categories (NOT pin-worthy — be strict):
+- detail: a tight close-up of one object — a single pillow, a towel, a tap/faucet, a doorknob, a chair, a staircase alone, bedding folds. Lovely but not a pin.
+- landmark: a public church/cathedral, monument, statue, generic street scene, or city skyline that is NOT the hotel building
 - logo: a logo, wordmark, or brand graphic
-- badge: a rating/review badge or score graphic (e.g. "9.2 Excellent"), award seal, certificate
+- badge: a rating/review badge ("9.2 Excellent"), award seal, certificate
 - map: a map, floor plan, or directions graphic
-- food: a generic stock food/drink close-up not tied to this hotel
-- person: a portrait/selfie/headshot with no hotel context
-- unrelated: anything else that is not the hotel (a casino table, a street scene, a random object, an ad)
-- unloadable: the image is blank, broken, or cannot be interpreted
+- food: a generic food/drink close-up
+- person: a portrait/selfie/headshot
+- placeholder: a stock "image coming soon", grey box, watermark-only, or obvious filler
+- text: an image dominated by text/an ad/a banner
+- unrelated: anything else not the hotel (a casino table, a random object)
+- unloadable: blank, broken, or uninterpretable
 
-Be strict: only room/interior/exterior/amenity/view are usable. When genuinely unsure between a usable category and junk, choose the junk category — a wrong photo on social is worse than none.`;
+Decision rule: pin_worthy = true ONLY for room/interior/exterior/amenity/view that is a WIDE, inviting, representative shot. A detail crop (pillow, stairs), a cathedral, a logo, a placeholder → pin_worthy=false. When unsure, choose false — a weak photo on social is worse than a smaller carousel.`;
 
 const SCHEMA = {
   type: "object",
@@ -47,12 +55,12 @@ const SCHEMA = {
   properties: {
     label: {
       type: "string",
-      enum: ["room", "interior", "exterior", "amenity", "view", "logo", "badge", "map", "food", "person", "unrelated", "unloadable"],
+      enum: ["room", "interior", "exterior", "amenity", "view", "detail", "landmark", "logo", "badge", "map", "food", "person", "placeholder", "text", "unrelated", "unloadable"],
       description: "The single best category for the image.",
     },
-    is_hotel_photo: { type: "boolean", description: "True only if this is a real photograph of the hotel itself (room/interior/exterior/amenity/view)." },
+    pin_worthy: { type: "boolean", description: "True ONLY if this is a wide, inviting, representative photo of the hotel (room/interior/exterior/amenity/view) that would make a traveller want to book. A detail crop, landmark, logo, badge, or placeholder is false." },
   },
-  required: ["label", "is_hotel_photo"],
+  required: ["label", "pin_worthy"],
 } as const;
 
 /**
@@ -84,9 +92,9 @@ export async function classifyHotelImage(url: string): Promise<ImageVerdict> {
   const textBlock = resp.content.find((b): b is Anthropic.TextBlock => b.type === "text");
   if (!textBlock) return { ok: false, label: "unloadable" };
 
-  const parsed = JSON.parse(textBlock.text) as { label?: string; is_hotel_photo?: boolean };
+  const parsed = JSON.parse(textBlock.text) as { label?: string; pin_worthy?: boolean };
   const label = String(parsed.label || "unloadable");
-  // Trust the category over the boolean: ok only if BOTH agree it's usable hotel imagery.
-  const ok = parsed.is_hotel_photo === true && GOOD.has(label);
+  // Trust the category over the boolean: pin-worthy only if BOTH agree it's a compelling shot.
+  const ok = parsed.pin_worthy === true && GOOD.has(label);
   return { ok, label };
 }
