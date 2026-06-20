@@ -89,7 +89,18 @@ export default async function GradePage() {
     });
   }
   candidates.sort((a, b) => b._pri - a._pri);
-  const queue: Candidate[] = candidates.map(({ _pri, ...c }) => { void _pri; return c; });
+  // Collapse duplicate hotels (same normalized name+city) — ~44% of the catalog is dupes, so
+  // without this you grade the same hotel many times. Keep the highest-priority instance.
+  const dnorm = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim();
+  const seenKey = new Set<string>();
+  const queue: Candidate[] = [];
+  for (const { _pri, ...c } of candidates) {
+    void _pri;
+    const key = dnorm(c.name) + "|" + dnorm(c.city);
+    if (c.name && seenKey.has(key)) continue;
+    if (c.name) seenKey.add(key);
+    queue.push(c);
+  }
 
   // Live confidence metrics from existing labels.
   const total = graded.length;
