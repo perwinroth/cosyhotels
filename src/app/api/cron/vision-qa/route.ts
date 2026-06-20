@@ -29,6 +29,7 @@ export async function GET(req: Request) {
   const limit = Math.min(500, Math.max(1, Number(sp.get("limit")) || 100));
   const dry = sp.get("dry") === "1";
   const noReplace = sp.get("noreplace") === "1";
+  const city = sp.get("city")?.trim() || ""; // re-vet a specific city's featured-hotel images now
 
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
@@ -54,17 +55,26 @@ export async function GET(req: Request) {
     });
   }
 
-  // Unchecked, real (non-placeholder) images. Placeholders are intentional and already hidden.
-  const { data: imgRows, error: e1 } = await db
-    .from("hotel_images")
-    .select("id,hotel_id,url")
-    .is("vision_checked_at", null)
-    .not("url", "like", "%placehold.co%")
-    .order("id", { ascending: true })
-    .limit(limit);
-  if (e1) return NextResponse.json({ error: e1.message }, { status: 500 });
-  const images = (imgRows || []) as ImgRow[];
-  if (!images.length) return NextResponse.json({ processed: 0, done: true });
+  let images: ImgRow[] = [];
+  if (city) {
+    // City mode: RE-VET this city's featured-hotel images (score>=5), regardless of prior
+    // status, so a tightened classifier re-judges photos and /today/carousels go clean now.
+    const { data: sc } = await db
+      .from("cosy_scores").select("hotel_id, hotel:hotel_id!inner(city)").gte("score", 5).ilike("hotel.city", `%${city}%`).limit(60);
+    const hotelIds = [...new Set(((sc || []) as unknown as Array<{ hotel_id: string | null }>).map((r) => r.hotel_id).filter(Boolean) as string[])];
+    if (!hotelIds.length) return NextResponse.json({ processed: 0, done: true, city });
+    const { data: imgRows, error } = await db
+      .from("hotel_images").select("id,hotel_id,url").in("hotel_id", hotelIds).not("url", "like", "%placehold.co%").limit(limit);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    images = (imgRows || []) as ImgRow[];
+  } else {
+    // Global sweep: unchecked, real (non-placeholder) images by id order.
+    const { data: imgRows, error } = await db
+      .from("hotel_images").select("id,hotel_id,url").is("vision_checked_at", null).not("url", "like", "%placehold.co%").order("id", { ascending: true }).limit(limit);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    images = (imgRows || []) as ImgRow[];
+  }
+  if (!images.length) return NextResponse.json({ processed: 0, done: true, city: city || undefined });
 
   // Hotel detail for the replacement re-resolve (website/coords/name).
   const hotelIds = [...new Set(images.map((r) => r.hotel_id).filter(Boolean) as string[])];

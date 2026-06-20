@@ -11,7 +11,7 @@
 //      BLOTATO_INSTAGRAM_ACCOUNT_ID (optional — when set, also posts to Instagram).
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { cityPin } from "@/lib/social";
+import { cityPin, hotelPinImageUrl, hotelPinDescription } from "@/lib/social";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -46,8 +46,6 @@ export async function GET(req: Request) {
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
-  // Absolutize relative URLs (/api/places/photo) and decode &amp; — Blotato fetches by URL.
-  const toAbs = (u: string) => { const d = u.replace(/&amp;/g, "&"); return d.startsWith("/") ? base + d : d; };
 
   const pin = await cityPin(db, city, base);
   if (!pin.slides.length) return NextResponse.json({ error: `no publishable slides for ${city}` }, { status: 422 });
@@ -56,55 +54,62 @@ export async function GET(req: Request) {
   const mentions = pin.slides.map((s) => s.instagram).filter(Boolean).join(" ");
   const igCaption = `${pin.description}${mentions ? `\n\nFeaturing ${mentions}` : ""}`;
 
+  // Each hotel → its own badge image (photo + Cosy Score). Pinterest = one pin per hotel
+  // (its single-image native format); Instagram = one carousel of all the badge images.
+  const badgeUrls = pin.slides.map((s) => hotelPinImageUrl(base, s));
+
   if (dry) {
     return NextResponse.json({
-      dry: true, city, slides: pin.slides.length,
-      pinterest: { account: pinAccount, board: pinBoard || "(BLOTATO_PINTEREST_BOARD_ID unset)", title: pin.title, link: pin.link },
-      instagram: igAccount ? { account: igAccount, caption: igCaption } : "(not connected — set BLOTATO_INSTAGRAM_ACCOUNT_ID)",
-      photos: pin.slides.map((s) => toAbs(s.photo)),
+      dry: true, city, hotels: pin.slides.length,
+      pinterest: pinBoard
+        ? { account: pinAccount, board: pinBoard, pins: pin.slides.map((s) => ({ title: `${s.name} · ${s.city}`, score: s.score, link: pin.link, media: hotelPinImageUrl(base, s) })) }
+        : "(BLOTATO_PINTEREST_BOARD_ID unset)",
+      instagram: igAccount ? { account: igAccount, caption: igCaption, slides: badgeUrls.length } : "(not connected — set BLOTATO_INSTAGRAM_ACCOUNT_ID)",
     });
   }
-
-  // 1) Upload each slide photo to Blotato (normalizes long Places URLs → short hosted ones).
-  const mediaUrls: string[] = [];
-  for (const s of pin.slides) {
-    try {
-      const up = await blotato("/v2/media", { url: toAbs(s.photo) }, key);
-      if (typeof up.url === "string") mediaUrls.push(up.url);
-    } catch { /* skip an image Blotato can't fetch */ }
-  }
-  if (!mediaUrls.length) return NextResponse.json({ error: "no images could be uploaded to Blotato" }, { status: 502 });
 
   const sched = schedule ? { scheduledTime: schedule } : {};
   const results: Record<string, unknown> = {};
 
-  // 2) Pinterest pin (carousel).
+  // Upload helper: badge image → Blotato-hosted URL.
+  const upload = async (u: string): Promise<string | null> => {
+    try { const up = await blotato("/v2/media", { url: u }, key); return typeof up.url === "string" ? up.url : null; }
+    catch { return null; }
+  };
+
+  // 1) Pinterest — ONE pin per hotel (single image), best Pinterest format + max discovery.
   if (pinBoard) {
-    results.pinterest = await blotato("/v2/posts", {
-      post: {
-        accountId: pinAccount,
-        content: { text: pin.description, mediaUrls, platform: "pinterest" },
-        target: { targetType: "pinterest", boardId: pinBoard, title: pin.title, link: pin.link, altText: `Cosiest hotels in ${city}` },
-      },
-      ...sched,
-    }, key).catch((e) => ({ error: String(e) }));
+    const pinResults: unknown[] = [];
+    for (const s of pin.slides) {
+      const hosted = await upload(hotelPinImageUrl(base, s));
+      if (!hosted) { pinResults.push({ hotel: s.name, error: "media upload failed" }); continue; }
+      const r = await blotato("/v2/posts", {
+        post: {
+          accountId: pinAccount,
+          content: { text: hotelPinDescription(s.name, s.city, s.score), mediaUrls: [hosted], platform: "pinterest" },
+          target: { targetType: "pinterest", boardId: pinBoard, title: `${s.name} · ${s.city}`, link: pin.link, altText: `${s.name}, a cosy hotel in ${s.city}` },
+        },
+        ...sched,
+      }, key).then(() => ({ hotel: s.name, ok: true })).catch((e) => ({ hotel: s.name, error: String(e) }));
+      pinResults.push(r);
+    }
+    results.pinterest = pinResults;
   } else {
     results.pinterest = "skipped — BLOTATO_PINTEREST_BOARD_ID unset";
   }
 
-  // 3) Instagram carousel (only if an IG account is connected).
+  // 2) Instagram — ONE carousel of all the badge images (only if connected).
   if (igAccount) {
-    results.instagram = await blotato("/v2/posts", {
-      post: {
-        accountId: igAccount,
-        content: { text: igCaption, mediaUrls, platform: "instagram" },
-        target: { targetType: "instagram" },
-      },
-      ...sched,
-    }, key).catch((e) => ({ error: String(e) }));
+    const hosted = (await Promise.all(badgeUrls.map(upload))).filter((u): u is string => !!u);
+    results.instagram = hosted.length
+      ? await blotato("/v2/posts", {
+          post: { accountId: igAccount, content: { text: igCaption, mediaUrls: hosted, platform: "instagram" }, target: { targetType: "instagram" } },
+          ...sched,
+        }, key).catch((e) => ({ error: String(e) }))
+      : { error: "no images uploaded" };
   } else {
     results.instagram = "skipped — not connected";
   }
 
-  return NextResponse.json({ city, published: !schedule, scheduledTime: schedule || null, mediaCount: mediaUrls.length, results });
+  return NextResponse.json({ city, published: !schedule, scheduledTime: schedule || null, hotels: pin.slides.length, results });
 }

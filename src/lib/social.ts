@@ -28,6 +28,21 @@ export type CityPin = {
   items: string[];
 };
 
+// Per-hotel Pinterest pin text. Pinterest is single-image-per-pin, so each featured hotel
+// becomes its own pin (real photo) linking to the city ranking page — max discovery surface.
+export function hotelPinDescription(name: string, city: string, score: number): string {
+  const cityTag = city.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return `${name} — ${score.toFixed(1)}/10 for cosiness. One of the cosiest hotels in ${city}, AI-ranked for warmth, character and intimacy. Tap for the full ranking and to check availability. #cosyhotels #${cityTag}hotels #boutiquehotels #${cityTag}travel #romanticgetaway`;
+}
+
+// Badge-image URL for one hotel: its real photo + a baked-in "Cosy Score" badge (the actual
+// pin media). Absolutize the photo so satori can fetch it.
+export function hotelPinImageUrl(base: string, s: Slide): string {
+  const photo = s.photo.startsWith("/") ? base + s.photo : s.photo.replace(/&amp;/g, "&");
+  const q = new URLSearchParams({ photo, score: s.score.toFixed(1), name: s.name, city: s.city });
+  return `${base}/api/social/hotel-pin?${q.toString()}`;
+}
+
 export async function populatedCities(db: DB): Promise<Array<{ city: string; tier: number; hotels_scored: number }>> {
   const { data } = await db
     .from("populate_state")
@@ -71,8 +86,9 @@ export async function cityPin(db: DB, city: string, base: string): Promise<CityP
       .from("hotel_images")
       .select("hotel_id,url,created_at")
       .in("hotel_id", ids)
-      // Hide images the vision QA confirmed as junk (vision_ok=false); keep unchecked (null) + good.
-      .or("vision_ok.is.null,vision_ok.is.true")
+      // Only PIN-WORTHY vetted photos publish — exclude both junk (false) and unvetted (null),
+      // so a city carousel never shows a pillow/cathedral/logo/placeholder before QA has judged it.
+      .eq("vision_ok", true)
       .order("created_at", { ascending: false });
     for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null }>) {
       const hid = row.hotel_id ? String(row.hotel_id) : "";
