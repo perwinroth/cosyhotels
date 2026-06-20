@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
+import { fetchCalibrationAnchors, formatCalibration } from "@/lib/scoring/calibration";
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -92,6 +93,11 @@ async function runBatch(force = false, limit = 100, city = "", since = ""): Prom
   let processed = 0;
   let errors = 0;
 
+  // Human-label calibration: fetch the owner's grades once and feed them as anchors so the
+  // score learns the owner's taste (the learning loop). Empty when nothing graded yet.
+  let calibration = "";
+  try { calibration = formatCalibration(await fetchCalibrationAnchors(db, 30)); } catch {}
+
   // Process with a concurrency pool of CONCURRENCY
   for (let i = 0; i < toScore.length; i += CONCURRENCY) {
     const batch = toScore.slice(i, i + CONCURRENCY);
@@ -110,6 +116,7 @@ async function runBatch(force = false, limit = 100, city = "", since = ""): Prom
             description: h.description ?? undefined,
             stars: h.stars ?? undefined,
             imageUrls: imgByHotel.get(h.id) ? [imgByHotel.get(h.id) as string] : undefined,
+            calibration: calibration || undefined,
           });
           const now = new Date().toISOString();
           const { error: uErr } = await db.from("cosy_scores").upsert(

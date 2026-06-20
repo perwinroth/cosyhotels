@@ -21,6 +21,7 @@ export type ClaudeCosyInput = HotelFeatures & {
   stars?: number;
   reviews?: string[]; // optional review snippets to feed the NLP signal
   imageUrls?: string[]; // optional real photos — Claude vision assesses visible cosiness
+  calibration?: string; // optional human-label calibration block (see scoring/calibration.ts)
 };
 
 export const COSY_SCORING_MODEL = process.env.COSY_SCORING_MODEL || "claude-sonnet-4-6";
@@ -82,6 +83,7 @@ function buildPayload(input: ClaudeCosyInput): string {
     lines.push("- Review snippets:");
     for (const r of input.reviews.slice(0, 12)) lines.push(`  • ${r.replace(/\s+/g, " ").slice(0, 400)}`);
   }
+  if (input.calibration) lines.push(input.calibration);
   return lines.join("\n");
 }
 
