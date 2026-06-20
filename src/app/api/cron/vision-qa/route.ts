@@ -39,6 +39,19 @@ export async function GET(req: Request) {
   // Absolutize relative URLs (Places proxy) and decode &amp; so the query string fetches correctly.
   const toAbs = (u: string) => { const d = u.replace(/&amp;/g, "&"); return d.startsWith("/") ? base + d : d; };
 
+  // Re-vet ALL: null vision_checked_at so the sweep re-judges every image under the current
+  // (stricter) classifier. Keep vision_ok untouched so carousels stay populated with the old
+  // verdict until each row is overwritten — no emptying during the multi-hour re-vet.
+  if (sp.get("reset") === "1") {
+    const { count, error } = await db
+      .from("hotel_images")
+      .update({ vision_checked_at: null }, { count: "exact" })
+      .not("url", "like", "%placehold.co%")
+      .not("vision_checked_at", "is", null);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ reset: count ?? 0, note: "run the sweep loop to re-vet" });
+  }
+
   if (dry) {
     // True TOTAL of remaining unchecked images (not just one batch) so we can price the run.
     const { count } = await db

@@ -10,7 +10,9 @@ export async function GET() {
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", background: "linear-gradient(135deg, #1d2a22 0%, #0F1512 100%)", padding: "0 110px", fontFamily: "Georgia, serif" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           <div style={{ display: "flex", width: 96, height: 96, borderRadius: 96, background: "#E08A4B", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ fontSize: 66, fontWeight: 800, color: "#1d2a22", lineHeight: 1 }}>c</div>
+            <svg width="54" height="54" viewBox="0 0 24 24" fill="none">
+              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="#1d2a22" />
+            </svg>
           </div>
           <div style={{ fontSize: 84, fontWeight: 800, color: "#F3EEE6", letterSpacing: -1 }}>Got Cosy?</div>
         </div>
