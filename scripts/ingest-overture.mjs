@@ -82,25 +82,40 @@ async function main() {
   const rows = reader.getRowObjects();
   console.log(`Overture returned ${rows.length} lodging POIs.`);
 
-  let inserted = 0;
+  // Duplicate-prevention gate: load every existing hotel's dedup_key once, then skip any
+  // incoming POI we already have (same normalized name+city). Keeps the catalogue from refilling.
+  const dkey = (name, city) => { const n = (s) => String(s || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim(); const nm = n(name); return nm ? `${nm}|${n(city)}` : ""; };
+  const known = new Set();
+  for (let from = 0; ; from += 1000) {
+    const { data } = await db.from("hotels").select("dedup_key").not("dedup_key", "is", null).range(from, from + 999);
+    for (const r of data || []) known.add(r.dedup_key);
+    if (!data || data.length < 1000) break;
+  }
+  console.log(`Known dedup keys: ${known.size}`);
+
+  let inserted = 0, skipped = 0;
   for (let i = 0; i < rows.length; i += 200) {
-    const chunk = rows.slice(i, i + 200).map((r) => ({
-      source: "overture",
-      source_id: String(r.id),
-      name: String(r.name),
-      lat: Number(r.lat),
-      lng: Number(r.lng),
-      city: r.city ? String(r.city) : null,
-      country: r.country ? String(r.country) : country,
-      website: r.website ? String(r.website) : null,
-      address: r.address ? String(r.address) : null,
-    }));
-    // Upsert on (source, source_id). Requires a unique index; otherwise dedup is best-effort.
+    const chunk = [];
+    for (const r of rows.slice(i, i + 200)) {
+      const key = dkey(r.name, r.city);
+      if (key && known.has(key)) { skipped++; continue; } // already in catalogue
+      if (key) known.add(key); // also dedupe within this run
+      chunk.push({
+        source: "overture", source_id: String(r.id), name: String(r.name),
+        lat: Number(r.lat), lng: Number(r.lng),
+        city: r.city ? String(r.city) : null,
+        country: r.country ? String(r.country) : country,
+        website: r.website ? String(r.website) : null,
+        address: r.address ? String(r.address) : null,
+        dedup_key: key || null,
+      });
+    }
+    if (!chunk.length) continue;
     const { error } = await db.from("hotels").upsert(chunk, { onConflict: "source,source_id", ignoreDuplicates: true });
     if (error) console.error("upsert error:", error.message);
     else inserted += chunk.length;
   }
-  console.log(`Upserted ~${inserted} hotels (source=overture). They are UNSCORED — run recompute-scores to score them.`);
+  console.log(`Upserted ~${inserted} new hotels, skipped ${skipped} already-known duplicates (source=overture). New ones are UNSCORED — run recompute-scores.`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

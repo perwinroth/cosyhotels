@@ -10,6 +10,7 @@ import { osmSearchHotels, type OSMHotel } from "@/lib/vendors/osm";
 import { osmCosyScore } from "@/lib/scoring/osmCosy";
 import { resolveHotelImage } from "@/lib/hotelImageFree";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
+import { hotelDedupKey } from "@/lib/dedupeKey";
 import { fetchPlaceReviews, reviewsEnabled } from "@/lib/placeReviews";
 import { targetCities, type TargetCity } from "@/data/targetCities";
 
@@ -92,6 +93,7 @@ async function run() {
     const { data, error } = await db.from("hotels").insert({
       source: "osm", source_id: h.id, slug: `${slugify(h.name)}-${digits}`.slice(0, 80),
       name: h.name, city: h.city || t.city, country: h.country || null,
+      dedup_key: hotelDedupKey(h.name, h.city || t.city), // unique index rejects re-adds of a known hotel
       lat: h.lat, lng: h.lng, website: h.website || null, address: h.address || null, stars: h.stars ?? null,
     }).select("id").single();
     if (!error && data) { idMap.set(h.id, String((data as { id: string }).id)); ingested++; }

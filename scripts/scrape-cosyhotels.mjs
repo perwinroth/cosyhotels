@@ -248,6 +248,8 @@ async function upsertHotel(db, row){
   if (!source_id) {
     slug = await generateHotelSlug(db, row.name, row.city, row.country)
   }
+  const n = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, ' ').trim()
+  const dedup_key = n(row.name) ? `${n(row.name)}|${n(row.city)}` : null
   const payload = {
     source, source_id,
     name: row.name,
@@ -256,7 +258,13 @@ async function upsertHotel(db, row){
     country: row.country || null,
     website: row.website || null,
     slug,
+    dedup_key,
     updated_at: new Date().toISOString(),
+  }
+  // Duplicate-prevention gate: if we already have this hotel (same name+city), reuse it.
+  if (dedup_key) {
+    const { data: dupe } = await db.from('hotels').select('id,slug').eq('dedup_key', dedup_key).maybeSingle()
+    if (dupe) return dupe
   }
   // If source_id present, upsert by (source, source_id); else by slug
   if (source_id) {
