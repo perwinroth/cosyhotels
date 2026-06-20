@@ -28,12 +28,16 @@ export async function POST(req: Request) {
   const note = body.note != null ? String(body.note).slice(0, 500) : null;
   const ai_score = body.ai_score != null ? Number(body.ai_score) : null;
   const ai_confidence = body.ai_confidence != null ? String(body.ai_confidence).slice(0, 10) : null;
+  const human_score = body.human_score != null && body.human_score !== ""
+    ? Math.max(0, Math.min(10, Number(body.human_score))) : null;
+  const reasons = Array.isArray(body.reasons)
+    ? body.reasons.map((r) => String(r).slice(0, 40)).filter(Boolean).slice(0, 8) : null;
 
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "db not configured" }, { status: 500 });
 
   const { error } = await db.from("hotel_grades").upsert(
-    { hotel_id, cosy_verdict, link_ok, note, ai_score, ai_confidence, updated_at: new Date().toISOString() },
+    { hotel_id, cosy_verdict, human_score, reasons, link_ok, note, ai_score, ai_confidence, updated_at: new Date().toISOString() },
     { onConflict: "hotel_id" },
   );
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

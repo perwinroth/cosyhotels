@@ -234,6 +234,10 @@ export default async function GuidePage({ params }: Props) {
     const k = identKey(h);
     if (seenId.has(k)) return false;
     seenId.add(k);
+    // TRUST: drop hotels whose named city differs from this guide's city (e.g. an Oxford
+    // hotel on a 'Sunderland' street matched by address/bbox). Keep no-city-field hotels.
+    const hc = norm(String(h.city || ''));
+    if (hc && !variants.includes(hc)) return false;
     return true;
   }).map((h) => {
     const s = scoreMap.get(String(h.id)) ?? 0;

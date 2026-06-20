@@ -43,8 +43,8 @@ export default async function GradePage() {
   const rows = (scoreData || []) as unknown as ScoreRow[];
 
   // Already graded → so we queue ungraded first and can show progress.
-  const { data: gradedData } = await db.from("hotel_grades").select("hotel_id, cosy_verdict, link_ok");
-  const graded = (gradedData || []) as Array<{ hotel_id: string; cosy_verdict: string; link_ok: boolean | null }>;
+  const { data: gradedData } = await db.from("hotel_grades").select("hotel_id, cosy_verdict, link_ok, human_score, ai_score");
+  const graded = (gradedData || []) as Array<{ hotel_id: string; cosy_verdict: string; link_ok: boolean | null; human_score: number | null; ai_score: number | null }>;
   const gradedIds = new Set(graded.map((g) => g.hotel_id));
 
   // Real photo per candidate (chunked .in — big id lists 400 on PostgREST).
@@ -99,12 +99,17 @@ export default async function GradePage() {
   const agreement = total ? Math.round((good / total) * 100) : null;
   const linkAccuracy = linkAssessed ? Math.round((linkOk / linkAssessed) * 100) : null;
   const moe = total ? Math.round(196 * Math.sqrt(0.25 / total)) / 10 : null; // 95% margin (%, worst case p=.5)
+  // Mean absolute error between AI score and the owner's corrected score (where given).
+  const corrections = graded.filter((g) => g.human_score != null && g.ai_score != null);
+  const mae = corrections.length
+    ? Math.round((corrections.reduce((s, g) => s + Math.abs(Number(g.human_score) - Number(g.ai_score)), 0) / corrections.length) * 10) / 10
+    : null;
 
   return (
     <Shell>
       <Grader
         queue={queue}
-        stats={{ total, agreement, linkAccuracy, moe, surfaced: rows.length }}
+        stats={{ total, agreement, linkAccuracy, moe, mae, surfaced: rows.length }}
       />
     </Shell>
   );
