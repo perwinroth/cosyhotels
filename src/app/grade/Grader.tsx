@@ -36,32 +36,30 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
   const [reasons, setReasons] = useState<Set<string>>(new Set());
   const [pending, setPending] = useState<null | "too_high" | "too_low">(null); // awaiting a target score
   const [done, setDone] = useState(0);
+  const [failed, setFailed] = useState(0);
   const [, setHistory] = useState<number[]>([]);
-  const [saving, setSaving] = useState(false);
 
   const cur = queue[i];
   const ungradedCount = useMemo(() => queue.filter((c) => !c.graded).length, [queue]);
 
   const reset = useCallback(() => { setLinkOk(null); setReasons(new Set()); setPending(null); }, []);
 
-  const submit = useCallback(async (verdict: Verdict, humanScore: number | null) => {
-    if (!cur || saving) return;
-    setSaving(true);
-    try {
-      await fetch("/api/grade", {
-        method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          hotelId: cur.hotelId, cosy_verdict: verdict, human_score: humanScore,
-          reasons: [...reasons], link_ok: linkOk, ai_score: cur.score, ai_confidence: cur.confidence,
-        }),
-      });
-    } catch { /* keep moving; re-gradable */ }
-    setSaving(false);
+  // Optimistic: advance the UI immediately, save in the background. Never block grading on
+  // the network — the label is re-gradable and a hung request must not freeze the queue.
+  const submit = useCallback((verdict: Verdict, humanScore: number | null) => {
+    if (!cur) return;
+    const payload = {
+      hotelId: cur.hotelId, cosy_verdict: verdict, human_score: humanScore,
+      reasons: [...reasons], link_ok: linkOk, ai_score: cur.score, ai_confidence: cur.confidence,
+    };
+    fetch("/api/grade", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
+      .then((r) => { if (!r.ok) setFailed((f) => f + 1); })
+      .catch(() => setFailed((f) => f + 1));
     setHistory((h) => [...h, i]);
     setDone((d) => d + 1);
     reset();
     setI((x) => Math.min(x + 1, queue.length));
-  }, [cur, saving, reasons, linkOk, i, queue.length, reset]);
+  }, [cur, reasons, linkOk, i, queue.length, reset]);
 
   const onVerdict = useCallback((v: Verdict) => {
     if (v === "too_high" || v === "too_low") setPending(v); // reveal score picker
@@ -108,6 +106,7 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
         <div style={{ fontSize: 12, color: C.muted }}>
           {liveTotal} graded · ±{moe ?? "—"}%{stats.agreement != null && <> · {stats.agreement}% agree</>}
           {stats.mae != null && <> · {stats.mae} avg miss</>}{stats.linkAccuracy != null && <> · {stats.linkAccuracy}% links ok</>}
+          {failed > 0 && <span style={{ color: C.bad }}> · {failed} save{failed > 1 ? "s" : ""} failed</span>}
         </div>
       </div>
       <Bar done={liveTotal} target={150} />
@@ -182,10 +181,10 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
               </div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
-                <Vbtn label="Right (1)" color={C.good} onClick={() => onVerdict("good")} disabled={saving} />
-                <Vbtn label="Too high (2)" color={C.ember} onClick={() => onVerdict("too_high")} disabled={saving} />
-                <Vbtn label="Too low (3)" color={C.blue} onClick={() => onVerdict("too_low")} disabled={saving} />
-                <Vbtn label="Unsure (4)" color={C.muted} onClick={() => onVerdict("unsure")} disabled={saving} />
+                <Vbtn label="Right (1)" color={C.good} onClick={() => onVerdict("good")} />
+                <Vbtn label="Too high (2)" color={C.ember} onClick={() => onVerdict("too_high")} />
+                <Vbtn label="Too low (3)" color={C.blue} onClick={() => onVerdict("too_low")} />
+                <Vbtn label="Unsure (4)" color={C.muted} onClick={() => onVerdict("unsure")} />
               </div>
             )}
 
@@ -200,9 +199,9 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
   );
 }
 
-function Vbtn({ label, color, onClick, disabled }: { label: string; color: string; onClick: () => void; disabled: boolean }) {
+function Vbtn({ label, color, onClick }: { label: string; color: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} disabled={disabled} style={{ background: "transparent", color, border: `1.5px solid ${color}`, borderRadius: 10, padding: "12px 8px", fontSize: 14, fontWeight: 700, cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1 }}>{label}</button>
+    <button onClick={onClick} style={{ background: "transparent", color, border: `1.5px solid ${color}`, borderRadius: 10, padding: "12px 8px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{label}</button>
   );
 }
 function pill(active: boolean, color: string): React.CSSProperties {
