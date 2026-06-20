@@ -131,7 +131,7 @@ export default async function GuidePage({ params }: Props) {
   // Source guide hotels from Supabase with robust city matching and diversity
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
-  type HB = { id: string; slug: string; name: string; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null; source?: string | null; source_id?: string | null; lat?: number | null; lng?: number | null };
+  type HB = { id: string; slug: string; name: string; name_en?: string | null; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null; source?: string | null; source_id?: string | null; lat?: number | null; lng?: number | null };
   type CS = { hotel_id: string; score: number | null; score_final: number | null };
   // Build robust variants for the city (handles common local names)
   const base = cityName.trim();
@@ -176,7 +176,7 @@ export default async function GuidePage({ params }: Props) {
   const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
   const { data: hRows } = await db
     .from('hotels')
-    .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id,lat,lng')
+    .select('id,slug,name,name_en,city,country,rating,address,reviews_count,source,source_id,lat,lng')
     .or(`${orCity},${orAddr}`)
     .limit(800);
   let hotels = ((hRows || []) as HB[]).filter(Boolean);
@@ -186,7 +186,7 @@ export default async function GuidePage({ params }: Props) {
     if (bb) {
       const { data: geoRows } = await db
         .from('hotels')
-        .select('id,slug,name,city,country,rating,address,reviews_count,source,source_id,lat,lng')
+        .select('id,slug,name,name_en,city,country,rating,address,reviews_count,source,source_id,lat,lng')
         .gte('lat', bb.minLat)
         .lte('lat', bb.maxLat)
         .gte('lng', bb.minLng)
@@ -254,7 +254,7 @@ export default async function GuidePage({ params }: Props) {
   const picks: typeof sorted = [];
   for (const x of sorted) {
     if (x.s < COSY_FLOOR) continue;
-    if (!isLatin(String(x.h.name))) continue; // English site: skip non-Latin-named hotels (no romanized name yet)
+    if (!isLatin(String(x.h.name_en || x.h.name))) continue; // skip only if no Latin/romanized name yet
     const key = String(x.h.slug);
     if (seen.has(key)) continue;
     const bc = perBrand[x.brand] || 0;
@@ -291,8 +291,9 @@ export default async function GuidePage({ params }: Props) {
     // English display: non-Latin/postal cities fall back to the guide's city; "日本" → "Japan".
     const cleanedCity = displayCity(String(h.city || ''), cityName);
     const cleanedCountry = displayCountry(String(h.country || ''));
-    const cta = stay22AllezUrl({ name: String(h.name), city: cleanedCity, country: cleanedCountry, lat: h.lat ?? null, lng: h.lng ?? null, campaign: `guide-${params.locale}` });
-    return { slug: String(h.slug), name: String(h.name), city: cleanedCity, country: cleanedCountry, _cosy: s, _img: img, _signals: signals, snippet, cta };
+    const displayName = String(h.name_en || h.name);
+    const cta = stay22AllezUrl({ name: displayName, city: cleanedCity, country: cleanedCountry, lat: h.lat ?? null, lng: h.lng ?? null, campaign: `guide-${params.locale}` });
+    return { slug: String(h.slug), name: displayName, city: cleanedCity, country: cleanedCountry, _cosy: s, _img: img, _signals: signals, snippet, cta };
   })
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
