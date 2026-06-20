@@ -19,88 +19,85 @@ export type Candidate = {
 
 type Stats = { total: number; agreement: number | null; linkAccuracy: number | null; moe: number | null; mae: number | null; surfaced: number };
 type Verdict = "good" | "too_high" | "too_low" | "unsure";
+type Link = "ok" | "wrong" | null;
 
-const C = { ember: "#E08A4B", card: "#16201A", line: "#243029", muted: "#9DA89F", good: "#5FBF77", bad: "#E0654B", blue: "#7FB4FF" };
+const C = { ember: "#E08A4B", card: "#16201A", line: "#243029", muted: "#9DA89F", good: "#5FBF77", bad: "#E0654B", blue: "#7FB4FF", ink: "#0F1512" };
 const REASONS: Array<{ key: string; label: string }> = [
-  { key: "not_cosy", label: "not cosy" },
-  { key: "photos_oversell", label: "photos oversell" },
-  { key: "data_thin", label: "data too thin" },
-  { key: "wrong_location", label: "wrong location" },
-  { key: "gem", label: "hidden gem" },
-  { key: "corporate", label: "corporate/chain" },
+  { key: "not_cosy", label: "not cosy" }, { key: "photos_oversell", label: "photos oversell" },
+  { key: "data_thin", label: "data too thin" }, { key: "wrong_location", label: "wrong location" },
+  { key: "gem", label: "hidden gem" }, { key: "corporate", label: "corporate/chain" },
 ];
 
 export default function Grader({ queue, stats }: { queue: Candidate[]; stats: Stats }) {
   const [i, setI] = useState(0);
-  const [linkOk, setLinkOk] = useState<boolean | null>(null);
+  const [link, setLink] = useState<Link>(null);
+  const [cosy, setCosy] = useState<Verdict | null>(null);
+  const [score, setScore] = useState<number | null>(null);
   const [reasons, setReasons] = useState<Set<string>>(new Set());
-  const [pending, setPending] = useState<null | "too_high" | "too_low">(null); // awaiting a target score
   const [done, setDone] = useState(0);
   const [failed, setFailed] = useState(0);
   const [, setHistory] = useState<number[]>([]);
 
   const cur = queue[i];
-  const ungradedCount = useMemo(() => queue.filter((c) => !c.graded).length, [queue]);
+  const ungraded = useMemo(() => queue.filter((c) => !c.graded).length, [queue]);
 
-  const reset = useCallback(() => { setLinkOk(null); setReasons(new Set()); setPending(null); }, []);
+  const resetCard = useCallback(() => { setLink(null); setCosy(null); setScore(null); setReasons(new Set()); }, []);
 
-  // Optimistic: advance the UI immediately, save in the background. Never block grading on
-  // the network — the label is re-gradable and a hung request must not freeze the queue.
-  const submit = useCallback((verdict: Verdict, humanScore: number | null, linkOverride?: boolean) => {
+  // A card is complete when the link is checked AND (the link is wrong → nothing to rate,
+  // or the cosy verdict is set, and if it's too high/low a corrected score is chosen).
+  const complete = (l: Link, c: Verdict | null, s: number | null) =>
+    l === "wrong" || (l === "ok" && c != null && (c === "good" || c === "unsure" || s != null));
+
+  const save = useCallback((l: Link, c: Verdict | null, s: number | null, rs: Set<string>) => {
     if (!cur) return;
-    const payload = {
-      hotelId: cur.hotelId, cosy_verdict: verdict, human_score: humanScore,
-      reasons: [...reasons], link_ok: linkOverride ?? linkOk, ai_score: cur.score, ai_confidence: cur.confidence,
-    };
-    fetch("/api/grade", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) })
-      .then((r) => { if (!r.ok) setFailed((f) => f + 1); })
-      .catch(() => setFailed((f) => f + 1));
+    const verdict: Verdict = l === "wrong" ? "unsure" : (c ?? "unsure");
+    fetch("/api/grade", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ hotelId: cur.hotelId, cosy_verdict: verdict, human_score: s, reasons: [...rs], link_ok: l === "ok" ? true : l === "wrong" ? false : null, ai_score: cur.score, ai_confidence: cur.confidence }),
+    }).then((r) => { if (!r.ok) setFailed((f) => f + 1); }).catch(() => setFailed((f) => f + 1));
     setHistory((h) => [...h, i]);
     setDone((d) => d + 1);
-    reset();
+    resetCard();
     setI((x) => Math.min(x + 1, queue.length));
-  }, [cur, reasons, linkOk, i, queue.length, reset]);
+  }, [cur, i, queue.length, resetCard]);
 
-  const onVerdict = useCallback((v: Verdict) => {
-    if (v === "too_high" || v === "too_low") setPending(v); // reveal score picker
-    else submit(v, null);
-  }, [submit]);
+  // Apply a state change and auto-advance the moment the card becomes complete.
+  const applyLink = useCallback((l: Link) => {
+    if (complete(l, cosy, score)) save(l, cosy, score, reasons); else setLink(l);
+  }, [cosy, score, reasons, save]);
+  const applyCosy = useCallback((c: Verdict) => {
+    if (c === "too_high" || c === "too_low") { setCosy(c); setScore(null); return; } // wait for score
+    if (complete(link, c, null)) save(link, c, null, reasons); else setCosy(c);
+  }, [link, reasons, save]);
+  const applyScore = useCallback((n: number) => {
+    if (complete(link, cosy, n)) save(link, cosy, n, reasons); else setScore(n);
+  }, [link, cosy, reasons, save]);
 
-  // Wrong link = mislinked listing, nothing cosy to rate → log it and skip to the next.
-  const markLinkWrong = useCallback(() => submit("unsure", null, false), [submit]);
-
-  const toggleReason = useCallback((k: string) => {
-    setReasons((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; });
-  }, []);
-
-  const undo = useCallback(() => {
-    setHistory((h) => { if (!h.length) return h; setI(h[h.length - 1]); setDone((d) => Math.max(0, d - 1)); reset(); return h.slice(0, -1); });
-  }, [reset]);
+  const toggleReason = useCallback((k: string) => setReasons((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; }), []);
+  const undo = useCallback(() => setHistory((h) => { if (!h.length) return h; setI(h[h.length - 1]); setDone((d) => Math.max(0, d - 1)); resetCard(); return h.slice(0, -1); }), [resetCard]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
-      if (pending) { // score-picker mode: digits set the corrected score
-        if (/^[0-9]$/.test(e.key)) submit(pending, Number(e.key));
-        else if (e.key === "!") submit(pending, 10);
-        else if (e.key === "Enter") submit(pending, null);
-        else if (k === "z") setPending(null);
-        return;
-      }
-      if (e.key === "1" || k === "g") onVerdict("good");
-      else if (e.key === "2") onVerdict("too_high");
-      else if (e.key === "3") onVerdict("too_low");
-      else if (e.key === "4" || k === "u") onVerdict("unsure");
-      else if (k === "k") markLinkWrong();
-      else if (k === "j") setLinkOk(true);
+      if ((cosy === "too_high" || cosy === "too_low") && /^[0-9]$/.test(e.key)) { applyScore(Number(e.key)); return; }
+      if ((cosy === "too_high" || cosy === "too_low") && e.key === "!") { applyScore(10); return; }
+      if (k === "j") applyLink("ok");
+      else if (k === "k") applyLink("wrong");
+      else if (e.key === "1" || k === "g") applyCosy("good");
+      else if (e.key === "2") applyCosy("too_high");
+      else if (e.key === "3") applyCosy("too_low");
+      else if (e.key === "4" || k === "u") applyCosy("unsure");
       else if (k === "z") undo();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [pending, onVerdict, submit, undo]);
+  }, [cosy, applyLink, applyCosy, applyScore, undo]);
 
   const liveTotal = stats.total + done;
   const moe = liveTotal ? Math.round(196 * Math.sqrt(0.25 / liveTotal)) / 10 : null;
+  const linkDone = link != null;
+  const ratingDone = link === "wrong" || (cosy != null && (cosy === "good" || cosy === "unsure" || score != null));
+  const needScore = cosy === "too_high" || cosy === "too_low";
 
   return (
     <div>
@@ -109,31 +106,29 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
         <div style={{ fontSize: 12, color: C.muted }}>
           {liveTotal} graded · ±{moe ?? "—"}%{stats.agreement != null && <> · {stats.agreement}% agree</>}
           {stats.mae != null && <> · {stats.mae} avg miss</>}{stats.linkAccuracy != null && <> · {stats.linkAccuracy}% links ok</>}
-          {failed > 0 && <span style={{ color: C.bad }}> · {failed} save{failed > 1 ? "s" : ""} failed</span>}
+          {failed > 0 && <span style={{ color: C.bad }}> · {failed} failed</span>}
         </div>
       </div>
       <Bar done={liveTotal} target={150} />
-      <p style={{ fontSize: 12, color: C.muted, margin: "6px 0 14px" }}>
-        {ungradedCount} ungraded (borderline & flagged first). <b>1</b> right · <b>2</b> too high · <b>3</b> too low · <b>4</b> unsure · <b>j</b> link ok · <b>k</b> link wrong → skip · <b>z</b> undo. On too high/low, tap or type the score you&apos;d give (<b>!</b>=10, Enter=skip).
-      </p>
+      <p style={{ fontSize: 12, color: C.muted, margin: "6px 0 14px" }}>{ungraded} ungraded (borderline & flagged first). Answer both steps and the card advances automatically. <b>z</b> = undo.</p>
 
       {!cur ? (
         <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 14, padding: 28, textAlign: "center" }}>
           <p style={{ margin: 0, fontSize: 16 }}>Queue complete — {liveTotal} graded. 🎉</p>
-          <p style={{ color: C.muted, fontSize: 13 }}>Refresh for the next batch. Your labels already feed the score.</p>
+          <p style={{ color: C.muted, fontSize: 13 }}>Refresh for the next batch.</p>
         </div>
       ) : (
         <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 14, overflow: "hidden" }}>
           {cur.photo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={cur.photo} alt={cur.name} style={{ width: "100%", height: 300, objectFit: "cover", display: "block" }} />
+            <img src={cur.photo} alt={cur.name} style={{ width: "100%", height: 280, objectFit: "cover", display: "block" }} />
           ) : (
-            <div style={{ height: 110, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 13, background: "#0d120f" }}>no vetted photo — judge on data only</div>
+            <div style={{ height: 100, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 13, background: "#0d120f" }}>no vetted photo — judge on data only</div>
           )}
           <div style={{ padding: "16px 18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{cur.name || "(unnamed)"}</div>
+                <div style={{ fontSize: 19, fontWeight: 700 }}>{cur.name || "(unnamed)"}</div>
                 <div style={{ color: C.muted, fontSize: 13 }}>{[cur.city, cur.country].filter(Boolean).join(", ")} · confidence {cur.confidence}</div>
               </div>
               <div style={{ flexShrink: 0, textAlign: "center" }}>
@@ -141,59 +136,61 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
                 <div style={{ fontSize: 10, color: C.muted }}>AI cosy</div>
               </div>
             </div>
-
-            {cur.description && <p style={{ fontSize: 14, lineHeight: 1.5, margin: "10px 0 8px" }}>{cur.description}</p>}
+            {cur.description && <p style={{ fontSize: 13.5, lineHeight: 1.5, margin: "8px 0 6px", color: "#D7CFC3" }}>{cur.description}</p>}
             {cur.signals.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
                 {cur.signals.map((s, k) => <span key={k} style={{ fontSize: 11, color: C.muted, border: `1px solid ${C.line}`, borderRadius: 999, padding: "3px 9px" }}>{s}</span>)}
               </div>
             )}
-            {cur.issues.length > 0 && (
-              <div style={{ fontSize: 12, color: C.bad, marginBottom: 8 }}>
-                ⚠ {cur.issues.map((x) => x === "rating_name_only" ? "scored on name only — no real data" : x === "geo_outside_city" ? "coordinates fall outside the named city" : x).join(" · ")}
-              </div>
-            )}
+            {cur.issues.length > 0 && <div style={{ fontSize: 12, color: C.bad, marginBottom: 4 }}>⚠ {cur.issues.map((x) => x === "rating_name_only" ? "scored on name only" : x === "geo_outside_city" ? "coords outside city" : x).join(" · ")}</div>}
 
-            {/* Reason chips — the "why", optional, taps before verdict */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "10px 0" }}>
-              {REASONS.map((r) => (
-                <button key={r.key} onClick={() => toggleReason(r.key)} style={chip(reasons.has(r.key))}>{r.label}</button>
-              ))}
-            </div>
+            {/* STEP 1 — link */}
+            <Step n="1" label="Right hotel & correct link?" done={linkDone}>
+              <a href={cur.link} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: C.blue, textDecoration: "none", border: `1px solid ${C.line}`, borderRadius: 8, padding: "7px 12px" }}>Open link ↗</a>
+              <Choice active={link === "ok"} color={C.good} onClick={() => applyLink("ok")}>✓ Correct (j)</Choice>
+              <Choice active={link === "wrong"} color={C.bad} onClick={() => applyLink("wrong")}>✗ Wrong link → skip (k)</Choice>
+            </Step>
 
-            {/* Link check */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "10px 0", flexWrap: "wrap" }}>
-              <a href={cur.link} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: C.blue, textDecoration: "none", border: `1px solid ${C.line}`, borderRadius: 8, padding: "7px 12px" }}>Check link ↗</a>
-              <button onClick={() => setLinkOk(true)} style={pill(linkOk === true, C.good)}>link right (j)</button>
-              <button onClick={markLinkWrong} style={pill(linkOk === false, C.bad)}>link wrong → skip (k)</button>
-            </div>
-
-            {/* Verdict, or the corrected-score picker when too high/low is pending */}
-            {pending ? (
-              <div>
-                <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>
-                  Marked <b style={{ color: pending === "too_high" ? C.ember : C.blue }}>{pending === "too_high" ? "too high" : "too low"}</b> — what would YOU score it?
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
+            {/* STEP 2 — rating (disabled if link wrong) */}
+            <Step n="2" label="Is the cosy score right?" done={ratingDone} disabled={link === "wrong"}>
+              {link === "wrong" ? (
+                <span style={{ fontSize: 13, color: C.muted }}>Skipped — can&apos;t rate a mislinked hotel.</span>
+              ) : (
+                <>
+                  <Choice active={cosy === "good"} color={C.good} onClick={() => applyCosy("good")}>Right (1)</Choice>
+                  <Choice active={cosy === "too_high"} color={C.ember} onClick={() => applyCosy("too_high")}>Too high (2)</Choice>
+                  <Choice active={cosy === "too_low"} color={C.blue} onClick={() => applyCosy("too_low")}>Too low (3)</Choice>
+                  <Choice active={cosy === "unsure"} color={C.muted} onClick={() => applyCosy("unsure")}>Unsure (4)</Choice>
+                </>
+              )}
+            </Step>
+            {needScore && (
+              <div style={{ margin: "0 0 4px 26px" }}>
+                <div style={{ fontSize: 12, color: C.muted, marginBottom: 5 }}>What would you score it? (type 0–9, <b>!</b>=10)</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(11, 1fr)", gap: 5 }}>
                   {[0,1,2,3,4,5,6,7,8,9,10].map((n) => (
-                    <button key={n} onClick={() => submit(pending, n)} style={{ background: "transparent", color: C.ember, border: `1.5px solid ${C.ember}`, borderRadius: 8, padding: "12px 0", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>{n}</button>
+                    <button key={n} onClick={() => applyScore(n)} style={{ background: score === n ? C.ember : "transparent", color: score === n ? C.ink : C.ember, border: `1.5px solid ${C.ember}`, borderRadius: 7, padding: "10px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{n}</button>
                   ))}
-                  <button onClick={() => submit(pending, null)} style={{ background: "transparent", color: C.muted, border: `1px solid ${C.line}`, borderRadius: 8, padding: "12px 0", fontSize: 13, cursor: "pointer" }}>skip</button>
                 </div>
-                <button onClick={() => setPending(null)} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 12, marginTop: 8 }}>↶ back (z)</button>
-              </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
-                <Vbtn label="Right (1)" color={C.good} onClick={() => onVerdict("good")} />
-                <Vbtn label="Too high (2)" color={C.ember} onClick={() => onVerdict("too_high")} />
-                <Vbtn label="Too low (3)" color={C.blue} onClick={() => onVerdict("too_low")} />
-                <Vbtn label="Unsure (4)" color={C.muted} onClick={() => onVerdict("unsure")} />
               </div>
             )}
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 12, color: C.muted }}>
-              <span>{i + 1} / {queue.length}{cur.graded && " · already graded"}</span>
-              <button onClick={undo} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 12 }}>↶ undo (z)</button>
+            {/* optional reasons */}
+            {link !== "wrong" && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "10px 0 2px 26px" }}>
+                <span style={{ fontSize: 11, color: C.muted, alignSelf: "center" }}>why (optional):</span>
+                {REASONS.map((r) => <button key={r.key} onClick={() => toggleReason(r.key)} style={chip(reasons.has(r.key))}>{r.label}</button>)}
+              </div>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.line}` }}>
+              <div style={{ fontSize: 12, color: C.muted }}>
+                <Tick on={linkDone} /> link &nbsp; <Tick on={ratingDone} /> rating &nbsp;
+                <span style={{ color: linkDone && ratingDone ? C.good : C.muted }}>{linkDone && ratingDone ? "complete → advancing" : "answer both to continue"}</span>
+              </div>
+              <div style={{ fontSize: 12, color: C.muted }}>
+                {i + 1}/{queue.length} · <button onClick={undo} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 12 }}>↶ undo (z)</button>
+              </div>
             </div>
           </div>
         </div>
@@ -202,24 +199,29 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
   );
 }
 
-function Vbtn({ label, color, onClick }: { label: string; color: string; onClick: () => void }) {
+function Step({ n, label, done, disabled, children }: { n: string; label: string; done: boolean; disabled?: boolean; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} style={{ background: "transparent", color, border: `1.5px solid ${color}`, borderRadius: 10, padding: "12px 8px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{label}</button>
+    <div style={{ marginTop: 12, opacity: disabled ? 0.55 : 1 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+        <span style={{ width: 18, height: 18, borderRadius: 999, background: done ? C.good : "transparent", border: `1.5px solid ${done ? C.good : C.muted}`, color: C.ink, fontSize: 12, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{done ? "✓" : n}</span>
+        <span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginLeft: 26 }}>{children}</div>
+    </div>
   );
 }
-function pill(active: boolean, color: string): React.CSSProperties {
-  return { background: active ? color : "transparent", color: active ? "#0F1512" : color, border: `1px solid ${color}`, borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer" };
+function Choice({ active, color, onClick, children }: { active: boolean; color: string; onClick: () => void; children: React.ReactNode }) {
+  return <button onClick={onClick} style={{ background: active ? color : "transparent", color: active ? C.ink : color, border: `1.5px solid ${color}`, borderRadius: 9, padding: "9px 12px", fontSize: 13.5, fontWeight: 700, cursor: "pointer" }}>{children}</button>;
 }
+function Tick({ on }: { on: boolean }) { return <span style={{ color: on ? C.good : C.muted, fontWeight: 800 }}>{on ? "☑" : "☐"}</span>; }
 function chip(active: boolean): React.CSSProperties {
-  return { background: active ? C.muted : "transparent", color: active ? "#0F1512" : C.muted, border: `1px solid ${C.line}`, borderRadius: 999, padding: "5px 11px", fontSize: 12, cursor: "pointer" };
+  return { background: active ? C.muted : "transparent", color: active ? C.ink : C.muted, border: `1px solid ${C.line}`, borderRadius: 999, padding: "4px 10px", fontSize: 11.5, cursor: "pointer" };
 }
 function Bar({ done, target }: { done: number; target: number }) {
   const pct = Math.min(100, Math.round((done / target) * 100));
   return (
     <div style={{ marginTop: 10 }}>
-      <div style={{ height: 6, background: C.line, borderRadius: 999, overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: C.ember }} />
-      </div>
+      <div style={{ height: 6, background: C.line, borderRadius: 999, overflow: "hidden" }}><div style={{ width: `${pct}%`, height: "100%", background: C.ember }} /></div>
       <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{done} / {target} toward a solid confidence read</div>
     </div>
   );

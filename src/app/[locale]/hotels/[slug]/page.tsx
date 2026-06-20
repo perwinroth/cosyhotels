@@ -166,7 +166,12 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,lat,lng")
     .eq("slug", params.slug)
     .maybeSingle();
-  if (!hotel) return notFound();
+  if (!hotel) {
+    // Deduped/renamed hotels: 301 to the canonical slug rather than 404 (preserves SEO + links).
+    const { data: redir } = await db.from("hotel_slug_redirects").select("new_slug").eq("old_slug", params.slug).maybeSingle();
+    if (redir?.new_slug && redir.new_slug !== params.slug) permanentRedirect(`/${params.locale}/hotels/${redir.new_slug}`);
+    return notFound();
+  }
 
   const { data: scoreRow } = await db
     .from("cosy_scores")
