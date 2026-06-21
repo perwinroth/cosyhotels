@@ -37,7 +37,7 @@ function cleanCity(raw) {
 const PAGE = 1000;
 let from = 0, all = [];
 for (;;) {
-  const { data, error } = await db.from("hotels").select("id,name,city,lat,lng").range(from, from + PAGE - 1);
+  const { data, error } = await db.from("hotels").select("id,name,city,address,lat,lng").range(from, from + PAGE - 1);
   if (error) { console.error("query error:", error.message); process.exit(1); }
   if (!data || !data.length) break;
   all.push(...data);
@@ -49,9 +49,15 @@ console.log(`catalog hotels: ${all.length}`);
 const buckets = {};
 const changes = [];
 for (const h of all) {
-  const { clean, how } = cleanCity(h.city);
+  let { clean, how } = cleanCity(h.city);
+  // No city in the field (US "NY 10001", or stripped to empty) → recover it from the full
+  // address: "184 N Glade Rd, Swanton, MD 21561, USA" → "Swanton".
+  if ((how === "us_state_zip_nocity" || how === "emptied" || how === "empty") && h.address) {
+    const m = String(h.address).match(/,\s*([^,]+?),\s*[A-Z]{2}\s+\d{3,}/);
+    if (m) { clean = m[1].trim(); how = "from_address"; }
+  }
   buckets[how] = (buckets[how] || 0) + 1;
-  if (how === "stripped" && clean && clean !== h.city) changes.push({ id: h.id, from: h.city, to: clean });
+  if ((how === "stripped" || how === "from_address") && clean && clean !== h.city) changes.push({ id: h.id, from: h.city, to: clean });
 }
 console.log("\noutcome buckets:");
 for (const [k, v] of Object.entries(buckets).sort((a, b) => b[1] - a[1])) {
