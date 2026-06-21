@@ -10,18 +10,45 @@ export default function RateSwipe({ cards, rater }: { cards: Card[]; rater?: str
   const [i, setI] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [exiting, setExiting] = useState(false);
+  const [submitted, setSubmitted] = useState(0);
+  const [unsynced, setUnsynced] = useState(0);
   const startX = useRef<number | null>(null);
 
   // A ?as= name appendix wins; otherwise fall back to a previously saved local name.
   useEffect(() => { if (rater) { try { localStorage.setItem("cosy_rater", rater); } catch {} return; } try { const n = localStorage.getItem("cosy_rater"); if (n) setName(n); } catch {} }, [rater]);
 
+  // DURABLE save: each vote is written to THIS DEVICE first (localStorage queue), then synced
+  // with retry. Nothing is lost if the network/endpoint fails — pending votes persist across
+  // reloads and re-send. (This is why we silently lost the first round; never again.)
+  const pkey = name ? `cosy_pending_${name}` : "";
+  const readPending = useCallback((): Array<{ hotelId: string; grader: string; vote: boolean }> => {
+    try { return JSON.parse(localStorage.getItem(pkey) || "[]"); } catch { return []; }
+  }, [pkey]);
+  const flush = useCallback(async () => {
+    if (!pkey) return;
+    const pend = readPending();
+    if (!pend.length) { setUnsynced(0); return; }
+    const remaining: typeof pend = [];
+    for (const v of pend) {
+      try { const r = await fetch("/api/vote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(v) }); if (!r.ok) remaining.push(v); }
+      catch { remaining.push(v); }
+    }
+    try { localStorage.setItem(pkey, JSON.stringify(remaining)); } catch {}
+    setUnsynced(remaining.length);
+  }, [pkey, readPending]);
+  // On load, count any leftover pending as already-submitted, then sync it.
+  useEffect(() => { if (!name) return; const p = readPending(); setSubmitted((s) => Math.max(s, p.length)); void flush(); }, [name, readPending, flush]);
+
   const cur = cards[i];
+  const advance = useCallback((dir: number) => { setDragX(dir * 700); setExiting(true); window.setTimeout(() => { setExiting(false); setDragX(0); setI((x) => x + 1); }, 200); }, []);
   const commit = useCallback((vote: boolean) => {
     if (!cur || !name || exiting) return;
-    fetch("/api/vote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hotelId: cur.hotelId, grader: name, vote }) }).catch(() => {});
-    setDragX(vote ? 700 : -700); setExiting(true);
-    window.setTimeout(() => { setExiting(false); setDragX(0); setI((x) => x + 1); }, 200);
-  }, [cur, name, exiting]);
+    try { const p = readPending(); p.push({ hotelId: cur.hotelId, grader: name, vote }); localStorage.setItem(pkey, JSON.stringify(p)); setSubmitted((s) => s + 1); setUnsynced(p.length); } catch {}
+    advance(vote ? 1 : -1);
+    window.setTimeout(() => void flush(), 220);
+  }, [cur, name, exiting, pkey, readPending, advance, flush]);
+  // Image that won't load = unratable → skip without recording a vote (no broken cards block the run).
+  const skipBroken = useCallback(() => { if (!exiting) setI((x) => x + 1); }, [exiting]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "ArrowRight") commit(true); else if (e.key === "ArrowLeft") commit(false); };
@@ -70,7 +97,7 @@ export default function RateSwipe({ cards, rater }: { cards: Card[]; rater?: str
   return (
     <div style={{ paddingTop: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <span style={{ fontSize: 13, color: C.muted }}>Hi {name} 👋</span>
+        <span style={{ fontSize: 13, color: C.muted }}>Hi {name} 👋 · <span style={{ color: unsynced > 0 ? C.ember : C.good }}>{submitted - unsynced} saved{unsynced > 0 ? " · syncing…" : " ✓"}</span></span>
         <span style={{ fontSize: 13, color: C.muted }}>{i + 1} / {cards.length}</span>
       </div>
       <div style={{ height: 5, background: C.line, borderRadius: 999, overflow: "hidden", marginBottom: 14 }}>
@@ -83,7 +110,7 @@ export default function RateSwipe({ cards, rater }: { cards: Card[]; rater?: str
           transform: `translateX(${dragX}px) rotate(${rot}deg)`, transition: exiting || startX.current == null ? "transform .2s ease" : "none" }}>
         {cur.photo
           // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={cur.photo} alt="" draggable={false} style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} />
+          ? <img src={cur.photo} alt="" draggable={false} onError={skipBroken} style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} />
           : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: C.muted }}>no photo</div>}
         {/* gradient + name */}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(15,21,18,.9) 0%, rgba(15,21,18,0) 45%)" }} />
