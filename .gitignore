@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local data backups + throwaway debug scripts
+scripts/backups/
+scripts/_*.mjs
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
