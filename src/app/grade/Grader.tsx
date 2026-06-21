@@ -28,7 +28,8 @@ const REASONS: Array<{ key: string; label: string }> = [
   { key: "gem", label: "hidden gem" }, { key: "corporate", label: "corporate/chain" },
 ];
 
-export default function Grader({ queue, stats }: { queue: Candidate[]; stats: Stats }) {
+export default function Grader({ queue: initialQueue, stats }: { queue: Candidate[]; stats: Stats }) {
+  const [queue, setQueue] = useState(initialQueue);
   const [i, setI] = useState(0);
   const [link, setLink] = useState<Link>(null);
   const [cosy, setCosy] = useState<Verdict | null>(null);
@@ -48,18 +49,36 @@ export default function Grader({ queue, stats }: { queue: Candidate[]; stats: St
   const complete = (l: Link, c: Verdict | null, s: number | null) =>
     l === "wrong" || (l === "ok" && c != null && (c === "good" || c === "unsure" || s != null));
 
+  // Reliable save: keepalive lets the request survive the auto-advance re-render (the likely
+  // cause of the dropped grades), and we retry transient failures. Only on permanent failure
+  // do we count it failed AND re-queue the card, so a label is never silently lost.
+  const postGrade = useCallback(async (payload: Record<string, unknown>, tries = 3): Promise<boolean> => {
+    for (let t = 0; t < tries; t++) {
+      try {
+        const r = await fetch("/api/grade", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload), keepalive: true,
+        });
+        if (r.ok) return true;
+      } catch { /* network blip — retry */ }
+      await new Promise((res) => setTimeout(res, 300 * (t + 1)));
+    }
+    return false;
+  }, []);
+
   const save = useCallback((l: Link, c: Verdict | null, s: number | null, rs: Set<string>) => {
     if (!cur) return;
+    const card = cur;
     const verdict: Verdict = l === "wrong" ? "unsure" : (c ?? "unsure");
-    fetch("/api/grade", {
-      method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ hotelId: cur.hotelId, cosy_verdict: verdict, human_score: s, reasons: [...rs], link_ok: l === "ok" ? true : l === "wrong" ? false : null, ai_score: cur.score, ai_confidence: cur.confidence }),
-    }).then((r) => { if (!r.ok) setFailed((f) => f + 1); }).catch(() => setFailed((f) => f + 1));
+    const payload = { hotelId: card.hotelId, cosy_verdict: verdict, human_score: s, reasons: [...rs], link_ok: l === "ok" ? true : l === "wrong" ? false : null, ai_score: card.score, ai_confidence: card.confidence };
+    postGrade(payload).then((ok) => {
+      if (!ok) { setFailed((f) => f + 1); setQueue((prev) => [...prev, card]); setDone((d) => Math.max(0, d - 1)); }
+    });
     setHistory((h) => [...h, i]);
     setDone((d) => d + 1);
     resetCard();
     setI((x) => Math.min(x + 1, queue.length));
-  }, [cur, i, queue.length, resetCard]);
+  }, [cur, i, queue.length, resetCard, postGrade]);
 
   // Apply a state change and auto-advance the moment the card becomes complete.
   const applyLink = useCallback((l: Link) => {
