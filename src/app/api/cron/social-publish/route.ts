@@ -10,6 +10,7 @@
 //      BLOTATO_PINTEREST_BOARD_ID (required for Pinterest),
 //      BLOTATO_INSTAGRAM_ACCOUNT_ID (optional — when set, also posts to Instagram).
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityPin, hotelPinImageUrl, hotelPinDescription, populatedCities } from "@/lib/social";
 
@@ -18,6 +19,13 @@ export const maxDuration = 300;
 export const revalidate = 0;
 
 const BLOTATO = "https://backend.blotato.com";
+
+// A carousel needs at least this many real-photo slides to be worth posting (Instagram).
+// Below it we skip rather than publish a 1-image "carousel".
+const MIN_IG_SLIDES = 3;
+// A rendered badge below this mean brightness (0–255) is the black fallback (photo failed to
+// decode/fetch), not a real photo. Pure-black bg renders ~20; real photos sit well above.
+const MIN_BADGE_BRIGHTNESS = 32;
 
 async function blotato(path: string, body: unknown, key: string) {
   const res = await fetch(`${BLOTATO}${path}`, {
@@ -28,6 +36,23 @@ async function blotato(path: string, body: unknown, key: string) {
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`blotato ${path} ${res.status}: ${JSON.stringify(json).slice(0, 300)}`);
   return json as Record<string, unknown>;
+}
+
+// Render the badge ourselves and measure mean brightness so we never publish a black card.
+// Returns null on our own fetch error (don't over-drop on transient flakiness); 0 when the
+// badge endpoint itself failed (treat as black → drop).
+async function badgeBrightness(url: string): Promise<number | null> {
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!r.ok) return 0;
+    const buf = Buffer.from(await r.arrayBuffer());
+    const { data } = await sharp(buf).resize(40, 60, { fit: "fill" }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    let sum = 0;
+    for (const v of data) sum += v;
+    return sum / data.length;
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(req: Request) {
@@ -58,34 +83,55 @@ export async function GET(req: Request) {
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
 
-  // City: explicit ?city=, or auto-rotate one populated city per day.
+  // City: explicit ?city=, or auto-rotate. Rotation must land on a city that can actually fill
+  // a carousel — blindly cycling by day-index lands on villages (e.g. Giethoorn) with a single
+  // vetted photo, which then posts as a 1-image "carousel". So walk forward from today's index
+  // and pick the first city with enough photo slides (bounded scan to keep the cron cheap).
   let city = sp.get("city")?.trim() || "";
+  let pin = city ? await cityPin(db, city, base) : null;
   if (!city && auto) {
     const cities = await populatedCities(db);
     if (!cities.length) return NextResponse.json({ error: "no populated cities" }, { status: 404 });
     const dayIdx = Math.floor(Date.now() / 86_400_000);
-    city = cities[dayIdx % cities.length].city;
+    for (let i = 0; i < Math.min(cities.length, 25); i++) {
+      const c = cities[(dayIdx + i) % cities.length].city;
+      const p = await cityPin(db, c, base);
+      if (p.slides.length >= MIN_IG_SLIDES) { city = c; pin = p; break; }
+    }
+    if (!pin) { city = cities[dayIdx % cities.length].city; pin = await cityPin(db, city, base); }
   }
-  if (!city) return NextResponse.json({ error: "?city= or ?auto=1 required" }, { status: 400 });
-
-  const pin = await cityPin(db, city, base);
+  if (!city || !pin) return NextResponse.json({ error: "?city= or ?auto=1 required" }, { status: 400 });
   if (!pin.slides.length) return NextResponse.json({ error: `no publishable slides for ${city}` }, { status: 422 });
 
+  // Drop any slide whose badge renders black (photo failed to decode/fetch) before it can post.
+  const vetted = [];
+  for (const s of pin.slides) {
+    const b = await badgeBrightness(hotelPinImageUrl(base, s));
+    if (b !== null && b < MIN_BADGE_BRIGHTNESS) continue;
+    vetted.push(s);
+  }
+  if (!vetted.length) return NextResponse.json({ error: `all slides rendered black for ${city}` }, { status: 422 });
+
   // IG caption @-mentions the featured hotels (drives reposts); Pinterest uses a clean description.
-  const mentions = pin.slides.map((s) => s.instagram).filter(Boolean).join(" ");
+  const mentions = vetted.map((s) => s.instagram).filter(Boolean).join(" ");
   const igCaption = `${pin.description}${mentions ? `\n\nFeaturing ${mentions}` : ""}`;
 
   // Each hotel → its own badge image (photo + Cosy Score). Pinterest = one pin per hotel
   // (its single-image native format); Instagram = one carousel of all the badge images.
-  const badgeUrls = pin.slides.map((s) => hotelPinImageUrl(base, s));
+  const badgeUrls = vetted.map((s) => hotelPinImageUrl(base, s));
+  const dropped = pin.slides.length - vetted.length;
 
   if (dry) {
     return NextResponse.json({
-      dry: true, city, hotels: pin.slides.length,
+      dry: true, city, hotels: vetted.length, droppedBlack: dropped,
       pinterest: pinBoard
-        ? { account: pinAccount, board: pinBoard, pins: pin.slides.map((s) => ({ title: `${s.name} · ${s.city}`, score: s.score, link: pin.link, media: hotelPinImageUrl(base, s) })) }
+        ? { account: pinAccount, board: pinBoard, pins: vetted.map((s) => ({ title: `${s.name} · ${s.city}`, score: s.score, link: pin.link, media: hotelPinImageUrl(base, s) })) }
         : "(BLOTATO_PINTEREST_BOARD_ID unset)",
-      instagram: igAccount ? { account: igAccount, caption: igCaption, slides: badgeUrls.length } : "(not connected — set BLOTATO_INSTAGRAM_ACCOUNT_ID)",
+      instagram: igAccount
+        ? (vetted.length >= MIN_IG_SLIDES
+            ? { account: igAccount, caption: igCaption, slides: badgeUrls.length }
+            : `(would skip — only ${vetted.length} valid slide(s), need ${MIN_IG_SLIDES} for a carousel)`)
+        : "(not connected — set BLOTATO_INSTAGRAM_ACCOUNT_ID)",
     });
   }
 
@@ -101,7 +147,7 @@ export async function GET(req: Request) {
   // 1) Pinterest — ONE pin per hotel (single image), best Pinterest format + max discovery.
   if (pinBoard && only !== "instagram") {
     const pinResults: unknown[] = [];
-    for (const s of pin.slides) {
+    for (const s of vetted) {
       const hosted = await upload(hotelPinImageUrl(base, s));
       if (!hosted) { pinResults.push({ hotel: s.name, error: "media upload failed" }); continue; }
       const r = await blotato("/v2/posts", {
@@ -119,18 +165,23 @@ export async function GET(req: Request) {
     results.pinterest = "skipped — BLOTATO_PINTEREST_BOARD_ID unset";
   }
 
-  // 2) Instagram — ONE carousel of all the badge images (only if connected).
+  // 2) Instagram — ONE carousel of all the badge images (only if connected). Never post a
+  // sub-carousel: a 1–2 image "carousel" looks broken, so require MIN_IG_SLIDES.
   if (igAccount && only !== "pinterest") {
-    const hosted = (await Promise.all(badgeUrls.map(upload))).filter((u): u is string => !!u);
-    results.instagram = hosted.length
-      ? await blotato("/v2/posts", {
-          post: { accountId: igAccount, content: { text: igCaption, mediaUrls: hosted, platform: "instagram" }, target: { targetType: "instagram" } },
-          ...sched,
-        }, key).catch((e) => ({ error: String(e) }))
-      : { error: "no images uploaded" };
+    if (vetted.length < MIN_IG_SLIDES) {
+      results.instagram = `skipped — only ${vetted.length} valid slide(s), need ${MIN_IG_SLIDES} for a carousel`;
+    } else {
+      const hosted = (await Promise.all(badgeUrls.map(upload))).filter((u): u is string => !!u);
+      results.instagram = hosted.length >= MIN_IG_SLIDES
+        ? await blotato("/v2/posts", {
+            post: { accountId: igAccount, content: { text: igCaption, mediaUrls: hosted, platform: "instagram" }, target: { targetType: "instagram" } },
+            ...sched,
+          }, key).catch((e) => ({ error: String(e) }))
+        : { error: `only ${hosted.length} image(s) uploaded, need ${MIN_IG_SLIDES}` };
+    }
   } else {
     results.instagram = "skipped — not connected";
   }
 
-  return NextResponse.json({ city, published: !schedule, scheduledTime: schedule || null, hotels: pin.slides.length, results });
+  return NextResponse.json({ city, published: !schedule, scheduledTime: schedule || null, hotels: vetted.length, droppedBlack: dropped, results });
 }

@@ -3,6 +3,7 @@
 // badge must live IN the image. 1000×1500 (Pinterest 2:3).
 //   GET /api/social/hotel-pin?photo=<url>&score=8.5&name=Hotel%20X&city=Paris
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 
 export const runtime = "nodejs";
 
@@ -10,9 +11,26 @@ function safe(s: string): string {
   return (s || "").replace(/…/g, "...").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-").trim();
 }
 
+// satori (next/og) only decodes JPEG/PNG — a WebP/AVIF <img> silently renders as the black
+// background. So fetch the photo ourselves and transcode to a JPEG data URI (cover-cropped to
+// the 1000×1500 frame). Returns null on fetch/decode failure → caller renders without a photo
+// and the social-publish brightness guard drops the black card before it posts.
+async function photoDataUri(url: string): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000), redirect: "follow" });
+    if (!r.ok) return null;
+    const buf = Buffer.from(await r.arrayBuffer());
+    const jpeg = await sharp(buf).resize(1000, 1500, { fit: "cover", position: "centre" }).jpeg({ quality: 82 }).toBuffer();
+    return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: Request) {
   const p = new URL(req.url).searchParams;
-  const photo = p.get("photo") || "";
+  const photo = await photoDataUri(p.get("photo") || "");
   const name = safe(p.get("name") || "").slice(0, 48);
   const city = safe(p.get("city") || "");
   const score = Number(p.get("score")) || 0;
