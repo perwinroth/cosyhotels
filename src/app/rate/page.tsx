@@ -15,7 +15,10 @@ const chunk = <T,>(a: T[], n: number): T[][] => { const o: T[][] = []; for (let 
 
 type ScoreRow = { hotel_id: string; score: number | null; hotel: { name: string; name_en: string | null; city: string | null; country: string | null } | null };
 
-export default async function RatePage() {
+export default async function RatePage({ searchParams }: { searchParams?: { as?: string; u?: string; name?: string } }) {
+  // Name appendix: /rate?as=anna pre-fills the rater so you can send each friend their own
+  // link (clean attribution, no typos, skips the name step). Falls back to the in-app prompt.
+  const rater = String(searchParams?.as || searchParams?.u || searchParams?.name || "").trim().toLowerCase().slice(0, 40) || null;
   const db = getServerSupabase();
   if (!db) return <Shell><p style={{ color: "#F3EEE6" }}>Not configured.</p></Shell>;
 
@@ -56,7 +59,7 @@ export default async function RatePage() {
     .slice(0, SET_SIZE)
     .map(({ _k, score, ...c }) => { void _k; void score; return c; }); // strip score — friends never see it
 
-  return <Shell><RateSwipe cards={cards} /></Shell>;
+  return <Shell><RateSwipe cards={cards} rater={rater} /></Shell>;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {

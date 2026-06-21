@@ -4,15 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export type Card = { hotelId: string; name: string; city: string; photo: string };
 const C = { ember: "#E08A4B", card: "#16201A", line: "#243029", muted: "#9DA89F", good: "#5FBF77", bad: "#E0654B", ink: "#0F1512" };
 
-export default function RateSwipe({ cards }: { cards: Card[] }) {
-  const [name, setName] = useState<string | null>(null);
+export default function RateSwipe({ cards, rater }: { cards: Card[]; rater?: string | null }) {
+  const [name, setName] = useState<string | null>(rater || null);
   const [nameInput, setNameInput] = useState("");
   const [i, setI] = useState(0);
   const [dragX, setDragX] = useState(0);
   const [exiting, setExiting] = useState(false);
   const startX = useRef<number | null>(null);
 
-  useEffect(() => { try { const n = localStorage.getItem("cosy_rater"); if (n) setName(n); } catch {} }, []);
+  // A ?as= name appendix wins; otherwise fall back to a previously saved local name.
+  useEffect(() => { if (rater) { try { localStorage.setItem("cosy_rater", rater); } catch {} return; } try { const n = localStorage.getItem("cosy_rater"); if (n) setName(n); } catch {} }, [rater]);
 
   const cur = cards[i];
   const commit = useCallback((vote: boolean) => {
