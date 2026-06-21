@@ -49,18 +49,15 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <body className={`antialiased`} style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <header className="sticky top-0 z-30 border-b" style={{ borderColor: 'var(--line)', background: 'rgba(15,21,18,0.82)', backdropFilter: 'blur(12px)' }}>
-          <div className="mx-auto max-w-6xl px-4 h-[68px] flex items-center justify-between">
-            <Link href={`/`} className="flex items-center gap-2.5 no-underline">
+          {/* Clean header: logo + search only. The three content links (City guides, Cosy
+              score, For-hotels) live site-wide in the footer, so removing them here keeps the
+              internal-link/SEO value while decluttering the top. Same on desktop and mobile. */}
+          <div className="mx-auto max-w-6xl px-4 h-[68px] flex items-center justify-between gap-3">
+            <Link href={`/`} className="flex items-center gap-2.5 no-underline shrink-0">
               <span aria-hidden className="flex items-center justify-center rounded-[11px] font-display font-bold" style={{ width: 36, height: 36, background: 'linear-gradient(135deg, var(--ember), var(--gold))', color: '#16201C', fontSize: 17 }}>c</span>
               <span className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>Got Cosy?</span>
             </Link>
-            <nav className="flex gap-7 text-sm items-center" style={{ color: 'var(--muted)' }}>
-              <Link href={`/${locale}/guides`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">City guides</Link>
-              <Link href={`/${locale}/cosy-score`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Cosy score</Link>
-              <Link href={`/${locale}/for-hotels`} prefetch={false} className="no-underline hover:text-[#F3EEE6]">Get your cosy score</Link>
-              <HeaderSearch locale={locale} />
-              {/* Language switcher hidden until translations ship (all locales currently render English). */}
-            </nav>
+            <HeaderSearch locale={locale} />
           </div>
         </header>
         <main className="min-h-[75vh]">{children}</main>

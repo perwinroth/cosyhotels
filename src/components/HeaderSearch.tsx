@@ -14,15 +14,15 @@ export default function HeaderSearch({ locale }: { locale: string }) {
         if (!city.trim()) return;
         router.push(`/${locale}/guides/${cityToSlug(city)}`);
       }}
-      className="hidden md:block"
+      className="ml-auto"
     >
       <input
         value={city}
         onChange={(e) => setCity(e.target.value)}
         placeholder="Search a city…"
         aria-label="Search a city"
-        className="rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1"
-        style={{ border: "1px solid var(--line)", background: "var(--card)", color: "var(--foreground)", width: 150 }}
+        className="rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 w-36 sm:w-44"
+        style={{ border: "1px solid var(--line)", background: "var(--card)", color: "var(--foreground)" }}
       />
     </form>
   );
