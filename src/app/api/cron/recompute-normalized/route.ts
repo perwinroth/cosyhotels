@@ -31,8 +31,12 @@ export async function POST() {
     const to = Math.min(n - 1, off + pageSize - 1);
     const { data, error } = await db.from("cosy_scores").select("hotel_id, raw_score").order("raw_score", { ascending: true }).range(off, to);
     if (error || !data) continue;
-    const ups = (data as Array<{ hotel_id: string; raw_score: number | null }>).map(({ hotel_id, raw_score }) => {
-      const raw = typeof raw_score === 'number' ? raw_score : 0;
+    const ups = (data as Array<{ hotel_id: string; raw_score: number | null }>)
+      // Never re-map rows without a raw_score — they were never normalized, and `?? 0` would
+      // silently zero ~34% of the catalogue. Skip them so a re-run can't destroy live scores.
+      .filter(({ raw_score }) => typeof raw_score === 'number')
+      .map(({ hotel_id, raw_score }) => {
+      const raw = raw_score as number;
       // Map so p90 -> 9.0, p99 -> 9.8, clamp 0..10
       let calibrated = raw;
       if (raw <= p90) {
