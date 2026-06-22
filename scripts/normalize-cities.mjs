@@ -13,6 +13,23 @@ const db = createClient(
 );
 const EXECUTE = process.argv.includes("--execute");
 
+// Local-language → canonical English city name, so cleaned cities match the KNOWN city list
+// (src/lib/citySlug.ts) and group onto the right /guides page + rank for English SEO.
+const ALIAS = {
+  "Roma": "Rome", "Venezia": "Venice", "Firenze": "Florence", "Milano": "Milan",
+  "Napoli": "Naples", "Torino": "Turin", "Genova": "Genoa", "Padova": "Padua",
+  "Venezia Mestre": "Venice", "Roma Capitale": "Rome",
+  "München": "Munich", "Köln": "Cologne", "Nürnberg": "Nuremberg", "Wien": "Vienna",
+  "Praha": "Prague", "Lisboa": "Lisbon", "Porto": "Porto",
+  "Sevilla": "Seville", "Cádiz": "Cadiz", "Córdoba": "Cordoba",
+  "Bruxelles": "Brussels", "Brussel": "Brussels", "Antwerpen": "Antwerp", "Gent": "Ghent",
+  "Den Haag": "The Hague", "København": "Copenhagen", "Göteborg": "Gothenburg",
+  "Warszawa": "Warsaw", "Kraków": "Krakow", "Wrocław": "Wroclaw", "Gdańsk": "Gdansk",
+  "Moskva": "Moscow", "Genève": "Geneva", "Zürich": "Zurich", "Athína": "Athens",
+  "Lëtzebuerg": "Luxembourg", "Reykjavík": "Reykjavik",
+};
+function canonical(s) { return ALIAS[s] || s; }
+
 // Returns { clean, how }. `how` buckets the outcome so we can see recoverable vs needs-geocode.
 function cleanCity(raw) {
   if (!raw) return { clean: "", how: "empty" };
@@ -56,8 +73,11 @@ for (const h of all) {
     const m = String(h.address).match(/,\s*([^,]+?),\s*[A-Z]{2}\s+\d{3,}/);
     if (m) { clean = m[1].trim(); how = "from_address"; }
   }
+  // Canonicalize local→English (Venezia→Venice) on whatever we ended with.
+  const canon = clean ? canonical(clean) : clean;
+  if (canon !== clean) { how = how === "unchanged" ? "aliased" : `${how}+aliased`; clean = canon; }
   buckets[how] = (buckets[how] || 0) + 1;
-  if ((how === "stripped" || how === "from_address") && clean && clean !== h.city) changes.push({ id: h.id, from: h.city, to: clean });
+  if (clean && clean !== h.city) changes.push({ id: h.id, from: h.city, to: clean });
 }
 console.log("\noutcome buckets:");
 for (const [k, v] of Object.entries(buckets).sort((a, b) => b[1] - a[1])) {
