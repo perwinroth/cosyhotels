@@ -46,9 +46,9 @@ export default async function LocaleLayout({
 }>) {
   const { locale } = await params;
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`antialiased`} style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
-        <header className="sticky top-0 z-30 border-b" style={{ borderColor: 'var(--line)', background: 'rgba(15,21,18,0.82)', backdropFilter: 'blur(12px)' }}>
+        <header className="sticky top-0 z-30 border-b" style={{ borderColor: 'var(--line)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}>
           {/* Clean header: logo + search only. The three content links (City guides, Cosy
               score, For-hotels) live site-wide in the footer, so removing them here keeps the
               internal-link/SEO value while decluttering the top. Same on desktop and mobile. */}

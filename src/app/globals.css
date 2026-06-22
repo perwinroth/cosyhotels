@@ -16,6 +16,7 @@
   --foreground: #F3EEE6;   /* warm cream ink */
   --muted: #9DA89F;        /* muted sage-grey text */
   --line: #2A332D;         /* hairline borders */
+  --header-bg: rgba(15,21,18,.82); /* frosted sticky header */
 
   /* accents */
   --ember: #E08A4B;        /* amber — primary accent / CTA */
@@ -26,6 +27,25 @@
   /* elevation */
   --shadow: 0 1px 2px rgba(0,0,0,.30), 0 16px 40px rgba(0,0,0,.36);
   --shadow-lg: 0 24px 60px rgba(0,0,0,.45);
+}
+
+/* Light theme — "Warm Paper": the SAME design + boutique hues, inverted onto cream.
+   Opt-in via data-theme="light" on <html> (set by ThemeToggle + the no-flash script in the
+   root layout). Default stays dark, so existing visitors see no change. */
+[data-theme="light"] {
+  --background: #FAF7F1;   /* warm cream paper */
+  --surface-2: #F1EADD;    /* deeper cream (footer, fills) */
+  --card: #FFFFFF;         /* clean raised card */
+  --foreground: #1C2420;   /* deep forest ink */
+  --muted: #6B746C;        /* muted sage-grey text */
+  --line: #E6DECF;         /* warm hairline */
+  --header-bg: rgba(250,247,241,.82);
+  --ember: #D2783A;        /* amber, deepened for contrast on light */
+  --ember-ink: #B5642A;
+  --sage: #4F7E6C;
+  --gold: #A87F2E;
+  --shadow: 0 1px 2px rgba(28,36,32,.06), 0 16px 40px rgba(28,36,32,.10);
+  --shadow-lg: 0 24px 60px rgba(28,36,32,.16);
 }
 
 @theme inline {
