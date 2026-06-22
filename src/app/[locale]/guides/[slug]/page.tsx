@@ -3,6 +3,7 @@ import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
+import ShareButton from "@/components/ShareButton";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { populatedCities } from "@/lib/social";
 import { FACETS, matchesFacet } from "@/lib/facets";
@@ -361,7 +362,10 @@ export default async function GuidePage({ params }: Props) {
   };
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">{h1}</h1>
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="text-2xl font-semibold">{h1}</h1>
+        <div className="flex-none"><ShareButton title={`Cosy hotels in ${cityName}`} /></div>
+      </div>
       <p className="mt-2" style={{ color: 'var(--muted)' }}>{intro}</p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />

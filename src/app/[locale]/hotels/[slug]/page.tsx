@@ -7,6 +7,7 @@ import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { stay22AllezUrl } from "@/lib/affiliates";
+import ShareButton from "@/components/ShareButton";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { unstable_cache } from "next/cache";
@@ -227,8 +228,13 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(hotelJsonLd) }} />
-      <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>
-      <div className="mt-1.5 text-base" style={{ color: 'var(--muted)' }}>{[hotel.city, hotel.country].filter(Boolean).join(', ')}</div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>
+          <div className="mt-1.5 text-base" style={{ color: 'var(--muted)' }}>{[hotel.city, hotel.country].filter(Boolean).join(', ')}</div>
+        </div>
+        <div className="flex-none pt-1"><ShareButton title={`${hotel.name} — cosy hotel in ${hotel.city || ''}`} /></div>
+      </div>
 
       {photo && (
         <div className="relative mt-5 w-full overflow-hidden rounded-2xl" style={{ aspectRatio: "16/9", border: "1px solid var(--line)" }}>
