@@ -1,5 +1,6 @@
 import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { badLinkHotelIds } from "@/lib/linkQuality";
 import { getImageForHotel } from "@/lib/hotelImages";
 
 export const runtime = 'nodejs';
@@ -43,7 +44,8 @@ async function ensureFeatured(force = false): Promise<EnsureFeaturedResult> {
     .order('score_final', { ascending: false, nullsFirst: false })
     .order('score', { ascending: false })
     .limit(60);
-  const list = ((rows || []) as unknown as Row[]).filter((r) => r.hotel);
+  const bad = await badLinkHotelIds(db);
+  const list = ((rows || []) as unknown as Row[]).filter((r) => r.hotel && !bad.has(String(r.hotel.id)));
   const seen = new Set<string>();
   const picks: Array<{ h: NonNullable<Row['hotel']>; s: number }> = [];
   for (const r of list) {

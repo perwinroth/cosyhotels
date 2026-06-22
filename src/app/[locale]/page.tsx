@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { badLinkHotelIds } from "@/lib/linkQuality";
 import { cityGuides } from "@/data/cityGuides";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { SearchBar } from "@/components/HomeSections";
@@ -55,7 +56,8 @@ async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>):
     .order("score_final", { ascending: false, nullsFirst: false })
     .order("score", { ascending: false })
     .limit(20);
-  const list = ((data || []) as unknown as Row[]).filter((r) => r.hotel?.slug);
+  const bad = await badLinkHotelIds(db);
+  const list = ((data || []) as unknown as Row[]).filter((r) => !!r.hotel?.slug && !bad.has(String(r.hotel!.id)));
   const seen = new Set<string>();
   const picks: TopHotel[] = [];
   for (const r of list) {

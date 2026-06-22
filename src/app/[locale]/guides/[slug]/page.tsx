@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { badLinkHotelIds } from "@/lib/linkQuality";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { populatedCities } from "@/lib/social";
 import { FACETS, matchesFacet } from "@/lib/facets";
@@ -198,6 +199,7 @@ export default async function GuidePage({ params }: Props) {
       hotels = [...hotels, ...geoHotels];
     }
   }
+  const bad = await badLinkHotelIds(db);
   const ids = hotels.map((h) => String(h.id));
   const scoreMap = new Map<string, number>();
   const signalsMap = new Map<string, string[]>();
@@ -231,6 +233,7 @@ export default async function GuidePage({ params }: Props) {
   };
   const seenId = new Set<string>();
   const scored = hotels.filter((h) => {
+    if (bad.has(String(h.id))) return false;
     const k = identKey(h);
     if (seenId.has(k)) return false;
     seenId.add(k);

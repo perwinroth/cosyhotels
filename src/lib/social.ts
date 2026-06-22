@@ -2,6 +2,7 @@
 // all read the same source and produce identical pins. Server-only (uses Supabase).
 import type { getServerSupabase } from "@/lib/supabase/server";
 import { cityToSlug } from "@/lib/citySlug";
+import { badLinkHotelIds } from "@/lib/linkQuality";
 
 type DB = NonNullable<ReturnType<typeof getServerSupabase>>;
 
@@ -67,11 +68,12 @@ export async function cityPin(db: DB, city: string, base: string): Promise<CityP
     .ilike("hotel.city", `%${city}%`)
     .order("score", { ascending: false })
     .limit(24);
+  const bad = await badLinkHotelIds(db);
   const seen = new Set<string>();
   const candidates: Array<{ id: string; name: string; score: number; instagram: string | null }> = [];
   for (const r of (data || []) as unknown as Array<{ hotel_id: string | null; score: number | null; score_final: number | null; hotel: { name: string; name_en: string | null; instagram: string | null } | null }>) {
     const nm = ((r.hotel?.name_en || r.hotel?.name) || "").replace(/[|~]/g, " ").trim();
-    if (!nm || !r.hotel_id || seen.has(nm)) continue;
+    if (!nm || !r.hotel_id || seen.has(nm) || bad.has(String(r.hotel_id))) continue;
     seen.add(nm);
     const sc = (typeof r.score_final === "number" ? r.score_final : Number(r.score)) || 0;
     const ig = r.hotel?.instagram ? `@${String(r.hotel.instagram).replace(/^@/, "")}` : null;
