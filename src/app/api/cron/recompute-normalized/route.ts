@@ -37,15 +37,15 @@ export async function POST() {
       .filter(({ raw_score }) => typeof raw_score === 'number')
       .map(({ hotel_id, raw_score }) => {
       const raw = raw_score as number;
-      // Map so p90 -> 9.0, p99 -> 9.8, clamp 0..10
+      // Honest anchors (retuned 2026-06-22 from the inflating p50->7): median reads 5.0,
+      // top 10% reads 6.5, top 1% reads 8.5. Clamp 0..10.
       let calibrated = raw;
       if (raw <= p90) {
-        // Squeeze below p90 gently around 7
         const t = (raw - p50) / Math.max(0.0001, (p90 - p50));
-        calibrated = 7.0 + t * 2.0; // p50->7, p90->9
+        calibrated = 5.0 + t * 1.5; // p50->5.0, p90->6.5
       } else {
         const t = (raw - p90) / Math.max(0.0001, (p99 - p90));
-        calibrated = 9.0 + t * 0.8; // p90->9, p99->9.8
+        calibrated = 6.5 + t * 2.0; // p90->6.5, p99->8.5
       }
       calibrated = Math.max(0, Math.min(10, calibrated));
       return { hotel_id, calibrated_score: calibrated, score: calibrated } as { hotel_id: string; calibrated_score: number; score: number };
