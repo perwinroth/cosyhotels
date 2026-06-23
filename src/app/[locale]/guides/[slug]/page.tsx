@@ -281,13 +281,16 @@ export default async function GuidePage({ params }: Props) {
   try {
     const { data: imgRows } = await db
       .from('hotel_images')
-      .select('hotel_id,url,created_at')
+      .select('hotel_id,url,created_at,vision_ok')
       .in('hotel_id', idsForImgs)
       .order('created_at', { ascending: false });
-    for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null }>) {
+    for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null; vision_ok: boolean | null }>) {
       const hid = row.hotel_id ? String(row.hotel_id) : '';
       const url = row.url ? String(row.url) : '';
-      if (!hid || !url || url.includes('placehold.co')) continue;
+      // Skip photos the vision QA confirmed as junk (vision_ok=false) — e.g. gift vouchers,
+      // logos, maps — and placeholders. Keep vetted (true) + not-yet-checked (null). Newest
+      // non-junk image per hotel wins (rows are ordered created_at desc).
+      if (!hid || !url || row.vision_ok === false || url.includes('placehold.co')) continue;
       if (!imgMap.has(hid)) imgMap.set(hid, url);
     }
   } catch {}
