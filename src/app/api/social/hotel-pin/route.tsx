@@ -41,13 +41,14 @@ export async function GET(req: Request) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {photo ? <img src={photo} alt="" width={1000} height={1500} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
         {/* top gradient + brand */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 220, display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: 40, background: "linear-gradient(rgba(15,21,18,.75), rgba(15,21,18,0))" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 220, display: "flex", justifyContent: "flex-start", alignItems: "flex-start", padding: 40, background: "linear-gradient(rgba(15,21,18,.75), rgba(15,21,18,0))" }}>
           <div style={{ color: "#F3EEE6", fontSize: 30, fontWeight: 700, letterSpacing: 4 }}>GOT COSY?</div>
-          {/* Cosy score badge */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "#E08A4B", borderRadius: 22, padding: "14px 22px", boxShadow: "0 6px 24px rgba(0,0,0,.35)" }}>
-            <div style={{ fontSize: 58, fontWeight: 800, color: "#1d2a22", lineHeight: 1 }}>{score.toFixed(1)}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: 3, color: "#3a2a16", marginTop: 4 }}>COSY SCORE</div>
-          </div>
+        </div>
+        {/* Cosy score badge — placed BELOW Instagram's square grid-crop line (~y250 of 1500) so
+            it's never cropped in the profile grid; still visible in the 4:5 feed crop. */}
+        <div style={{ position: "absolute", top: 296, right: 40, display: "flex", flexDirection: "column", alignItems: "center", background: "#E08A4B", borderRadius: 22, padding: "14px 22px", boxShadow: "0 6px 24px rgba(0,0,0,.35)" }}>
+          <div style={{ fontSize: 58, fontWeight: 800, color: "#1d2a22", lineHeight: 1 }}>{score.toFixed(1)}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: 3, color: "#3a2a16", marginTop: 4 }}>COSY SCORE</div>
         </div>
         {/* bottom gradient + name/city */}
         <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", padding: 50, background: "linear-gradient(rgba(15,21,18,0), rgba(15,21,18,.92))" }}>
