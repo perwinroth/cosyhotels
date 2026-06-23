@@ -33,6 +33,32 @@ export default async function GrowthPage() {
     count("hotels", (q) => q.not("name_en", "is", null)),
   ]);
 
+  // In-app funnel from first-party events (empty until 2026_events.sql is applied + traffic flows).
+  type Ev = { type: string; source: string | null; visitor: string | null };
+  let funnel: { pageviews: number; visitors: number; clicks: number; ctr: number; bySource: Array<{ source: string; visitors: number; views: number; clicks: number; ctr: number }> } | null = null;
+  let funnelError = false;
+  try {
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const { data: ev, error } = await db.from("events").select("type,source,visitor").gte("ts", since).limit(50000);
+    if (error) throw error;
+    const rows = (ev || []) as Ev[];
+    const pv = rows.filter((r) => r.type === "pageview");
+    const ck = rows.filter((r) => r.type === "cta_click");
+    const bySrc = new Map<string, { views: number; clicks: number; vis: Set<string> }>();
+    const bump = (s: string | null, kind: "v" | "c", vid: string | null) => {
+      const key = s || "direct";
+      const e = bySrc.get(key) || { views: 0, clicks: 0, vis: new Set<string>() };
+      if (kind === "v") { e.views++; if (vid) e.vis.add(vid); } else e.clicks++;
+      bySrc.set(key, e);
+    };
+    pv.forEach((r) => bump(r.source, "v", r.visitor));
+    ck.forEach((r) => bump(r.source, "c", r.visitor));
+    const bySource = [...bySrc.entries()]
+      .map(([source, e]) => ({ source, visitors: e.vis.size, views: e.views, clicks: e.clicks, ctr: e.views ? Math.round((100 * e.clicks) / e.views) : 0 }))
+      .sort((a, b) => b.views - a.views);
+    funnel = { pageviews: pv.length, visitors: new Set(pv.map((r) => r.visitor).filter(Boolean)).size, clicks: ck.length, ctr: pv.length ? Math.round((100 * ck.length) / pv.length) : 0, bySource };
+  } catch { funnelError = true; }
+
   const Stat = ({ label, value, sub }: { label: string; value: string | number; sub?: string }) => (
     <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 16 }}>
       <div style={{ fontSize: 28, fontWeight: 800, color: "#F3EEE6" }}>{value}</div>
@@ -55,7 +81,34 @@ export default async function GrowthPage() {
         <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0 }}>Growth dashboard</h1>
         <p style={{ color: "#9DA89F", marginTop: 8, fontSize: 14 }}>In-app content inventory + readiness. Live traffic/affiliate/social numbers live in the external dashboards linked below — watch those for the metrics that actually matter.</p>
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 24 }}>Content inventory</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 24 }}>Traffic &amp; funnel — last 30 days (in-app)</h2>
+        {funnelError ? (
+          <p style={{ color: "#E0654B", fontSize: 13, marginTop: 8 }}>events table not found — apply <code>supabase/2026_events.sql</code> in the Supabase SQL editor, then traffic populates here automatically.</p>
+        ) : funnel && funnel.pageviews > 0 ? (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginTop: 12 }}>
+              <Stat label="Unique visitors" value={funnel.visitors.toLocaleString()} />
+              <Stat label="Pageviews" value={funnel.pageviews.toLocaleString()} />
+              <Stat label="CTA clicks" value={funnel.clicks.toLocaleString()} sub="check availability" />
+              <Stat label="Click-through rate" value={`${funnel.ctr}%`} sub="clicks / pageviews" />
+            </div>
+            <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr .8fr", padding: "10px 14px", fontSize: 11, color: "#6f7a72", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>
+                <span>Source</span><span>Visitors</span><span>Pageviews</span><span>CTA clicks</span><span>CTR</span>
+              </div>
+              {funnel.bySource.map((src) => (
+                <div key={src.source} style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr .8fr", padding: "10px 14px", borderTop: "1px solid #243029", fontSize: 14 }}>
+                  <span style={{ fontWeight: 600 }}>{src.source}</span><span>{src.visitors.toLocaleString()}</span><span>{src.views.toLocaleString()}</span><span>{src.clicks.toLocaleString()}</span><span style={{ color: "#7FB7A2" }}>{src.ctr}%</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ color: "#6f7a72", fontSize: 11, marginTop: 8 }}>Funnel per source: <strong>visit → CTA click</strong> — the part we control. Stay22 has no public reporting API/postback, so booking + revenue stay in their dashboard (campaign-attributed — slice by city there). The CTA click is our best in-app proxy for intent-to-book.</p>
+          </>
+        ) : (
+          <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 8 }}>No events yet. Once <code>2026_events.sql</code> is applied and visitors arrive, traffic, unique visitors and source→click funnels appear here.</p>
+        )}
+
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Content inventory</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginTop: 12 }}>
           <Stat label="Cities live" value={cities} />
           <Stat label="Hotels scored" value={scored.toLocaleString()} />
