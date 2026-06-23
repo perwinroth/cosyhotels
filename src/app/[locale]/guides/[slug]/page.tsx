@@ -64,8 +64,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!g) {
     const cg = getCityGuide(params.slug);
     if (cg) {
-      const titleBase = `${cg.city} cosy hotels – AI-scored for cosiness`;
-      const descBase = `Cosy and romantic boutique hotels in ${cg.city}, each scored 0–10 for cosiness by AI.`;
+      const titleBase = `Cosy & Boutique Hotels in ${cg.city} – AI-Scored for Cosiness`;
+      const descBase = `The cosiest boutique hotels in ${cg.city}, each AI-scored 0–10 for warmth, character and intimacy — ranked best first. Cosy, romantic and independent stays, not corporate chains.`;
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
       const url = `/${params.locale}/guides/${cg.slug}`;
@@ -338,7 +338,7 @@ export default async function GuidePage({ params }: Props) {
     })),
   };
   const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
-  const h1 = (m.guides?.h1_city || '{city} cosy hotels').replace('{city}', cityName);
+  const h1 = (m.guides?.h1_city || 'Cosy & boutique hotels in {city}').replace('{city}', cityName);
   // Data-derived, unique-per-city intro (no two pages read the same): real cosy count + top pick.
   const cosyCount = sorted.filter((x) => x.s >= COSY_FLOOR).length;
   const topPick = chosen[0];
