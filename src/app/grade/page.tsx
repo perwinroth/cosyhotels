@@ -29,7 +29,12 @@ type ScoreRow = {
 
 const chunk = <T,>(a: T[], n: number): T[][] => { const o: T[][] = []; for (let i = 0; i < a.length; i += n) o.push(a.slice(i, i + n)); return o; };
 
-export default async function GradePage() {
+export default async function GradePage({ searchParams }: { searchParams: Promise<{ min?: string }> }) {
+  const sp = await searchParams;
+  // ?min=9.5 → "grade the top" focus mode: surface the highest-scored hotels first (e.g. to
+  // sanity-check suspected over-scores). Default 4 keeps the normal borderline-first queue.
+  const minScore = sp?.min != null && sp.min !== "" ? Math.max(0, Math.min(10, Number(sp.min))) : 4;
+  const focus = minScore > 6.5;
   const db = getServerSupabase();
   if (!db) return <Shell><p>Supabase not configured.</p></Shell>;
 
@@ -37,7 +42,7 @@ export default async function GradePage() {
   const { data: scoreData } = await db
     .from("cosy_scores")
     .select("hotel_id, score, score_final, signals, description, confidence, hotel:hotel_id!inner(id, slug, name, name_en, city, country, lat, lng, website, reviews_count, amenities, rooms_count, rating)")
-    .gte("score", 4)
+    .gte("score", minScore)
     .order("score", { ascending: false })
     .limit(800);
   const rows = (scoreData || []) as unknown as ScoreRow[];
@@ -70,7 +75,9 @@ export default async function GradePage() {
     const isGraded = gradedIds.has(h.id);
     const borderline = score >= 4 && score <= 6.5 ? 1 : 0;
     const flagged = qa.issues.length > 0 ? 1 : 0;
-    const pri = (isGraded ? 0 : 1000) + borderline * 100 + flagged * 50 + Math.round((6.5 - Math.abs(score - 5.25)) * 5);
+    const pri = focus
+      ? (isGraded ? 0 : 1000) + Math.round(score * 100) // focus: highest scores first
+      : (isGraded ? 0 : 1000) + borderline * 100 + flagged * 50 + Math.round((6.5 - Math.abs(score - 5.25)) * 5);
     candidates.push({
       _pri: pri,
       hotelId: h.id,

@@ -186,9 +186,12 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   // Real cached photo only (no placeholder).
   let photo: string | null = null;
   try {
-    const { data: imgs } = await db.from("hotel_images").select("url,created_at").eq("hotel_id", hotel.id).order("created_at", { ascending: false });
-    for (const r of (imgs || []) as Array<{ url: string | null }>) {
-      if (r.url && !r.url.includes("placehold.co")) { photo = r.url; break; }
+    const { data: imgs } = await db.from("hotel_images").select("url,created_at,vision_ok").eq("hotel_id", hotel.id).order("created_at", { ascending: false });
+    // Skip vision-QA-rejected junk (vision_ok=false), placeholders, and obvious non-photos by
+    // URL (logos, Wi-Fi/icon graphics, tiny square thumbnails) — so a hotel page never shows junk.
+    const JUNK = /logo|favicon|wi-?fi|sprite|qr[-_]?code|\bicon\b|\bbadge\b|\/\d{2,3}[-x_]\d{2,3}[-_.]/i;
+    for (const r of (imgs || []) as Array<{ url: string | null; vision_ok: boolean | null }>) {
+      if (r.url && r.vision_ok !== false && !r.url.includes("placehold.co") && !JUNK.test(r.url)) { photo = r.url; break; }
     }
   } catch {}
 
