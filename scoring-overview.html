@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How a hotel gets its cosy score</title>
+<style>
+  :root{
+    --bg:#0F1512; --panel:#161D19; --panel2:#1B241F; --line:#2A352E;
+    --ink:#F3EEE6; --muted:#9DB0A6; --faint:#6E817700;
+    --amber:#E0A458; --amber2:#D98A4E; --green:#7FB069; --red:#E0846F; --blue:#7FA8C9;
+    --r:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #18211C 0%, var(--bg) 60%);
+    color:var(--ink); font:16px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    padding:40px 20px 80px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:30px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 34px;font-size:16px}
+  .sub b{color:var(--ink);font-weight:600}
+
+  /* flow */
+  .flow{display:flex;flex-direction:column;gap:0;align-items:center}
+  .stage{width:100%;max-width:680px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+  .card .lab{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+  .card h3{margin:0 0 6px;font-size:18px;letter-spacing:-.01em}
+  .card p{margin:0;color:var(--muted);font-size:14.5px}
+  .ico{font-size:20px;margin-right:8px;vertical-align:-2px}
+
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:620px){.pair{grid-template-columns:1fr}}
+
+  .arrow{height:34px;width:2px;background:linear-gradient(var(--line),var(--amber2));position:relative;margin:6px 0}
+  .arrow:after{content:"";position:absolute;bottom:-1px;left:-4px;border:5px solid transparent;border-top-color:var(--amber2)}
+  .merge{height:26px}
+
+  .scorer{border-color:var(--amber2);background:linear-gradient(180deg,#1E2620,#191F1B);position:relative;overflow:hidden}
+  .scorer:before{content:"";position:absolute;inset:0;background:radial-gradient(400px 120px at 20% 0,rgba(224,164,88,.12),transparent 70%)}
+  .scorer h3{font-size:20px}
+  .calib{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+  .calib .pill{flex:0 0 auto;background:#20281F;border:1px solid #38492f;color:var(--green);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600}
+  .calib span{color:var(--muted);font-size:13.5px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .chip{background:#10160F00;border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:12.5px;color:var(--ink)}
+
+  /* score result */
+  .result{display:flex;align-items:center;gap:16px;border-color:#3a4a3f;background:linear-gradient(180deg,#1c2520,#161d19)}
+  .badge{flex:0 0 auto;width:74px;height:74px;border-radius:18px;background:linear-gradient(160deg,var(--amber),var(--amber2));color:#1a130a;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;box-shadow:0 6px 22px rgba(224,164,88,.25)}
+  .badge b{font-size:26px;line-height:1}
+  .badge i{font-style:normal;font-size:10px;letter-spacing:.06em;opacity:.7}
+
+  /* pins */
+  .pins{display:flex;gap:8px;margin-top:12px}
+  .pin{flex:1;text-align:center;background:#10160F00;border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .pin b{display:block;font-size:18px;color:var(--amber)}
+  .pin span{font-size:11.5px;color:var(--muted)}
+
+  /* the catch */
+  .catch{margin-top:46px;border:1px solid #4a342e;background:linear-gradient(180deg,#221a17,#181412);border-radius:var(--r);padding:24px}
+  .catch h2{margin:0 0 4px;font-size:21px}
+  .catch .lab{color:var(--red)}
+  .bar{display:flex;height:42px;border-radius:10px;overflow:hidden;margin:16px 0 8px;border:1px solid var(--line)}
+  .seg{display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#0e120f;white-space:nowrap}
+  .seg.blind{background:repeating-linear-gradient(45deg,#3a4640,#3a4640 8px,#333f39 8px,#333f39 16px);color:var(--muted);flex-grow:1}
+  .seg.photo{background:var(--green);flex:0 0 auto;min-width:60px}
+  .legend{display:flex;gap:18px;color:var(--muted);font-size:13px;flex-wrap:wrap}
+  .legend i{font-style:normal;color:var(--ink);font-weight:600}
+  .catch p{color:var(--muted);font-size:14.5px;margin:14px 0 0}
+  .catch p b{color:var(--ink)}
+
+  /* fix */
+  .fix{margin-top:20px;border:1px solid #2f4636;background:linear-gradient(180deg,#162017,#141a16);border-radius:var(--r);padding:24px}
+  .fix h2{margin:0 0 14px;font-size:21px}
+  .fix .lab{color:var(--green)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:620px){.steps{grid-template-columns:1fr}}
+  .step{background:#10160F00;border:1px solid var(--line);border-radius:12px;padding:14px}
+  .step .n{width:24px;height:24px;border-radius:7px;background:var(--green);color:#0e120f;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px;margin-bottom:9px}
+  .step h4{margin:0 0 5px;font-size:15px}
+  .step p{margin:0;color:var(--muted);font-size:13px}
+  .step b{color:var(--amber)}
+
+  .foot{color:#5f7268;font-size:12px;margin-top:36px;text-align:center}
+  .num{color:var(--amber);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>How a hotel gets its cosy score</h1>
+  <p class="sub">One model reads the words <b>and</b> looks at the photo, then your gradings teach it your taste. Here is the whole pipeline — and the one place it currently breaks.</p>
+
+  <div class="flow">
+
+    <!-- INPUTS -->
+    <div class="stage">
+      <div class="pair">
+        <div class="card">
+          <p class="lab"><span class="ico">📝</span>What we read</p>
+          <h3>The words</h3>
+          <p>Everything written about the hotel.</p>
+          <div class="chips"><span class="chip">name</span><span class="chip">city</span><span class="chip">amenities</span><span class="chip">reviews</span><span class="chip">description</span><span class="chip">stars</span></div>
+        </div>
+        <div class="card">
+          <p class="lab"><span class="ico">📷</span>What we see</p>
+          <h3>The photo</h3>
+          <p>Real photos of the actual rooms — the reality check on the words.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- IMAGE ASSESSOR -->
+    <div class="stage">
+      <div class="card" style="border-color:#3a4659">
+        <p class="lab" style="color:var(--blue)"><span class="ico">👁️</span>Image assessor · free, local</p>
+        <h3>A vision model rates the photo</h3>
+        <p>Looks <b style="color:var(--ink)">only</b> at the picture: how cosy does it actually look (0–10), and is it even a real room (not a logo, lobby, pool or car park)? It does <b style="color:var(--ink)">not</b> set the score — it just hands the scorer an honest read of the photo.</p>
+        <div class="chips"><span class="chip">was: Claude Haiku (paid)</span><span class="chip" style="border-color:#3a4659;color:var(--blue)">now: Qwen on your Mac (free)</span></div>
+      </div>
+    </div>
+
+    <div class="arrow merge"></div>
+
+    <!-- SCORER -->
+    <div class="stage">
+      <div class="card scorer">
+        <p class="lab"><span class="ico">🧠</span>The scorer · weighs everything</p>
+        <h3>Claude weighs the words + the photo’s verdict + your taste</h3>
+        <p>One model combines the written signals and the image assessor’s read into a single cosiness score. Deterministic — the same hotel always scores the same.</p>
+        <div class="calib">
+          <span class="pill">🎓 112 of your gradings</span>
+          <span>Your &amp; your friends’ labels are fed in as “match this taste” examples — the score learns your judgement without any retraining.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- RAW -->
+    <div class="stage">
+      <div class="card">
+        <p class="lab">Raw score</p>
+        <h3>0–100, honest but uneven</h3>
+        <p>A first-pass number before it’s made comparable across the whole catalog.</p>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- NORMALISE -->
+    <div class="stage">
+      <div class="card">
+        <p class="lab"><span class="ico">⚖️</span>Normalise</p>
+        <h3>Spread it so the number means something</h3>
+        <p>Pinned against the whole catalog so “8.5” is genuinely rare, not handed out freely.</p>
+        <div class="pins">
+          <div class="pin"><b>5.0</b><span>typical</span></div>
+          <div class="pin"><b>6.5</b><span>good</span></div>
+          <div class="pin"><b>8.5</b><span>exceptional</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- RESULT -->
+    <div class="stage">
+      <div class="card result">
+        <div class="badge"><b>8.4</b><i>COSY</i></div>
+        <div>
+          <p class="lab">What the visitor sees</p>
+          <h3 style="margin-bottom:2px">The score on the hotel card</h3>
+          <p>Plus the signals that earned it — and the affiliate link to book.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- THE CATCH -->
+  <div class="catch">
+    <p class="lab" style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 4px">⚠️ The catch</p>
+    <h2>Almost everything was scored blind</h2>
+    <div class="bar">
+      <div class="seg blind">17,442 scored blind — words only</div>
+      <div class="seg photo">845</div>
+    </div>
+    <div class="legend">
+      <span><i>845</i> scored with a photo (4.6%)</span>
+      <span><i>17,442</i> scored blind — no photo (95.4%)</span>
+    </div>
+    <p>A blind score guesses cosiness from words alone. “Cosy boutique” in the name pushes the score up <b>even if the real room is a sterile box</b>. That’s why a handful score 9–10 wrongly: <b>103 of the 131 top scores never saw a photo.</b></p>
+  </div>
+
+  <!-- THE FIX -->
+  <div class="fix">
+    <p class="lab" style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 4px">✅ The fix</p>
+    <h2>Give it eyes, then re-score</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h4>Recover photos</h4>
+        <p><b>3,186</b> hotels now have a usable photo (and climbing as the sweep runs).</p>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h4>Read the photo for free</h4>
+        <p><b>Qwen</b> does Haiku’s old image job on your Mac at no cost — that vision signal lets the scorer correct the blind over-scores.</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h4>You keep grading</h4>
+        <p>Every hotel you grade sharpens the taste calibration — <b>112</b> so far.</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">gotcosy.com · scoring overview · numbers are live from the catalog (18,287 scored of 18,299 hotels)</p>
+</div>
+</body>
+</html>

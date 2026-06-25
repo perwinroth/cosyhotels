@@ -44,3 +44,6 @@ scripts/_*.mjs
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# transient in-session scoring batch (downloaded photos + results)
+scripts/_score_batch/

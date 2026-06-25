@@ -22,7 +22,7 @@ const TIMEOUT = 8000;
 
 // Reject non-photo junk that hotels put in og:image / first <img>: logos, icons, flags,
 // QR codes, banners, payment/social badges, cookie/consent graphics, locale flags, SVGs.
-const JUNK_IMG = /(logo|icon|sprite|favicon|placeholder|weather|bookcdn|polylang|\/mini\.|qr[-_]?code|qrcode|\bflag\b|flags?\/|banner|cookie|consent|gdpr|badge|payment|visa|mastercard|paypal|coat[-_]?of[-_]?arms|emblem|crest|\.svg(\?|$)|[a-z]{2}[-_][A-Z]{2}\.(?:png|jpe?g|gif))/i;
+const JUNK_IMG = /(logo|icon|wi-?fi|sprite|favicon|placeholder|dummy|ghost|blank|fallback|\bvector\b|ogp|og[-_]?image|ogimg|kachel|screenshot|coming[-_]?soon|social[-_]?media|weather|bookcdn|polylang|\/mini\.|qr[-_]?code|qrcode|\bflag\b|flags?\/|banner|cookie|consent|gdpr|badge|payment|visa|mastercard|paypal|coat[-_]?of[-_]?arms|emblem|crest|\.svg(\?|$)|[a-z]{2}[-_][A-Z]{2}\.(?:png|jpe?g|gif))/i;
 
 async function fetchText(url: string): Promise<string | null> {
   const controller = new AbortController();
@@ -104,7 +104,7 @@ async function fromWebsite(website?: string | null, exclude?: Set<string>): Prom
     return { url: meta, source: 'website', attribution: null };
   }
   // 2) Fallback: scan <img> + CSS background-image for the first large photo.
-  const JUNK = /(logo|icon|sprite|favicon|thumb|avatar|pixel|spacer|blank|placeholder|banner-ad|loader|btn|button|arrow|flag|badge|seal|whatsapp|facebook|instagram|twitter|payment|visa|mastercard|cookie|map|weather|bookcdn|polylang|\/mini\.|[a-z]{2}_[A-Z]{2}\.(?:png|jpe?g|svg))/i;
+  const JUNK = /(logo|icon|wi-?fi|sprite|favicon|thumb|avatar|pixel|spacer|blank|placeholder|dummy|ghost|fallback|\bvector\b|ogp|og[-_]?image|ogimg|kachel|screenshot|coming[-_]?soon|social[-_]?media|banner-ad|loader|btn|button|arrow|flag|badge|seal|whatsapp|facebook|instagram|twitter|payment|visa|mastercard|cookie|map|weather|bookcdn|polylang|\/mini\.|[a-z]{2}_[A-Z]{2}\.(?:png|jpe?g|svg))/i;
   const cand: string[] = [];
   for (const m of html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+)["']/gi)) {
     const u = abs(m[1], website);
@@ -210,6 +210,24 @@ function isObjLocal(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
 
+// ---------- 3b) Instagram profile og:image (LAST RESORT) ----------
+// IG blocks scraping of actual posts, so the only fetchable image is the profile og:image —
+// usually a logo (the JUNK_IMG filter drops most). Low yield, but free; fetched from the
+// caller's IP (residential, when run from a local script) so it sometimes succeeds.
+async function fromInstagram(handle?: string | null, exclude?: Set<string>): Promise<ResolvedImage | null> {
+  const h = (handle || '').replace(/^@/, '').trim();
+  if (!h || !/^[A-Za-z0-9._]{1,40}$/.test(h)) return null;
+  const html = await fetchText(`https://www.instagram.com/${encodeURIComponent(h)}/`);
+  if (!html) return null;
+  const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+        || html.match(/"profile_pic_url_hd"\s*:\s*"([^"]+)"/i);
+  const u = m?.[1] ? abs(m[1].replace(/\\u0026/g, '&'), 'https://www.instagram.com') : null;
+  if (u && !exclude?.has(u) && !JUNK_IMG.test(u) && await headOk(u)) {
+    return { url: u, source: 'website', attribution: `Instagram @${h}` };
+  }
+  return null;
+}
+
 export type ImageResolveInput = {
   name: string;
   website?: string | null;
@@ -218,6 +236,7 @@ export type ImageResolveInput = {
   lat?: number | null;
   lng?: number | null;
   city?: string | null;
+  instagram?: string | null; // optional IG handle — last-resort profile og:image (low yield: often a logo)
   exclude?: string[]; // URLs to skip (e.g. an image that already failed vision QA) so a
                       // re-resolve returns a genuinely DIFFERENT photo, not the same junk.
 };
@@ -245,6 +264,10 @@ export async function resolveHotelImage(input: ImageResolveInput): Promise<Resol
   const geo = notExcluded(await fromCommonsGeo(input.name, input.lat, input.lng));
   if (geo) return geo;
 
-  // 4) Placeholder
+  // 4) Instagram profile og:image (last resort — often a logo, junk-filtered)
+  const ig = notExcluded(await fromInstagram(input.instagram, exclude));
+  if (ig) return ig;
+
+  // 5) Placeholder
   return { url: placeholderUrl, source: 'placeholder', attribution: null };
 }

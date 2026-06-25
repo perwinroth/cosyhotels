@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cosyhotels — Architecture Map</title>
+<style>
+  :root{
+    --bg:#0F0F0F; --panel:#161616; --panel-2:#1c1c1c; --border:#2a2a2a;
+    --text:#e8e8e8; --muted:#8a8a8a;
+    --client:#4ea1ff; --route:#7bd389; --service:#c792ea; --db:#ffb86b;
+    --external:#ff6b9d; --critical:#ff3860; --accent:#f5b942; --accent-2:#ff7a45;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;overflow:hidden}
+  #top{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;gap:8px;
+    padding:0 14px;background:linear-gradient(#161616,#121212);border-bottom:1px solid var(--border);z-index:10}
+  #top h1{font-size:14px;font-weight:600;margin:0 14px 0 0;letter-spacing:.3px;white-space:nowrap}
+  #top h1 b{color:var(--accent)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;overflow:hidden}
+  .chip{font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid var(--border);
+    background:var(--panel-2);color:var(--muted);cursor:pointer;white-space:nowrap;transition:.12s}
+  .chip:hover{color:var(--text);border-color:#3a3a3a}
+  .chip.on{background:var(--accent);color:#1a1a1a;border-color:var(--accent);font-weight:600}
+  .chip.crit.on{background:var(--critical);color:#fff;border-color:var(--critical)}
+  .chip.bugs.on{background:var(--external);color:#fff;border-color:var(--external)}
+  #stage{position:absolute;top:52px;left:0;right:340px;bottom:0;overflow:hidden;cursor:grab}
+  #stage.drag{cursor:grabbing}
+  svg{width:100%;height:100%;display:block;user-select:none}
+  .clbox{fill-opacity:.10;stroke-opacity:.5;rx:14}
+  .cllabel{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;fill-opacity:.65}
+  .node{cursor:pointer}
+  .node rect{rx:9;transition:opacity .15s}
+  .node .nl{font-size:12.5px;font-weight:600;fill:var(--text)}
+  .node .ns{font-size:10.5px;fill:var(--muted)}
+  .node.dim{opacity:.13}
+  .edge{fill:none;stroke-width:1.4;opacity:.5;transition:opacity .15s}
+  .edge.dim{opacity:.04}
+  .edge.hot{opacity:.95;stroke-width:2.2}
+  .elabel{font-size:10px;fill:#9a9a9a}
+  .elabel.dim{opacity:.05}
+  .badge-f{fill:var(--route)} .badge-b{fill:var(--critical)}
+  .badge-t{font-size:9px;font-weight:700;fill:#0c0c0c}
+  #side{position:fixed;top:52px;right:0;bottom:0;width:340px;background:var(--panel);
+    border-left:1px solid var(--border);padding:16px 16px 40px;overflow-y:auto}
+  #side h2{font-size:15px;margin:0 0 2px}
+  #side .path{font-size:11px;color:var(--accent);font-family:ui-monospace,Menlo,monospace;word-break:break-all;margin:4px 0 10px}
+  #side .role{font-size:13px;line-height:1.5;margin:0 0 8px}
+  #side .plain{font-size:12.5px;line-height:1.55;color:#cfcfcf;background:var(--panel-2);
+    border-left:2px solid var(--accent);padding:8px 10px;border-radius:0 6px 6px 0;margin:0 0 10px}
+  #side h3{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:14px 0 6px}
+  #side ul{margin:0;padding-left:16px} #side li{font-size:12px;line-height:1.55;margin-bottom:4px;color:#d2d2d2}
+  .fix{color:var(--route)} .bug{color:#ff7088}
+  .bug .sev{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;margin-right:5px;background:#3a1520;color:#ff8a9e}
+  .bug .sev.high{background:#4a1020;color:#ff5d78}
+  .ekind{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
+  #ctrls{position:fixed;left:14px;bottom:14px;display:flex;gap:6px;z-index:10}
+  #ctrls button{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);
+    background:var(--panel-2);color:var(--text);font-size:16px;cursor:pointer}
+  #ctrls button:hover{border-color:#3a3a3a}
+  .legend{position:fixed;left:60px;bottom:16px;display:flex;gap:12px;font-size:11px;color:var(--muted);align-items:center}
+  .legend span{display:flex;align-items:center;gap:4px}
+  .lg{width:18px;height:3px;border-radius:2px;display:inline-block}
+</style>
+</head>
+<body>
+<div id="top">
+  <h1>Cosy<b>hotels</b> · architecture</h1>
+  <div class="chips" id="chips"></div>
+</div>
+<div id="stage">
+  <svg id="svg" viewBox="0 0 2200 1560" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#6a6a6a"/></marker>
+      <marker id="arrowc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="#ff3860"/></marker>
+    </defs>
+    <g id="world"></g>
+  </svg>
+</div>
+<div id="side"></div>
+<div id="ctrls"><button id="fit" title="Fit">⊡</button><button id="zin">+</button><button id="zout">−</button></div>
+<div class="legend">
+  <span><i class="lg" style="background:#ff3860"></i>critical</span>
+  <span><i class="lg" style="background:#ff7a45"></i>API</span>
+  <span><i class="lg" style="background:#ffb86b"></i>DB</span>
+  <span><i class="lg" style="background:#4ea1ff"></i>mount</span>
+  <span><i class="lg" style="background:#6a6a6a"></i>normal</span>
+</div>
+
+<script>
+const C = {client:'#4ea1ff',route:'#7bd389',service:'#c792ea',db:'#ffb86b',external:'#ff6b9d',critical:'#ff3860'};
+const EK = {critical:'#ff3860',api:'#ff7a45',db:'#ffb86b',mount:'#4ea1ff',normal:'#6a6a6a'};
+
+const clusters = [
+  {id:'client',  label:'Client',        x:20,  y:64, w:300, h:1020, color:C.client},
+  {id:'pages',   label:'Pages',         x:362, y:64, w:300, h:1300, color:C.route},
+  {id:'api',     label:'API · Crons',   x:704, y:64, w:330, h:1460, color:C.route},
+  {id:'service', label:'Services / lib',x:1076,y:64, w:310, h:1460, color:C.service},
+  {id:'data',    label:'Data · Supabase',x:1428,y:64,w:280, h:1140, color:C.db},
+  {id:'external',label:'External',      x:1750,y:64, w:300, h:940,  color:C.external},
+];
+
+const N=(id,cluster,label,sub,x,y,w,h,color,opts={})=>({id,cluster,label,sub,x,y,w,h,color:C[color],...opts});
+const NH=64,NW=270;
+const col={client:40,pages:382,api:724,service:1096,data:1448,external:1770};
+
+const nodes=[
+  // CLIENT
+  N('theme','client','ThemeToggle.tsx','round ☀/☾ toggle',col.client,110,250,NH,'client',{role:'Light/dark theme toggle, sets data-theme on <html>.',plain:'The little sun/moon button that switches the whole site between dark and light.',path:'src/components/ThemeToggle.tsx',notes:['Persists choice in localStorage','No-flash init script lives in root layout'],tag:['overview','theme','all']}),
+  N('share','client','ShareButton.tsx','native sheet + popover',col.client,196,250,NH,'client',{role:'Subtle round share icon: Web Share API on mobile, copy-link popover on desktop.',plain:'The share button on hotel and city pages. On a phone it opens the normal share menu; on a computer a small Copy-link menu.',path:'src/components/ShareButton.tsx',notes:['Redesigned to icon-only (share clicks <1% of views)','Platforms: Copy link, Pinterest, WhatsApp, X'],tag:['overview','share','all']}),
+  N('badge','client','BadgeEmbed.tsx','"Rated Cosy" embed',col.client,282,250,NH,'client',{role:'Copy-paste embed snippet for hotels to backlink to their ranking.',plain:'On each hotel page, a code a hotel can paste on their own website to show their cosy score — and it links back to us (free backlinks).',path:'src/components/BadgeEmbed.tsx',notes:['Pulls /api/badge SVG','Link carries utm_source=badge'],tag:['backlinks','all']}),
+  N('analytics','client','Analytics.tsx','pageview + CTA log',col.client,368,250,NH,'client',{role:'Logs pageviews + CTA clicks to GA, Vercel, and first-party /api/track.',plain:'Invisible tracker. Records each page view and each "Check availability" click so the growth dashboard can show where visitors come from.',path:'src/components/Analytics.tsx',notes:['sendBeacon → /api/track','Session source attribution (utm survives navigation)','Lives in [locale] layout (homepage uses root layout — coverage gap)'],tag:['overview','growth','all'],critical:true}),
+  N('hsearch','client','HeaderSearch.tsx','city search',col.client,454,250,NH,'client',{role:'Header city autocomplete; routes to /guides/{city}.',plain:'The search box in the header — type a city, land on its cosy-hotels page.',path:'src/components/HeaderSearch.tsx',notes:['Autocomplete from local cities (Amadeus killed)'],tag:['overview','all']}),
+  N('grader','client','grade/Grader.tsx','keyboard grader',col.client,540,250,NH,'client',{role:'Owner-only Tinder-style grader; writes human cosy/link labels.',plain:'Your private tool to rate hotels by keyboard — is the score right, is the link right — building ground truth.',path:'src/app/grade/Grader.tsx',notes:['Durable saves: keepalive + retry + re-queue (was losing ~30%)','Posts to /api/grade'],tag:['scoring','grading','all']}),
+
+  // PAGES
+  N('home','pages','[locale]/page.tsx','homepage',col.pages,110,NW,NH,'route',{role:'Home: hero + top-3 cosy hotels + city chips.',plain:'The front page — headline, the three cosiest hotels, and city shortcuts.',path:'src/app/[locale]/page.tsx',notes:['Also served at / via src/app/page.tsx (root layout) — dual-html quirk','Excludes link_ok=false hotels'],tag:['overview','all'],critical:true}),
+  N('guide','pages','guides/[slug]/page.tsx','city ranking','',col.pages,210,NW,NH,'route',{role:'The canonical city page: AI-ranked cosy hotels for a city.',plain:'The main product page — "Cosy & boutique hotels in {city}", ranked best first, with photos and scores. Where social/SEO traffic lands.',path:'src/app/[locale]/guides/[slug]/page.tsx',notes:['Targets "boutique hotels {city}" (higher volume)','Skips vision_ok=false junk photos','Links facet roundups + excludes bad links'],tag:['overview','scoring','seo','all'],critical:true}),
+  N('hotel','pages','hotels/[slug]/page.tsx','hotel detail',col.pages,310,NW,NH,'route',{role:'Single hotel: photo, cosy score, description, Stay22 CTA, share, badge.',plain:'One hotel’s page — its photo, score, a sentence about it, the booking button, share + the embeddable badge.',path:'src/app/[locale]/hotels/[slug]/page.tsx',notes:['Skips vision_ok=false + junk-URL images (logos/wifi)','301-redirects merged-away slugs'],tag:['overview','scoring','all'],critical:true}),
+  N('facet','pages','cosy-hotels/[facet]/[city]','thematic roundups',col.pages,410,NW,NH,'route',{role:'Long-tail: "cosy hotels with a fireplace in {city}", data-backed.',plain:'Themed lists — fireplace, romantic, spa, views — built only from hotels whose data actually mentions it.',path:'src/app/[locale]/cosy-hotels/[facet]/[city]/page.tsx',notes:['Facets: fireplace/romantic/spa/boutique/views','Linked from guide pages (not yet in sitemap)'],tag:['seo','all']}),
+  N('cindex','pages','cosy-index/page.tsx','flagship ranking',col.pages,510,NW,NH,'route',{role:'Cross-city flagship "cosiest hotels" index.',plain:'A top-list across all cities — the page to pitch for press/backlinks.',path:'src/app/[locale]/cosy-index/page.tsx',notes:['Backlink/data-PR asset'],tag:['backlinks','all']}),
+  N('gradep','pages','grade/page.tsx','grade queue',col.pages,610,NW,NH,'route',{role:'Builds the grading queue (borderline/flagged first; ?min=9.5 focus).',plain:'Server side of the grader — picks which hotels to show you. ?min=9.5 surfaces the suspected over-scores.',path:'src/app/grade/page.tsx',notes:['?min=9.5 focus mode (top scores first)','Dedupes by clean name+city'],tag:['scoring','grading','all']}),
+  N('growthp','pages','growth/page.tsx','growth dashboard',col.pages,710,NW,NH,'route',{role:'In-app traffic + source→CTA funnel + content inventory.',plain:'Your dashboard — visitors, clicks, which source drives traffic, and what content exists.',path:'src/app/growth/page.tsx',notes:['Reads events table','Booking/revenue stays in Stay22 (no API)'],tag:['growth','all']}),
+  N('posts','pages','posts/page.tsx','social preview',col.pages,810,NW,NH,'route',{role:'Previews exactly what publishes per city to social.',plain:'A preview of the social posts before they go out.',path:'src/app/posts/page.tsx',notes:['Mirrors cityPin output'],tag:['social','all']}),
+  N('today','pages','today/page.tsx','manual Pinterest queue',col.pages,910,NW,NH,'route',{role:'One-click manual Pinterest posting queue (warm-up).',plain:'A queue of ready-to-pin hotels for posting Pinterest by hand while the account warms up.',path:'src/app/today/page.tsx',notes:['Pinterest warm-up workaround'],tag:['social','all']}),
+  N('rate','pages','rate/page.tsx','friend vote','',col.pages,1010,NW,NH,'route',{role:'Tinder-style friend cosiness vote (multi-rater baseline).',plain:'A swipe game for friends to vote cosy/not — a second opinion beyond your own grading.',path:'src/app/rate/page.tsx',notes:['Writes cosy_votes','AI score hidden for independence'],tag:['grading','all']}),
+
+  // API / CRONS
+  N('rescore','api','cron/recompute-scores','SCORING cron',col.api,110,290,NH,'route',{role:'Re-scores hotels with Claude + calibration anchors; writes cosy_scores.',plain:'The job that asks the AI to score hotels. Costs money — currently the bottleneck for fixing accuracy.',path:'src/app/api/cron/recompute-scores/route.ts',notes:['Calls claudeCosyScore with calibration','OFF-BUDGET right now'],tag:['scoring','all'],critical:true}),
+  N('renorm','api','cron/recompute-normalized','percentile curve',col.api,196,290,NH,'route',{role:'Maps raw_score percentiles onto the 0–10 display curve.',plain:'Grades the scores on a curve so they spread across 0–10. The "pins" decide how generous the numbers look.',path:'src/app/api/cron/recompute-normalized/route.ts',notes:['Pins retuned to honest 5.0/6.5/8.5','Null-raw guard (won’t zero un-scored rows)','raw>p99 still extrapolates → the bogus 10s'],tag:['scoring','all'],critical:true}),
+  N('spublish','api','cron/social-publish','carousel publisher',col.api,282,290,NH,'route',{role:'Builds a city carousel → Blotato → Pinterest/Instagram.',plain:'The job that posts a city’s cosiest hotels to social media.',path:'src/app/api/cron/social-publish/route.ts',notes:['webp→jpeg badges, brightness guard, min-3 slides','Smart city rotation (skips villages)'],tag:['social','all']}),
+  N('igdaily','api','cron/instagram-daily','daily IG trigger',col.api,368,290,NH,'route',{role:'13:00 UTC cron → social-publish?auto=1&only=instagram.',plain:'The daily alarm that triggers an Instagram post.',path:'src/app/api/cron/instagram-daily/route.ts',notes:['Verified posting works (Blotato)','Was skipping on black/under-3 slides'],tag:['social','all']}),
+  N('shandles','api','cron/social-handles','@mention resolver',col.api,454,290,NH,'route',{role:'Resolves featured hotels’ IG/social handles for @mentions.',plain:'Finds each hotel’s Instagram handle so posts can tag them (drives reposts).',path:'src/app/api/cron/social-handles/route.ts',notes:[],tag:['social','all']}),
+  N('ensure','api','cron/ensure-featured','front-page set',col.api,540,290,NH,'route',{role:'Maintains the 9 front-page featured hotels (≥7).',plain:'Keeps the homepage’s top hotels fresh.',path:'src/app/api/cron/ensure-featured/route.ts',notes:['Excludes link_ok=false'],tag:['all']}),
+  N('populate','api','cron/populate · grow','ingest + SEO',col.api,626,290,NH,'route',{role:'Populate hotels per city + weekly growth/indexing run.',plain:'Brings in new hotels and pings Google/Bing about new pages.',path:'src/app/api/cron/populate/route.ts',notes:['grow writes growth_log + GSC pull'],tag:['growth','seo','all']}),
+  N('reresolve','api','admin/reresolve-junk','free photo re-fetch',col.api,712,290,NH,'route',{role:'Re-fetches a real free photo for junk-imaged hotels (website og → Wikimedia).',plain:'When a hotel’s photo is a logo/voucher, this finds a real one from their website — free.',path:'src/app/api/admin/reresolve-junk/route.ts',notes:['Recovered 1,639 photos (~72%)','Excludes the junk URL'],tag:['images','all']}),
+  N('visionqa','api','cron/vision-qa','Haiku image QA',col.api,798,290,NH,'route',{role:'Haiku classifies stored photos; flags junk via vision_ok.',plain:'An AI pass that looks at each photo and marks the junk ones (paid — Haiku).',path:'src/app/api/cron/vision-qa/route.ts',notes:['Full backfill ~$30, not run','vision_ok=false = confirmed junk'],tag:['images','all']}),
+  N('track','api','api/track','event sink',col.api,884,290,NH,'route',{role:'Receives pageview/CTA events → events table.',plain:'The mailbox that receives the tracker’s pings and stores them.',path:'src/app/api/track/route.ts',notes:['Fire-and-forget; never errors the page'],tag:['growth','all'],critical:true}),
+  N('badgeapi','api','api/badge','SVG badge',col.api,970,290,NH,'route',{role:'Renders the embeddable "Rated Cosy x.x" SVG badge.',plain:'Draws the little badge image hotels embed on their sites.',path:'src/app/api/badge/route.tsx',notes:['SVG, cached 1 day'],tag:['backlinks','all']}),
+  N('hotelpin','api','social/hotel-pin','badge image (satori)',col.api,1056,290,NH,'route',{role:'Renders a hotel’s photo+score card for social (next/og).',plain:'Makes the picture posted to Instagram/Pinterest — the photo with the cosy score on it.',path:'src/app/api/social/hotel-pin/route.tsx',notes:['Transcodes webp→jpeg (satori can’t decode webp)','Score moved to y296 (below IG grid-crop)'],tag:['social','images','all']}),
+  N('gradeapi','api','api/grade','grade sink',col.api,1142,290,NH,'route',{role:'Upserts a human grade into hotel_grades.',plain:'Saves each rating you make in the grader.',path:'src/app/api/grade/route.ts',notes:['Upsert by hotel_id'],tag:['scoring','grading','all']}),
+  N('vote','api','api/vote','vote sink',col.api,1228,290,NH,'route',{role:'Records a friend cosy/not vote into cosy_votes.',plain:'Saves friends’ swipe votes.',path:'src/app/api/vote/route.ts',notes:[],tag:['grading','all']}),
+  N('go','api','go/[id]','redirect tracker',col.api,1314,290,NH,'route',{role:'Outbound click redirect.',plain:'A link shortener/tracker for outbound clicks.',path:'src/app/go/[id]/route.ts',notes:[],tag:['all']}),
+
+  // SERVICES
+  N('claude','service','scoring/claudeCosy.ts','PROMPT ASSEMBLY',col.service,110,NW,NH,'service',{role:'Builds the multimodal scoring message (rubric+data+images+calibration) and calls Claude.',plain:'The heart of scoring: it gathers the rubric, the hotel’s data, its photos, and your past corrections, asks Claude, and reads back a 0–100 score. THE seam.',path:'src/lib/scoring/claudeCosy.ts',notes:['model claude-sonnet-4-6, temp 0, effort low','Retries text-only if an image fails','BLIND (no image) → over-scores from name/keywords'],tag:['overview','scoring','all'],critical:true}),
+  N('prompt','service','SCORING_PROMPT.md','rubric',col.service,196,NW,NH,'service',{role:'The cosiness rubric: bands, anti-inflation rules, worked examples.',plain:'The written instructions telling the AI what "cosy" means and how to score it.',path:'SCORING_PROMPT.md',notes:['Sparse-data → middle band (a generosity source)','Vision treated as "strong positive" (marketing photos inflate)'],tag:['scoring','all'],critical:true}),
+  N('cosy','service','scoring/cosy.ts','score100→10 + types',col.service,282,NW,NH,'service',{role:'Score scaling helper + shared HotelFeatures types.',plain:'Converts the 0–100 score to 0–10 and defines the shared data shapes.',path:'src/lib/scoring/cosy.ts',notes:['score100to10 is linear (/10)'],tag:['scoring','all'],critical:true}),
+  N('calib','service','scoring/calibration.ts','few-shot anchors',col.service,368,NW,NH,'service',{role:'Selects human-label anchors (structured similarity) for few-shot calibration.',plain:'Picks similar hotels you’ve already graded and feeds them to the AI as examples.',path:'src/lib/scoring/calibration.ts',notes:['Deterministic (same city/amenities/star tier)','Consumed only by recompute-scores'],tag:['scoring','all']}),
+  N('osm','service','scoring/osmCosy.ts','heuristic scorer',col.service,454,NW,NH,'service',{role:'Legacy synchronous OSM heuristic scorer — used at ingest by the populate cron.',plain:'An older rule-based scorer (no AI). The populate job uses it when adding hotels — a second scoring path running alongside the Claude one.',path:'src/lib/scoring/osmCosy.ts',notes:['LIVE: imported by api/cron/populate/route.ts','Memory flags live-OSM scoring as the anti-pattern to phase out (duplicate logic, not dead)'],tag:['scoring','all'],sub2:'DUPLICATE scoring path'}),
+  N('social','service','social.ts','cityPin builder',col.service,540,NW,NH,'service',{role:'Builds the shared pin payload (slides, mentions) for /posts + publish.',plain:'Assembles which hotels and photos go into a city’s social post.',path:'src/lib/social.ts',notes:['Requires vision_ok=true photos (strict → sparse)','Excludes bad-link hotels'],tag:['social','all']}),
+  N('aff','service','affiliates.ts','Stay22 deep link',col.service,626,NW,NH,'service',{role:'Builds the Stay22 allez/roam "Check availability" link (the revenue link).',plain:'Makes the booking button’s link. Stay22 turns it into a commissionable booking link.',path:'src/lib/affiliates.ts',notes:['allez/roam is fuzzy name+coords (can land on city search)','No Stay22 reporting API → revenue not in-app'],tag:['overview','revenue','all'],critical:true}),
+  N('linkq','service','linkQuality.ts','bad-link gate',col.service,712,NW,NH,'service',{role:'Returns hotel_ids a human flagged as mislinked (link_ok=false).',plain:'A list of hotels with known-wrong links, so we never feature them.',path:'src/lib/linkQuality.ts',notes:['Used by home, guide, social, ensure-featured'],tag:['revenue','all']}),
+  N('imgfree','service','hotelImageFree.ts','free image resolver',col.service,798,NW,NH,'service',{role:'Website og:image → Wikidata → name-matched Wikimedia geo → placeholder.',plain:'Finds a real, free, reusable hotel photo without paying any image API.',path:'src/lib/hotelImageFree.ts',notes:['No Google Places (ToS forbids caching)','JUNK_IMG regex filters logos/icons'],tag:['images','all']}),
+  N('cslug','service','citySlug.ts','city↔slug',col.service,884,NW,NH,'service',{role:'City→slug with diacritic transliteration; slug→known city.',plain:'Turns "Malmö" into a URL and back, handling accents.',path:'src/lib/citySlug.ts',notes:['KNOWN list = data/cities + cities_large','Local→English still partial (Venezia vs Venice)'],tag:['seo','all']}),
+  N('facets','service','facets.ts','facet matcher',col.service,970,NW,NH,'service',{role:'Regex facet matching on real signals/description.',plain:'Decides if a hotel truly has a fireplace/spa/view from its data.',path:'src/lib/facets.ts',notes:['5 facets; pages need ≥2 matches'],tag:['seo','all']}),
+  N('dq','service','dataQuality.ts','linking trust','',col.service,1056,NW,NH,'service',{role:'Deterministic geo/rating-trust + validateHotel checks.',plain:'Cheap sanity checks — is the location plausible, is the rating real.',path:'src/lib/dataQuality.ts',notes:['geoConsistent, ratingHasRealData'],tag:['all']}),
+  N('sbserver','service','supabase/server.ts','service-role client',col.service,1142,NW,NH,'service',{role:'Server Supabase client (service-role, bypasses RLS).',plain:'The privileged database connection the server uses.',path:'src/lib/supabase/server.ts',notes:['getServerSupabase()'],tag:['overview','all']}),
+
+  // DATA
+  N('t_scores','data','cosy_scores','table',col.data,110,250,NH,'db',{role:'One score row/hotel: raw_score, calibrated, score_final, sub-scores, signals.',plain:'The table holding each hotel’s cosy score and the reasons behind it.',path:'Supabase · cosy_scores',notes:['imagery_warmth NULL = scored blind','Recalibrated to honest pins'],tag:['overview','scoring','all'],critical:true}),
+  N('t_hotels','data','hotels','table',col.data,196,250,NH,'db',{role:'Catalog: name, city, coords, website, dedup_key, slug.',plain:'The master list of hotels.',path:'Supabase · hotels',notes:['18,299 after dedup','city normalized (postcodes stripped); dedup_key recomputed'],tag:['overview','all'],critical:true}),
+  N('t_images','data','hotel_images','table',col.data,282,250,NH,'db',{role:'Photos per hotel with vision_ok verdict.',plain:'Stored hotel photos and whether each is a real, non-junk picture.',path:'Supabase · hotel_images',notes:['vision_ok: true/false/null','~5k blind hotels now have images'],tag:['images','all']}),
+  N('t_grades','data','hotel_grades','table',col.data,368,250,NH,'db',{role:'Owner ground-truth labels (verdict, human_score, link_ok, reasons).',plain:'Your human ratings — the truth the AI is measured against.',path:'Supabase · hotel_grades',notes:['Feeds calibration + agreement metric'],tag:['scoring','grading','all']}),
+  N('t_events','data','events','table',col.data,454,250,NH,'db',{role:'First-party pageview/CTA events (source, visitor, path).',plain:'Every visit and click, for the funnel dashboard.',path:'Supabase · events',notes:['Created via Management API this session'],tag:['growth','all']}),
+  N('t_votes','data','cosy_votes','table',col.data,540,250,NH,'db',{role:'Friend binary votes (one per grader+hotel).',plain:'Friends’ cosy/not votes.',path:'Supabase · cosy_votes',notes:[],tag:['grading','all']}),
+  N('t_feat','data','featured_top','table',col.data,626,250,NH,'db',{role:'The 9 front-page featured hotels.',plain:'Which hotels show on the homepage.',path:'Supabase · featured_top',notes:[],tag:['all']}),
+  N('t_pop','data','populate_state','table',col.data,712,250,NH,'db',{role:'Per-city ingest status (done/tier/hotels_scored).',plain:'Tracks which cities have been populated.',path:'Supabase · populate_state',notes:['Drives social auto-rotation'],tag:['social','all']}),
+  N('t_redir','data','hotel_slug_redirects','table',col.data,798,250,NH,'db',{role:'old_slug → new_slug 301s for merged/reslugged hotels.',plain:'Keeps old hotel links working after duplicates are merged.',path:'Supabase · hotel_slug_redirects',notes:['203 created by the dedup re-run','route 308-redirects via this'],tag:['all']}),
+
+  // EXTERNAL
+  N('x_anthropic','external','Anthropic API','Claude / Haiku',col.external,110,250,NH,'external',{role:'Sonnet (scoring) + Haiku (vision QA).',plain:'The AI service that scores hotels and checks photos. The cost we want to avoid.',path:'api.anthropic.com',notes:['Sonnet for cosy score','Haiku for image QA','Budget ≈ $0 now'],tag:['overview','scoring','all'],critical:true}),
+  N('x_ollama','external','Ollama (local)','llama3.2-vision','',col.external,196,250,NH,'external',{role:'Local vision model on the Mac — free image grounding.',plain:'A free AI running on your own MacBook to look at photos and pull over-scored hotels down.',path:'localhost:11434',notes:['llama3.2-vision:11b (~7.8GB)','Targets the 50 blind ≥9 with photos'],tag:['scoring','images','all']}),
+  N('x_blotato','external','Blotato','social publisher',col.external,282,250,NH,'external',{role:'Posts carousels to Pinterest + Instagram.',plain:'The service that actually publishes our posts to social media.',path:'mcp.blotato.com',notes:['IG account 54168 (@got_cosy)','Pinterest warm-up gating'],tag:['social','all']}),
+  N('x_stay22','external','Stay22 (LMA)','affiliate','',col.external,368,250,NH,'external',{role:'Rewrites OTA links → commissionable; campaign-attributed bookings.',plain:'Turns our booking buttons into links that earn commission. Bookings/revenue live only in their dashboard.',path:'stay22.com · letmeallez.js',notes:['No public reporting API/postback','Funnel ends at CTA click in-app'],tag:['overview','revenue','all'],critical:true}),
+  N('x_supabase','external','Supabase','Postgres + PostgREST',col.external,454,250,NH,'external',{role:'Database + storage (the source of truth).',plain:'Where all the data lives.',path:'supabase.co',notes:['DDL via SQL editor / Management API'],tag:['overview','all']}),
+  N('x_google','external','Google','GSC + Indexing',col.external,540,250,NH,'external',{role:'Search Console clicks + Indexing/sitemap pings.',plain:'Google search data and telling Google about new pages.',path:'search.google.com',notes:['grow cron pulls top pages'],tag:['seo','growth','all']}),
+  N('x_wiki','external','Wikimedia','Wikidata/Commons',col.external,626,250,NH,'external',{role:'Free, reusable images (P18 + name-matched geosearch).',plain:'A free photo source with proper licensing.',path:'commons.wikimedia.org',notes:['Used by the free image resolver'],tag:['images','all']}),
+  N('x_autoc','external','Google Autocomplete','keyword harvest',col.external,712,250,NH,'external',{role:'Free search-demand source for the editorial calendar.',plain:'Reveals what people actually search (the AnswerThePublic trick), free.',path:'suggestqueries.google.com',notes:['scripts/keyword-harvest.mjs'],tag:['seo','backlinks','all']}),
+];
+
+const edges=[
+  // critical spine
+  {from:'rescore',to:'claude',kind:'critical',label:'1 · claudeCosyScore',tag:['overview','scoring','all']},
+  {from:'claude',to:'prompt',kind:'critical',label:'2 · reads rubric',tag:['scoring','all']},
+  {from:'claude',to:'calib',kind:'normal',label:'few-shot anchors',tag:['scoring','all']},
+  {from:'claude',to:'cosy',kind:'critical',label:'3 · score100to10',tag:['scoring','all']},
+  {from:'claude',to:'x_anthropic',kind:'critical',label:'4 · messages.create → sonnet-4-6',tag:['overview','scoring','all']},
+  {from:'claude',to:'t_images',kind:'api',label:'vision (image urls)',tag:['scoring','images','all']},
+  {from:'rescore',to:'t_scores',kind:'critical',label:'5 · write score',tag:['scoring','all']},
+  {from:'renorm',to:'t_scores',kind:'critical',label:'6 · raw→display curve (DB r/w)',tag:['scoring','all']},
+  {from:'guide',to:'t_scores',kind:'critical',label:'7 · read ranked scores',tag:['overview','scoring','all']},
+  {from:'guide',to:'t_hotels',kind:'db',label:'hotels by city',tag:['overview','all']},
+  {from:'guide',to:'t_images',kind:'db',label:'vetted photos',tag:['images','all']},
+  {from:'guide',to:'aff',kind:'critical',label:'8 · Stay22 link',tag:['overview','revenue','all']},
+  {from:'aff',to:'x_stay22',kind:'critical',label:'9 · allez/roam',tag:['overview','revenue','all']},
+  {from:'guide',to:'linkq',kind:'normal',label:'exclude bad links',tag:['revenue','all']},
+  {from:'guide',to:'facets',kind:'normal',label:'facet links',tag:['seo','all']},
+  {from:'guide',to:'cslug',kind:'normal',label:'slug↔city',tag:['seo','all']},
+  // hotel page
+  {from:'hotel',to:'t_scores',kind:'db',label:'score',tag:['scoring','all']},
+  {from:'hotel',to:'t_images',kind:'db',label:'photo (skip junk)',tag:['images','all']},
+  {from:'hotel',to:'aff',kind:'api',label:'CTA link',tag:['revenue','all']},
+  {from:'hotel',to:'t_redir',kind:'db',label:'old slug 301',tag:['all']},
+  {from:'hotel',to:'badge',kind:'normal',label:'embed',tag:['backlinks','all']},
+  {from:'badge',to:'badgeapi',kind:'api',label:'/api/badge svg',tag:['backlinks','all']},
+  {from:'home',to:'t_scores',kind:'db',label:'top 3',tag:['overview','all']},
+  {from:'home',to:'linkq',kind:'normal',label:'gate',tag:['revenue','all']},
+  // scoring inputs
+  {from:'rescore',to:'calib',kind:'normal',label:'select anchors',tag:['scoring','all']},
+  {from:'calib',to:'t_grades',kind:'db',label:'human labels',tag:['scoring','all']},
+  {from:'x_ollama',to:'t_scores',kind:'api',label:'imagery_warmth (re-ground)',tag:['scoring','images','all']},
+  // grading loop
+  {from:'grader',to:'gradeapi',kind:'api',label:'POST grade',tag:['grading','all']},
+  {from:'gradeapi',to:'t_grades',kind:'db',label:'upsert',tag:['grading','all']},
+  {from:'gradep',to:'t_scores',kind:'db',label:'queue ?min=9.5',tag:['grading','all']},
+  {from:'rate',to:'vote',kind:'api',label:'swipe',tag:['grading','all']},
+  {from:'vote',to:'t_votes',kind:'db',label:'vote',tag:['grading','all']},
+  // analytics funnel
+  {from:'home',to:'analytics',kind:'normal',label:'mount',tag:['growth','all']},
+  {from:'guide',to:'analytics',kind:'normal',label:'mount',tag:['growth','all']},
+  {from:'analytics',to:'track',kind:'api',label:'sendBeacon',tag:['growth','all']},
+  {from:'track',to:'t_events',kind:'db',label:'insert',tag:['growth','all']},
+  {from:'growthp',to:'t_events',kind:'db',label:'funnel read',tag:['growth','all']},
+  {from:'growthp',to:'x_google',kind:'api',label:'GSC link',tag:['seo','growth','all']},
+  // social
+  {from:'igdaily',to:'spublish',kind:'mount',label:'auto=1 only=instagram',tag:['social','all']},
+  {from:'spublish',to:'social',kind:'normal',label:'cityPin',tag:['social','all']},
+  {from:'social',to:'t_scores',kind:'db',label:'top cosy',tag:['social','all']},
+  {from:'social',to:'t_images',kind:'db',label:'vision_ok photos',tag:['social','images','all']},
+  {from:'spublish',to:'hotelpin',kind:'api',label:'badge image',tag:['social','images','all']},
+  {from:'spublish',to:'x_blotato',kind:'api',label:'POST /v2/posts',tag:['social','all']},
+  {from:'social',to:'t_pop',kind:'db',label:'rotate city',tag:['social','all']},
+  {from:'posts',to:'social',kind:'normal',label:'preview',tag:['social','all']},
+  // images
+  {from:'reresolve',to:'imgfree',kind:'normal',label:'resolve',tag:['images','all']},
+  {from:'imgfree',to:'x_wiki',kind:'api',label:'Wikidata/Commons',tag:['images','all']},
+  {from:'reresolve',to:'t_images',kind:'db',label:'insert photo',tag:['images','all']},
+  {from:'visionqa',to:'x_anthropic',kind:'api',label:'Haiku classify',tag:['images','all']},
+  {from:'visionqa',to:'t_images',kind:'db',label:'vision_ok',tag:['images','all']},
+  {from:'hotelpin',to:'t_images',kind:'db',label:'photo (transcode)',tag:['social','images','all']},
+  // data
+  {from:'populate',to:'t_hotels',kind:'db',label:'ingest',tag:['growth','all']},
+  {from:'populate',to:'osm',kind:'normal',label:'heuristic score on ingest',tag:['scoring','all']},
+  {from:'populate',to:'x_google',kind:'api',label:'index ping',tag:['seo','all']},
+  {from:'ensure',to:'t_feat',kind:'db',label:'top 9',tag:['all']},
+  {from:'cindex',to:'x_autoc',kind:'normal',label:'editorial demand',tag:['backlinks','all']},
+  // shared client
+  {from:'guide',to:'share',kind:'normal',label:'mount',tag:['share','all']},
+  {from:'hotel',to:'share',kind:'normal',label:'mount',tag:['share','all']},
+];
+
+// FIXES / KNOWN_BUGS gathered across this session
+const FIXES={
+  'hotelpin':[{n:1,t:'webp→jpeg transcode (satori couldn’t decode webp → black cards)'},{n:2,t:'score badge moved to y296, below IG grid-crop'}],
+  'spublish':[{n:1,t:'brightness guard drops black cards'},{n:2,t:'min-3-slide guard (no 1-image carousels)'},{n:3,t:'smart city rotation (skips photo-thin villages)'}],
+  'grader':[{n:1,t:'durable saves: keepalive + retry + re-queue (was losing ~30%)'}],
+  't_hotels':[{n:1,t:'city normalized: 4,166 postcode/alias fixes'},{n:2,t:'dedup re-run merged 203 (206→3 clusters); dedup_key recomputed'}],
+  'guide':[{n:1,t:'skip vision_ok=false junk photos'},{n:2,t:'boutique-hotels {city} SEO targeting'}],
+  'hotel':[{n:1,t:'skip vision_ok=false + URL-pattern junk (logos/wifi)'}],
+  'renorm':[{n:1,t:'honest pins 5.0/6.5/8.5'},{n:2,t:'null-raw guard (re-run can’t zero un-scored rows)'}],
+  't_scores':[{n:1,t:'recalibrated 18,489 to honest curve'},{n:2,t:'vision re-grounding of blind over-scores (in progress)'}],
+  'linkq':[{n:1,t:'new: bad-link gate across all publish surfaces'}],
+  'reresolve':[{n:1,t:'new: recovered 1,639 real photos free (~72%)'}],
+  'track':[{n:1,t:'new: first-party event sink for the funnel'}],
+  't_events':[{n:1,t:'new: events table (created via Management API)'}],
+  'badge':[{n:1,t:'new: embeddable backlink badge'}],
+  'badgeapi':[{n:1,t:'new: SVG badge route'}],
+  'theme':[{n:1,t:'new: light/dark theme + toggle'}],
+  'share':[{n:1,t:'redesigned: subtle icon + native sheet'}],
+  'gradep':[{n:1,t:'?min=9.5 focus mode for top-score review'}],
+  't_redir':[{n:1,t:'203 redirects created so merged URLs 308, not 404'}],
+};
+const KNOWN_BUGS={
+  'claude':[{sev:'high',t:'Blind hotels (no image) over-score from names/keywords — corr with human grades ~0.21'}],
+  't_scores':[{sev:'med',t:'~53 photoless blind hotels score ≥9 and can’t be vision-grounded'}],
+  'renorm':[{sev:'med',t:'raw>p99 extrapolates the curve up to 10 → the bogus "10" on crap hotels'}],
+  'prompt':[{sev:'med',t:'Sparse-data→middle band + "photos are strong positive" both inflate'}],
+  'aff':[{sev:'med',t:'Stay22 allez/roam is fuzzy; weak name match → lands on a city search page'}],
+  'x_stay22':[{sev:'med',t:'No reporting API/postback → bookings & revenue not pullable in-app'}],
+  'osm':[{sev:'low',t:'Duplicate scoring path: heuristic osmCosy (used by the populate ingest cron) runs parallel to the Claude scorer — the anti-pattern to consolidate'}],
+  'home':[{sev:'med',t:'Root layout AND [locale] layout both render <html>; homepage uses root → header/Analytics only mount there'}],
+  'social':[{sev:'med',t:'Requires vision_ok=true photos; re-resolved photos are vision_ok=null → most cities have <3 slides'}],
+  'analytics':[{sev:'low',t:'Mounted in [locale] layout; the root-served homepage may miss it'}],
+};
+
+// ---------- render ----------
+const world=document.getElementById('svg').querySelector('#world');
+const SVGNS='http://www.w3.org/2000/svg';
+const byId=Object.fromEntries(nodes.map(n=>[n.id,n]));
+const el=(t,a)=>{const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+// clusters
+clusters.forEach(c=>{
+  world.appendChild(el('rect',{x:c.x,y:c.y,width:c.w,height:c.h,rx:14,fill:c.color,stroke:c.color,class:'clbox','fill-opacity':.07,'stroke-opacity':.45}));
+  const t=el('text',{x:c.x+16,y:c.y+26,class:'cllabel',fill:c.color});t.textContent=c.label;world.appendChild(t);
+});
+
+// edges
+const edgeEls=[];
+edges.forEach(ed=>{
+  const a=byId[ed.from],b=byId[ed.to];if(!a||!b)return;
+  const x1=a.x+a.w,y1=a.y+a.h/2,x2=b.x,y2=b.y+b.h/2;
+  const dx=Math.max(60,(x2-x1)*0.5);
+  const path=el('path',{d:`M ${x1} ${y1} C ${x1+dx} ${y1}, ${x2-dx} ${y2}, ${x2} ${y2}`,
+    class:'edge',stroke:EK[ed.kind],'marker-end':ed.kind==='critical'?'url(#arrowc)':'url(#arrow)'});
+  world.appendChild(path);
+  const mx=(x1+x2)/2,my=(y1+y2)/2-4;
+  const lab=el('text',{x:mx,y:my,class:'elabel','text-anchor':'middle'});lab.textContent=ed.label;world.appendChild(lab);
+  edgeEls.push({ed,path,lab,a,b});
+});
+
+// nodes
+const nodeEls={};
+nodes.forEach(n=>{
+  const g=el('g',{class:'node'+(n.critical?' crit':'')});
+  const strokeW=n.critical?2.2:1.3;
+  g.appendChild(el('rect',{x:n.x,y:n.y,width:n.w,height:n.h,rx:9,fill:'#1a1a1a',stroke:n.critical?C.critical:n.color,'stroke-width':strokeW}));
+  g.appendChild(el('rect',{x:n.x,y:n.y,width:4,height:n.h,rx:2,fill:n.color}));
+  const l=el('text',{x:n.x+14,y:n.y+25,class:'nl'});l.textContent=n.label;g.appendChild(l);
+  const s=el('text',{x:n.x+14,y:n.y+43,class:'ns'});s.textContent=n.sub||'';g.appendChild(s);
+  if(n.sub2){const s2=el('text',{x:n.x+14,y:n.y+57,class:'ns',fill:'#ff7088'});s2.textContent=n.sub2;g.appendChild(s2);}
+  // badges
+  const fc=(FIXES[n.id]||[]).length, bc=(KNOWN_BUGS[n.id]||[]).length;
+  if(fc){g.appendChild(el('circle',{cx:n.x+n.w-13,cy:n.y+13,r:9,class:'badge-f'}));const t=el('text',{x:n.x+n.w-13,y:n.y+16.5,class:'badge-t','text-anchor':'middle'});t.textContent=fc;g.appendChild(t);}
+  if(bc){g.appendChild(el('circle',{cx:n.x+n.w-(fc?34:13),cy:n.y+13,r:9,class:'badge-b'}));const t=el('text',{x:n.x+n.w-(fc?34:13),y:n.y+16.5,class:'badge-t','text-anchor':'middle',fill:'#fff'});t.textContent=bc;g.appendChild(t);}
+  g.addEventListener('mouseenter',()=>select(n.id,true));
+  g.addEventListener('mouseleave',()=>{if(!locked)select(null);});
+  g.addEventListener('click',e=>{e.stopPropagation();locked=(locked===n.id)?null:n.id;select(locked||n.id,true);});
+  world.appendChild(g);nodeEls[n.id]=g;
+});
+
+// ---------- selection ----------
+let locked=null, activeTag='overview';
+function neighbors(id){const s=new Set([id]);edges.forEach(e=>{if(e.from===id)s.add(e.to);if(e.to===id)s.add(e.from);});return s;}
+function select(id,show){
+  if(id){
+    const keep=neighbors(id);
+    nodes.forEach(n=>nodeEls[n.id].classList.toggle('dim',!keep.has(n.id)));
+    edgeEls.forEach(o=>{const on=o.ed.from===id||o.ed.to===id;o.path.classList.toggle('hot',on);o.path.classList.toggle('dim',!on);o.lab.classList.toggle('dim',!on);});
+    if(show)sidebar(byId[id]);
+  }else{ applyFilter(activeTag); if(!locked) defaultSidebar(); }
+}
+function sidebar(n){
+  const fx=FIXES[n.id]||[], bg=KNOWN_BUGS[n.id]||[];
+  const ins=edges.filter(e=>e.to===n.id), outs=edges.filter(e=>e.from===n.id);
+  const edRow=e=>{const o=e.from===n.id?'→ '+byId[e.to].label:'← '+byId[e.from].label;
+    return `<li><span class="ekind" style="background:${EK[e.kind]}"></span>${o} <span style="color:#888">· ${e.label}</span></li>`;};
+  document.getElementById('side').innerHTML=`
+    <h2>${n.label}</h2><div class="path">${n.path||''}</div>
+    <div class="role">${n.role||''}</div>
+    <div class="plain">${n.plain||''}</div>
+    ${n.notes&&n.notes.length?`<h3>Notes</h3><ul>${n.notes.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
+    ${fx.length?`<h3>Fixes (${fx.length})</h3><ul>${fx.map(f=>`<li class="fix">✔ ${f.t}</li>`).join('')}</ul>`:''}
+    ${bg.length?`<h3>Known issues (${bg.length})</h3><ul>${bg.map(b=>`<li class="bug"><span class="sev ${b.sev}">${b.sev}</span>${b.t}</li>`).join('')}</ul>`:''}
+    ${outs.length?`<h3>Outgoing</h3><ul>${outs.map(edRow).join('')}</ul>`:''}
+    ${ins.length?`<h3>Incoming</h3><ul>${ins.map(edRow).join('')}</ul>`:''}`;
+}
+function defaultSidebar(){
+  document.getElementById('side').innerHTML=`
+    <h2>Cosyhotels</h2><div class="path">Next.js 15 (App Router) · Supabase · Claude</div>
+    <div class="plain">A site that AI-rates hotels on <b>cosiness</b>, presents ranked city pages, earns Stay22 affiliate commission, and grows via SEO + faceless social posts.</div>
+    <h3>The critical path (the spine, in red)</h3>
+    <ul>
+      <li><b>recompute-scores</b> → <b>claudeCosy</b> assembles SCORING_PROMPT.md + hotel data + your grades + photos →</li>
+      <li><b>Anthropic</b> (sonnet-4-6) → <b>cosy_scores</b> →</li>
+      <li><b>recompute-normalized</b> curve → <b>guide</b> page render → <b>Stay22</b> link.</li>
+    </ul>
+    <h3>Notable findings from this map</h3>
+    <ul>
+      <li class="bug"><span class="sev high">high</span>The accuracy root cause: <b>blind scoring</b>. Hotels scored with no photo over-rate from names/keywords — 80% of the ≥9.5 "way-off" scores are blind. The local-vision pass (Ollama) re-grounds them for free.</li>
+      <li class="bug"><span class="sev med">med</span><b>recompute-normalized</b> extrapolates raw&gt;p99 up to 10 — that’s where the bogus "10" on crap hotels comes from.</li>
+      <li class="bug"><span class="sev med">med</span><b>Dual &lt;html&gt;</b>: root layout and [locale] layout both render &lt;html&gt;; the homepage renders via the root layout, so the [locale] header/Analytics only mount there.</li>
+      <li class="bug"><span class="sev med">med</span><b>Revenue is invisible in-app</b>: Stay22 has no reporting API, so the funnel ends at the CTA click; bookings live in their dashboard.</li>
+      <li class="bug"><span class="sev low">low</span><b>Duplicate scoring path:</b> scoring/osmCosy.ts (heuristic, used by the populate cron at ingest) runs parallel to the Claude scorer — worth consolidating.</li>
+      <li class="fix">✔ 20+ fixes shipped this session (green badges) — black IG images, lost grades, polluted cities, duplicate hotels, junk photos, honest score curve.</li>
+    </ul>
+    <h3>How to read it</h3>
+    <ul><li>Red nodes/edges = the spine. Green badge = fixes that touch this node. Red badge = known issues.</li>
+    <li>Hover a node to trace its wires; click to lock; click canvas to clear.</li>
+    <li>Chips up top filter by feature.</li></ul>`;
+}
+
+// ---------- filters ----------
+function applyFilter(tag){
+  activeTag=tag;
+  if(tag==='bugs'){
+    nodes.forEach(n=>nodeEls[n.id].classList.toggle('dim',!(FIXES[n.id]||KNOWN_BUGS[n.id])));
+    edgeEls.forEach(o=>{o.path.classList.add('dim');o.lab.classList.add('dim');o.path.classList.remove('hot');});
+    return;
+  }
+  const all=tag==='allwires';
+  nodes.forEach(n=>nodeEls[n.id].classList.toggle('dim',!(all||n.tag.includes(tag))));
+  edgeEls.forEach(o=>{
+    const on=all||(o.ed.tag.includes(tag));
+    o.path.classList.toggle('dim',!on);o.lab.classList.toggle('dim',!on);
+    o.path.classList.toggle('hot',on&&(tag==='critical'||o.ed.kind==='critical'&&tag==='overview'));
+  });
+}
+const chipDefs=[
+  {id:'overview',label:'Overview'},{id:'critical',label:'Critical path',cls:'crit'},
+  {id:'scoring',label:'Scoring'},{id:'social',label:'Social'},{id:'images',label:'Images'},
+  {id:'revenue',label:'Revenue'},{id:'growth',label:'Growth'},{id:'seo',label:'SEO'},
+  {id:'grading',label:'Grading'},{id:'backlinks',label:'Backlinks'},{id:'theme',label:'Theme'},
+  {id:'allwires',label:'Show all wires'},{id:'bugs',label:'Roadmap & bugs',cls:'bugs'},
+];
+const chips=document.getElementById('chips');
+chipDefs.forEach((c,i)=>{
+  const b=document.createElement('div');b.className='chip'+(c.cls?' '+c.cls:'')+(i===0?' on':'');
+  b.textContent=c.label;b.onclick=()=>{[...chips.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');locked=null;applyFilter(c.id);defaultSidebar();};
+  chips.appendChild(b);
+});
+
+// ---------- pan / zoom ----------
+let tx=0,ty=0,s=1;
+const stage=document.getElementById('stage');
+function apply(){world.setAttribute('transform',`translate(${tx} ${ty}) scale(${s})`);}
+function fit(){const vw=stage.clientWidth,vh=stage.clientHeight;s=Math.min(vw/2160,vh/1540)*0.96;tx=(vw-2200*s)/2;ty=20;apply();}
+stage.addEventListener('wheel',e=>{e.preventDefault();const r=stage.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;
+  const ns=Math.max(.25,Math.min(2.4,s*(e.deltaY<0?1.1:0.9)));tx=mx-(mx-tx)*(ns/s);ty=my-(my-ty)*(ns/s);s=ns;apply();},{passive:false});
+let pan=false,px,py;
+stage.addEventListener('mousedown',e=>{if(e.target.closest('.node'))return;pan=true;px=e.clientX;py=e.clientY;stage.classList.add('drag');locked=null;select(null);});
+window.addEventListener('mousemove',e=>{if(!pan)return;tx+=e.clientX-px;ty+=e.clientY-py;px=e.clientX;py=e.clientY;apply();});
+window.addEventListener('mouseup',()=>{pan=false;stage.classList.remove('drag');});
+document.getElementById('fit').onclick=fit;
+document.getElementById('zin').onclick=()=>{s=Math.min(2.4,s*1.15);apply();};
+document.getElementById('zout').onclick=()=>{s=Math.max(.25,s*0.87);apply();};
+
+fit();applyFilter('overview');defaultSidebar();
+</script>
+</body>
+</html>
