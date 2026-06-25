@@ -19,7 +19,7 @@ const EXECUTE = args.includes("--execute");
 const flag = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const MIN = Number(flag("--min-score", 9));
 const LIMIT = Number(flag("--limit", 131));
-const MODEL = flag("--model", "llama3.2-vision:11b");
+const MODEL = flag("--model", "qwen2.5vl:7b"); // validated: warmth MAE 1.0 vs hand scores (llama3.2-vision:11b won't load on Ollama mllama)
 const OLLAMA = process.env.OLLAMA_URL || "http://localhost:11434";
 
 // ---- preflight: Ollama running + model pulled --------------------------------------------
