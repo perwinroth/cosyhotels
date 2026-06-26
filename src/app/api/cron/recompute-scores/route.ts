@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
-import { fetchGradedProfiles, selectAnchorsFor, formatCalibration } from "@/lib/scoring/calibration";
+import { fetchGradedProfiles, fetchPanelProfiles, selectAnchorsFor, formatCalibration } from "@/lib/scoring/calibration";
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -96,8 +96,13 @@ async function runBatch(force = false, limit = 100, city = "", since = ""): Prom
   // Human-label calibration: fetch the owner's grades once; per hotel we select the most
   // SIMILAR labelled hotels as anchors so the score learns the owner's taste (the learning
   // loop). Empty when nothing graded yet.
+  // Owner grades + friend swipe consensus (the panel's taste) — both steer scoring so the score
+  // matches a broad audience, not just one palate.
   let gradedProfiles: Awaited<ReturnType<typeof fetchGradedProfiles>> = [];
-  try { gradedProfiles = await fetchGradedProfiles(db); } catch {}
+  try {
+    const [owner, panel] = await Promise.all([fetchGradedProfiles(db), fetchPanelProfiles(db)]);
+    gradedProfiles = [...owner, ...panel];
+  } catch {}
 
   // Process with a concurrency pool of CONCURRENCY
   for (let i = 0; i < toScore.length; i += CONCURRENCY) {
@@ -118,7 +123,7 @@ async function runBatch(force = false, limit = 100, city = "", since = ""): Prom
             stars: h.stars ?? undefined,
             imageUrls: imgByHotel.get(h.id) ? [imgByHotel.get(h.id) as string] : undefined,
             calibration: gradedProfiles.length
-              ? formatCalibration(selectAnchorsFor({ city: h.city, country: h.country, amenities: h.amenities as string[] | null, stars: h.stars }, gradedProfiles)) || undefined
+              ? formatCalibration(selectAnchorsFor({ city: h.city, country: h.country, amenities: h.amenities as string[] | null, stars: h.stars }, gradedProfiles, 12, { hotelId: String(h.id), dedupKey: (h as { dedup_key?: string | null }).dedup_key ?? null })) || undefined
               : undefined,
           });
           const now = new Date().toISOString();

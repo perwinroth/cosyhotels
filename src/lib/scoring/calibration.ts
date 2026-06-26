@@ -101,6 +101,7 @@ export function formatCalibration(anchors: GradedProfile[]): string {
   if (!anchors.length) return "";
   const line = (a: GradedProfile): string => {
     const where = [a.city, a.country].filter(Boolean).join(", ");
+    if (a.verdict === "panel") return `- "${a.name}" (${where}) — a panel of friends judged this${a.reasons.length ? ` (${a.reasons.join(", ")})` : ""}; their cosy consensus is ≈ ${(a.humanScore ?? 0).toFixed(1)}/10. Weigh this audience view.`;
     if (a.verdict === "good") return `- "${a.name}" (${where}) scored ${a.aiScore.toFixed(1)}/10 — a human agreed that was right.`;
     const dir = a.verdict === "too_high" ? "TOO HIGH" : a.verdict === "too_low" ? "TOO LOW" : "off";
     const corrected = a.humanScore != null ? ` a human would score it ${a.humanScore.toFixed(1)}/10` : ` a human felt it was ${dir.toLowerCase()}`;
@@ -108,10 +109,41 @@ export function formatCalibration(anchors: GradedProfile[]): string {
     return `- "${a.name}" (${where}) was scored ${a.aiScore.toFixed(1)}/10 but that is ${dir}:${corrected}${why}.`;
   };
   return [
-    "\nHuman calibration — the site owner graded these similar hotels; weigh this taste and",
-    "match their judgement when scoring this hotel:",
+    "\nHuman calibration — the site owner and a panel of friends judged these similar hotels;",
+    "weigh this taste and match their judgement when scoring this hotel:",
     ...anchors.map(line),
   ].join("\n");
+}
+
+// Friend swipe consensus (cosy_votes) as calibration anchors — the PANEL's taste, not just the
+// owner's. Per hotel with >=2 votes: cosy-fraction across raters → a 0–10 consensus, rendered
+// distinctly so the model weighs "a panel of friends found this cosy/not" alongside owner grades.
+// Merge with fetchGradedProfiles() before selectAnchorsFor() to let both steer scoring.
+export async function fetchPanelProfiles(db: SupabaseClient): Promise<GradedProfile[]> {
+  const { data: votes } = await db.from("cosy_votes").select("hotel_id, vote");
+  const byHotel = new Map<string, number[]>();
+  for (const v of (votes || []) as Array<{ hotel_id: string; vote: boolean }>) {
+    const k = String(v.hotel_id); if (!byHotel.has(k)) byHotel.set(k, []);
+    byHotel.get(k)!.push(v.vote === true ? 1 : 0);
+  }
+  const ids = [...byHotel.keys()].filter((k) => byHotel.get(k)!.length >= 2);
+  if (!ids.length) return [];
+  const out: GradedProfile[] = [];
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data } = await db.from("hotels").select("id,name,name_en,city,country,amenities,stars,dedup_key").in("id", ids.slice(i, i + 200));
+    for (const h of (data || []) as Array<{ id: string; name: string; name_en: string | null; city: string | null; country: string | null; amenities: string[] | null; stars: number | null; dedup_key: string | null }>) {
+      const v = byHotel.get(String(h.id))!;
+      const frac = v.reduce((a, b) => a + b, 0) / v.length;
+      out.push({
+        hotelId: String(h.id), dedupKey: h.dedup_key ?? null,
+        name: String(h.name_en || h.name || "").trim(), city: String(h.city || "").trim(), country: String(h.country || "").trim(),
+        amenities: (h.amenities || []).map((a) => String(a).toLowerCase()), stars: h.stars,
+        aiScore: 0, humanScore: Math.round(frac * 100) / 10, verdict: "panel",
+        reasons: [`${v.length} friends, ${Math.round(frac * 100)}% found it cosy`],
+      });
+    }
+  }
+  return out.filter((p) => p.name);
 }
 
 // Convenience for callers that don't do per-hotel selection: most-recent disagreements + a few goods.
