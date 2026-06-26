@@ -19,6 +19,7 @@ const EXECUTE = args.includes("--execute");
 const flag = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const MIN = Number(flag("--min-score", 9));
 const LIMIT = Number(flag("--limit", 131));
+const ALL = args.includes("--all"); // re-ground EVERY photo'd hotel (not just blind) — one engine for all
 const MODEL = flag("--model", "qwen2.5vl:7b"); // validated: warmth MAE 1.0 vs hand scores (llama3.2-vision:11b won't load on Ollama mllama)
 const OLLAMA = process.env.OLLAMA_URL || "http://localhost:11434";
 
@@ -30,11 +31,12 @@ if (!(tags.models || []).some((m) => m.name.startsWith(MODEL.split(":")[0]))) {
 }
 console.log(`✓ Ollama up, model ${MODEL} ready. Mode: ${EXECUTE ? "EXECUTE" : "DRY-RUN"} · blind hotels score>=${MIN}, limit ${LIMIT}\n`);
 
-// ---- candidates: blind (imagery_warmth null) + high score, that HAVE a usable image ----------
-const { data: sc } = await db.from("cosy_scores")
-  .select("hotel_id, score, score_final")
-  .is("imagery_warmth", null).gte("score", MIN)
-  .order("score", { ascending: false }).limit(LIMIT * 3);
+// ---- candidates: every hotel with a usable image (so ALL photo'd hotels are grounded by the
+// SAME engine). Default = only blind (imagery_warmth null); --all re-grounds verified ones too
+// (fixes leftover 10.0s that the original Claude path produced and Qwen never touched). ----------
+let q = db.from("cosy_scores").select("hotel_id, score, score_final").gte("score", MIN);
+if (!ALL) q = q.is("imagery_warmth", null);
+const { data: sc } = await q.order("score", { ascending: false }).limit(LIMIT * 3);
 const ids = (sc || []).map((r) => String(r.hotel_id));
 const dispOf = new Map((sc || []).map((r) => [String(r.hotel_id), typeof r.score_final === "number" ? r.score_final : r.score]));
 const { data: hotels } = await db.from("hotels").select("id,name,city").in("id", ids);

@@ -26,5 +26,5 @@ export function GET(req: Request) {
   <text x="92" y="52" font-family="Inter, system-ui, sans-serif" font-size="10.5" fill="#9DA89F"${fit}>${name || "AI-rated for cosiness"}</text>
   <text x="92" y="70" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#D8B25A">gotcosy.com</text>
 </svg>`;
-  return new Response(svg, { headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=86400, s-maxage=86400" } });
+  return new Response(svg, { headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=300, s-maxage=300" } });
 }

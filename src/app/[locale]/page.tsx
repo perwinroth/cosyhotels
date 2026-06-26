@@ -55,7 +55,7 @@ async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>):
   const { data } = await db
     .from("cosy_scores")
     .select("score, score_final, description, imagery_warmth, hotel:hotel_id (id,slug,name,name_en,city,country,lat,lng)")
-    .not("imagery_warmth", "is", null)
+    .gt("imagery_warmth", 0)
     .order("score_final", { ascending: false, nullsFirst: false })
     .order("score", { ascending: false })
     .limit(40);
