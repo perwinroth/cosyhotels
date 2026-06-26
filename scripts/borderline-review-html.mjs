@@ -5,12 +5,18 @@
 // default to Keep-separate; "check" ones float to the top for your eye. You only adjust the unsure
 // ones, then copy the emitted command. A human decision still gates every borderline merge.
 //   node --import tsx scripts/borderline-review-html.mjs [scripts/backups/dedup-borderline-<ts>.json]
-import { readFileSync, writeFileSync, readdirSync } from 'fs'
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'fs'
 import { namesMatch, siteListing } from '../src/lib/hotelIdentity.ts'
 
 const arg = process.argv[2]
 const file = arg || 'scripts/backups/' + readdirSync('scripts/backups').filter((f) => f.startsWith('dedup-borderline-')).sort().pop()
 const clusters = JSON.parse(readFileSync(file, 'utf8'))
+
+// PERSIST PRIOR DECISIONS: scripts/dedup-keep-separate.txt holds keeper ids the user has already
+// reviewed and decided are NOT dupes. Those clusters come up pre-set to "Keep separate" so a
+// regenerated page never throws away the user's work — they only re-touch what they want to change.
+const keepSepFile = 'scripts/dedup-keep-separate.txt'
+const keepSep = existsSync(keepSepFile) ? new Set(readFileSync(keepSepFile, 'utf8').split(/[\s,]+/).map((s) => s.trim()).filter(Boolean)) : new Set()
 
 const AGGREGATORS = new Set(['booking.com', 'hilton.com', 'marriott.com', 'airbnb.com', 'expedia.com', 'hotels.com', 'ihg.com', 'accor.com']) // shared by many hotels — not an identity signal
 
@@ -45,10 +51,13 @@ const counts = enriched.reduce((o, c) => ((o[c.cls.tag] = (o[c.cls.tag] || 0) + 
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 const host = (u) => { if (!u) return ''; try { return new URL(u.startsWith('http') ? u : 'https://' + u).hostname.replace(/^www\./, '') } catch { return esc(u) } }
-const card = (c, i) => `
-  <div class="cl ${c.cls.tag}" data-keeper="${esc(c.keeperId)}" data-merge="${c.cls.merge ? 1 : 0}">
-    <div class="hd"><span class="badge ${c.cls.tag}">${c.cls.label}</span>
-      <button class="tog" onclick="tog(this)">${c.cls.merge ? 'Merge ✓' : 'Keep separate'}</button></div>
+const card = (c, i) => {
+  const reviewed = keepSep.has(String(c.keeperId))
+  const merge = reviewed ? false : c.cls.merge // honor a prior "keep separate" decision
+  return `
+  <div class="cl ${c.cls.tag}${reviewed ? ' reviewed' : ''}" data-keeper="${esc(c.keeperId)}" data-merge="${merge ? 1 : 0}">
+    <div class="hd"><span class="badge ${c.cls.tag}">${c.cls.label}</span>${reviewed ? '<span class="rv">you kept separate</span>' : ''}
+      <button class="tog" onclick="tog(this)">${merge ? 'Merge ✓' : 'Keep separate'}</button></div>
     <div class="why">${esc(c.cls.why || '')}</div>
     <div class="rows">${c.members.map((m) => `
       <div class="row ${m.keeper ? 'keep' : ''}">
@@ -59,6 +68,7 @@ const card = (c, i) => `
         </div>
       </div>`).join('')}</div>
   </div>`
+}
 
 const html = `<!doctype html><meta charset="utf8"><title>Borderline dedup review</title>
 <style>
@@ -72,7 +82,9 @@ const html = `<!doctype html><meta charset="utf8"><title>Borderline dedup review
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
   .cl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;border-left:4px solid var(--line)}
   .cl.dupe{border-left-color:var(--sage)} .cl.check{border-left-color:var(--amber)} .cl.distinct{border-left-color:var(--ember)}
-  .cl[data-merge="0"]{opacity:.55}
+  .cl[data-merge="0"]{opacity:.6}
+  .rv{font-size:11px;color:var(--mut);background:#2a332d;padding:2px 7px;border-radius:5px}
+  .cl.reviewed{border-left-style:dashed}
   .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
   .badge{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
   .badge.dupe{background:color-mix(in srgb,var(--sage) 22%,transparent);color:var(--sage)}
