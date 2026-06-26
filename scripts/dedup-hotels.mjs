@@ -170,7 +170,7 @@ const reviewFile = `scripts/backups/dedup-borderline-${new Date().toISOString().
 const review = borderlineClusters.map((g) => {
   const sorted = [...g].sort((a, b) => keepScore(b) - keepScore(a) || String(a.id).localeCompare(String(b.id)))
   const keeper = sorted[0] // SAME keeper logic the merge uses, so reject-by-keeperId stays consistent
-  return { keeperId: keeper.id, members: sorted.map((h) => ({ id: h.id, name: h.name, city: h.city, lat: h.lat, lng: h.lng, score: Number((scores.get(h.id) || 0).toFixed(1)), dist: dist(keeper, h), keeper: h.id === keeper.id })) }
+  return { keeperId: keeper.id, members: sorted.map((h) => ({ id: h.id, name: h.name, city: h.city, lat: h.lat, lng: h.lng, website: h.website || null, slug: h.slug, score: Number((scores.get(h.id) || 0).toFixed(1)), dist: dist(keeper, h), keeper: h.id === keeper.id })) }
 })
 writeFileSync(reviewFile, JSON.stringify(review, null, 1))
 console.log(`\nBorderline review list → ${reviewFile} (${borderlineClusters.length} clusters; NOT merged)`)
