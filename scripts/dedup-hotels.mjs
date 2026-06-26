@@ -26,6 +26,10 @@ const EXECUTE = args.includes('--execute')
 const RESTORE = args.includes('--restore') ? args[args.indexOf('--restore') + 1] : null
 const BACKFILL = args.includes('--backfill-keys')
 const LIMIT = args.includes('--limit') ? Number(args[args.indexOf('--limit') + 1]) : Infinity
+// --borderline merges the REVIEW tier instead of the strong tier (after a human has eyeballed it).
+// --reject <keeperId,keeperId,…> holds specific clusters back (the ones you decided are NOT dupes).
+const BORDERLINE = args.includes('--borderline')
+const REJECT = new Set(args.includes('--reject') ? String(args[args.indexOf('--reject') + 1]).split(',').map((s) => s.trim()).filter(Boolean) : [])
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE
@@ -143,26 +147,36 @@ const isStrong = (g) => { for (let i = 0; i < g.length; i++) for (let j = i + 1;
 const strongClusters = allClusters.filter(isStrong)
 const borderlineClusters = allClusters.filter((g) => !isStrong(g))
 
-let plan = strongClusters
+// Merge the strong tier by default; --borderline merges the review tier instead. Clusters are
+// keyed by their keeper id so --reject is stable across runs (positional indices are not).
+const sourceClusters = BORDERLINE ? borderlineClusters : strongClusters
+let plan = sourceClusters
   .map((g) => { g.sort((a, b) => keepScore(b) - keepScore(a) || String(a.id).localeCompare(String(b.id))); return { keep: g[0], drop: g.slice(1) } })
+  .filter((p) => !REJECT.has(String(p.keep.id)))
   .sort((a, b) => b.drop.length - a.drop.length)
+if (REJECT.size) console.log(`(--reject held back ${REJECT.size} cluster(s) by keeper id)`)
 if (LIMIT < Infinity) plan = plan.slice(0, LIMIT)
 
 const dropIds = plan.flatMap((p) => p.drop.map((d) => d.id))
 const dist = (a, b) => { const R = 6371000, t = Math.PI / 180, dLat = (b.lat - a.lat) * t, dLng = (b.lng - a.lng) * t; return Math.round(2 * R * Math.asin(Math.sqrt(Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLng / 2) ** 2))) }
-console.log(`\nSTRONG (auto-merge):   clusters=${plan.length} hotelsToDelete=${dropIds.length}`)
-console.log(`BORDERLINE (review):   clusters=${borderlineClusters.length} hotels=${borderlineClusters.reduce((s, g) => s + g.length, 0)}`)
-console.log('\nStrong sample:'); for (const { keep, drop } of plan.slice(0, 12)) console.log(`  keep "${keep.name}" (${keep.city}) [${(scores.get(keep.id) || 0).toFixed(1)}] ← ${drop.map((d) => `"${d.name}" (${dist(keep, d)}m)`).join(', ')}`)
+const tier = BORDERLINE ? 'BORDERLINE (approved)' : 'STRONG (auto-merge)'
+console.log(`\n${tier}:   clusters=${plan.length} hotelsToDelete=${dropIds.length}`)
+if (!BORDERLINE) console.log(`BORDERLINE (review):   clusters=${borderlineClusters.length} hotels=${borderlineClusters.reduce((s, g) => s + g.length, 0)}`)
+console.log(`\n${BORDERLINE ? 'Will merge' : 'Strong sample'}:`); for (const { keep, drop } of plan.slice(0, 12)) console.log(`  keep "${keep.name}" (${keep.city}) [${(scores.get(keep.id) || 0).toFixed(1)}] ← ${drop.map((d) => `"${d.name}" (${dist(keep, d)}m)`).join(', ')}`)
 
 // Always write the borderline review file so a human can approve/reject each before it's ever merged.
 mkdirSync('scripts/backups', { recursive: true })
 const reviewFile = `scripts/backups/dedup-borderline-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
-const review = borderlineClusters.map((g) => g.map((h) => ({ id: h.id, name: h.name, city: h.city, lat: h.lat, lng: h.lng, score: Number((scores.get(h.id) || 0).toFixed(1)), distToFirst: dist(g[0], h) })))
+const review = borderlineClusters.map((g) => {
+  const sorted = [...g].sort((a, b) => keepScore(b) - keepScore(a) || String(a.id).localeCompare(String(b.id)))
+  const keeper = sorted[0] // SAME keeper logic the merge uses, so reject-by-keeperId stays consistent
+  return { keeperId: keeper.id, members: sorted.map((h) => ({ id: h.id, name: h.name, city: h.city, lat: h.lat, lng: h.lng, score: Number((scores.get(h.id) || 0).toFixed(1)), dist: dist(keeper, h), keeper: h.id === keeper.id })) }
+})
 writeFileSync(reviewFile, JSON.stringify(review, null, 1))
 console.log(`\nBorderline review list → ${reviewFile} (${borderlineClusters.length} clusters; NOT merged)`)
 console.log('Borderline sample:'); for (const g of borderlineClusters.slice(0, 12)) console.log(`  ${g.map((h) => `"${h.name}" (${dist(g[0], h)}m)`).join('  ⇆  ')}`)
 
-if (!EXECUTE) { console.log('\nDRY RUN — nothing written to the catalog. --execute merges STRONG clusters only (snapshots first), --limit N to rehearse.'); process.exit(0) }
+if (!EXECUTE) { console.log(`\nDRY RUN — nothing written. --execute merges the ${BORDERLINE ? 'BORDERLINE (review)' : 'STRONG'} tier (snapshots first); --reject <keeperIds> to hold clusters back; --limit N to rehearse.`); process.exit(0) }
 
 // ---------------- SNAPSHOT (before any write) ----------------
 console.log('\nSnapshotting before any delete...')
