@@ -49,13 +49,16 @@ async function cityChips(db: NonNullable<ReturnType<typeof getServerSupabase>>):
 }
 
 async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>): Promise<TopHotel[]> {
-  type Row = { score: number | null; score_final: number | null; description: string | null; hotel: { id: string; slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat: number | null; lng: number | null } | null };
+  type Row = { score: number | null; score_final: number | null; description: string | null; imagery_warmth: number | null; hotel: { id: string; slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat: number | null; lng: number | null } | null };
+  // Only PHOTO-VERIFIED hotels (imagery_warmth set) headline the homepage — never an un-grounded
+  // blind score. A 10.0 with no photo we ever looked at is not something to put at #1.
   const { data } = await db
     .from("cosy_scores")
-    .select("score, score_final, description, hotel:hotel_id (id,slug,name,name_en,city,country,lat,lng)")
+    .select("score, score_final, description, imagery_warmth, hotel:hotel_id (id,slug,name,name_en,city,country,lat,lng)")
+    .not("imagery_warmth", "is", null)
     .order("score_final", { ascending: false, nullsFirst: false })
     .order("score", { ascending: false })
-    .limit(20);
+    .limit(40);
   const bad = await badLinkHotelIds(db);
   const list = ((data || []) as unknown as Row[]).filter((r) => !!r.hotel?.slug && !bad.has(String(r.hotel!.id)));
   const seen = new Set<string>();
