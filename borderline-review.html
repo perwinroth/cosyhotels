@@ -1,0 +1,2631 @@
+<!doctype html><meta charset="utf8"><title>Borderline dedup review</title>
+<style>
+  :root{--bg:#0f1512;--card:#18201c;--line:#2a332d;--ink:#f3eee6;--mut:#9da89f;--ember:#e08a4b;--sage:#7fb7a2;--amber:#d8b25a}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,system-ui,sans-serif;padding:24px}
+  h1{font-size:22px;margin:0 0 4px} .sub{color:var(--mut);margin-bottom:14px;max-width:760px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:13px}
+  .bar{position:sticky;top:0;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:16px;z-index:5}
+  .cmd{width:100%;background:#0a0e0c;color:var(--sage);border:1px solid var(--line);border-radius:10px;padding:12px;font:13px/1.5 ui-monospace,monospace;min-height:64px}
+  .btn{background:var(--ember);color:#16201c;border:0;border-radius:9px;padding:9px 16px;font-weight:600;cursor:pointer;margin-top:8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+  .cl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;border-left:4px solid var(--line)}
+  .cl.dupe{border-left-color:var(--sage)} .cl.check{border-left-color:var(--amber)} .cl.distinct{border-left-color:var(--ember)}
+  .cl[data-merge="0"]{opacity:.55}
+  .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+  .badge.dupe{background:color-mix(in srgb,var(--sage) 22%,transparent);color:var(--sage)}
+  .badge.check{background:color-mix(in srgb,var(--amber) 22%,transparent);color:var(--amber)}
+  .badge.distinct{background:color-mix(in srgb,var(--ember) 22%,transparent);color:var(--ember)}
+  .tog{background:var(--sage);color:#16201c;border:0;border-radius:7px;padding:5px 11px;font-weight:600;cursor:pointer;font-size:13px}
+  .cl[data-merge="0"] .tog{background:#3a3f3b;color:var(--mut)}
+  .why{color:var(--mut);font-size:12px;margin:-2px 0 8px;font-family:ui-monospace,monospace}
+  .row{display:flex;gap:9px;align-items:flex-start;padding:4px 0} .row.keep .nm{color:var(--ember)}
+  .sc{width:30px;color:var(--sage);font-weight:600;font-variant-numeric:tabular-nums;padding-top:1px} .info{flex:1} .nm{font-weight:500} em{color:var(--mut);font-style:normal;font-size:12px}
+  .meta{color:var(--mut);font-size:12px} .meta a{color:var(--sage);text-decoration:none} .meta a:hover{text-decoration:underline} .nosite{color:#7a6a4a}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block;vertical-align:-1px;margin-right:5px}
+</style>
+<h1>Borderline dedup review — 122 clusters</h1>
+<div class="sub">Pairs the geo+name rule thinks are <em>probably</em> the same hotel but weren't confident enough to auto-merge. They're pre-flagged and ordered so the ones needing your eye come first. Adjust the toggles, then copy the command — only the clusters you leave on <b>Merge</b> get merged.</div>
+<div class="legend">
+  <span><span class="dot" style="background:var(--amber)"></span><b>check</b> (17) — your call, default Merge</span>
+  <span><span class="dot" style="background:var(--ember)"></span><b>likely distinct</b> (12) — default Keep separate</span>
+  <span><span class="dot" style="background:var(--sage)"></span><b>likely dupe</b> (93) — default Merge</span>
+</div>
+<div class="bar">
+  <div style="color:var(--mut);font-size:13px;margin-bottom:6px">Run this to merge everything still set to <b>Merge</b> (held-back ones go to --reject):</div>
+  <textarea class="cmd" id="cmd" readonly></textarea>
+  <button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('cmd').value)">Copy command</button>
+  <span id="cnt" style="color:var(--mut);margin-left:12px"></span>
+</div>
+<div class="grid">
+  <div class="cl check" data-keeper="40de8e9b-89fc-4988-a73e-ae7d4888c0e2" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 64m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.5</span>
+        <div class="info">
+          <div class="nm">Anker Hotel <em>keeper</em></div>
+          <div class="meta">Oslo · 0m · <a href="https://anker-hotel.no/" target="_blank" rel="noopener">anker-hotel.no ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">1.8</span>
+        <div class="info">
+          <div class="nm">Anker Hostel</div>
+          <div class="meta">Oslo · 64m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="c08b8384-61fa-4f91-b4c9-e4b9da57ec99" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 42m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">New Orleans Guest House <em>keeper</em></div>
+          <div class="meta">New Orleans · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">New Orleans Courtyard Hotel</div>
+          <div class="meta">New Orleans · 42m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="37d86a24-0a24-4bfb-a145-116ca45cd3b8" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 53m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">2.2</span>
+        <div class="info">
+          <div class="nm">Idrættens Hus <em>keeper</em></div>
+          <div class="meta">Copenhagen · 0m · <a href="https://www.idraettenshus.dk/" target="_blank" rel="noopener">idraettenshus.dk ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">2.2</span>
+        <div class="info">
+          <div class="nm">Idrættens Hus Hotel og Konference</div>
+          <div class="meta">Copenhagen · 53m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="6ac34084-7805-4aff-8bfd-af8a0ccb660c" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 39m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">The Foscarini <em>keeper</em></div>
+          <div class="meta">Mogliano Veneto · 0m · <a href="https://www.thefoscarini.com/" target="_blank" rel="noopener">thefoscarini.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Hotel Villa Foscarini</div>
+          <div class="meta">Venice · 39m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="9d4b2bec-fbba-4149-b0f0-cd506d9840dd" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 52m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Hajos Lodge (main house) <em>keeper</em></div>
+          <div class="meta">Milnerton, Cape Town · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Hajos Lodge</div>
+          <div class="meta">Milnerton, Cape Town · 52m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="bb934276-7c39-491c-8329-244251c3b7ad" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 53m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">The Old Bermuda Inn <em>keeper</em></div>
+          <div class="meta">New York · 0m · <a href="https://www.theoldbermudainn.com/" target="_blank" rel="noopener">theoldbermudainn.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">The Bed &amp; Breakfast at the Old Bermuda Inn</div>
+          <div class="meta">New York · 53m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="0f374c79-745a-4560-9970-577f83b4baa5" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 64m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">QT Bondi <em>keeper</em></div>
+          <div class="meta">Sydney · 0m · <a href="https://www.qthotelsandresorts.com/bondi-beach" target="_blank" rel="noopener">qthotelsandresorts.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Hotel Bondi</div>
+          <div class="meta">Sydney · 64m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="0a43d763-afa9-4a15-896e-b80566c95201" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 56m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">7.0</span>
+        <div class="info">
+          <div class="nm">Coogee Bay Boutique Hotel <em>keeper</em></div>
+          <div class="meta">Coogee NSW 2034 · 0m · <a href="https://coogeebayhotel.com.au/stay/" target="_blank" rel="noopener">coogeebayhotel.com.au ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">The Coogee Bay Hotel</div>
+          <div class="meta">Sydney · 56m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="45a8ca73-7329-4558-9157-bcf50dc02d40" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 35m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">6.5</span>
+        <div class="info">
+          <div class="nm">Casa da Capelinha <em>keeper</em></div>
+          <div class="meta">Ponta Delgada · 0m · <a href="https://www.casadacapelinha.com/" target="_blank" rel="noopener">casadacapelinha.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.5</span>
+        <div class="info">
+          <div class="nm">Casa Capelinha</div>
+          <div class="meta">Ponta Delgada · 35m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="0207345a-57db-4e4f-aa95-303008c46361" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 45m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.0</span>
+        <div class="info">
+          <div class="nm">Hotel Paris Prague <em>keeper</em></div>
+          <div class="meta">Praha-Praha 1 · 0m · <a href="https://www.hotel-paris.cz/?utm_source=google&amp;utm_medium=organic&amp;utm_campaign=Knowledge_Graph" target="_blank" rel="noopener">hotel-paris.cz ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.5</span>
+        <div class="info">
+          <div class="nm">PARIS HOTEL</div>
+          <div class="meta">Praha-Praha 1 · 45m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="61ef805c-4e56-47df-863b-2155ed900167" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 55m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">9.1</span>
+        <div class="info">
+          <div class="nm">Ubud Inn &amp; Spa <em>keeper</em></div>
+          <div class="meta">Bali 80571 · 0m · <a href="https://ubudcottageprasi.com/" target="_blank" rel="noopener">ubudcottageprasi.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Ubud Terrace Hotel</div>
+          <div class="meta">Bali 80571 · 55m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="abc8e6be-11ce-4051-902c-b8380198abf9" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 42m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.4</span>
+        <div class="info">
+          <div class="nm">Hôtel Alt Québec <em>keeper</em></div>
+          <div class="meta">QC G1V 2M1 · 0m · <a href="https://www.germainhotels.com/fr/hotel-alt/quebec" target="_blank" rel="noopener">germainhotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">ALT Hôtel</div>
+          <div class="meta">Québec · 42m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="862d5d22-2c3c-40f3-aa6b-12c5284e8501" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 49m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.9</span>
+        <div class="info">
+          <div class="nm">Hotel Classique <em>keeper</em></div>
+          <div class="meta">QC G1V 2L9 · 0m · <a href="https://www.hotelclassique.com/" target="_blank" rel="noopener">hotelclassique.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.9</span>
+        <div class="info">
+          <div class="nm">Hôtel Lindbergh</div>
+          <div class="meta">QC G1V 2L9 · 49m · <a href="https://www.hotelsjaro.com/lindbergh/" target="_blank" rel="noopener">hotelsjaro.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">2.7</span>
+        <div class="info">
+          <div class="nm">Hôtel Classique</div>
+          <div class="meta">Québec · 22m · <a href="https://www.hotelclassique.com/" target="_blank" rel="noopener">hotelclassique.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Hôtel Lindbergh</div>
+          <div class="meta">Québec · 47m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="ed66af56-69c7-4d45-90ba-b480483d7d9f" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 58m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">6.2</span>
+        <div class="info">
+          <div class="nm">Hotel Ballard <em>keeper</em></div>
+          <div class="meta">Seattle · 0m · <a href="https://www.hotelballardseattle.com/" target="_blank" rel="noopener">hotelballardseattle.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Ballard Inn</div>
+          <div class="meta">Seattle · 58m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="8fa82cb4-a707-4c83-8ea3-1ba0dc6e49b6" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 42m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Hotel El Greco <em>keeper</em></div>
+          <div class="meta">Toledo · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">sercotel pintor el greco</div>
+          <div class="meta">Toledo · 42m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="1641129f-ba6e-4a9c-aa0a-e82b621cb9f8" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 57m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">2.7</span>
+        <div class="info">
+          <div class="nm">Residenza Universitaria Arssu Balbi <em>keeper</em></div>
+          <div class="meta">Genoa · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">2.7</span>
+        <div class="info">
+          <div class="nm">Residenza Universitaria Arssu Marinelle</div>
+          <div class="meta">Genoa · 57m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl check" data-keeper="c0a94522-f793-41d2-ae2a-c9594b2f7b1e" data-merge="1">
+    <div class="hd"><span class="badge check">check</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 46m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">Brosundet <em>keeper</em></div>
+          <div class="meta">Ålesund · 0m · <a href="http://brosundet.no/" target="_blank" rel="noopener">brosundet.no ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Hotel Brosundet</div>
+          <div class="meta">Ålesund · 46m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="e7ea14ee-1a37-437f-8f0b-54de0356f836" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 78m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.3</span>
+        <div class="info">
+          <div class="nm">The Hotel Chelsea <em>keeper</em></div>
+          <div class="meta">New York · 0m · <a href="http://www.hotelchelsea.com//?utm_source=google_business_profile&amp;utm_medium=gbp_view_website" target="_blank" rel="noopener">hotelchelsea.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">Chelsea Savoy Hotel</div>
+          <div class="meta">New York · 78m · <a href="https://www.chelseasavoynyc.com/" target="_blank" rel="noopener">chelseasavoynyc.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Hotel Chelsea</div>
+          <div class="meta">New York · 6m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="81c3f80a-23e1-4737-af4a-d885973d011a" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 76m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">The Sandyford Hotel <em>keeper</em></div>
+          <div class="meta">Glasgow · 0m · <a href="http://sandyfordhotelglasgow.com/" target="_blank" rel="noopener">sandyfordhotelglasgow.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Sandyford Lodge</div>
+          <div class="meta">Glasgow · 76m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="d43e77e2-8414-406b-8ba1-831961f238c3" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 75m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">H10 Catalunya Plaça Boutique Hotel <em>keeper</em></div>
+          <div class="meta">Barcelona · 0m · <a href="https://www.h10hotels.com/en/barcelona-hotels/h10-catalunya-plaza?utm_source=google_my_business&amp;utm_medium=boton_sitio_web&amp;utm_campaign=hcp" target="_blank" rel="noopener">h10hotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Hotel Catalonia Plaça Catalunya</div>
+          <div class="meta">Barcelona · 75m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="5f875739-2552-48c7-adc9-d35626910a55" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 72m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Hôtel Nomad - Vieux Québec <em>keeper</em></div>
+          <div class="meta">QC G1R 4A8 · 0m · <a href="https://hotelnomad.ca/" target="_blank" rel="noopener">hotelnomad.ca ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Hôtel Manoir Vieux-Québec</div>
+          <div class="meta">QC G1R 4M9 · 72m · <a href="https://manoirvieuxquebec.com/" target="_blank" rel="noopener">manoirvieuxquebec.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.5</span>
+        <div class="info">
+          <div class="nm">Hôtel Manoir Vieux-Québec</div>
+          <div class="meta">Quebec City · 68m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="76d247fe-62ff-4a67-9b42-c08e1e84114f" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 76m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.0</span>
+        <div class="info">
+          <div class="nm">Dubrovnik Old Town Hostel <em>keeper</em></div>
+          <div class="meta">Dubrovnik · 0m · <a href="http://www.dubrovnikoldtownhostel.com/" target="_blank" rel="noopener">dubrovnikoldtownhostel.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.4</span>
+        <div class="info">
+          <div class="nm">Hostel Angelina Old Town Dubrovnik (North)</div>
+          <div class="meta">Dubrovnik · 76m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="79c964dd-9308-40fe-a0ba-6fef4ea9d3a0" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 237m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Và Spa Matilda Boutique <em>keeper</em></div>
+          <div class="meta">Hà Nội · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Cozy</div>
+          <div class="meta">Hà Nội · 237m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Friendly</div>
+          <div class="meta">Hà Nội · 25m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Bamboo</div>
+          <div class="meta">Hà Nội · 162m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Golden Wings</div>
+          <div class="meta">Hà Nội · 65m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Especen</div>
+          <div class="meta">Hà Nội · 135m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Classic</div>
+          <div class="meta">Hà Nội · 197m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Allura</div>
+          <div class="meta">Hà Nội · 77m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Golden Wings II</div>
+          <div class="meta">Hà Nội · 47m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="b5eadc22-2aff-4bc1-93fa-92e95e76329e" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 82m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Hotel St Moritz Queenstown - MGallery Collection <em>keeper</em></div>
+          <div class="meta">Queenstown 9300 · 0m · <a href="https://all.accor.com/lien_externe.svlt?goto=fiche_hotel&amp;code_hotel=2074&amp;merchantid=seo-maps-NZ-2074&amp;sourceid=aw-cen&amp;utm_medium=seo%20maps&amp;utm_source=google%20Maps&amp;utm_campaign=seo%20maps" target="_blank" rel="noopener">all.accor.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.3</span>
+        <div class="info">
+          <div class="nm">Peppers Beacon Queenstown</div>
+          <div class="meta">Queenstown 9300 · 82m · <a href="https://all.accor.com/lien_externe.svlt?goto=fiche_hotel&amp;code_hotel=B3S7&amp;merchantid=seo-maps-NZ-B3S7&amp;sourceid=aw-cen&amp;utm_medium=seo%20maps&amp;utm_source=google%20Maps&amp;utm_campaign=seo%20maps" target="_blank" rel="noopener">all.accor.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Hotel St Moritz</div>
+          <div class="meta">Queenstown · 2m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="21231c41-8b18-4a5b-b232-6ab0db6a8955" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 66m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.4</span>
+        <div class="info">
+          <div class="nm">Courtyard by Marriott Savannah Downtown/Historic District <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.marriott.com/en-us/hotels/savdt-courtyard-savannah-downtown-historic-district/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">marriott.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Cambria Hotel Savannah Downtown Historic District</div>
+          <div class="meta">Savannah · 66m · <a href="https://www.choicehotels.com/georgia/savannah/cambria-hotels/ga989?mc=llgoxxpx" target="_blank" rel="noopener">choicehotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">2.7</span>
+        <div class="info">
+          <div class="nm">Courtyard Savannah Downtown/Historic District</div>
+          <div class="meta">Savannah · 10m · <a href="https://www.marriott.com/hotels/travel/savdt-courtyard-savannah-downtown-historic-district/" target="_blank" rel="noopener">marriott.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="2c64a759-2ea4-4c1c-84fc-f3d09da51f87" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 121m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.5</span>
+        <div class="info">
+          <div class="nm">Alexis Motel and Apartments <em>keeper</em></div>
+          <div class="meta">Queenstown 9300 · 0m · <a href="http://www.alexisqueenstown.co.nz/" target="_blank" rel="noopener">alexisqueenstown.co.nz ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">7.4</span>
+        <div class="info">
+          <div class="nm">Autoline Motel and Apartments</div>
+          <div class="meta">Queenstown 9300 · 121m · <a href="http://www.autolinemotel.co.nz/" target="_blank" rel="noopener">autolinemotel.co.nz ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">Queenstown Motel Apartments</div>
+          <div class="meta">Queenstown · 63m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="789a00b5-88a5-481b-b415-31f164945b42" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 65m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.7</span>
+        <div class="info">
+          <div class="nm">Hotel Lisbon São Bento <em>keeper</em></div>
+          <div class="meta">Lisbon · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">2.2</span>
+        <div class="info">
+          <div class="nm">Wallis São Bento</div>
+          <div class="meta">Lisbon · 65m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="182b7262-24a3-45a9-ab20-031e0c811316" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 76m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">Hotel Ercilla <em>keeper</em></div>
+          <div class="meta">Bilbao · 0m · <a href="http://www.hotelercilla.es/" target="_blank" rel="noopener">hotelercilla.es ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Ercilla</div>
+          <div class="meta">Bilbao · 76m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl distinct" data-keeper="a2d8bfd0-af6f-4bb3-a0df-117703223c4d" data-merge="0">
+    <div class="hd"><span class="badge distinct">likely distinct</span>
+      <button class="tog" onclick="tog(this)">Keep separate</button></div>
+    <div class="why">no site · 78m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.4</span>
+        <div class="info">
+          <div class="nm">Villa Sant'Andrea, A Belmond Hotel, Taormina Mare <em>keeper</em></div>
+          <div class="meta">Taormina · 0m · <a href="https://www.belmond.com/hotels/europe/italy/taormina/belmond-villa-sant-andrea/?utm_source=local_search&amp;utm_medium=link&amp;utm_campaign=google_business" target="_blank" rel="noopener">belmond.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.5</span>
+        <div class="info">
+          <div class="nm">Hotel Villa Sant'Andrea</div>
+          <div class="meta">Taormina · 78m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="42a5b51d-056b-4e44-8f28-6510c92f1fc4" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 7m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">6.5</span>
+        <div class="info">
+          <div class="nm">Hotel Stein <em>keeper</em></div>
+          <div class="meta">Salzburg · 0m · <a href="https://www.hotelstein.at/" target="_blank" rel="noopener">hotelstein.at ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Stein</div>
+          <div class="meta">Salzburg · 7m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="af18ac6b-0c26-4626-b02f-eead72bd2534" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.4</span>
+        <div class="info">
+          <div class="nm">The Drayton Hotel Savannah, Curio Collection by Hilton <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.hilton.com/en/hotels/savemqq-the-drayton-hotel-savannah/?SEO_id=GMB-AMER-QQ-SAVEMQQ&amp;y_source=1_MTAwMzMxNDUyMS03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">6.2</span>
+        <div class="info">
+          <div class="nm">The Drayton Hotel</div>
+          <div class="meta">Savannah · 8m · <a href="https://www.thedraytonhotel.com/" target="_blank" rel="noopener">thedraytonhotel.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="68531a67-45d6-41b5-928a-ca6fd85797b9" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.3</span>
+        <div class="info">
+          <div class="nm">Foley House Inn <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.foleyinn.com/?/utm_source=google&amp;utm_medium=organic&amp;utm_campaign=business_listing" target="_blank" rel="noopener">foleyinn.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Foley House Inn - 14 West Hull Street</div>
+          <div class="meta">Savannah · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="337dfd97-5597-4dce-b32f-0398b5db9ae6" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 18m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Hotel Rothaus Luzern &amp; Peruvian Culinary Art <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="http://www.rothaus.ch/" target="_blank" rel="noopener">rothaus.ch ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Hotel Rothaus</div>
+          <div class="meta">Luzern · 18m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="75b9ec03-5540-484f-9908-bad0912caa27" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 9m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">The Four Winds B&amp;B <em>keeper</em></div>
+          <div class="meta">Galway · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">The Four Winds Lodge</div>
+          <div class="meta">Galway · 9m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="1f679f08-e0df-45c1-a47a-6cf22399eaff" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 11m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Hotel Waldstätterhof - Luzern Bahnhof <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="https://www.hotel-waldstaetterhof.ch/" target="_blank" rel="noopener">hotel-waldstaetterhof.ch ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Waldstätterhof</div>
+          <div class="meta">Lucerne · 11m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="98bbc441-fb93-40bc-aa7d-567cccfc834e" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 13m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.0</span>
+        <div class="info">
+          <div class="nm">Renaissance Lucerne Hotel <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="https://www.marriott.com/en-us/hotels/emlbr-renaissance-lucerne-hotel/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">marriott.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.1</span>
+        <div class="info">
+          <div class="nm">Renaissance</div>
+          <div class="meta">Lucerne · 13m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="98e4a82f-fd37-4730-999d-e585b085726a" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 1m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.4</span>
+        <div class="info">
+          <div class="nm">Hotel Pension Rösli <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="http://roesli.ch/" target="_blank" rel="noopener">roesli.ch ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Rösli Guest House</div>
+          <div class="meta">Lucerne · 1m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="125cfe42-ed2e-46f4-a72b-8239386f3499" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 28m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.9</span>
+        <div class="info">
+          <div class="nm">Das Gablerbräu <em>keeper</em></div>
+          <div class="meta">Salzburg · 0m · <a href="https://www.gablerbrau.at/" target="_blank" rel="noopener">gablerbrau.at ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Gablerbräu</div>
+          <div class="meta">Salzburg · 6m · <a href="https://www.gablerbrau.at/" target="_blank" rel="noopener">gablerbrau.at ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">Star Inn Hotel Gablerbräu</div>
+          <div class="meta">Salzburg · 28m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="4f161be6-8c15-42d2-ba3f-49f09db6edba" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 2m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.1</span>
+        <div class="info">
+          <div class="nm">Richemont Gastronomie <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="https://richemont-gastro.ch/" target="_blank" rel="noopener">richemont-gastro.ch ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.4</span>
+        <div class="info">
+          <div class="nm">Richemont</div>
+          <div class="meta">Luzern · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.9</span>
+        <div class="info">
+          <div class="nm">Richemont Gastronomie &amp; Hotel</div>
+          <div class="meta">Luzern · 2m · <a href="https://richemont-gastro.ch/" target="_blank" rel="noopener">richemont-gastro.ch ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="9e492f2c-5d78-4758-875c-d54a66da9ca1" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 17m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">The Marshall House, Historic Inns of Savannah <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="http://www.marshallhouse.com/" target="_blank" rel="noopener">marshallhouse.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Marshall House</div>
+          <div class="meta">Savannah · 17m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="5a8ea094-16a9-40a5-b8f1-71e7eaf357bd" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 10m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Amora Hotel Jamison Sydney <em>keeper</em></div>
+          <div class="meta">Sydney NSW 2000 · 0m · <a href="https://www.amorahotels.com/sydney/?utm_source=google-local&amp;utm_medium=organic" target="_blank" rel="noopener">amorahotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Amora Hotel</div>
+          <div class="meta">Sydney · 10m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="06e74c90-9929-4b2f-8765-9fe46007f977" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 10m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Middle Beach Lodge At The Headland <em>keeper</em></div>
+          <div class="meta">Tofino · 0m · <a href="http://www.middlebeach.com" target="_blank" rel="noopener">middlebeach.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Middle Beach Lodge</div>
+          <div class="meta">Tofino · 10m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="3bf5687c-64d5-4584-b629-ae0ed3822902" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 12m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.7</span>
+        <div class="info">
+          <div class="nm">Chateau Fort Lapin guestrooms <em>keeper</em></div>
+          <div class="meta">Brugge · 0m · <a href="https://airbnb.com/h/fortlapinkamer2%20https://airbnb.com/h/fortlapinsuitekamer3%20https://airbnb.com/h/fortlapinkamer4%20https://airbnb.com/h/fortlapinsuitekamer5%20%C2%A0airbnb.com/h/fortlapinfamiliekamer1" target="_blank" rel="noopener">airbnb.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">6.0</span>
+        <div class="info">
+          <div class="nm">Fort Lapin</div>
+          <div class="meta">Bruges · 12m · <a href="https://www.fortlapin.be/" target="_blank" rel="noopener">fortlapin.be ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="27e0f29e-671c-4a76-918e-a50123d6312a" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Boho Hotel Budapest - Small Luxury Hotels <em>keeper</em></div>
+          <div class="meta">Mikszáth Kálmán tér 3 · 0m · <a href="https://www.hotelbohobudapest.com/" target="_blank" rel="noopener">hotelbohobudapest.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">BoHo</div>
+          <div class="meta">Budapest · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="70b549d6-bf07-4c0a-9e92-b43c7d2ed3be" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 24m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.6</span>
+        <div class="info">
+          <div class="nm">Best Western Plus Hotel Stellar <em>keeper</em></div>
+          <div class="meta">Surry Hills NSW 2000 · 0m · <a href="http://www.hotelstellar.com/" target="_blank" rel="noopener">hotelstellar.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Hotel Stellar</div>
+          <div class="meta">Sydney · 24m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="8e419282-9532-4b7a-868d-962fb46ef5cc" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 4m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">Doria Palace Boutique Hotel <em>keeper</em></div>
+          <div class="meta">Rome · 0m · <a href="https://www.doriapalace.com/" target="_blank" rel="noopener">doriapalace.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Hotel Doria</div>
+          <div class="meta">Rome · 4m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="80d6e442-df9b-407e-bb0e-2fe85db389a8" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 9m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.8</span>
+        <div class="info">
+          <div class="nm">Hotel Montana Zürich <em>keeper</em></div>
+          <div class="meta">Zurich · 0m · <a href="https://hotelmontana-zurich.com/" target="_blank" rel="noopener">hotelmontana-zurich.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Montana</div>
+          <div class="meta">Zurich · 9m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="7633bfd4-5252-4e0d-8ccb-6689199ecbec" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 7m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">Hotel Antigua Casona <em>keeper</em></div>
+          <div class="meta">Provincia de Buenos Aires · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Antigua Casona B&amp;B</div>
+          <div class="meta">Santa Fe · 7m · <a href="http://www.antiguacasona.com/" target="_blank" rel="noopener">antiguacasona.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="7535b4d5-6fad-4946-b04b-497556ca8798" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 1m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.8</span>
+        <div class="info">
+          <div class="nm">Hilton Garden Inn Savannah Historic District <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.hilton.com/en/hotels/savshgi-hilton-garden-inn-savannah-historic-district/?SEO_id=GMB-AMER-GI-SAVSHGI&amp;y_source=1_MjA4MzY4OC03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.1</span>
+        <div class="info">
+          <div class="nm">Hilton Garden Inn</div>
+          <div class="meta">Savannah · 1m · <a href="https://www.hilton.com/en/hotels/savshgi-hilton-garden-inn-savannah-historic-district/" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="5c27397e-9d98-484c-ad7a-cd6a5b35febe" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 5m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.8</span>
+        <div class="info">
+          <div class="nm">The Spire Hotel Queenstown <em>keeper</em></div>
+          <div class="meta">Queenstown 9300 · 0m · <a href="http://www.thespirehotel.com/" target="_blank" rel="noopener">thespirehotel.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">The Spire Hotel</div>
+          <div class="meta">Queenstown · 5m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="cc872962-4690-468e-ac14-bd0534ac3677" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 4m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">Hotel Seehof <em>keeper</em></div>
+          <div class="meta">Zurich · 0m · <a href="https://www.seehof.ch/" target="_blank" rel="noopener">seehof.ch ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Seehof</div>
+          <div class="meta">Zurich · 4m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="604c6cdd-cf68-43b3-8ef5-dbd76134e2a3" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">Henrietta Experimental <em>keeper</em></div>
+          <div class="meta">London WC2E 8PS · 0m · <a href="https://www.henriettahotel.com/" target="_blank" rel="noopener">henriettahotel.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Henrietta Hotel</div>
+          <div class="meta">London · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="de04b16a-f028-464e-bad3-1605255a3b0b" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 22m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Angel Guesthouse (5/F) <em>keeper</em></div>
+          <div class="meta">Hong Kong · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Angel Guesthouse (14/F)</div>
+          <div class="meta">Hong Kong · 22m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Angel Guesthouse (4/F)</div>
+          <div class="meta">Hong Kong · 1m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="8a25b5ee-3eb8-42e2-9f59-72bca70e3767" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 5m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Casa da Companhia Hotel &amp; Spa, Vignette Collection by IHG <em>keeper</em></div>
+          <div class="meta">Porto · 0m · <a href="https://www.ihg.com/vignettecollection/hotels/us/en/porto/opocc/hoteldetail?cm_mmc=GoogleMaps-_-LX-_-PT-_-OPOCC" target="_blank" rel="noopener">ihg.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">6.2</span>
+        <div class="info">
+          <div class="nm">Casa da Companhia</div>
+          <div class="meta">Porto · 5m · <a href="https://www.casadacompanhia.com/" target="_blank" rel="noopener">casadacompanhia.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="0054d766-99bb-4c41-ad33-06f70bfdb5c7" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 19m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Happy Yeung Guesthouse <em>keeper</em></div>
+          <div class="meta">Hong Kong · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Happy Guesthouse</div>
+          <div class="meta">Hong Kong · 19m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="32fd7b4d-7277-4da1-b1b5-02528645db65" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 7m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.5</span>
+        <div class="info">
+          <div class="nm">Center Hotels Laugavegur <em>keeper</em></div>
+          <div class="meta">Reykjavik · 0m · <a href="https://www.centerhotels.com/en/hotel-laugavegur-reykjavik" target="_blank" rel="noopener">centerhotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">Center Hotels Laugevegur</div>
+          <div class="meta">Reykjavik · 7m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="d069ea5f-dccb-41b2-aa3a-ee69ee47ae60" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 6m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Rising Dragon Villa <em>keeper</em></div>
+          <div class="meta">Hà Nội · 0m · <a href="https://www.risingdragonhotel.com" target="_blank" rel="noopener">risingdragonhotel.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Rising Dragon Villa Hotel 43A Bat Su Street</div>
+          <div class="meta">Hanoi · 6m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="209caad3-1b33-479b-8165-0b892abf70ac" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 4m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.0</span>
+        <div class="info">
+          <div class="nm">Edinburgh Marriott Hotel Holyrood <em>keeper</em></div>
+          <div class="meta">Edinburgh EH8 8AU · 0m · <a href="https://www.marriott.com/en-us/hotels/edimh-edinburgh-marriott-hotel-holyrood/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">marriott.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Edinburgh Holyrood Hotel</div>
+          <div class="meta">Edinburgh EH8 9UQ · 4m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="208bb89f-e089-427d-baab-e99e15e2c581" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 15m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.3</span>
+        <div class="info">
+          <div class="nm">Altstadt Hotel Stadtkrug <em>keeper</em></div>
+          <div class="meta">Salzburg · 0m · <a href="https://stadtkrug.at/" target="_blank" rel="noopener">stadtkrug.at ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.5</span>
+        <div class="info">
+          <div class="nm">Stadtkrug</div>
+          <div class="meta">Salzburg · 15m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="4451bce0-0ab2-4813-a419-f9f219e1470c" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 0m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.2</span>
+        <div class="info">
+          <div class="nm">Azzurro Pod Hotel - City Darling Harbour <em>keeper</em></div>
+          <div class="meta">Pyrmont NSW 2009 · 0m · <a href="https://www.azzurrohotels.com/" target="_blank" rel="noopener">azzurrohotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">Darling Harbour</div>
+          <div class="meta">Pyrmont NSW 2009 · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="ff0a5a49-67c7-4c2e-8b6d-10658d567d80" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Center Hotels Klopp <em>keeper</em></div>
+          <div class="meta">Reykjavik · 0m · <a href="https://www.centerhotels.com/en/hotel-klopp-reykjavik" target="_blank" rel="noopener">centerhotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.2</span>
+        <div class="info">
+          <div class="nm">center hotel klopp</div>
+          <div class="meta">Reykjavik · 4m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">CenterHotel Klöpp</div>
+          <div class="meta">Reykjavik · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="72b701b8-ba1d-4b55-ba63-b8936330b6a6" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 4m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.2</span>
+        <div class="info">
+          <div class="nm">DoubleTree by Hilton Hotel Savannah Historic District <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.hilton.com/en/hotels/savhtdt-doubletree-savannah-historic-district/?SEO_id=GMB-AMER-DT-SAVHTDT&amp;y_source=1_MTM3MjUzOC03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.7</span>
+        <div class="info">
+          <div class="nm">DoubleTree by Hilton</div>
+          <div class="meta">Savannah · 4m · <a href="https://www.hilton.com/en/hotels/savhtdt-doubletree-savannah-historic-district/" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="1acf923f-c2ec-417d-b84f-d2e4d691c7c3" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 6m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">Menzies Guest House <em>keeper</em></div>
+          <div class="meta">Edinburgh EH10 4JS · 0m · <a href="https://www.menzies-guesthouse.co.uk/" target="_blank" rel="noopener">menzies-guesthouse.co.uk ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Menzies</div>
+          <div class="meta">Edinburgh · 6m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="63599419-735d-4ec7-98c7-a0618baa471a" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 4m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.1</span>
+        <div class="info">
+          <div class="nm">Hampton Inn &amp; Suites Savannah Historic District <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.hilton.com/en/hotels/savhshx-hampton-suites-savannah-historic-district/?SEO_id=GMB-AMER-HX-SAVHSHX&amp;y_source=1_MjA4NDY1Mi03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">2.7</span>
+        <div class="info">
+          <div class="nm">Hampton</div>
+          <div class="meta">Savannah · 4m · <a href="https://www.hilton.com/en/hotels/savhshx-hampton-suites-savannah-historic-district/" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="0724cdb8-d130-4e40-89a7-2e03694a7690" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 9m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.5</span>
+        <div class="info">
+          <div class="nm">Gifford House Guest House Edinburgh Scotland <em>keeper</em></div>
+          <div class="meta">Edinburgh EH16 5AJ · 0m · <a href="https://www.giffordhouseedinburgh.com/" target="_blank" rel="noopener">giffordhouseedinburgh.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Gifford House</div>
+          <div class="meta">Edinburgh · 9m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="0f89ff72-d0d4-4178-87f7-5b16c5e238dc" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 6m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.5</span>
+        <div class="info">
+          <div class="nm">Hotel De Pauw - Brugge <em>keeper</em></div>
+          <div class="meta">Brugge · 0m · <a href="https://hotel.center.be.ivof.com/hotel-de-pauw/" target="_blank" rel="noopener">hotel.center.be.ivof.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">De Pauw</div>
+          <div class="meta">Bruges · 4m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Hotel De Pauw</div>
+          <div class="meta">Bruges · 6m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="d385e8bc-682a-4185-9288-e410e5e2f511" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 11m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">The Bohemian Hotel Savannah Riverfront, Autograph Collection <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.marriott.com/en-us/hotels/savak-the-bohemian-hotel-savannah-riverfront-autograph-collection/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">marriott.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Bohemian Hotel</div>
+          <div class="meta">Savannah · 11m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="984be0b3-857f-4d4a-98c1-7c950fa08eb6" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 3m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">The Nicholas <em>keeper</em></div>
+          <div class="meta">Charleston · 0m · <a href="https://thenicholas.com/" target="_blank" rel="noopener">thenicholas.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">The Nicholas Bed and Breakfast</div>
+          <div class="meta">Charleston · 3m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="cee351cf-6824-4ca0-9ef4-401070e1e8be" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 4m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Olde Harbour Inn, Historic Inns of Savannah <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.oldeharbourinn.com/" target="_blank" rel="noopener">oldeharbourinn.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Olde Harbour Inn</div>
+          <div class="meta">Savannah · 4m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="afd9c426-1b15-439f-ba04-7565a5800fc2" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 7m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">6.4</span>
+        <div class="info">
+          <div class="nm">Alda Hotel <em>keeper</em></div>
+          <div class="meta">Reykjavik · 0m · <a href="https://www.icelandhotelcollectionbyberjaya.com/en/hotels/reykjavik/hotel-alda-reykjavik" target="_blank" rel="noopener">icelandhotelcollectionbyberjaya.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Alda Hotel Reykjavik</div>
+          <div class="meta">Reykjavik · 7m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="7aef15a6-c03c-455a-8fba-b6a467b58f41" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 2m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">The Hotel Lucerne, Autograph Collection <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="https://www.marriott.com/en-us/hotels/emlak-the-hotel-lucerne-autograph-collection/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">marriott.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">The Hotel</div>
+          <div class="meta">Lucerne · 2m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="f76fea39-b268-4052-9880-5755233d47cb" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 6m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.9</span>
+        <div class="info">
+          <div class="nm">Pur Oporto Boutique by actahotels <em>keeper</em></div>
+          <div class="meta">Porto · 0m · <a href="https://www.actahotels.com/hoteles/hotel-acta-pur" target="_blank" rel="noopener">actahotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Pur Oporto Boutique Hotel</div>
+          <div class="meta">Porto · 6m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="6aa54ad5-10d2-4363-8d09-c45700ad14b7" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 14m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.2</span>
+        <div class="info">
+          <div class="nm">Hotel De Tuilerieën / Restaurant Mémoire <em>keeper</em></div>
+          <div class="meta">Brugge · 0m · <a href="http://www.hoteltuilerieen.com/" target="_blank" rel="noopener">hoteltuilerieen.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">De Tuilerieën</div>
+          <div class="meta">Brugge · 14m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="49026f2b-fb5a-4c2b-bab7-e73071190cc5" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 16m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.7</span>
+        <div class="info">
+          <div class="nm">ADGE Hotel &amp; Residences Sydney Surry Hills <em>keeper</em></div>
+          <div class="meta">Surry Hills NSW 2010 · 0m · <a href="https://adgehotel.com.au/?utm_source=googlemybusiness&amp;utm_medium=organic&amp;utm_campaign=Google%20My%20Business" target="_blank" rel="noopener">adgehotel.com.au ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.3</span>
+        <div class="info">
+          <div class="nm">ADGE Hotel</div>
+          <div class="meta">Sydney · 16m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="9aeda801-feef-4bbc-bd4d-43ce4d54a356" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 9m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.5</span>
+        <div class="info">
+          <div class="nm">Hotel Kampa, Old Armory <em>keeper</em></div>
+          <div class="meta">Praha-Praha 1 · 0m · <a href="https://www.pytlounoldarmouryhotel.cz/cs/" target="_blank" rel="noopener">pytlounoldarmouryhotel.cz ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Hotel</div>
+          <div class="meta">Praha 1-Malá Strana · 9m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="98b9a489-78b0-4f4c-be4f-a545aa3a1cf6" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 3m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.7</span>
+        <div class="info">
+          <div class="nm">KEX Hostel and Hotel Reykjavik <em>keeper</em></div>
+          <div class="meta">Reykjavik · 0m · <a href="http://www.kexhostel.is/" target="_blank" rel="noopener">kexhostel.is ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.1</span>
+        <div class="info">
+          <div class="nm">KEX Hostel</div>
+          <div class="meta">Reykjavik · 3m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="2226c5f9-4eb2-4b79-84c2-da2124792ddd" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 2m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">6.0</span>
+        <div class="info">
+          <div class="nm">Southside Guest House <em>keeper</em></div>
+          <div class="meta">Edinburgh EH9 1QS · 0m · <a href="http://www.southsideguesthouse.co.uk/" target="_blank" rel="noopener">southsideguesthouse.co.uk ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">6.8</span>
+        <div class="info">
+          <div class="nm">Southside</div>
+          <div class="meta">Edinburgh · 2m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="1a426118-c9e7-48f3-b395-6c50e88ed6b0" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 16m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.4</span>
+        <div class="info">
+          <div class="nm">Barony House Boutique Hotel Book Direct on our own website <em>keeper</em></div>
+          <div class="meta">Edinburgh EH9 2BZ · 0m · <a href="https://www.baronyhouse.co.uk/" target="_blank" rel="noopener">baronyhouse.co.uk ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Barony House</div>
+          <div class="meta">Edinburgh · 16m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="7a91aa98-759c-489d-9bb0-c65942444a47" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 4m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.7</span>
+        <div class="info">
+          <div class="nm">Le Petit Greek, Santorini <em>keeper</em></div>
+          <div class="meta">Thira 847 00 · 0m · <a href="https://www.lepetitgreeksantorini.com/" target="_blank" rel="noopener">lepetitgreeksantorini.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">le petit Greek bed &amp; breakfast</div>
+          <div class="meta">Santorini · 4m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="8cbaa0d4-ccbc-468a-a67a-6f6c9ce70f22" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 4m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.9</span>
+        <div class="info">
+          <div class="nm">Baldursbra Guesthouse <em>keeper</em></div>
+          <div class="meta">Reykjavik · 0m · <a href="http://www.facebook.com/Baldursbr%C3%A1-Guesthouse-612701945410451/" target="_blank" rel="noopener">facebook.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Baldursbrá</div>
+          <div class="meta">Reykjavik · 4m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="135b1fd2-d1c4-4fcc-aa01-e3e930a8daa8" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 17m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">6.8</span>
+        <div class="info">
+          <div class="nm">Hótel Ísland Spa &amp; Wellness <em>keeper</em></div>
+          <div class="meta">Reykjavik · 0m · <a href="http://www.hotelisland.is/" target="_blank" rel="noopener">hotelisland.is ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.2</span>
+        <div class="info">
+          <div class="nm">Hotel island</div>
+          <div class="meta">Reykjavik · 9m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Hótel Ísland</div>
+          <div class="meta">Reykjavik · 17m · <a href="https://www.hotelisland.is/" target="_blank" rel="noopener">hotelisland.is ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="7e1ad299-f241-455a-abad-d7c64a5bdc76" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 2m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.2</span>
+        <div class="info">
+          <div class="nm">Pension Jahn <em>keeper</em></div>
+          <div class="meta">Salzburg · 0m · <a href="https://www.pensionjahn.at/" target="_blank" rel="noopener">pensionjahn.at ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.5</span>
+        <div class="info">
+          <div class="nm">18th Pension Jahn - Salzburg</div>
+          <div class="meta">Salzburg · 2m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="880b2c1e-5a2a-414d-99a0-d6e3c93b8e0b" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 1m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">7.4</span>
+        <div class="info">
+          <div class="nm">Garlands Guest House <em>keeper</em></div>
+          <div class="meta">Edinburgh EH6 5AL · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Garlands</div>
+          <div class="meta">Edinburgh · 1m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="b6a7f8aa-606c-4232-a552-1707b766cebf" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 7m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">1.8</span>
+        <div class="info">
+          <div class="nm">My Place Dublin Hostel <em>keeper</em></div>
+          <div class="meta">Dublin · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.1</span>
+        <div class="info">
+          <div class="nm">My Place Hostel B&amp;B</div>
+          <div class="meta">Dublin · 7m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="9cf57c8a-45a9-4443-b529-5a6263b168fc" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 9m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.4</span>
+        <div class="info">
+          <div class="nm">Blissful Suites by gaiarooms <em>keeper</em></div>
+          <div class="meta">Porto · 0m · <a href="https://www.gaiarooms.com/es/oporto/blissful-suites-porto" target="_blank" rel="noopener">gaiarooms.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Blissful Suites Porto</div>
+          <div class="meta">Porto · 9m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="00815256-4ef0-4734-865d-3c958af2dc68" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Arrandale Guest House <em>keeper</em></div>
+          <div class="meta">Edinburgh EH9 2BZ · 0m · <a href="http://arrandaleguesthouse.tk/" target="_blank" rel="noopener">arrandaleguesthouse.tk ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Arrandale</div>
+          <div class="meta">Edinburgh · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="4d59e810-29e7-4f7e-b967-27cdb83166fa" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">INK Hotel Amsterdam - MGallery Collection <em>keeper</em></div>
+          <div class="meta">Amsterdam · 0m · <a href="https://all.accor.com/lien_externe.svlt?goto=fiche_hotel&amp;code_hotel=1159&amp;merchantid=seo-maps-NL-1159&amp;sourceid=aw-cen&amp;utm_medium=seo%20maps&amp;utm_source=google%20Maps&amp;utm_campaign=seo%20maps" target="_blank" rel="noopener">all.accor.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">7.3</span>
+        <div class="info">
+          <div class="nm">INK Hotel Amsterdam</div>
+          <div class="meta">Amsterdam · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="42657fda-e195-4134-8c44-ff9184596a96" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 16m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">7.0</span>
+        <div class="info">
+          <div class="nm">Hotel Baslertor Luzern <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="https://baseltor.ch/" target="_blank" rel="noopener">baseltor.ch ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Baslertor</div>
+          <div class="meta">Lucerne · 16m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="84814026-4a68-48fd-acca-0b388772c81d" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 6m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">The Goodenough Hotel London <em>keeper</em></div>
+          <div class="meta">London WC1N 2AF · 0m · <a href="http://www.thegoodenough.co.uk/" target="_blank" rel="noopener">thegoodenough.co.uk ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">The Goodenough</div>
+          <div class="meta">London · 6m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="13a32e07-95b8-4843-aa12-edb234e61014" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 12m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">hotel hill top inn vatva <em>keeper</em></div>
+          <div class="meta">Gujarat 382445 · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">FabHotel Hill Top Inn</div>
+          <div class="meta">Gujarat 382440 · 12m · <a href="https://www.fabhotels.com/hotels-in-ahmedabad/fabhotel-hill-top-inn-kbqxrheg.html?utm_source=GMB&amp;utm_medium=organic&amp;utm_campaign=GMB_Traffic" target="_blank" rel="noopener">fabhotels.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="e01dc684-6723-45db-8f9f-837399a607a4" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 12m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">Figueira by The Beautique Hotels <em>keeper</em></div>
+          <div class="meta">Lisbon · 0m · <a href="https://www.thebeautiquehotels.com/pt/figueira/" target="_blank" rel="noopener">thebeautiquehotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Figueira Beautique Hotel</div>
+          <div class="meta">Lisbon · 12m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="76dcbe56-9d4b-4bda-85ed-5412a4a82f14" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 26m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">6.2</span>
+        <div class="info">
+          <div class="nm">Fox Hotel and Suites <em>keeper</em></div>
+          <div class="meta">Banff · 0m · <a href="https://foxhotelandsuites.com/" target="_blank" rel="noopener">foxhotelandsuites.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Fox Hotel</div>
+          <div class="meta">Banff · 26m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="c07a62c5-4674-4318-8ce4-a97402d4a950" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 3m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Eco-Hotel Fevery <em>keeper</em></div>
+          <div class="meta">Bruges · 0m · <a href="https://www.hotelfevery.be/" target="_blank" rel="noopener">hotelfevery.be ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Fevery</div>
+          <div class="meta">Bruges · 3m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="10ea4e44-d0a1-403b-bd48-bf07886539e4" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 6m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.9</span>
+        <div class="info">
+          <div class="nm">Room With A View - Apartments <em>keeper</em></div>
+          <div class="meta">Reykjavik · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Room with a View</div>
+          <div class="meta">Reykjavik · 6m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="065a6d20-790e-4bb3-83df-619b682a9b7d" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 19m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Hotel Academie Bruges <em>keeper</em></div>
+          <div class="meta">Brugge · 0m · <a href="http://www.dukesacademie.com/" target="_blank" rel="noopener">dukesacademie.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Academie Hotel</div>
+          <div class="meta">Bruges · 19m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="366d44c9-4e8b-4ec8-bca7-50180a137103" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 1m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Kamal Guesthouse <em>keeper</em></div>
+          <div class="meta">Hong Kong · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Kamal Deluxe Guesthouse</div>
+          <div class="meta">Hong Kong · 1m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="00604806-e2bc-4fdd-963b-635ede1d2ab0" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 3m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Hong Kong Guesthouse (12/F) <em>keeper</em></div>
+          <div class="meta">Hong Kong · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.6</span>
+        <div class="info">
+          <div class="nm">Hong Kong Guesthouse (11/F)</div>
+          <div class="meta">Hong Kong · 3m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="b65bae05-f8e2-4199-9d97-ee51224fb84b" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 5m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">7.4</span>
+        <div class="info">
+          <div class="nm">Descobertas Boutique Hotel by Aspasios <em>keeper</em></div>
+          <div class="meta">Porto · 0m · <a href="https://www.aspasios.com/es/destino/porto-boutique-hotels/descobertas-boutique-hotel-aspasios?utm_source=gmb&amp;utm_medium=organic" target="_blank" rel="noopener">aspasios.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Descobertas</div>
+          <div class="meta">Porto · 5m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="9c9c3051-742b-447c-bd81-a8537e617101" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 35m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">0.1</span>
+        <div class="info">
+          <div class="nm">Radisson Blu Hotel Malmö <em>keeper</em></div>
+          <div class="meta">Malmö · 0m · <a href="https://www.radissonhotels.com/en-us/hotels/radisson-blu-malmo?cid=a:se+b:gmb+c:emea+i:local+e:rdb+d:nob+h:SEMMA2" target="_blank" rel="noopener">radissonhotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">1.8</span>
+        <div class="info">
+          <div class="nm">Radisson Blu</div>
+          <div class="meta">Malmö · 35m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="ad77a6be-038c-4bb2-a455-969b8eee6ac9" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 26m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Pension Bernd Langhein <em>keeper</em></div>
+          <div class="meta">Putzbrunn · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.5</span>
+        <div class="info">
+          <div class="nm">Pension Renate Langhein</div>
+          <div class="meta">Putzbrunn · 26m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="62a3fa07-54e0-43d2-ba62-d116fc762141" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 27m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Little Hanoi Diamond <em>keeper</em></div>
+          <div class="meta">Hà Nội · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Khách Sạn Hanoi Gecko III</div>
+          <div class="meta">Hà Nội · 27m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="657c2d2e-d6b0-4beb-9999-7b91a970bf95" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 15m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Pensión Gala <em>keeper</em></div>
+          <div class="meta">Seville · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Pensión Gravina</div>
+          <div class="meta">Seville · 15m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="20cc0a71-b64e-4cfd-ab63-84d3146ff7ca" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 5m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.4</span>
+        <div class="info">
+          <div class="nm">Hotel Restaurant Rebstock <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="https://www.rebstock-luzern.ch/" target="_blank" rel="noopener">rebstock-luzern.ch ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Rebstock</div>
+          <div class="meta">Luzern · 5m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="16106381-b3bb-4ead-b81e-c4ac437307d4" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 1m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.4</span>
+        <div class="info">
+          <div class="nm">Hotel Goldener Hirsch, a Luxury Collection Hotel, Salzburg <em>keeper</em></div>
+          <div class="meta">Salzburg · 0m · <a href="https://www.marriott.com/en-us/hotels/szglc-hotel-goldener-hirsch-a-luxury-collection-hotel-salzburg/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">marriott.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Hotel Goldener Hirsch</div>
+          <div class="meta">Salzburg · 1m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="688ffc55-c6db-4aba-b60b-9a307f113fd4" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">7.0</span>
+        <div class="info">
+          <div class="nm">Hotel Schweizerhof Luzern <em>keeper</em></div>
+          <div class="meta">Luzern · 0m · <a href="https://www.schweizerhof-luzern.ch/" target="_blank" rel="noopener">schweizerhof-luzern.ch ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Schweizerhof</div>
+          <div class="meta">Lucerne · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="59e38521-70ae-4f6d-b9e2-f875eff72d9e" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 13m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Hôtel Life Bordeaux Gare - BG <em>keeper</em></div>
+          <div class="meta">Bordeaux · 0m · <a href="https://lifehotels.fr/" target="_blank" rel="noopener">lifehotels.fr ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">3.7</span>
+        <div class="info">
+          <div class="nm">Hôtel Stars Bordeaux Gare</div>
+          <div class="meta">Bordeaux · 13m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="a2ab6f09-5c4a-4bb7-aba1-dd9fdda84ec4" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 45m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Entourage sur-le-Lac <em>keeper</em></div>
+          <div class="meta">QC G3B 2R3 · 0m · <a href="https://entourageresort.com/" target="_blank" rel="noopener">entourageresort.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">Entourage sur-le-lac</div>
+          <div class="meta">Lac-Beauport · 45m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="f2b5d8d8-0e2c-4e4e-9fe0-4b59a38c54f8" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 5m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">3.1</span>
+        <div class="info">
+          <div class="nm">Hampton Inn &amp; Suites Savannah/Midtown <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.hilton.com/en/hotels/savmdhx-hampton-suites-savannah-midtown/?SEO_id=GMB-AMER-HX-SAVMDHX&amp;y_source=1_MjA4Mjg2Mi03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">2.2</span>
+        <div class="info">
+          <div class="nm">Hampton Inn &amp; Suites</div>
+          <div class="meta">Savannah · 5m · <a href="https://www.hilton.com/en/hotels/savmdhx-hampton-suites-savannah-midtown/" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="1dc1bb51-1ea7-48b2-9ade-2423f1a83ccb" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 10m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.1</span>
+        <div class="info">
+          <div class="nm">The Cotton Sail Hotel Savannah, Tapestry Collection by Hilton <em>keeper</em></div>
+          <div class="meta">Savannah · 0m · <a href="https://www.hilton.com/en/hotels/savvyup-the-cotton-sail-hotel-savannah/?SEO_id=GMB-AMER-UP-SAVVYUP&amp;y_source=1_MTExMDU4MzItNzE1LWxvY2F0aW9uLndlYnNpdGU%3D" target="_blank" rel="noopener">hilton.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.3</span>
+        <div class="info">
+          <div class="nm">The Cotton Sail Hotel</div>
+          <div class="meta">Savannah · 10m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="9cf7d1f2-ebf2-4f80-903b-5725ff853fc0" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 14m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Guest House Indigo <em>keeper</em></div>
+          <div class="meta">Cusco · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Indigo Cusco</div>
+          <div class="meta">Cusco · 14m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="b71de1e7-e1fd-4330-8b00-21e3469042ed" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 18m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Cashelmara Lodge Bed and Breakfast <em>keeper</em></div>
+          <div class="meta">Galway · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Seashore Lodge Bed and Breakfast</div>
+          <div class="meta">Galway · 18m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="87a28a3b-c227-43a5-b248-007cb83b14f1" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 7m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">2.2</span>
+        <div class="info">
+          <div class="nm">Séneca <em>keeper</em></div>
+          <div class="meta">Cordoba · 0m · <a href="http://senecahostel.com" target="_blank" rel="noopener">senecahostel.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">2.9</span>
+        <div class="info">
+          <div class="nm">Séneca Hostel</div>
+          <div class="meta">Cordoba · 7m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="8be08967-31e0-47d5-bdb6-709e54adbdb7" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 24m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">6.8</span>
+        <div class="info">
+          <div class="nm">Gästehaus Bader <em>keeper</em></div>
+          <div class="meta">Garmisch-Partenkirchen · 0m · <a href="https://www.gaestehausbader-gap.de/" target="_blank" rel="noopener">gaestehausbader-gap.de ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Gästehaus Pfeuffer</div>
+          <div class="meta">Garmisch-Partenkirchen · 24m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="16a71c8a-c8a9-49cd-b4cf-06685635f90f" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 27m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">8.0</span>
+        <div class="info">
+          <div class="nm">Hotel Navarra Brugge <em>keeper</em></div>
+          <div class="meta">Brugge · 0m · <a href="http://www.hotelnavarra.com/" target="_blank" rel="noopener">hotelnavarra.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Navarra</div>
+          <div class="meta">Brugge · 27m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="89021914-abd1-4b46-85bf-26c779c0e8bd" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 19m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">4.9</span>
+        <div class="info">
+          <div class="nm">Hotel Brandstätter <em>keeper</em></div>
+          <div class="meta">Salzburg · 0m · <a href="http://www.hotel-brandstaetter.com/" target="_blank" rel="noopener">hotel-brandstaetter.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.9</span>
+        <div class="info">
+          <div class="nm">Hotel Gasthof Brandstätter</div>
+          <div class="meta">Salzburg · 19m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="0e7442bb-5f64-4ed9-b79f-98ad34c4b967" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Hotel U Kříže <em>keeper</em></div>
+          <div class="meta">Praha-Praha 1 · 0m · <a href="http://www.ukrize.cz/" target="_blank" rel="noopener">ukrize.cz ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">U Kříže</div>
+          <div class="meta">Prague · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="4865d423-bbd3-4bc5-9cc1-d5d17f1b1a4c" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 6m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.4</span>
+        <div class="info">
+          <div class="nm">Boutiquehotel am Dom <em>keeper</em></div>
+          <div class="meta">Salzburg · 0m · <a href="https://www.hotelamdom.at/" target="_blank" rel="noopener">hotelamdom.at ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Hotel am Dom</div>
+          <div class="meta">Salzburg · 6m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="30fb273a-b0d4-495c-8dd7-0b61fdbab87b" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 7m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.8</span>
+        <div class="info">
+          <div class="nm">Pytloun Boutique Hotel Prague <em>keeper</em></div>
+          <div class="meta">Praha 1-Nové Město · 0m · <a href="https://www.pytlounhotelprague.cz/cs/" target="_blank" rel="noopener">pytlounhotelprague.cz ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">4.8</span>
+        <div class="info">
+          <div class="nm">Pytloun</div>
+          <div class="meta">Prague · 7m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="ca1d4bfe-1b8c-42f7-90bb-210f9ee79ca9" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 23m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.4</span>
+        <div class="info">
+          <div class="nm">Hotel Danmark - By Brøchner Hotels <em>keeper</em></div>
+          <div class="meta">Copenhagen · 0m · <a href="https://www.brochner-hotels.com/our-locations/hotel-danmark/?utm_source=mybusiness&amp;utm_medium=organic" target="_blank" rel="noopener">brochner-hotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.0</span>
+        <div class="info">
+          <div class="nm">Hotel Danmark</div>
+          <div class="meta">Copenhagen · 23m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="49cc1727-83d9-43c2-98e0-34d66e5040a9" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 42m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.4</span>
+        <div class="info">
+          <div class="nm">Hotel Anteroom Kyoto <em>keeper</em></div>
+          <div class="meta">Japan · 0m · <a href="https://www.uds-hotels.com/anteroom/kyoto/?utm_source=google&amp;utm_medium=maps" target="_blank" rel="noopener">uds-hotels.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.2</span>
+        <div class="info">
+          <div class="nm">Hotel Anteroom Kyoto</div>
+          <div class="meta">Kyoto · 42m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="6b96c36d-2783-4508-9ef7-687273fbca69" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 25m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">B&amp;B Toledo Station <em>keeper</em></div>
+          <div class="meta">Naples · 0m · <a href="http://www.toledostation.com" target="_blank" rel="noopener">toledostation.com ↗</a></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">6.0</span>
+        <div class="info">
+          <div class="nm">B&amp;B Casale a Toledo</div>
+          <div class="meta">Naples · 25m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div>
+  <div class="cl dupe" data-keeper="34fe0b6f-aa40-4afb-a901-6912f561df29" data-merge="1">
+    <div class="hd"><span class="badge dupe">likely dupe</span>
+      <button class="tog" onclick="tog(this)">Merge ✓</button></div>
+    <div class="why">no site · 8m</div>
+    <div class="rows">
+      <div class="row keep">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Hôtel Cézanne <em>keeper</em></div>
+          <div class="meta">Aix-en-Provence · 0m · <span class="nosite">no website</span></div>
+        </div>
+      </div>
+      <div class="row ">
+        <span class="sc">5.6</span>
+        <div class="info">
+          <div class="nm">Cézanne Boutique Hotel</div>
+          <div class="meta">Aix-en-Provence · 8m · <span class="nosite">no website</span></div>
+        </div>
+      </div></div>
+  </div></div>
+<script>
+  function tog(b){const c=b.closest('.cl');const m=c.dataset.merge==='1'?'0':'1';c.dataset.merge=m;b.textContent=m==='1'?'Merge ✓':'Keep separate';build()}
+  function build(){
+    const reject=[...document.querySelectorAll('.cl')].filter(c=>c.dataset.merge==='0').map(c=>c.dataset.keeper);
+    const merging=document.querySelectorAll('.cl').length-reject.length;
+    const base='node --import tsx --env-file=.env.local scripts/dedup-hotels.mjs --borderline --execute';
+    document.getElementById('cmd').value=reject.length?base+' --reject '+reject.join(','):base;
+    document.getElementById('cnt').textContent=merging+' merging · '+reject.length+' kept separate';
+  }
+  build();
+</script>

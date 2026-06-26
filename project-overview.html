@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>gotcosy.com — project status & roadmap</title>
+<style>
+  :root{
+    --bg:#0F1512; --panel:#161D19; --panel2:#1B241F; --line:#2A352E;
+    --ink:#F3EEE6; --muted:#9DB0A6; --amber:#E0A458; --amber2:#D98A4E;
+    --green:#7FB069; --red:#E0846F; --blue:#7FA8C9; --violet:#B79BD0; --r:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(1300px 800px at 50% -10%, #18211C 0%, var(--bg) 62%);
+    color:var(--ink); font:15px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    padding:38px 18px 90px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto}
+  h1{font-size:30px;line-height:1.12;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 8px;font-size:15.5px}
+  .stamp{color:#5f7268;font-size:12.5px;margin:0 0 26px}
+  h2{font-size:12.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--amber);margin:38px 0 14px;display:flex;align-items:center;gap:10px}
+  h2:after{content:"";flex:1;height:1px;background:var(--line)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+  b{color:#fff;font-weight:600}
+
+  /* at a glance */
+  .glance{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  @media(max-width:880px){.glance{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:520px){.glance{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .stat b{display:block;font-size:24px;letter-spacing:-.02em;color:var(--amber)}
+  .stat span{font-size:12px;color:var(--muted);line-height:1.3;display:block;margin-top:2px}
+
+  /* trust scorecard */
+  .trust{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:760px){.trust{grid-template-columns:1fr}}
+  .tcard{background:linear-gradient(180deg,#1a221d,#161d19);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .tcard .lab{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .tcard .big{font-size:30px;font-weight:800;letter-spacing:-.02em}
+  .tcard.good{border-color:#3a4a3f}.tcard.good .big{color:var(--green)}
+  .tcard.mid{border-color:#4a432e}.tcard.mid .big{color:var(--amber)}
+  .tcard p{margin:8px 0 0;font-size:13px;color:var(--muted)}
+
+  /* status board */
+  .board{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.board{grid-template-columns:1fr}}
+  .lane{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .lane h3{margin:0 0 10px;font-size:14px;display:flex;align-items:center;gap:8px}
+  .row{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-top:1px solid #20281f;font-size:13.5px}
+  .row:first-of-type{border-top:0}
+  .dot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;margin-top:5px}
+  .d-done{background:var(--green)}.d-act{background:var(--amber)}.d-block{background:var(--red)}.d-next{background:var(--blue)}
+  .row .t{color:var(--ink)} .row .m{color:var(--muted);font-size:12.5px}
+
+  /* roadmap matrix */
+  .matrix{position:relative;height:330px;border:1px solid var(--line);border-radius:14px;background:
+     linear-gradient(90deg,transparent 49.6%,#22302a 49.6%,#22302a 50.4%,transparent 50.4%),
+     linear-gradient(0deg,transparent 49.6%,#22302a 49.6%,#22302a 50.4%,transparent 50.4%),var(--panel);margin-top:6px}
+  .axlabel{position:absolute;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+  .item{position:absolute;transform:translate(-50%,-50%);background:#20281f;border:1px solid var(--line);border-radius:999px;
+     padding:4px 9px;font-size:11.5px;font-weight:600;white-space:nowrap;cursor:default}
+  .item.win{border-color:#3a4a3f;color:var(--green);background:#18231a}
+  .item.big{border-color:#4a432e;color:var(--amber);background:#221d15}
+  .item.no{border-color:#4a342e;color:var(--red);background:#221715}
+  .quad{position:absolute;font-size:10.5px;color:#56695f;letter-spacing:.06em}
+
+  /* recommended next 3 */
+  .next3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:760px){.next3{grid-template-columns:1fr}}
+  .ncard{background:linear-gradient(180deg,#16201a,#141a16);border:1px solid #3a4a3f;border-radius:14px;padding:14px 16px;position:relative}
+  .ncard .num{position:absolute;top:-10px;left:14px;width:24px;height:24px;border-radius:50%;background:var(--green);color:#0e120f;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .ncard h4{margin:8px 0 6px;font-size:15px}
+  .ncard p{margin:0;font-size:13px;color:var(--muted)}
+  .ncard .free{color:var(--green)}
+
+  /* quadrant grid */
+  .quadgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:680px){.quadgrid{grid-template-columns:1fr}}
+  .qbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .qbox.win{border-color:#3a4a3f}.qbox.big{border-color:#4a432e}
+  .qh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .qh b{font-size:13.5px}.qh span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .qbox ul{margin:0;padding-left:16px}.qbox li{margin:5px 0;font-size:13.5px}
+  .qp{display:inline-block;border-radius:6px;padding:0 6px;font-size:11px;font-weight:600;border:1px solid var(--line);margin-left:4px}
+  .qp.free{color:var(--green);border-color:#38492f}.qp.cheap{color:var(--amber);border-color:#4a432e}.qp.pricey{color:var(--red);border-color:#4a342e}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #20281f;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+  td .n{color:var(--muted);font-size:12px}
+  .tag{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600;border:1px solid var(--line)}
+  .free{color:var(--green);border-color:#38492f;background:#18231a}
+  .cheap{color:var(--amber);border-color:#4a432e;background:#221d15}
+  .pricey{color:var(--red);border-color:#4a342e;background:#221715}
+  .pri{font-weight:700}
+
+  .note{color:var(--muted);font-size:13px}
+  .foot{color:#5f7268;font-size:12px;margin-top:40px;text-align:center}
+  ul{margin:6px 0 0;padding-left:18px}li{margin:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>gotcosy.com — project status &amp; roadmap</h1>
+  <p class="sub">AI-rates 18,299 hotels on cosiness · ranks city pages · earns Stay22 affiliate · grows via SEO + social. Next.js 15 / Supabase / Vercel.</p>
+  <p class="stamp">snapshot · live data · this session spent <b style="color:var(--green)">~$1</b> (held-out eval); everything else ran free on the Max plan or locally</p>
+
+  <!-- AT A GLANCE -->
+  <h2>At a glance</h2>
+  <div class="glance">
+    <div class="stat"><b>18,299</b><span>hotels in catalog</span></div>
+    <div class="stat"><b>9,692</b><span>have a usable photo (~53%, climbing)</span></div>
+    <div class="stat"><b>~1,894</b><span>junk images gated out this session</span></div>
+    <div class="stat"><b>~100</b><span>over-scores corrected (with photos)</span></div>
+    <div class="stat"><b>1.29</b><span>held-out trust MAE (vs owner grades)</span></div>
+    <div class="stat"><b>18/18</b><span>scoring tests passing</span></div>
+  </div>
+
+  <!-- TRUST -->
+  <h2>Scoring trust — where we actually stand</h2>
+  <div class="trust">
+    <div class="tcard good">
+      <div class="lab">Held-out vs owner</div>
+      <div class="big">1.29</div>
+      <p>MAE on 70 graded hotels, scored with the answer <b>hidden</b>. 56% within 1pt, 81% within 2pt. Near the floor where humans disagree with each other (~1–1.5). <b>The scorer genuinely learned your taste.</b></p>
+    </div>
+    <div class="tcard good">
+      <div class="lab">Friends agree with friends</div>
+      <div class="big">84%</div>
+      <p>Inter-rater agreement across <b>5 raters, 121 votes</b> (felicia, theo, pelle, malin, rikard). Cosiness is a real, shared signal — not random.</p>
+    </div>
+    <div class="tcard mid">
+      <div class="lab">AI vs friend consensus</div>
+      <div class="big">0.56</div>
+      <p>Correlation between AI score and the friends’ cosy-vote. <b>Moderate</b> — the AI matches <i>you</i> well but a broader panel only so-so. The fix: feed friend consensus into calibration, not just owner grades.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <b>How scoring works:</b> one model (Claude) weighs the <b>words</b> (name, amenities, reviews) + the <b>photo</b> + <b>your graded taste</b> into a single 0–10 → normalised to honest pins (typical 5.0 / good 6.5 / exceptional 8.5). A free local model (Qwen-7B, <b>warmth MAE 1.0</b>) can do the photo read for $0; a heuristic gate rejects junk images first.
+  </div>
+
+  <!-- STATUS BOARD -->
+  <h2>Status board</h2>
+  <div class="board">
+    <div class="lane">
+      <h3><span class="dot d-done"></span>Done &amp; live</h3>
+      <div class="row"><span class="dot d-done"></span><span class="t">Image junk gate — heuristic, inline + retroactive <span class="m">~1,894 flagged, reversible</span></span></div>
+      <div class="row"><span class="dot d-done"></span><span class="t">~100 blind over-scores corrected from photos <span class="m">on Max, $0, downward-only</span></span></div>
+      <div class="row"><span class="dot d-done"></span><span class="t">Trust test suite (18 tests) + held-out k-fold eval <span class="m">MAE 2.21 → 1.29</span></span></div>
+      <div class="row"><span class="dot d-done"></span><span class="t">Calibration self-leak fixed (excludes own grade/twins)</span></div>
+      <div class="row"><span class="dot d-done"></span><span class="t">Qwen-7B validated as free warmth assessor <span class="m">MAE 1.0</span></span></div>
+      <div class="row"><span class="dot d-done"></span><span class="t">Catalog dedup (27%→0), city cleanup, light theme, share, growth dashboard <span class="m">earlier sessions</span></span></div>
+    </div>
+    <div class="lane">
+      <h3><span class="dot d-act"></span>Active / next / blocked</h3>
+      <div class="row"><span class="dot d-act"></span><span class="t">Photo recovery sweep <span class="m">running, junk-gated, ~53%→ climbing</span></span></div>
+      <div class="row"><span class="dot d-next"></span><span class="t">Round-2 swipe on surfaced cosy hotels <span class="m">built &amp; pushed; awaiting friend votes</span></span></div>
+      <div class="row"><span class="dot d-next"></span><span class="t">Cloud “ultraplan” PR <span class="m">executing remotely; reconcile before merge</span></span></div>
+      <div class="row"><span class="dot d-block"></span><span class="t">Production scorer (cron) <span class="m">was down at $0 credits — now topped up</span></span></div>
+      <div class="row"><span class="dot d-block"></span><span class="t">30 hotels still blind ≥9 (no photo) <span class="m">need a recovered photo first</span></span></div>
+      <div class="row"><span class="dot d-block"></span><span class="t">Exposed Supabase token in transcript <span class="m">rotate</span></span></div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDED NEXT -->
+  <h2>Recommended next 3 moves</h2>
+  <div class="next3">
+    <div class="ncard"><span class="num">1</span><h4>Re-score the surfaced set</h4><p>The hotels on city pages, grounded in photos. Highest trust-per-effort. <b class="free">$0 on Max · ~half day</b></p></div>
+    <div class="ncard"><span class="num">2</span><h4>Feed friend consensus into calibration</h4><p>Lift AI↔panel agreement from 0.56. Matches a broad audience, not one palate. <b class="free">$0 · ~half day</b></p></div>
+    <div class="ncard"><span class="num">3</span><h4>Send friends the round-2 swipe link</h4><p>Get the clean held-out verdict on what we show. <b class="free">$0 · ~1–2 days to fill</b></p></div>
+  </div>
+
+  <!-- ROADMAP QUADRANTS -->
+  <h2>Where to improve — impact × effort</h2>
+  <div class="quadgrid">
+    <div class="qbox win"><div class="qh"><b>High impact · Low effort</b><span>do first</span></div>
+      <ul><li>Re-score the surfaced/visible set <span class="qp free">$0</span></li><li>Friend consensus → calibration <span class="qp free">$0</span></li><li>Restart production scoring <span class="qp cheap">~¢/hotel</span></li></ul></div>
+    <div class="qbox big"><div class="qh"><b>High impact · Higher effort</b><span>big bets</span></div>
+      <ul><li>Round-2 swipe verdict (in flight) <span class="qp free">$0</span></li><li>Autonomous Qwen warmth pass on the tail <span class="qp free">$0</span></li></ul></div>
+    <div class="qbox win"><div class="qh"><b>Lower impact · Low effort</b><span>quick wins</span></div>
+      <ul><li>Rotate the exposed Supabase token <span class="qp free">$0</span></li><li>Fix “still scoring” latent bugs <span class="qp free">$0</span></li><li>Semantic-junk OCR stage <span class="qp free">$0</span></li></ul></div>
+    <div class="qbox"><div class="qh"><b>Higher effort · weigh it</b><span>later / avoid</span></div>
+      <ul><li>Consolidate the 3 scorers <span class="qp free">$0</span></li><li>Full 18k catalog re-score <span class="qp pricey">~$150–200 · avoid</span></li></ul></div>
+  </div>
+
+  <!-- COST/BENEFIT TABLE -->
+  <h2>Improvement plan — cost · benefit · time</h2>
+  <div class="card" style="padding:6px 12px 12px">
+  <table>
+    <tr><th>Improvement</th><th>Benefit</th><th>Effort / time</th><th>Cost</th><th>Priority</th></tr>
+    <tr>
+      <td><b>Re-score the surfaced/visible set</b> with photos<div class="n">the few hundred hotels on city pages</div></td>
+      <td>The hotels travellers actually see become trustworthy — the highest-leverage trust win</td>
+      <td>~half day (me on Max)</td>
+      <td><span class="tag free">$0</span> on Max<br><span class="n">or ~$25 bounded Opus</span></td>
+      <td class="pri" style="color:var(--green)">DO FIRST</td>
+    </tr>
+    <tr>
+      <td><b>Feed friend consensus into calibration</b><div class="n">currently only owner grades steer it</div></td>
+      <td>Raises AI↔panel agreement (0.56→higher); scores match a broad audience, not one person</td>
+      <td>~half day build + re-score</td>
+      <td><span class="tag free">$0</span> build<br><span class="n">re-score free on Max</span></td>
+      <td class="pri" style="color:var(--green)">DO FIRST</td>
+    </tr>
+    <tr>
+      <td><b>Restart production scoring</b> (incremental)<div class="n">cron scores new hotels as added</div></td>
+      <td>New hotels get scored automatically again (was down at $0)</td>
+      <td>instant — credits now topped up</td>
+      <td><span class="tag cheap">~¢/hotel</span><br><span class="n">NOT a full re-score</span></td>
+      <td class="pri" style="color:var(--green)">DO FIRST</td>
+    </tr>
+    <tr>
+      <td><b>Round-2 swipe verdict</b> on surfaced hotels<div class="n">already built &amp; deployed</div></td>
+      <td>The cleanest trust number on the hotels we show — multi-rater, held-out by design</td>
+      <td>~1–2 days (friends vote)</td>
+      <td><span class="tag free">$0</span></td>
+      <td class="pri" style="color:var(--amber)">IN FLIGHT</td>
+    </tr>
+    <tr>
+      <td><b>Autonomous Qwen warmth pass</b> on the blind tail<div class="n">thousands of blind-with-photo hotels</div></td>
+      <td>Grounds the long tail of over-scores for free, unattended (the “runs overnight” pipeline)</td>
+      <td>overnight run + a day to wire</td>
+      <td><span class="tag free">$0</span> (local)</td>
+      <td class="pri" style="color:var(--amber)">HIGH</td>
+    </tr>
+    <tr>
+      <td><b>Semantic-junk OCR stage</b><div class="n">catch screenshots/collages Qwen misses</div></td>
+      <td>Closes ~32% of the junk Qwen leaks (text-heavy junk), for free</td>
+      <td>~half day</td>
+      <td><span class="tag free">$0</span></td>
+      <td class="pri">MEDIUM</td>
+    </tr>
+    <tr>
+      <td><b>Fix “still scoring” latents</b><div class="n">health endpoint chunking + error surfacing</div></td>
+      <td>Robustness — a real failure stops masquerading as “not done yet”</td>
+      <td>~30 min</td>
+      <td><span class="tag free">$0</span></td>
+      <td class="pri">QUICK WIN</td>
+    </tr>
+    <tr>
+      <td><b>Rotate exposed Supabase token</b></td>
+      <td>Security — token sits in a chat transcript</td>
+      <td>5 min (you, in Supabase)</td>
+      <td><span class="tag free">$0</span></td>
+      <td class="pri">QUICK WIN</td>
+    </tr>
+    <tr>
+      <td><b>Consolidate the 3 scorers</b><div class="n">claudeCosy / cosy heuristic / osmCosy</div></td>
+      <td>One source of truth → no inconsistent numbers across pages</td>
+      <td>~1 day eng</td>
+      <td><span class="tag free">$0</span></td>
+      <td class="pri">MEDIUM</td>
+    </tr>
+    <tr>
+      <td style="opacity:.7"><b>Full 18k catalog re-score</b></td>
+      <td style="opacity:.7">Marginal — most of the tail is never seen; the visible set covers trust</td>
+      <td style="opacity:.7">hours (unattended)</td>
+      <td><span class="tag pricey">~$150–200</span></td>
+      <td class="pri" style="color:var(--red)">AVOID</td>
+    </tr>
+  </table>
+  </div>
+
+  <!-- blockers -->
+  <h2>Risks &amp; blockers</h2>
+  <div class="card">
+    <ul>
+      <li><b>The AI is tuned to one palate.</b> Held-out vs you is great (1.29); vs the friend panel only 0.56. Folding friend consensus into calibration is the single highest-value correctness fix.</li>
+      <li><b>The cloud PR must reconcile with this branch</b> before merging to <code>main</code> (which deploys to prod) — watch for a full re-score or a <code>recompute-normalized</code> re-run (both traps).</li>
+      <li><b>~32% semantic-junk leak</b> past the free vision model on the tail — handled on the visible set, OCR stage closes most of the rest.</li>
+      <li><b>Exposed Supabase token</b> — rotate.</li>
+    </ul>
+  </div>
+
+  <p class="foot">gotcosy.com · full project status · the trust engine: gate junk → re-score what’s seen → measure honestly (held-out + multi-rater)</p>
+</div>
+</body>
+</html>
