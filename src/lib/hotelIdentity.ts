@@ -50,14 +50,58 @@ export function distMeters(aLat: number, aLng: number, bLat: number, bLng: numbe
 
 export const SAME_RADIUS_M = 80;
 
-type HotelLike = { name?: string | null; lat?: number | null; lng?: number | null };
+// Aggregator/chain domains are shared by MANY different hotels, so they carry no identity — only a
+// hotel's own site proves "same listing".
+const AGGREGATOR_DOMAINS = new Set(["booking.com", "hilton.com", "marriott.com", "airbnb.com", "expedia.com", "hotels.com", "ihg.com", "accor.com", "hostelworld.com", "agoda.com", "tripadvisor.com", "google.com"]);
 
-// Are two rows the same physical hotel? `strong` = high confidence (auto-merge); a match that is
-// not strong is "borderline" (queue for human review before merging).
+// A hotel's listing = its registrable domain PLUS the per-hotel path slug. Group operators run many
+// hotels on ONE domain with different paths (keahotels.is/apotek-hotel vs keahotels.is/hotels/hotel-borg),
+// so domain alone would wrongly merge sister hotels — the path slug is what tells them apart.
+export function siteListing(url?: string | null): { domain: string; slug: string } | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url.startsWith("http") ? url : "https://" + url);
+    const domain = u.hostname.toLowerCase().replace(/^(www|www2|booking|book|secure|reservations?|res)\./, "");
+    if (!domain) return null;
+    // last meaningful path segment, ignoring locale/section prefixes and index files
+    const segs = u.pathname.toLowerCase().split("/").map((s) => s.trim()).filter(Boolean)
+      .filter((s) => !/^(en|de|fr|es|it|nl|sv|no|da|is|en-gb|en-us|hotel|hotels|index\.html?|home)$/.test(s));
+    const slug = segs.length ? segs[segs.length - 1].replace(/\.html?$/, "") : "";
+    return { domain, slug };
+  } catch { return null; }
+}
+
+type HotelLike = { name?: string | null; lat?: number | null; lng?: number | null; website?: string | null };
+
+// Are two rows the same physical hotel? `strong` = high confidence (auto-merge); a non-strong match
+// is "borderline" (human review). THE WEBSITE IS AUTHORITATIVE: two rows on the same own-domain are
+// the same listing → merge; two rows on DIFFERENT own-domains are different hotels → never merge
+// (this overrides geo+name, which can be fooled by adjacent same-brand hotels). The website only
+// decides when BOTH sides have a real, non-aggregator domain; otherwise fall back to geo + name.
 export function sameHotel(a: HotelLike, b: HotelLike): { same: boolean; strong: boolean; dist: number } {
-  if (a.lat == null || a.lng == null || b.lat == null || b.lng == null) return { same: false, strong: false, dist: Infinity };
-  const d = distMeters(Number(a.lat), Number(a.lng), Number(b.lat), Number(b.lng));
-  if (d > SAME_RADIUS_M) return { same: false, strong: false, dist: d };
+  const hasCoords = a.lat != null && a.lng != null && b.lat != null && b.lng != null;
+  const d = hasCoords ? distMeters(Number(a.lat), Number(a.lng), Number(b.lat), Number(b.lng)) : Infinity;
+
+  // WEBSITE RULE (authoritative when both sides have a real, non-aggregator site).
+  const la = siteListing(a.website), lb = siteListing(b.website);
+  const realA = la && !AGGREGATOR_DOMAINS.has(la.domain), realB = lb && !AGGREGATOR_DOMAINS.has(lb.domain);
+  if (realA && realB) {
+    if (la!.domain !== lb!.domain) return { same: false, strong: false, dist: d }; // different sites → different hotels
+    const within = !hasCoords || d <= 250;
+    if (la!.slug && lb!.slug) {
+      // Both have a per-hotel path slug — on a group domain the slug is what separates sister hotels.
+      // Same slug = the same listing = same hotel (strong, per the website rule), name variants OK.
+      return { same: la!.slug === lb!.slug && within, strong: la!.slug === lb!.slug && within, dist: d };
+    }
+    // Same domain, at least one bare root. A root domain belongs to ONE hotel, so same root = same
+    // hotel (strong) UNLESS the names are clearly unrelated — that flags a group operator whose site
+    // is the bare domain (Apótek vs Borg). namesMatch is lenient, so "Berns"/"Berns Hotel" still merge.
+    const nm = namesMatch(a.name, b.name);
+    return { same: nm.match && within, strong: nm.match && within, dist: d };
+  }
+
+  // No decisive website → geography + name.
+  if (!hasCoords || d > SAME_RADIUS_M) return { same: false, strong: false, dist: d };
   const nm = namesMatch(a.name, b.name);
   if (!nm.match) return { same: false, strong: false, dist: d };
   // Strong only when the name is strong AND the points are very close (≤40m). Same-named rows

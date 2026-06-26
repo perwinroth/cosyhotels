@@ -6,27 +6,29 @@
 // ones, then copy the emitted command. A human decision still gates every borderline merge.
 //   node --import tsx scripts/borderline-review-html.mjs [scripts/backups/dedup-borderline-<ts>.json]
 import { readFileSync, writeFileSync, readdirSync } from 'fs'
-import { namesMatch } from '../src/lib/hotelIdentity.ts'
+import { namesMatch, siteListing } from '../src/lib/hotelIdentity.ts'
 
 const arg = process.argv[2]
 const file = arg || 'scripts/backups/' + readdirSync('scripts/backups').filter((f) => f.startsWith('dedup-borderline-')).sort().pop()
 const clusters = JSON.parse(readFileSync(file, 'utf8'))
 
-const domain = (u) => { if (!u) return null; try { return new URL(u.startsWith('http') ? u : 'https://' + u).hostname.replace(/^www\./, '').toLowerCase() } catch { return null } }
 const AGGREGATORS = new Set(['booking.com', 'hilton.com', 'marriott.com', 'airbnb.com', 'expedia.com', 'hotels.com', 'ihg.com', 'accor.com']) // shared by many hotels — not an identity signal
 
-// The WEBSITE is the decisive signal (the user's insight): two rows pointing at the same hotel's
-// own site are the same listing. Same non-aggregator domain → confirmed dupe. Different real
-// domains → almost certainly different hotels (geo+name flagged a false positive). Only when the
-// website can't decide (missing, or a shared aggregator) do we fall back to distance.
+// The WEBSITE is the decisive signal (the user's insight), compared as domain + per-hotel PATH SLUG
+// so a group operator's sister hotels on one domain (keahotels.is/apotek-hotel vs /hotel-borg) are
+// NOT treated as the same listing. Same full listing → confirmed dupe. Different listing → different
+// hotels. Only when the site can't decide do we fall back to distance.
 function classify(c) {
   const keeper = c.members.find((m) => m.keeper) || c.members[0]
   const others = c.members.filter((m) => m !== keeper)
-  const doms = c.members.map((m) => domain(m.website))
-  const usable = doms.every((d) => d && !AGGREGATORS.has(d))
+  const lis = c.members.map((m) => siteListing(m.website))
+  const usable = lis.every((l) => l && !AGGREGATORS.has(l.domain))
   if (usable) {
-    if (doms.every((d) => d === doms[0])) return { tag: 'dupe', label: 'same website ✓', merge: true, why: doms[0] }
-    return { tag: 'distinct', label: 'different websites', merge: false, why: [...new Set(doms)].join(' · ') }
+    const sameDomain = lis.every((l) => l.domain === lis[0].domain)
+    const sameListing = lis.every((l) => l.domain === lis[0].domain && l.slug === lis[0].slug)
+    if (sameListing) return { tag: 'dupe', label: 'same listing ✓', merge: true, why: lis[0].domain + (lis[0].slug ? '/' + lis[0].slug : '') }
+    if (!sameDomain) return { tag: 'distinct', label: 'different websites', merge: false, why: [...new Set(lis.map((l) => l.domain))].join(' · ') }
+    return { tag: 'distinct', label: 'same domain, different hotels', merge: false, why: [...new Set(lis.map((l) => l.domain + '/' + l.slug))].join(' · ') }
   }
   // website can't decide → distance
   const maxDist = Math.max(...c.members.map((m) => m.dist))
