@@ -67,15 +67,18 @@ console.log(`${work.length} blind hotels with a usable photo to assess.\n`);
 const PROMPT = `You assess a HOTEL photo for COSINESS. Cosy = warmth, intimacy, character: warm lighting, natural wood/stone/textiles, soft furnishings, fireplaces, plants, intimate human-scale spaces. Judge ANY genuine hotel space — a guest room, lounge, restaurant, bar, library, lobby, garden, courtyard, terrace, spa, OR the building/setting itself (a warm glowing exterior counts). NOT cosy = cold/corporate/sterile, big bright impersonal lobbies, generic business spaces. JUNK = not a usable photo of the hotel at all: a logo, icon, map, blank/placeholder, marketing collage with text overlay, screenshot, or a bare portrait of a person. (An exterior, restaurant, lobby, garden or amenity is NOT junk — rate how cosy it looks.) Reply ONLY JSON: {"warmth": <0-10 cosiness of what you actually SEE>, "is_hotel_space": <true if it shows any real hotel space or setting; false only for logo/icon/map/blank/collage/screenshot/portrait>, "note":"<max 6 words>"}`;
 
 async function toB64(url) {
-  const r = await fetch(url, { signal: AbortSignal.timeout(15000), headers: { "user-agent": "Mozilla/5.0" } });
+  const r = await fetch(url, { signal: AbortSignal.timeout(7000), headers: { "user-agent": "Mozilla/5.0" } }); // 7s: a dead URL fails fast instead of stalling the serial pass
   if (!r.ok) throw new Error(`img ${r.status}`);
   const buf = Buffer.from(await r.arrayBuffer());
   const jpeg = await sharp(buf).resize(768, 768, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
   return jpeg.toString("base64");
 }
 async function vision(b64) {
+  // 45s cap: without a timeout, one image that makes Ollama hang freezes the ENTIRE serial pass
+  // forever (the "stuck" symptom). On timeout the fetch aborts → throws → the loop SKIPs and moves on.
   const r = await fetch(`${OLLAMA}/api/chat`, {
     method: "POST",
+    signal: AbortSignal.timeout(45000),
     body: JSON.stringify({ model: MODEL, format: "json", stream: false, options: { temperature: 0 }, messages: [{ role: "user", content: PROMPT, images: [b64] }] }),
   });
   const j = await r.json();
