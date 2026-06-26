@@ -262,6 +262,24 @@ export default async function GuidePage({ params }: Props) {
   // re-review/upgrade, but never shown. Survivors surface their public /10 score (5.0–10.0),
   // cosiest first; the homepage/top-of-list naturally features the highest. Never pad with 0.0.
   const COSY_FLOOR = 5.0; // = 50/100 public gate
+  // SAME-PROPERTY DEDUP: the DB still holds duplicate rows for one hotel under name variants
+  // ("MJs"/"MJ's", "Elite Hotel Plaza"/"Elite Plaza Hotel", "Scandic Kramer"/"Hotel Kramer") —
+  // the stored dedup_key is name+city only, blind to geography. Collapse them at render time:
+  // two rows at the same coordinates (~90m) with a matching name are one property, so keep only
+  // the best-ranked copy (the list is already sorted best-first). Reversible, no DB writes.
+  const GENERIC = new Set(['hotel', 'the', 'hotell', 'inn', 'by', 'of', 'part', 'and', 'hostel', 'guesthouse', 'guest', 'house']);
+  const spaceless = (s: string) => norm(String(s)).replace(/\s+/g, '');
+  const sigTokens = (s: string) => new Set(norm(String(s)).split(/\s+/).filter((t) => t && !GENERIC.has(t)));
+  const sameProperty = (a: HB, b: HB) => {
+    if (a.lat == null || a.lng == null || b.lat == null || b.lng == null) return false;
+    if (Math.abs(Number(a.lat) - Number(b.lat)) > 0.0008 || Math.abs(Number(a.lng) - Number(b.lng)) > 0.0013) return false; // ~90m
+    const sa = spaceless(a.name), sb = spaceless(b.name);
+    if (sa && sb && (sa.includes(sb) || sb.includes(sa))) return true; // "berns" ⊆ "bernshotel", "mjs" == "mjs"
+    const ta = sigTokens(a.name), tb = sigTokens(b.name);
+    if (!ta.size || !tb.size) return false;
+    let inter = 0; for (const t of ta) if (tb.has(t)) inter++;
+    return inter / (ta.size + tb.size - inter) >= 0.5; // "elite plaza" vs "elite hotel plaza"
+  };
   const perBrand: Record<string, number> = {};
   const seen = new Set<string>();
   const picks: typeof sorted = [];
@@ -270,6 +288,7 @@ export default async function GuidePage({ params }: Props) {
     if (!isLatin(String(x.h.name_en || x.h.name))) continue; // skip only if no Latin/romanized name yet
     const key = String(x.h.slug);
     if (seen.has(key)) continue;
+    if (picks.some((p) => sameProperty(p.h, x.h))) continue; // collapse same-property duplicate rows
     const bc = perBrand[x.brand] || 0;
     if (bc >= 2 && x.brand !== 'independent') continue;
     seen.add(key);

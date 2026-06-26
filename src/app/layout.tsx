@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
         {/* Stay22 LetMeAllez (LMA) — rewrites on-page OTA links into Stay22
             affiliate links client-side. lmaID is public (visible in page source);
@@ -33,8 +33,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               two.parentNode.insertBefore(twenty, two);
           })(window, document, 'script', 'https://scripts.stay22.com/letmeallez.js');`}
         </Script>
-        {/* Apply a saved light-theme choice before paint to avoid a flash (default = dark). */}
-        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}` }} />
+        {/* Default = light (set on <html> for no flash). Honor a saved 'dark' choice before paint. */}
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('theme')==='dark')document.documentElement.removeAttribute('data-theme')}catch(e){}` }} />
       </head>
       <body className="antialiased">
         <div style={{ position: "fixed", top: 14, right: 14, zIndex: 50 }}><ThemeToggle /></div>

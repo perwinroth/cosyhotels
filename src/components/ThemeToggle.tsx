@@ -1,11 +1,11 @@
 "use client";
-// Light/dark toggle. Sets data-theme="light" on <html> (the palette swap lives in globals.css)
-// and persists the choice in localStorage. Default is dark — the no-flash script in the root
-// layout applies a saved "light" choice before paint so there's no flash.
+// Light/dark toggle. Default is LIGHT (data-theme="light" is set on <html> server-side); dark is
+// opt-in by removing the attribute (the palette swap lives in globals.css). The choice persists in
+// localStorage and the no-flash script in the root layout applies a saved "dark" choice before paint.
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-  const [light, setLight] = useState(false);
+  const [light, setLight] = useState(true);
   useEffect(() => {
     setLight(document.documentElement.getAttribute("data-theme") === "light");
   }, []);
