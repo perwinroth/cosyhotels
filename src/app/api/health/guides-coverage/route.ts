@@ -110,14 +110,18 @@ export async function GET(req: Request) {
     const candidates = hotels.length;
 
     const ids = hotels.map((h) => String(h.id));
-    const { data: sRows } = await db
-      .from('cosy_scores')
-      .select('hotel_id,score,score_final')
-      .in('hotel_id', ids);
+    // Chunk the .in() — a single query with thousands of UUIDs builds a too-long URL that 400s
+    // (the Edinburgh "still scoring" bug). 150/chunk keeps every request URL safe.
     const scoreMap = new Map<string, number>();
-    for (const r of ((sRows || []) as CS[])) {
-      const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
-      if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+    for (let i = 0; i < ids.length; i += 150) {
+      const { data: sRows } = await db
+        .from('cosy_scores')
+        .select('hotel_id,score,score_final')
+        .in('hotel_id', ids.slice(i, i + 150));
+      for (const r of ((sRows || []) as CS[])) {
+        const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
+        if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
+      }
     }
     const have_scores = scoreMap.size;
 

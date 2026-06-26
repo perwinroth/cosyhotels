@@ -207,11 +207,14 @@ export default async function GuidePage({ params }: Props) {
   const descMap = new Map<string, string>();
   // Chunk the .in() — a single query with hundreds of UUIDs makes a too-long URL that 400s,
   // which silently dropped ALL scores for big cities (e.g. Edinburgh → empty "still scoring").
+  // Capture errors too: a real query failure must NOT masquerade as "still scoring".
+  let scoreQueryFailed = false;
   for (let i = 0; i < ids.length; i += 150) {
-    const { data: sRows } = await db
+    const { data: sRows, error: sErr } = await db
       .from('cosy_scores')
       .select('hotel_id,score,score_final,signals,description')
       .in('hotel_id', ids.slice(i, i + 150));
+    if (sErr) { scoreQueryFailed = true; console.error('cosy_scores query failed (chunk):', sErr.message); }
     for (const r of ((sRows || []) as Array<CS & { signals: string[] | null; description: string | null }>)) {
       const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
       if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
@@ -344,7 +347,9 @@ export default async function GuidePage({ params }: Props) {
   const topPick = chosen[0];
   const intro = chosen.length
     ? `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy${topPick ? ` — led by ${topPick.name} at ${topPick._cosy.toFixed(1)}/10` : ''}. Here are the cosiest, ranked best first.`
-    : `We’re still scoring cosy hotels in ${cityName}.`;
+    : scoreQueryFailed
+      ? `Cosy scores for ${cityName} are temporarily unavailable — please try again shortly.`
+      : `We’re still scoring cosy hotels in ${cityName}.`;
   const faqs = cityFaqs(cityName, { count: cosyCount, topName: topPick?.name, topScore: topPick?._cosy });
   // Long-tail facet links — only facets actually backed by ≥2 of this city's hotels.
   const citySlugBase = cityToSlug(cityName).replace(/-cosy-hotel$/, '');

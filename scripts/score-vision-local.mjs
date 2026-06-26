@@ -76,30 +76,43 @@ for (const id of work) {
   n++;
   const h = nameOf.get(id), cur = Number(dispOf.get(id)) || 0;
   try {
-    const b64 = await toB64(imgOf.get(id));
+    const url = imgOf.get(id);
+    const b64 = await toB64(url);
     const v = await vision(b64);
-    // Downward-only correction. Blend toward the photo; junk (not a real hotel space) caps harder.
-    let blended = 0.4 * cur + 0.6 * v.warmth;
-    if (!v.is_hotel_space) blended = Math.min(blended, v.warmth, 5);
-    const next = Math.max(0, Math.min(cur, Math.round(blended * 10) / 10)); // never raise
-    updates.push({ id, name: h?.name, city: h?.city, cur, warmth: v.warmth, space: v.is_hotel_space, next, note: v.note });
-    console.log(`${String(n).padStart(3)}/${work.length}  ${cur.toFixed(1)} → ${next.toFixed(1)}  warmth ${v.warmth}${v.is_hotel_space ? "" : " JUNK"}  ${(h?.name || "").slice(0, 30).padEnd(30)} ${v.note}`);
+    // A JUNK photo (not a real hotel space) is NOT evidence the hotel is uncosy — it's a bad
+    // photo. So we DON'T tank the score: we flag the IMAGE for removal and leave the score blind
+    // (re-recovery finds a real one). Only a REAL photo drives the downward warmth correction.
+    let next, flagJunk = false;
+    if (!v.is_hotel_space) { next = cur; flagJunk = true; }
+    else { const blended = 0.4 * cur + 0.6 * v.warmth; next = Math.max(0, Math.min(cur, Math.round(blended * 10) / 10)); }
+    updates.push({ id, name: h?.name, city: h?.city, cur, warmth: v.warmth, space: v.is_hotel_space, next, note: v.note, flagJunk, url });
+    console.log(`${String(n).padStart(3)}/${work.length}  ${cur.toFixed(1)} → ${next.toFixed(1)}  warmth ${v.warmth}${v.is_hotel_space ? "" : " JUNK→flag img"}  ${(h?.name || "").slice(0, 30).padEnd(30)} ${v.note}`);
   } catch (e) {
     console.log(`${String(n).padStart(3)}/${work.length}  SKIP ${(h?.name || "").slice(0, 30)} — ${String(e.message).slice(0, 40)}`);
   }
 }
 
-const drops = updates.filter((u) => u.next < u.cur);
-console.log(`\nassessed ${updates.length} · would lower ${drops.length} (avg drop ${drops.length ? (drops.reduce((s, u) => s + (u.cur - u.next), 0) / drops.length).toFixed(1) : 0}) · unchanged ${updates.length - drops.length}`);
+const drops = updates.filter((u) => !u.flagJunk && u.next < u.cur);
+const junk = updates.filter((u) => u.flagJunk);
+console.log(`\nassessed ${updates.length} · real photos lowered ${drops.length} (avg drop ${drops.length ? (drops.reduce((s, u) => s + (u.cur - u.next), 0) / drops.length).toFixed(1) : 0}) · junk images to flag ${junk.length} · unchanged ${updates.length - drops.length - junk.length}`);
 
 if (!EXECUTE) { console.log("\nDRY-RUN — no writes. Review above, then add --execute (snapshots first)."); process.exit(0); }
 
 mkdirSync("scripts/backups", { recursive: true });
 const stamp = process.env.STAMP || "manual";
 writeFileSync(`scripts/backups/vision-rescore-${stamp}.json`, JSON.stringify(updates, null, 2));
-let done = 0;
+let done = 0, flagged = 0;
 for (const u of updates) {
-  const { error } = await db.from("cosy_scores").update({ score: u.next, score_final: u.next, imagery_warmth: u.warmth }).eq("hotel_id", u.id);
-  if (!error) done++;
+  if (u.flagJunk) {
+    const { error } = await db.from("hotel_images").update({ vision_ok: false }).eq("hotel_id", u.id).eq("url", u.url);
+    if (!error) flagged++;
+  } else if (u.next < u.cur) {
+    const { error } = await db.from("cosy_scores").update({ score: u.next, score_final: u.next, imagery_warmth: u.warmth }).eq("hotel_id", u.id);
+    if (!error) done++;
+  } else {
+    // real photo, warmth confirms the score — record imagery_warmth so it leaves the blind pool
+    const { error } = await db.from("cosy_scores").update({ imagery_warmth: u.warmth }).eq("hotel_id", u.id);
+    if (!error) done++;
+  }
 }
-console.log(`\ndone — ${done} hotels re-grounded by their photo (backup: scripts/backups/vision-rescore-${stamp}.json).`);
+console.log(`\ndone — ${done} hotels grounded by a real photo · ${flagged} junk images flagged (backup: scripts/backups/vision-rescore-${stamp}.json).`);
