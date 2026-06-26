@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How do we know the cosy score is actually good? (k-fold, explained)</title>
+<style>
+  :root{
+    --bg:#0F1512; --panel:#161D19; --panel2:#1B241F; --line:#2A352E;
+    --ink:#F3EEE6; --muted:#9DB0A6; --amber:#E0A458; --amber2:#D98A4E;
+    --green:#7FB069; --red:#E0846F; --blue:#7FA8C9; --r:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #18211C 0%, var(--bg) 60%);
+    color:var(--ink); font:16px/1.6 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    padding:40px 20px 90px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:820px;margin:0 auto}
+  h1{font-size:30px;line-height:1.15;margin:0 0 8px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 36px;font-size:16px}
+  h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin:40px 0 14px}
+  h3{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}
+  p{margin:0 0 14px}
+  .lead{font-size:18px}
+  b{color:#fff;font-weight:600}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin:14px 0}
+  .eli5{border-color:var(--green);background:linear-gradient(180deg,#16201A,#141a16)}
+  .eli5 .tag{color:var(--green)}
+  .tag{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:6px;display:block}
+  .muted{color:var(--muted)}
+  .ex{border-left:3px solid var(--amber2);padding:4px 0 4px 16px;margin:14px 0;color:var(--ink)}
+  .ex .muted{color:var(--muted)}
+
+  /* fold diagram */
+  .folds{display:flex;flex-direction:column;gap:8px;margin:18px 0}
+  .frow{display:flex;align-items:center;gap:10px}
+  .frow .rlab{flex:0 0 84px;font-size:12px;color:var(--muted);text-align:right}
+  .cells{display:flex;gap:6px;flex:1}
+  .cell{flex:1;text-align:center;padding:9px 4px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid var(--line);background:#10160F00;color:var(--muted)}
+  .cell.test{background:var(--amber);color:#1a130a;border-color:var(--amber)}
+  .legend{display:flex;gap:18px;font-size:13px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+  .swatch{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid var(--line)}
+
+  /* quiz */
+  .q{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:12px 0}
+  .q .qn{color:var(--blue);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  .q p{margin:6px 0 12px}
+  details{border-top:1px dashed var(--line);padding-top:10px}
+  summary{cursor:pointer;color:var(--amber);font-size:14px;font-weight:600;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary:before{content:"▸ ";color:var(--amber)}
+  details[open] summary:before{content:"▾ "}
+  details .ans{margin-top:10px;color:var(--ink);font-size:15px}
+  .foot{color:#5f7268;font-size:12px;margin-top:44px;text-align:center}
+  .pill{display:inline-block;background:#20281F;border:1px solid #38492f;color:var(--green);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>How do we know the cosy score is actually good?</h1>
+  <p class="sub">The honest way to test a scorer — explained simply, then properly. (a.k.a. “k-fold”)</p>
+
+  <!-- ELI5 -->
+  <h2>Part 1 — Explain it like I’m 5</h2>
+  <div class="card eli5">
+    <span class="tag">🧸 the flashcard story</span>
+    <p class="lead">You have <b>100 spelling flashcards</b>. You practice with all 100. Then your “test” is… those same 100 cards. You get every one right! 🎉</p>
+    <p>But wait — did you actually learn to <b>spell</b>, or did you just <b>memorise those exact 100 words</b>? Nobody knows. The test was too easy because you’d already seen every answer.</p>
+    <p>To find out if you <b>really</b> learned, someone has to test you on words you’ve <b>never practiced</b>.</p>
+    <p style="margin-bottom:0"><b>k-fold</b> is a fair way to do that: split the flashcards into a few piles. Practice with most of the piles, then test yourself on the <b>one pile you didn’t practice with</b>. Then swap which pile is the test, and do it again, until every card has had a turn being a “surprise” test card. Your <b>real</b> score is how you did on the surprise cards.</p>
+  </div>
+
+  <!-- the problem -->
+  <h2>Part 2 — Why this matters for our cosy score</h2>
+  <div class="card">
+    <h3>Our scorer has a cheat sheet — on purpose</h3>
+    <p>When the cosy scorer rates a hotel, it’s allowed to <b>peek at your human grades for similar hotels</b> and copy your taste. That’s the <span class="pill">calibration</span> — and it’s a <b>good</b> thing. It’s how the score learns <i>your</i> idea of cosy.</p>
+    <p>The problem is only when we <b>measure</b> how good the scorer is. We check its scores against your human grades. But if the hotel it just scored had <b>its own grade sitting on the cheat sheet</b>, then it basically <b>saw the answer before answering</b>. Of course it matches!</p>
+    <p style="margin-bottom:0">That’s what “<b>in-sample</b>” means, and it’s why our current “miss of 1.35 points” is a little <b>too flattering</b> — part of it is the scorer reciting answers it was shown, not predicting fresh ones.</p>
+  </div>
+  <div class="card">
+    <h3>“Held-out” = hide the answer, then test</h3>
+    <p style="margin-bottom:0">A <b>held-out</b> test means: take some grades, <b>hide them from the cheat sheet</b>, score those hotels, and only <i>then</i> compare to the hidden grades. Now the scorer can’t cheat, so the score you get is <b>honest</b>. k-fold is just a clever way to do this using <b>all</b> your grades, not wasting any.</p>
+  </div>
+
+  <!-- diagram -->
+  <h2>Part 3 — k-fold, step by step (with our hotels)</h2>
+  <div class="card">
+    <p>Say we have <b>112 graded hotels</b>. Split them into <b>5 folds</b> (piles) of ~22 each. Now do 5 rounds. Each round, <b>one fold is the “surprise test”</b> — its grades are hidden from the cheat sheet — and the other 4 folds are the cheat sheet:</p>
+    <div class="folds">
+      <div class="frow"><div class="rlab">Round 1</div><div class="cells"><div class="cell test">TEST</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div></div></div>
+      <div class="frow"><div class="rlab">Round 2</div><div class="cells"><div class="cell">cheat sheet</div><div class="cell test">TEST</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div></div></div>
+      <div class="frow"><div class="rlab">Round 3</div><div class="cells"><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell test">TEST</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div></div></div>
+      <div class="frow"><div class="rlab">Round 4</div><div class="cells"><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell test">TEST</div><div class="cell">cheat sheet</div></div></div>
+      <div class="frow"><div class="rlab">Round 5</div><div class="cells"><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell">cheat sheet</div><div class="cell test">TEST</div></div></div>
+    </div>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--amber)"></span>scored with its own answer HIDDEN — honest</span>
+      <span><span class="swatch" style="background:#10160F00"></span>used as the cheat sheet this round</span>
+    </div>
+    <p style="margin-top:16px"><b>After 5 rounds, every hotel has had exactly one turn being scored honestly</b> (with its answer hidden). Average all those misses together → that’s the <b>honest MAE</b>. No grade was wasted, and nothing cheated.</p>
+    <p class="muted" style="margin-bottom:0">“k” is just how many folds. 5-fold = 5 piles. 10-fold = 10 piles. The extreme version, <b>“leave-one-out,”</b> hides just <b>one hotel at a time</b> (112 rounds) — the most thorough, the most work.</p>
+  </div>
+
+  <div class="card">
+    <h3>One catch for us: twins (“grouped” k-fold)</h3>
+    <p>Our catalog has lots of <b>near-duplicate hotels</b> (same chain, or the same place listed twice). Imagine the “Ibis Budapest” is in the <b>test</b> fold, but its twin “Ibis Budapest (2)” is in the <b>cheat sheet</b> fold. The scorer peeks at the twin’s grade… and basically sees the test answer anyway. 😬</p>
+    <p style="margin-bottom:0">The fix: put <b>twins in the same fold</b>, so a hotel can never peek at its own near-copy. That’s called <b>grouped</b> k-fold. We need it because ~27% of the catalog were duplicates.</p>
+  </div>
+
+  <!-- the other option -->
+  <h2>Part 4 — There’s a second way (your swipe idea)</h2>
+  <div class="card" style="border-color:#3a4659">
+    <span class="tag" style="color:var(--blue)">🔵 a fresh test set</span>
+    <p>Instead of cleverly reusing the <b>old</b> grades, you could just gather <b>brand-new</b> human judgments on hotels that were <b>never on the cheat sheet</b> — for example, a fresh round of friend swipes on the hotels we <b>actually show</b> on city pages.</p>
+    <p>Because those hotels were never used to calibrate, they’re a <b>held-out test by definition</b> — no folds, no hiding needed. And it tests the hotels <b>that matter</b> (the ones travellers see), with <b>several friends</b> averaging out any one person’s quirks.</p>
+    <p style="margin-bottom:0"><b>k-fold</b> = squeeze an honest number out of the grades we already have, for free, today. <br><b>Fresh swipes</b> = the cleaner, more relevant number, but it needs people to swipe. <span class="muted">They’re complementary — not either/or.</span></p>
+  </div>
+
+  <!-- quiz -->
+  <h2>Part 5 — Quick check (no pressure 🙂)</h2>
+
+  <div class="q">
+    <span class="qn">Question 1</span>
+    <p>Why does testing yourself on the <b>same</b> 100 flashcards you studied give a misleadingly high score?</p>
+    <details><summary>Show answer</summary><div class="ans">Because you might have just <b>memorised those exact words</b> rather than learning to spell. A high score on cards you’ve already seen doesn’t prove you can handle <b>new</b> ones — which is the whole point.</div></details>
+  </div>
+
+  <div class="q">
+    <span class="qn">Question 2</span>
+    <p>In <b>5-fold</b>, how many times does each hotel get to be a “surprise test” hotel?</p>
+    <details><summary>Show answer</summary><div class="ans"><b>Exactly once.</b> That’s the trick — across the 5 rounds, every hotel is hidden-and-tested one time, and used as cheat-sheet the other four times. So every grade contributes, and every hotel gets one honest test.</div></details>
+  </div>
+
+  <div class="q">
+    <span class="qn">Question 3</span>
+    <p>Why do we put <b>duplicate/twin hotels in the same fold</b>?</p>
+    <details><summary>Show answer</summary><div class="ans">So a hotel can’t secretly <b>peek at its own twin’s grade</b> on the cheat sheet. If twins are split across folds, the “honest” test isn’t honest anymore — the answer leaked through the near-copy.</div></details>
+  </div>
+
+  <div class="q">
+    <span class="qn">Question 4</span>
+    <p>Your friends swipe on <b>30 brand-new cosy hotels we’ve never graded</b> and never put on the cheat sheet. Is that <b>in-sample</b> or <b>held-out</b>?</p>
+    <details><summary>Show answer</summary><div class="ans"><b>Held-out</b> — and it’s the cleanest kind. The scorer never saw those answers during calibration, so comparing its scores to the fresh swipes is a totally fair test. (This is exactly your swipe idea.)</div></details>
+  </div>
+
+  <div class="q">
+    <span class="qn">Question 5 — the real decision</span>
+    <p>We want to know how trustworthy the score is on <b>the hotels travellers actually see</b>. Which gives a more <b>relevant</b> answer: k-fold on the old grades, or a fresh swipe round on the surfaced hotels?</p>
+    <details><summary>Show answer</summary><div class="ans">The <b>fresh swipe round</b> — because the old grades were mostly collected on <b>borderline / bad</b> hotels (to catch over-scores), not the cosy ones we’re proud to show. A fresh round on the <b>surfaced</b> hotels measures the thing you actually care about. k-fold is still useful as a <b>free, instant</b> number from existing data while the swipes come in.</div></details>
+  </div>
+
+  <p class="foot">gotcosy.com · understanding how we measure scoring trust · k-fold = a fair, no-cheating test</p>
+</div>
+</body>
+</html>

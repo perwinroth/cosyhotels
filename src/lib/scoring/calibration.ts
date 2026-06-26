@@ -11,6 +11,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type GradedProfile = {
+  hotelId: string; dedupKey: string | null; // identity — lets a hotel be excluded from its OWN anchors
   name: string; city: string; country: string;
   amenities: string[]; stars: number | null;
   aiScore: number; humanScore: number | null;
@@ -21,16 +22,18 @@ export type GradedProfile = {
 export async function fetchGradedProfiles(db: SupabaseClient): Promise<GradedProfile[]> {
   const { data } = await db
     .from("hotel_grades")
-    .select("cosy_verdict, human_score, reasons, ai_score, hotel:hotel_id!inner(name, name_en, city, country, amenities, stars)")
+    .select("hotel_id, cosy_verdict, human_score, reasons, ai_score, hotel:hotel_id!inner(name, name_en, city, country, amenities, stars, dedup_key)")
     .order("updated_at", { ascending: false })
     .limit(500);
   type Row = {
-    cosy_verdict: string; human_score: number | null; reasons: string[] | null; ai_score: number | null;
-    hotel: { name: string; name_en: string | null; city: string | null; country: string | null; amenities: string[] | null; stars: number | null } | null;
+    hotel_id: string; cosy_verdict: string; human_score: number | null; reasons: string[] | null; ai_score: number | null;
+    hotel: { name: string; name_en: string | null; city: string | null; country: string | null; amenities: string[] | null; stars: number | null; dedup_key: string | null } | null;
   };
   return ((data || []) as unknown as Row[])
     .filter((r) => r.hotel)
     .map((r) => ({
+      hotelId: String(r.hotel_id),
+      dedupKey: r.hotel!.dedup_key ?? null,
       name: String(r.hotel!.name_en || r.hotel!.name || "").trim(),
       city: String(r.hotel!.city || "").trim(),
       country: String(r.hotel!.country || "").trim(),
@@ -66,14 +69,26 @@ function similarity(t: ScoreTarget, p: GradedProfile): number {
 
 // Pick the calibration anchors for ONE hotel: its nearest labelled neighbours, plus the two
 // strongest global disagreements (so site-wide corrections always apply even with no local match).
-export function selectAnchorsFor(target: ScoreTarget, profiles: GradedProfile[], k = 12): GradedProfile[] {
+// `exclude` drops a hotel from its OWN anchor pool — by hotel_id AND dedup_key (so a near-twin
+// can't leak the answer either). Pass it both in held-out evaluation (k-fold) and in production
+// (a hotel should never be calibrated on its own grade). Omit for the legacy behaviour.
+export function selectAnchorsFor(
+  target: ScoreTarget,
+  profiles: GradedProfile[],
+  k = 12,
+  exclude?: { hotelId?: string; dedupKey?: string | null },
+): GradedProfile[] {
   if (!profiles.length) return [];
-  const ranked = profiles
+  const pool = exclude
+    ? profiles.filter((p) => p.hotelId !== exclude.hotelId && (!exclude.dedupKey || p.dedupKey !== exclude.dedupKey))
+    : profiles;
+  if (!pool.length) return [];
+  const ranked = pool
     .map((p) => ({ p, sim: similarity(target, p) }))
     .sort((a, b) => b.sim - a.sim);
   const near = ranked.slice(0, k).map((r) => r.p);
   const picked = new Set(near);
-  const globalDisagreements = profiles
+  const globalDisagreements = pool
     .filter((p) => p.verdict === "too_high" || p.verdict === "too_low")
     .slice(0, 2);
   for (const g of globalDisagreements) picked.add(g);
