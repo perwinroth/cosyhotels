@@ -11,6 +11,7 @@ import { osmCosyScore } from "@/lib/scoring/osmCosy";
 import { resolveHotelImage } from "@/lib/hotelImageFree";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { hotelDedupKey } from "@/lib/dedupeKey";
+import { resolveExisting } from "@/lib/hotelIdentity";
 import { fetchPlaceReviews, reviewsEnabled } from "@/lib/placeReviews";
 import { targetCities, type TargetCity } from "@/data/targetCities";
 
@@ -89,11 +90,19 @@ async function run() {
   let ingested = 0;
   for (const h of top) {
     if (idMap.has(h.id)) continue;
+    // CROSS-SOURCE IDENTITY GATE (the root dedup fix): before inserting, check whether this physical
+    // hotel already exists under ANY source — same coordinates (~80m) + compatible name. If so, map
+    // this OSM source_id to the existing canonical row instead of creating a duplicate. This is what
+    // stops OSM and Google Places from each adding "MJs"/"MJ's" for one building.
+    if (h.lat != null && h.lng != null) {
+      const existing = await resolveExisting(db, { name: h.name, lat: h.lat, lng: h.lng });
+      if (existing) { idMap.set(h.id, existing.id); continue; }
+    }
     const digits = h.id.replace(/\D/g, "") || h.id.replace(/[^a-z0-9]/gi, "");
     const { data, error } = await db.from("hotels").insert({
       source: "osm", source_id: h.id, slug: `${slugify(h.name)}-${digits}`.slice(0, 80),
       name: h.name, city: h.city || t.city, country: h.country || null,
-      dedup_key: hotelDedupKey(h.name, h.city || t.city), // unique index rejects re-adds of a known hotel
+      dedup_key: hotelDedupKey(h.name, h.city || t.city), // legacy key; geo identity is the real gate
       lat: h.lat, lng: h.lng, website: h.website || null, address: h.address || null, stars: h.stars ?? null,
     }).select("id").single();
     if (!error && data) { idMap.set(h.id, String((data as { id: string }).id)); ingested++; }

@@ -7,6 +7,8 @@ import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { osmSearchHotels, type OSMHotel } from "@/lib/vendors/osm";
 import { resolveHotelImage } from "@/lib/hotelImageFree";
+import { hotelDedupKey } from "@/lib/dedupeKey";
+import { resolveExisting } from "@/lib/hotelIdentity";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -34,12 +36,18 @@ async function run(city: string) {
   const inserted: Array<{ id: string; h: OSMHotel }> = [];
   for (const h of found) {
     if (have.has(h.id)) continue;
+    // Cross-source identity gate: don't re-add a hotel that already exists under any source.
+    if (h.lat != null && h.lng != null) {
+      const existing = await resolveExisting(db, { name: h.name, lat: h.lat, lng: h.lng });
+      if (existing) continue;
+    }
     const digits = h.id.replace(/\D/g, "") || h.id.replace(/[^a-z0-9]/gi, "");
     const { data, error } = await db
       .from("hotels")
       .insert({
         source: "osm", source_id: h.id, slug: `${slugify(h.name)}-${digits}`.slice(0, 80),
         name: h.name, city: h.city || city, country: h.country || null,
+        dedup_key: hotelDedupKey(h.name, h.city || city), // was missing here — every insert keys now
         lat: h.lat, lng: h.lng, website: h.website || null, address: h.address || null, stars: h.stars ?? null,
       })
       .select("id")
