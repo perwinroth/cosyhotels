@@ -93,12 +93,22 @@ export async function GET(req: Request) {
     const cities = await populatedCities(db);
     if (!cities.length) return NextResponse.json({ error: "no populated cities" }, { status: 404 });
     const dayIdx = Math.floor(Date.now() / 86_400_000);
-    for (let i = 0; i < Math.min(cities.length, 25); i++) {
-      const c = cities[(dayIdx + i) % cities.length].city;
-      const p = await cityPin(db, c, base);
-      if (p.slides.length >= MIN_IG_SLIDES) { city = c; pin = p; break; }
+    // ROTATION FIX: don't "walk forward to the first carousel-capable city" — with good-photo
+    // cities being sparse, that lands on the SAME city for many days in a row (the Stratford
+    // repeat). Instead collect the cities that can actually fill a carousel, then rotate through
+    // THAT eligible list by day-index, so each day posts a different one. Bounded scan for cost.
+    const eligible: Array<{ city: string; pin: Awaited<ReturnType<typeof cityPin>> }> = [];
+    for (const c of cities) {
+      const p = await cityPin(db, c.city, base);
+      if (p.slides.length >= MIN_IG_SLIDES) eligible.push({ city: c.city, pin: p });
+      if (eligible.length >= 60) break; // plenty of rotation variety; keep the cron cheap
     }
-    if (!pin) { city = cities[dayIdx % cities.length].city; pin = await cityPin(db, city, base); }
+    if (eligible.length) {
+      const pick = eligible[dayIdx % eligible.length];
+      city = pick.city; pin = pick.pin;
+    } else { // nothing fills a carousel — fall back to the top populated city
+      city = cities[dayIdx % cities.length].city; pin = await cityPin(db, city, base);
+    }
   }
   if (!city || !pin) return NextResponse.json({ error: "?city= or ?auto=1 required" }, { status: 400 });
   if (!pin.slides.length) return NextResponse.json({ error: `no publishable slides for ${city}` }, { status: 422 });
