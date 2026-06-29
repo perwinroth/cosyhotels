@@ -21,6 +21,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     routes.push({ url: `${base}/${locale}/guides`, lastModified: now, changeFrequency: "monthly", priority: 0.4 });
     routes.push({ url: `${base}/${locale}/cosy-score`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
     routes.push({ url: `${base}/${locale}/for-hotels`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
+    routes.push({ url: `${base}/${locale}/cosy-index`, lastModified: now, changeFrequency: "weekly", priority: 0.7 });
+    routes.push({ url: `${base}/${locale}/what-makes-a-hotel-cosy`, lastModified: now, changeFrequency: "monthly", priority: 0.7 });
+    routes.push({ url: `${base}/${locale}/make-your-hotel-look-cosy`, lastModified: now, changeFrequency: "monthly", priority: 0.6 });
   }
 
   // Add dynamic hotel detail URLs from Supabase, paginated to avoid timeouts

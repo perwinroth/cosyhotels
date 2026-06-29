@@ -19,10 +19,13 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
           </div>
           <FooterCol title="Explore">
             <FLink href={`/${locale}/guides`}>City guides</FLink>
+            <FLink href={`/${locale}/cosy-index`}>The Cosy Index</FLink>
+            <FLink href={`/${locale}/what-makes-a-hotel-cosy`}>What makes a hotel cosy</FLink>
             <FLink href={`/${locale}/cosy-score`}>{m.footer?.cosy_score || "How we score"}</FLink>
           </FooterCol>
           <FooterCol title="For hotels">
             <FLink href={`/${locale}/for-hotels`}>Get your cosy score</FLink>
+            <FLink href={`/${locale}/make-your-hotel-look-cosy`}>Make your hotel look cosy</FLink>
           </FooterCol>
           <FooterCol title="Company">
             <FLink href={`/${locale}/about`}>{m.footer?.about || "About"}</FLink>
