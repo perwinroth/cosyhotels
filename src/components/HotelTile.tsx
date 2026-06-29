@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { cosyBadgeColor } from "@/lib/cosyColor";
 
 export type TileHotel = {
   slug: string;
@@ -28,7 +29,7 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
       <div className="px-4 pt-5 pb-3 flex items-start gap-3">
         <div
           className="flex-shrink-0 flex items-center justify-center rounded-2xl shadow"
-          style={{ background: cosyDotColor(h.cosy), width: 64, height: 64 }}
+          style={{ background: cosyBadgeColor(h.cosy), width: 64, height: 64 }}
         >
           <span
             style={{ fontFamily: 'Fraunces, serif', fontSize: 26, color: '#fff', lineHeight: 1, fontWeight: 600 }}
@@ -103,12 +104,4 @@ export default function HotelTile({ hotel, href, goHref }: { hotel: TileHotel; h
       </div>
     </div>
   );
-}
-
-// Cosy score badge color — warm sage (cosy) down to muted clay (mild)
-function cosyDotColor(score: number): string {
-  if (score >= 7.8) return '#5c6b56'; // sage — very cosy
-  if (score >= 6.8) return '#7c8a5f'; // olive — cosy
-  if (score >= 5.6) return '#b07a4a'; // warm clay
-  return '#a89b8c'; // muted — mild
 }

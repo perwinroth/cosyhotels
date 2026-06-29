@@ -9,6 +9,7 @@ import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { facetBySlug, matchesFacet } from "@/lib/facets";
+import { cosyBadgeColor } from "@/lib/cosyColor";
 
 export const revalidate = 3600;
 
@@ -56,8 +57,6 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };
 }
 
-function cosyColor(s: number): string { return s >= 7.8 ? "#5c6b56" : s >= 6.8 ? "#7c8a5f" : s >= 5.6 ? "#b07a4a" : "#a89b8c"; }
-
 export default async function FacetPage({ params }: { params: { locale: string; facet: string; city: string } }) {
   const res = await load(params.facet, params.city);
   if (!res || res.hotels.length < 2) notFound(); // no thin pages
@@ -95,7 +94,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
           return (
             <li key={h.id} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>{h.score.toFixed(1)}</div>
+                <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>{h.score.toFixed(1)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2"><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
                   <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>

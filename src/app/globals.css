@@ -27,6 +27,15 @@
   /* elevation */
   --shadow: 0 1px 2px rgba(0,0,0,.30), 0 16px 40px rgba(0,0,0,.36);
   --shadow-lg: 0 24px 60px rgba(0,0,0,.45);
+
+  /* cosy-score scale — ONE source of truth, theme-aware. Was hardcoded hex duplicated (and already
+     drifted) across page.tsx, HotelTile, the facet page and the hotel detail. Read via cosyBadgeColor()
+     in src/lib/cosyColor.ts. top/high inherit the tuned --gold/--sage so the scale matches the UI. */
+  --cosy-top: var(--gold);    /* >= 9   */
+  --cosy-high: var(--sage);   /* >= 7.8 */
+  --cosy-mid: #7c8a5f;        /* >= 6.8 olive */
+  --cosy-mild: #b07a4a;       /* >= 5.6 clay  */
+  --cosy-low: #a89b8c;        /* else   muted */
 }
 
 /* Light theme — "Warm Paper": the SAME design + boutique hues, inverted onto cream.
@@ -46,6 +55,10 @@
   --gold: #A87F2E;
   --shadow: 0 1px 2px rgba(28,36,32,.06), 0 16px 40px rgba(28,36,32,.10);
   --shadow-lg: 0 24px 60px rgba(28,36,32,.16);
+  /* cosy scale: top/high inherit the retuned --gold/--sage above; deepen the rest for cream. */
+  --cosy-mid: #5f6a44;     /* olive, deepened for light */
+  --cosy-mild: #9a5f30;    /* clay, deepened for light */
+  --cosy-low: #8c8478;     /* muted, deepened for light */
 }
 
 @theme inline {

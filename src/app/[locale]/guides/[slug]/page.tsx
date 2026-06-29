@@ -17,6 +17,7 @@ import { translate } from "@/lib/i18n/translate";
 import { locales } from "@/i18n/locales";
 import { bboxFor } from "@/data/cityCoords";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
+import { cosyBadgeColor } from "@/lib/cosyColor";
 
 type Props = { params: { slug: string; locale: string } };
 
@@ -52,13 +53,6 @@ function cityFaqs(city: string, opts?: { count?: number; topName?: string; topSc
 }
 
 // Strip leading postcode noise from polluted OSM city values ("211 21 Malmö" -> "Malmö").
-// Warm cosy-score badge colour (sage = very cosy → muted clay = mild).
-function cosyColor(score: number): string {
-  if (score >= 7.8) return '#5c6b56';
-  if (score >= 6.8) return '#7c8a5f';
-  if (score >= 5.6) return '#b07a4a';
-  return '#a89b8c';
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const g = getGuide(params.slug);
@@ -290,14 +284,15 @@ export default async function GuidePage({ params }: Props) {
       .from('hotel_images')
       .select('hotel_id,url,created_at,vision_ok')
       .in('hotel_id', idsForImgs)
+      .eq('vision_ok', true)
       .order('created_at', { ascending: false });
     for (const row of (imgRows || []) as Array<{ hotel_id: string | null; url: string | null; vision_ok: boolean | null }>) {
       const hid = row.hotel_id ? String(row.hotel_id) : '';
       const url = row.url ? String(row.url) : '';
-      // Skip photos the vision QA confirmed as junk (vision_ok=false) — e.g. gift vouchers,
-      // logos, maps — and placeholders. Keep vetted (true) + not-yet-checked (null). Newest
-      // non-junk image per hotel wins (rows are ordered created_at desc).
-      if (!hid || !url || row.vision_ok === false || url.includes('placehold.co')) continue;
+      // Only vision-QA-vetted photos (vision_ok=true) show — same gate as every other surface.
+      // Unchecked (null) and junk (false) never render, so a newly-scraped hotel can't flash an
+      // unvetted image. Newest vetted image per hotel wins (rows are ordered created_at desc).
+      if (!hid || !url || url.includes('placehold.co')) continue;
       if (!imgMap.has(hid)) imgMap.set(hid, url);
     }
   } catch {}
@@ -386,7 +381,7 @@ export default async function GuidePage({ params }: Props) {
           {chosen.map((h, idx) => (
             <li key={h.slug} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyColor(h._cosy), width: 56, height: 56, fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600 }}>
+                <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h._cosy), width: 56, height: 56, fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600 }}>
                   {h._cosy.toFixed(1)}
                 </div>
                 <div className="flex-1 min-w-0">

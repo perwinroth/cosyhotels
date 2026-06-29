@@ -2,6 +2,7 @@ import { site } from "@/config/site";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
@@ -9,15 +10,7 @@ import { cityGuides } from "@/data/cityGuides";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { SearchBar } from "@/components/HomeSections";
 import { placeLine, isLatin } from "@/lib/placeText";
-
-// Warm cosy-score badge colour (gold = top → sage → olive → muted clay).
-function cosyColor(s: number): string {
-  if (s >= 9) return "#D8B25A";
-  if (s >= 7.8) return "#7FB7A2";
-  if (s >= 6.8) return "#7c8a5f";
-  if (s >= 5.6) return "#b07a4a";
-  return "#a89b8c";
-}
+import { cosyBadgeColor } from "@/lib/cosyColor";
 
 export const revalidate = 3600;
 
@@ -58,14 +51,27 @@ async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>):
     .gt("imagery_warmth", 0)
     .order("score_final", { ascending: false, nullsFirst: false })
     .order("score", { ascending: false })
-    .limit(40);
+    .limit(120);
   const bad = await badLinkHotelIds(db);
   const list = ((data || []) as unknown as Row[]).filter((r) => !!r.hotel?.slug && !bad.has(String(r.hotel!.id)));
+  // The top three must SHOW a real, vision-approved photo (vision_ok=true) — a high score with no
+  // displayable image doesn't belong at #1. Pull the approved photo for the candidates first, then
+  // pick the highest-scoring ones that actually have one.
+  const candIds = list.map((r) => r.hotel!.id);
+  const imgBy = new Map<string, string>();
+  for (let i = 0; i < candIds.length; i += 200) {
+    const { data: imgs } = await db.from("hotel_images").select("hotel_id,url").in("hotel_id", candIds.slice(i, i + 200)).eq("vision_ok", true);
+    for (const row of (imgs || []) as Array<{ hotel_id: string | null; url: string | null }>) {
+      if (row.hotel_id && row.url && !imgBy.has(String(row.hotel_id))) imgBy.set(String(row.hotel_id), row.url);
+    }
+  }
   const seen = new Set<string>();
   const picks: TopHotel[] = [];
   for (const r of list) {
     const h = r.hotel!;
     if (seen.has(h.slug)) continue;
+    const image = imgBy.get(String(h.id));
+    if (!image) continue; // require a real, vision-approved photo
     seen.add(h.slug);
     picks.push({
       slug: h.slug,
@@ -75,22 +81,10 @@ async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>):
       country: h.country || "",
       cosy: typeof r.score_final === "number" ? r.score_final : Number(r.score) || 0,
       description: r.description || "",
+      image,
       lat: h.lat, lng: h.lng,
     });
     if (picks.length >= 3) break;
-  }
-  // Attach a cached image where available.
-  const ids = picks.length ? list.filter((r) => picks.some((p) => p.slug === r.hotel!.slug)).map((r) => r.hotel!.id) : [];
-  if (ids.length) {
-    const { data: imgs } = await db.from("hotel_images").select("hotel_id,url").in("hotel_id", ids);
-    const byId = new Map<string, string>();
-    for (const row of (imgs || []) as Array<{ hotel_id: string | null; url: string | null }>) {
-      if (row.hotel_id && row.url && !byId.has(String(row.hotel_id))) byId.set(String(row.hotel_id), row.url);
-    }
-    for (const r of list) {
-      const p = picks.find((x) => x.slug === r.hotel!.slug);
-      if (p) p.image = byId.get(r.hotel!.id);
-    }
   }
   return picks;
 }
@@ -154,8 +148,8 @@ export default async function Home({ params }: { params: { locale: string } }) {
         {top.length > 0 && (
           <section className="mt-14">
             <div className="flex items-baseline justify-between mb-5">
-              <h2 className="font-display text-2xl font-semibold">Highest cosy scores</h2>
-              <span className="text-sm" style={{ color: "var(--muted)" }}>The cosiest stays our AI has scored</span>
+              <h2 className="font-display text-2xl font-semibold">Cosy stays we love</h2>
+              <span className="text-sm" style={{ color: "var(--muted)" }}>High cosy scores — with a real photo to match</span>
             </div>
             <ol className="space-y-3">
               {top.map((h, i) => {
@@ -164,7 +158,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                   <li key={h.slug} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
                     <div className="flex items-start gap-5">
                       <span className="text-sm tabular-nums mt-1" style={{ color: "var(--muted)", width: 16 }}>{i + 1}</span>
-                      <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 64, height: 64, background: cosyColor(h.cosy), color: "#16201C", fontSize: 23 }}>
+                      <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 64, height: 64, background: cosyBadgeColor(h.cosy), color: "#16201C", fontSize: 23 }}>
                         {h.cosy.toFixed(1)}<span style={{ fontFamily: "Inter", fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", opacity: 0.8 }}>COSY</span>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -174,6 +168,13 @@ export default async function Home({ params }: { params: { locale: string } }) {
                         {/* Button below the text so it never overlaps a long hotel name. */}
                         <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex mt-3 rounded-xl px-5 py-2.5 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
                       </div>
+                      {h.image && (
+                        <a href={`/${locale}/hotels/${h.slug}`} className="flex-none hidden sm:block no-underline">
+                          <div className="relative rounded-xl overflow-hidden" style={{ width: 150, height: 112, border: "1px solid var(--line)" }}>
+                            <Image src={h.image} alt={`${h.name_en || h.name} — ${h.city}`} fill className="object-cover" sizes="150px" quality={65} unoptimized={/^https?:\/\//.test(h.image)} />
+                          </div>
+                        </a>
+                      )}
                     </div>
                   </li>
                 );

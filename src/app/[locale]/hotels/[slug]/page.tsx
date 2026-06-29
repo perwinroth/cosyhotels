@@ -10,6 +10,7 @@ import { stay22AllezUrl } from "@/lib/affiliates";
 import ShareButton from "@/components/ShareButton";
 import BadgeEmbed from "@/components/BadgeEmbed";
 import { cosyScore } from "@/lib/scoring/cosy";
+import { cosyBadgeColor } from "@/lib/cosyColor";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { unstable_cache } from "next/cache";
 
@@ -53,6 +54,45 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
     }
   }
   return { alternates: { canonical: url, languages } };
+}
+
+// Per-hotel FAQ — natural-language Q&A for SEO rich results + GEO/AEO (answer engines lift these).
+// Every answer is GROUNDED in real data (cosy score, our description, guest rating, location) — no
+// invented facts, in keeping with the trustworthy-score promise.
+function hotelFaqs(o: { name: string; city: string; country: string; cosy: number | null; description: string | null; rating5: number | null; reviews: number | null }): Array<{ q: string; a: string }> {
+  const { name, city, country, cosy: s, description, rating5, reviews } = o;
+  const place = [city, country].filter(Boolean).join(", ");
+  const band = s == null ? "" : s >= 7.8 ? "among the cosiest stays we've scored" : s >= 6.8 ? "a genuinely cosy, characterful stay" : s >= 5.6 ? "a warm, comfortable mid-cosy stay" : "a simple, milder stay on the cosy scale";
+  const faqs: Array<{ q: string; a: string }> = [];
+  faqs.push({
+    q: `Is ${name} a cosy hotel?`,
+    a: s != null
+      ? `${name} scores ${s.toFixed(1)}/10 on Got Cosy's cosiness scale — ${band}${city ? ` in ${city}` : ""}. The score weighs warmth, intimacy and character, not stars.`
+      : `Got Cosy rates hotels 0–10 for cosiness — warmth, intimacy and character${city ? `, including stays in ${city}` : ""}.`,
+  });
+  faqs.push({
+    q: `What makes ${name} cosy?`,
+    a: description && description.length > 20
+      ? description
+      : `We read each hotel's photos, guest reviews, scale and setting, weighting cues like warm light, natural materials and intimate scale. ${name}'s ${s != null ? `${s.toFixed(1)}/10` : "cosy score"} reflects how warm and characterful it feels.`,
+  });
+  if (rating5 != null) faqs.push({
+    q: `How do guests rate ${name}?`,
+    a: `Guests rate ${name} ${rating5.toFixed(1)}/5${reviews ? ` across ${reviews.toLocaleString()} reviews` : ""}. Got Cosy folds guest sentiment together with photos and setting into a single 0–10 cosy score${s != null ? ` (${s.toFixed(1)})` : ""}.`,
+  });
+  if (place) faqs.push({
+    q: `Where is ${name} located?`,
+    a: `${name} is in ${place}.${city ? ` You can browse more cosy hotels in ${city} on Got Cosy.` : ""}`,
+  });
+  faqs.push({
+    q: `How is ${name}'s cosy score calculated?`,
+    a: `Got Cosy's AI assesses a hotel's photos, guest reviews, amenities, room count and setting, scoring cosiness signals — fireplaces, warm lighting, soft textiles, intimate human scale — on one 0–10 scale. ${name} currently scores ${s != null ? s.toFixed(1) : "–"}.`,
+  });
+  if (s != null && s >= 7) faqs.push({
+    q: `Is ${name} good for a romantic getaway?`,
+    a: `With a cosy score of ${s.toFixed(1)}/10, ${name} leans warm and intimate — the kind of characterful stay that suits a couples or romantic trip${city ? ` in ${city}` : ""}.`,
+  });
+  return faqs;
 }
 
 export default async function HotelDetail({ params, searchParams }: Props) {
@@ -186,12 +226,14 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   // Real cached photo only (no placeholder).
   let photo: string | null = null;
   try {
-    const { data: imgs } = await db.from("hotel_images").select("url,created_at,vision_ok").eq("hotel_id", hotel.id).order("created_at", { ascending: false });
-    // Skip vision-QA-rejected junk (vision_ok=false), placeholders, and obvious non-photos by
-    // URL (logos, Wi-Fi/icon graphics, tiny square thumbnails) — so a hotel page never shows junk.
-    const JUNK = /logo|favicon|wi-?fi|sprite|qr[-_]?code|\bicon\b|\bbadge\b|\/\d{2,3}[-x_]\d{2,3}[-_.]/i;
+    const { data: imgs } = await db.from("hotel_images").select("url,created_at,vision_ok").eq("hotel_id", hotel.id).eq("vision_ok", true).order("created_at", { ascending: false });
+    // Only vision-QA-vetted photos (vision_ok=true) render — same gate as the listing/city/home
+    // surfaces. Unchecked (null) and junk (false) never show, so a newly-scraped hotel can't flash
+    // an unvetted image (the bug that surfaced a champagne-promo thumbnail). The JUNK regex is a
+    // defence-in-depth backstop; \/_?\d… catches both /320x320 and /_320x320_ thumbnail paths.
+    const JUNK = /logo|favicon|wi-?fi|sprite|qr[-_]?code|\bicon\b|\bbadge\b|\/_?\d{2,3}[-x_]\d{2,3}[-_.]/i;
     for (const r of (imgs || []) as Array<{ url: string | null; vision_ok: boolean | null }>) {
-      if (r.url && r.vision_ok !== false && !r.url.includes("placehold.co") && !JUNK.test(r.url)) { photo = r.url; break; }
+      if (r.url && !r.url.includes("placehold.co") && !JUNK.test(r.url)) { photo = r.url; break; }
     }
   } catch {}
 
@@ -212,9 +254,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     permanentRedirect(`/${params.locale}/hotels/${hotel.slug}`);
   }
 
-  const badge = typeof cosyDisplay === 'number'
-    ? (cosyDisplay >= 9 ? '#D8B25A' : cosyDisplay >= 7.8 ? '#7FB7A2' : cosyDisplay >= 6.8 ? '#7c8a5f' : cosyDisplay >= 5.6 ? '#b07a4a' : '#a89b8c')
-    : '#a89b8c';
+  const badge = cosyBadgeColor(typeof cosyDisplay === 'number' ? cosyDisplay : 0);
   const bookingUrl = stay22AllezUrl({
     name: String(hotel.name), city: (hotel.city as string | null) ?? null, country: (hotel.country as string | null) ?? null,
     lat: (hotel.lat as number | null) ?? null, lng: (hotel.lng as number | null) ?? null,
@@ -229,6 +269,8 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     address: { "@type": "PostalAddress", addressLocality: String(hotel.city || ""), addressCountry: String(hotel.country || "") },
     url: `${site.url}/${params.locale}/hotels/${hotel.slug}`,
   };
+  const faqs = hotelFaqs({ name: String(hotel.name), city: String(hotel.city || ''), country: String(hotel.country || ''), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null });
+  const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(hotelJsonLd) }} />
@@ -259,6 +301,19 @@ export default async function HotelDetail({ params, searchParams }: Props) {
         <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={`/${params.locale}/guides`}>← Browse guides</a>
         <a className="ml-auto rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={String(hotel.name)} data-city={String(hotel.city || '')}>Check availability</a>
       </div>
+
+      <section className="mt-12">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+        <h2 className="font-display text-2xl font-semibold">Frequently asked questions</h2>
+        <dl className="mt-4 space-y-3">
+          {faqs.map((f) => (
+            <div key={f.q} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+              <dt className="font-medium" style={{ color: 'var(--foreground)' }}>{f.q}</dt>
+              <dd className="mt-1.5 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>{f.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
 
       {cosyDisplay != null && <BadgeEmbed slug={String(hotel.slug)} score={cosyDisplay} name={String(hotel.name)} />}
     </div>
