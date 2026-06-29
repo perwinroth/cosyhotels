@@ -25,7 +25,12 @@ type Props = { params: { slug: string; locale: string } };
 // we score cosiness rather than asserting unverifiable local facts.
 function cityFaqs(city: string, opts?: { count?: number; topName?: string; topScore?: number }): Array<{ q: string; a: string }> {
   const n = opts?.count || 0;
-  const lead = opts?.topName ? ` In ${city}, that currently puts ${opts.topName} on top${opts?.topScore ? ` at ${opts.topScore.toFixed(1)}/10` : ''}.` : '';
+  // Only "crown" a top pick when it genuinely clears the standout bar (7.0). In cities that skew
+  // modern/large (Istanbul, Bangkok, Las Vegas) the best score is barely over the floor, so
+  // presenting it as "the cosiest, at 5.3/10" reads as a weak endorsement — honest framing wins.
+  const lead = (opts?.topName && (opts?.topScore || 0) >= 7)
+    ? ` In ${city}, that currently puts ${opts.topName} on top at ${(opts.topScore as number).toFixed(1)}/10.`
+    : '';
   return [
     {
       q: `What makes a hotel in ${city} cosy?`,
@@ -342,13 +347,24 @@ export default async function GuidePage({ params }: Props) {
   const m = i18n[params.locale as keyof typeof i18n] || i18n.en;
   const h1 = (m.guides?.h1_city || 'Cosy & boutique hotels in {city}').replace('{city}', cityName);
   // Data-derived, unique-per-city intro (no two pages read the same): real cosy count + top pick.
+  // Crucially HONEST about how cosy the top actually is — we never dress up a 5.3/10 as a "winner".
   const cosyCount = sorted.filter((x) => x.s >= COSY_FLOOR).length;
   const topPick = chosen[0];
-  const intro = chosen.length
-    ? `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy${topPick ? ` — led by ${topPick.name} at ${topPick._cosy.toFixed(1)}/10` : ''}. Here are the cosiest, ranked best first.`
-    : scoreQueryFailed
+  const topScore = topPick?._cosy ?? 0;
+  const STANDOUT = 7.0; // genuinely cosy; below this we don't crown a "best"
+  const WARM = 6.0;      // pleasantly cosy but not a standout
+  let intro: string;
+  if (!chosen.length) {
+    intro = scoreQueryFailed
       ? `Cosy scores for ${cityName} are temporarily unavailable — please try again shortly.`
-      : `We’re still scoring cosy hotels in ${cityName}.`;
+      : `We're still scoring cosy hotels in ${cityName}.`;
+  } else if (topScore >= STANDOUT) {
+    intro = `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy — led by ${topPick.name} at ${topScore.toFixed(1)}/10. Here are the cosiest, ranked best first.`;
+  } else if (topScore >= WARM) {
+    intro = `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName}. ${cityName} leans towards larger, modern hotels, so even our top picks here are pleasantly cosy rather than standouts — ${topPick.name} leads at ${topScore.toFixed(1)}/10. These are the warmest we've found, ranked best first.`;
+  } else {
+    intro = `${cityName} skews modern and large, and honestly none of its hotels reach our standout cosy marks yet — the best we've scored sits at ${topScore.toFixed(1)}/10. Here are its ${cosyCount} cosiest stays anyway, ranked best first, for when ${cityName} is where you need to be.`;
+  }
   const faqs = cityFaqs(cityName, { count: cosyCount, topName: topPick?.name, topScore: topPick?._cosy });
   // Long-tail facet links — only facets actually backed by ≥2 of this city's hotels.
   const citySlugBase = cityToSlug(cityName).replace(/-cosy-hotel$/, '');
@@ -392,7 +408,12 @@ export default async function GuidePage({ params }: Props) {
                     </h2>
                   </div>
                   <div className="text-sm" style={{ color: 'var(--muted)' }}>{[h.city, h.country].filter(Boolean).join(', ')}</div>
-                  {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>}
+                  {h.snippet && (
+                    <div className="mt-2">
+                      <span className="text-[11px] font-semibold uppercase" style={{ color: 'var(--ember)', letterSpacing: '0.07em' }}>Why it&apos;s cosy</span>
+                      <p className="mt-0.5 text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>
+                    </div>
+                  )}
                   <div className="mt-3 flex items-center gap-2">
                     <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
                       Check availability
