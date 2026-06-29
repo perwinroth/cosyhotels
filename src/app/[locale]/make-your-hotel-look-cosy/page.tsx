@@ -19,7 +19,7 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
 // Real reject categories, with the counts from our vision-QA pass (aesthetic rejects only).
 const DONT = [
   { src: "dont-logo.png", label: "A logo or wordmark", count: 1057, why: "Our single most-rejected non-photo. A logo tells a guest nothing about how it feels to stay the night." },
-  { src: "dont-landmark.jpeg", label: "A landmark that isn't your building", count: 737, why: "The famous bridge down the road is not your hotel. People want to see where they'll actually sleep." },
+  { src: "dont-landmark2.png", label: "A landmark that isn't your building", count: 737, why: "The famous view down the road is not your hotel. People want to see where they'll actually sleep." },
   { src: "dont-text.png", label: "A text or offer graphic", count: 422, why: "“A family of holiday accommodations” reads as an advert, not an invitation. Let a real room talk." },
   { src: "dont-person.jpg", label: "A stock photo of a person", count: 338, why: "A model at a spa could belong to any business on earth. A guest is picturing the space, not a stranger." },
   { src: "dont-detail.jpg", label: "A dark detail crop", count: 295, why: "A business card, a sleeve, a doorknob. Atmospheric maybe — but it shows nothing a traveller can book." },
