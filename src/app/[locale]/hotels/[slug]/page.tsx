@@ -60,10 +60,13 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
 // Per-hotel FAQ — natural-language Q&A for SEO rich results + GEO/AEO (answer engines lift these).
 // Every answer is GROUNDED in real data (cosy score, our description, guest rating, location) — no
 // invented facts, in keeping with the trustworthy-score promise.
-function hotelFaqs(o: { name: string; city: string; country: string; cosy: number | null; description: string | null; rating5: number | null; reviews: number | null }): Array<{ q: string; a: string }> {
+function hotelFaqs(o: { name: string; city: string; country: string; cosy: number | null; description: string | null; rating5: number | null; reviews: number | null; amenities?: string[] }): Array<{ q: string; a: string }> {
   const { name, city, country, cosy: s, description, rating5, reviews } = o;
   const place = [city, country].filter(Boolean).join(", ");
   const band = s == null ? "" : s >= 7.8 ? "among the cosiest stays we've scored" : s >= 6.8 ? "a genuinely cosy, characterful stay" : s >= 5.6 ? "a warm, comfortable mid-cosy stay" : "a simple, milder stay on the cosy scale";
+  const amen = (o.amenities || []).map((a) => String(a).trim()).filter(Boolean);
+  const aLow = amen.map((a) => a.toLowerCase());
+  const hasAmen = (re: RegExp) => aLow.some((a) => re.test(a));
   const faqs: Array<{ q: string; a: string }> = [];
   faqs.push({
     q: `Is ${name} a cosy hotel?`,
@@ -81,6 +84,18 @@ function hotelFaqs(o: { name: string; city: string; country: string; cosy: numbe
     q: `How do guests rate ${name}?`,
     a: `Guests rate ${name} ${rating5.toFixed(1)}/5${reviews ? ` across ${reviews.toLocaleString()} reviews` : ""}. Got Cosy folds guest sentiment together with photos and setting into a single 0–10 cosy score${s != null ? ` (${s.toFixed(1)})` : ""}.`,
   });
+  // Amenity-grounded questions (truthful — only from the hotel's listed facilities).
+  if (amen.length) faqs.push({
+    q: `What facilities does ${name} have?`,
+    a: `${name} lists ${amen.slice(0, 8).join(", ").replace(/, ([^,]*)$/, " and $1")}${city ? `, in ${city}` : ""}.`,
+  });
+  const feature = hasAmen(/spa/) ? { what: "a spa", q: `Does ${name} have a spa?` }
+    : hasAmen(/pool|swimming/) ? { what: "a pool", q: `Does ${name} have a pool?` }
+    : hasAmen(/restaurant/) ? { what: "a restaurant", q: `Does ${name} have a restaurant?` }
+    : hasAmen(/bar\b|lounge/) ? { what: "a bar", q: `Does ${name} have a bar?` }
+    : hasAmen(/parking|garage/) ? { what: "parking", q: `Does ${name} offer parking?` }
+    : null;
+  if (feature) faqs.push({ q: feature.q, a: `Yes — ${name} lists ${feature.what} among its facilities.` });
   if (place) faqs.push({
     q: `Where is ${name} located?`,
     a: `${name} is in ${place}.${city ? ` You can browse more cosy hotels in ${city} on Got Cosy.` : ""}`,
@@ -206,7 +221,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
 
   const { data: hotel } = await db
     .from("hotels")
-    .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,lat,lng")
+    .select("id,slug,name,city,country,website,affiliate_url,rating,reviews_count,lat,lng,amenities")
     .eq("slug", params.slug)
     .maybeSingle();
   if (!hotel) {
@@ -274,7 +289,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   const bespoke = (hotelFaqData as Record<string, { q: string; a: string }[]>)[String(hotel.id)];
   const faqs = bespoke?.length
     ? bespoke
-    : hotelFaqs({ name: String(hotel.name), city: String(hotel.city || ''), country: String(hotel.country || ''), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null });
+    : hotelFaqs({ name: String(hotel.name), city: String(hotel.city || ''), country: String(hotel.country || ''), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null, amenities: Array.isArray(hotel.amenities) ? (hotel.amenities as string[]) : [] });
   const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
