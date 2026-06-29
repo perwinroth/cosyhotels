@@ -12,6 +12,8 @@ import BadgeEmbed from "@/components/BadgeEmbed";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
+import { breadcrumbSchema, jsonLd } from "@/lib/schema";
+import { cityToSlug } from "@/lib/citySlug";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { unstable_cache } from "next/cache";
 
@@ -283,8 +285,14 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     description: cosyDescription ?? undefined,
     image: photo ?? undefined,
     address: { "@type": "PostalAddress", addressLocality: String(hotel.city || ""), addressCountry: String(hotel.country || "") },
+    ...(rating5 != null ? { aggregateRating: { "@type": "AggregateRating", ratingValue: Number(rating5.toFixed(1)), bestRating: 5, worstRating: 1, ...(typeof hotel.reviews_count === 'number' && hotel.reviews_count > 0 ? { ratingCount: hotel.reviews_count } : {}) } } : {}),
     url: `${site.url}/${params.locale}/hotels/${hotel.slug}`,
   };
+  const breadcrumbJsonLd = breadcrumbSchema([
+    { name: "Cosy hotel guides", url: `/${params.locale}/guides` },
+    ...(hotel.city ? [{ name: String(hotel.city), url: `/${params.locale}/guides/${cityToSlug(String(hotel.city))}` }] : []),
+    { name: String(hotel.name), url: `/${params.locale}/hotels/${hotel.slug}` },
+  ]);
   // Bespoke, review-grounded FAQ when we have one for this hotel; else the data-tailored template.
   const bespoke = (hotelFaqData as Record<string, { q: string; a: string }[]>)[String(hotel.id)];
   const faqs = bespoke?.length
@@ -294,6 +302,7 @@ export default async function HotelDetail({ params, searchParams }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(hotelJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(breadcrumbJsonLd)} />
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>

@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import Toaster from "@/components/Toaster";
 import ThemeToggle from "@/components/ThemeToggle";
+import { organizationSchema, websiteSchema, jsonLd } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Get Cosy – Find cosy hotel rooms",
@@ -37,6 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('theme')==='dark')document.documentElement.removeAttribute('data-theme')}catch(e){}` }} />
       </head>
       <body className="antialiased">
+        {/* Sitewide entity graph — one Organization + WebSite so SEO/AEO/GEO resolve "Got Cosy" to one entity. */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(organizationSchema())} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(websiteSchema())} />
         <div style={{ position: "fixed", top: 14, right: 14, zIndex: 50 }}><ThemeToggle /></div>
         {children}
         <Toaster />
