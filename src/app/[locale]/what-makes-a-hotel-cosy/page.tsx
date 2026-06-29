@@ -58,9 +58,9 @@ export default async function StudyPage({ params }: { params: { locale: string }
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(articleLd)} />
 
       <p className="text-sm font-medium tracking-wide uppercase" style={{ color: "var(--ember)", letterSpacing: "0.08em" }}>Data study</p>
-      <h1 className="mt-2 font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">What makes a hotel cosy?</h1>
-      <p className="mt-4 text-xl leading-relaxed" style={{ color: "var(--muted)" }}>
-        We scored <strong style={{ color: "var(--foreground)" }}>{total.toLocaleString()}</strong> hotels for cosiness — warmth, intimacy and character, on a 0–10 scale. The biggest surprise in the data: <strong style={{ color: "var(--foreground)" }}>stars barely matter.</strong> Here&apos;s what actually does.
+      <h1 className="mt-2 font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">The cosiest hotels in the world aren&apos;t the ones you&apos;d expect</h1>
+      <p className="mt-5 text-xl leading-relaxed" style={{ color: "var(--muted)" }}>
+        The cosiest hotels we found are a renovated mansion in Palma, a wooden ryokan in Kyoto, a spa-kúria in rural Hungary. Not one is a name you&apos;d recognise. Not one is a chain. We scored <strong style={{ color: "var(--foreground)" }}>{total.toLocaleString()} hotels</strong> for cosiness — and what predicts it has almost nothing to do with the things hotels brag about. Starting with stars.
       </p>
 
       <div className="longform mt-10">
@@ -72,7 +72,7 @@ export default async function StudyPage({ params }: { params: { locale: string }
           <Bar label="2-star" value={4.75} max={6} suffix="/10" n="n=157" />
           <p className="text-xs mt-3" style={{ color: "var(--muted)" }}>Average cosy score by official star rating. A three-star and a four-star hotel are, on average, equally cosy.</p>
         </div>
-        <p>Stars measure facilities — a gym, a concierge, room service. Cosiness measures feeling. They&apos;re different questions, and the data treats them that way.</p>
+        <p className="not-prose my-8 font-display text-2xl sm:text-3xl font-medium leading-snug" style={{ color: "var(--ember)" }}>Stars measure facilities. Cosiness measures feeling. They&apos;re different questions — and the data treats them that way.</p>
 
         <h2>What does predict cosiness: who runs it</h2>
         <p>The clearest signal isn&apos;t the rating — it&apos;s whether the hotel is an independent or a chain. Hotels with chain names (Marriott, Hilton, Ibis and the like) average about <strong>1.4/10</strong>. Independents — the maisons, ryokans, inns and guesthouses — average more than double that.</p>

@@ -46,13 +46,13 @@ export default function HotelGuidePage({ params }: { params: { locale: string } 
     <article className="mx-auto max-w-3xl px-4 py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(articleLd)} />
       <p className="text-sm font-medium tracking-wide uppercase" style={{ color: "var(--ember)", letterSpacing: "0.08em" }}>For hoteliers</p>
-      <h1 className="mt-2 font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">Make your hotel look cosy online</h1>
-      <p className="mt-4 text-xl leading-relaxed" style={{ color: "var(--muted)" }}>
-        We&apos;ve analysed photos from <strong style={{ color: "var(--foreground)" }}>17,000+ hotels</strong> to score them for cosiness. Along the way we learned exactly which images make a place look warm and inviting — and which quietly make it look cold. Here&apos;s the short version.
+      <h1 className="mt-2 font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">Your hotel&apos;s first photo is quietly costing you bookings</h1>
+      <p className="mt-5 text-xl leading-relaxed" style={{ color: "var(--muted)" }}>
+        A traveller — or an AI travel assistant — decides whether your hotel looks cosy in about half a second, from a single photo. We analysed images from <strong style={{ color: "var(--foreground)" }}>17,000+ hotels</strong>, and the listings that come across cold almost always make the same handful of mistakes. They&apos;re free to fix. Most hotels never do.
       </p>
 
       <div className="longform mt-10">
-        <p>When a traveller (or an AI travel assistant) judges your hotel in a split second, they judge the first photo. Most hotels lose that moment with the wrong image — not a bad hotel, just a bad first impression. The fix is free.</p>
+        <p>Here&apos;s exactly which photos work, which quietly sabotage you, and the one rule that decides it — straight from the data.</p>
       </div>
 
       <h2 className="mt-10 font-display text-2xl font-semibold">Stop leading with these</h2>
