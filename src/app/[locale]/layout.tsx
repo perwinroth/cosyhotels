@@ -54,7 +54,13 @@ export default async function LocaleLayout({
               internal-link/SEO value while decluttering the top. Same on desktop and mobile. */}
           <div className="mx-auto max-w-6xl px-4 h-[68px] flex items-center justify-between gap-3">
             <Link href={`/`} className="flex items-center gap-2.5 no-underline shrink-0">
-              <span aria-hidden className="flex items-center justify-center rounded-[11px] font-display font-bold" style={{ width: 36, height: 36, background: 'linear-gradient(135deg, var(--ember), var(--gold))', color: '#16201C', fontSize: 17 }}>c</span>
+              <span aria-hidden className="flex items-center justify-center rounded-[11px]" style={{ width: 36, height: 36, background: 'linear-gradient(135deg, var(--ember), var(--gold))' }}>
+                {/* Brand mark: a crescent 'c' with a flame tip (cosy = c + warmth). */}
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M16.3 5.86 A7.5 7.5 0 1 0 16.3 18.14 L14.29 15.28 A4 4 0 1 1 14.29 8.72 Z" fill="#16201C" />
+                  <path d="M16.3 5.86 C14 3, 13.2 1.6, 13.6 1 C14.7 2.6, 16 4, 16.3 5.86 Z" fill="#16201C" />
+                </svg>
+              </span>
               <span className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>Got Cosy?</span>
             </Link>
             <HeaderSearch locale={locale} />

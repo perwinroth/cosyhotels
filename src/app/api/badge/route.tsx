@@ -21,7 +21,7 @@ export function GET(req: Request) {
   <rect x="0.5" y="0.5" width="239" height="91" rx="13.5" fill="none" stroke="#2A332D"/>
   <circle cx="50" cy="46" r="30" fill="#E08A4B"/>
   <text x="50" y="50" text-anchor="middle" font-family="Georgia, serif" font-size="26" font-weight="700" fill="#16201C">${score}</text>
-  <text x="50" y="66" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="7.5" font-weight="700" letter-spacing="1.2" fill="#3a2a16">COSY SCORE</text>
+  <text x="50" y="66" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="7" font-weight="700" letter-spacing="0.6" textLength="50" lengthAdjust="spacingAndGlyphs" fill="#3a2a16">COSY SCORE</text>
   <text x="92" y="34" font-family="Georgia, serif" font-size="15" font-weight="700" fill="#F3EEE6">GOT COSY<tspan fill="#E08A4B">?</tspan></text>
   <text x="92" y="52" font-family="Inter, system-ui, sans-serif" font-size="10.5" fill="#9DA89F"${fit}>${name || "AI-rated for cosiness"}</text>
   <text x="92" y="70" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#D8B25A">gotcosy.com</text>
