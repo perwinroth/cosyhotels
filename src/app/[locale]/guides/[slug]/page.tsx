@@ -251,10 +251,15 @@ export default async function GuidePage({ params }: Props) {
     const exact = variants.includes(city) ? 2 : 0;
     const mention = variants.some((v) => addr.includes(v)) ? 1 : 0;
     const tie = typeof h.reviews_count === 'number' ? Math.min(1, Number(h.reviews_count) / 1000) : 0;
-    return { h, s, exact, mention, tie, brand: brandOf(h.name) };
+    // Cosiness LEADS the ranking — a genuinely cosy hotel must never sit below a duller one just
+    // because the latter happens to carry an exact city field. (Bug: Istanbul crowned a 5.0 over a
+    // 7.3 because the 7.3 was geo-matched with no city field.) A small boost still favours a
+    // confirmed-city match, so a hotel in a neighbouring town can't hijack the top on score alone.
+    const rank = s + (exact === 2 ? 0.75 : 0) + (mention ? 0.25 : 0);
+    return { h, s, exact, mention, tie, rank, brand: brandOf(h.name) };
   });
   const sorted = scored
-    .sort((a, b) => (b.exact - a.exact) || (b.mention - a.mention) || (b.s - a.s) || (b.tie - a.tie));
+    .sort((a, b) => (b.rank - a.rank) || (b.s - a.s) || (b.tie - a.tie));
   // PUBLIC GATE (two-score model): the secret 0–100 Claude score lives in cosy_scores.score_100
   // (never surfaced). Anything below 50/100 (= 5.0/10) is "hidden" — kept in the DB for later
   // re-review/upgrade, but never shown. Survivors surface their public /10 score (5.0–10.0),
