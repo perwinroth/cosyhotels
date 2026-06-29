@@ -24,6 +24,24 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-5xl px-4 py-10">Server not configured.</div>;
 
+  // Headline data-study stats — the citable facts for PR + GEO ("according to Got Cosy…").
+  const cnt = async (gte?: number) => {
+    let q = db.from("cosy_scores").select("*", { count: "exact", head: true });
+    if (gte != null) q = q.gte("score", gte);
+    const { count } = await q;
+    return count || 0;
+  };
+  const [totalScored, clearBar, inIndex, sealCount] = await Promise.all([cnt(), cnt(5), cnt(8), cnt(7.8)]);
+  const pctClear = totalScored ? Math.round((clearBar / totalScored) * 100) : 0;
+  // Cosiest cities = most hotels scoring ≥7.8 (the "Seal of Approval" tier).
+  const { data: cityRows } = await db.from("cosy_scores").select("hotel:hotel_id!inner(city)").gte("score", 7.8).limit(2000);
+  const cityCount: Record<string, number> = {};
+  for (const r of (cityRows || []) as unknown as Array<{ hotel: { city: string | null } | null }>) {
+    const ci = displayCity(r.hotel?.city || "");
+    if (ci) cityCount[ci] = (cityCount[ci] || 0) + 1;
+  }
+  const cosiestCities = Object.entries(cityCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
   const { data } = await db
     .from("cosy_scores")
     .select("hotel_id, score, score_final, hotel:hotel_id!inner(slug, name, name_en, city, country)")
@@ -66,14 +84,57 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
       },
     })),
   };
+  const datasetLd = {
+    "@context": "https://schema.org", "@type": "Dataset",
+    name: "The Cosy Index — AI cosiness scores for 17,000+ hotels",
+    description: `An AI-generated dataset scoring ${totalScored.toLocaleString()} hotels worldwide for cosiness — warmth, intimacy and character — on a 0–10 scale. ${clearBar.toLocaleString()} (${pctClear}%) clear the cosy bar (5+); ${inIndex} reach the Index (8.0+).`,
+    creator: { "@type": "Organization", name: "Got Cosy", url: siteUrl },
+    url: `${siteUrl}/${params.locale}/cosy-index`,
+    keywords: ["cosy hotels", "boutique hotels", "hotel rankings", "cosiness score", "romantic hotels", "cosiest cities"],
+    variableMeasured: "Cosy Score (0–10)",
+    isAccessibleForFree: true,
+    license: `${siteUrl}`,
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetLd) }} />
       <h1 className="text-3xl font-semibold tracking-tight">The Cosy Index</h1>
-      <p className="mt-3 text-lg" style={{ color: "var(--muted)" }}>The world&apos;s {list.length} cosiest hotels, AI-ranked for warmth, character and intimacy — not star ratings. Each is scored 0–10 from real data on property type and scale, amenities, the language guests use in reviews, and setting.</p>
+      <p className="mt-3 text-lg" style={{ color: "var(--muted)" }}>We&apos;ve AI-scored <strong style={{ color: "var(--foreground)" }}>{totalScored.toLocaleString()}</strong> hotels for cosiness — warmth, character and intimacy, not stars. {clearBar.toLocaleString()} ({pctClear}%) clear the cosy bar; only <strong style={{ color: "var(--foreground)" }}>{inIndex}</strong> make the Index.</p>
 
-      <ol className="mt-8 space-y-3">
+      {/* Headline stats — answer-first, citable facts for press + AI answer engines. */}
+      <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { n: totalScored.toLocaleString(), l: "hotels scored for cosiness" },
+          { n: `${pctClear}%`, l: `clear the cosy bar (${clearBar.toLocaleString()})` },
+          { n: sealCount.toLocaleString(), l: "earned a Seal of Approval (7.8+)" },
+          { n: inIndex.toLocaleString(), l: "made the Index (8.0+)" },
+        ].map((s) => (
+          <div key={s.l} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
+            <div className="font-display text-2xl font-bold" style={{ color: "var(--ember)" }}>{s.n}</div>
+            <div className="text-xs mt-1 leading-snug" style={{ color: "var(--muted)" }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {cosiestCities.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-xl font-semibold">The world&apos;s cosiest cities</h2>
+          <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>Ranked by how many hotels earn a Seal of Approval (7.8+ cosy score).</p>
+          <ol className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {cosiestCities.map(([city, n], i) => (
+              <li key={city} className="rounded-lg border px-3 py-2 text-sm flex items-center justify-between gap-2" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
+                <a href={`/${params.locale}/guides/${cityToSlug(city)}`} className="hover:underline truncate"><span style={{ color: "var(--muted)" }}>{i + 1}.</span> {city}</a>
+                <span className="tabular-nums" style={{ color: "var(--ember)", fontWeight: 600 }}>{n}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      <h2 className="mt-12 text-xl font-semibold">The {list.length} cosiest hotels in the world</h2>
+      <ol className="mt-4 space-y-3">
         {list.map((p, i) => (
           <li key={p.id} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
             <div className="flex items-center gap-4">
