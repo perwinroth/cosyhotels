@@ -11,6 +11,7 @@ import ShareButton from "@/components/ShareButton";
 import BadgeEmbed from "@/components/BadgeEmbed";
 import { cosyScore } from "@/lib/scoring/cosy";
 import { cosyBadgeColor } from "@/lib/cosyColor";
+import hotelFaqData from "@/data/hotelFaqs.json";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { unstable_cache } from "next/cache";
 
@@ -269,7 +270,11 @@ export default async function HotelDetail({ params, searchParams }: Props) {
     address: { "@type": "PostalAddress", addressLocality: String(hotel.city || ""), addressCountry: String(hotel.country || "") },
     url: `${site.url}/${params.locale}/hotels/${hotel.slug}`,
   };
-  const faqs = hotelFaqs({ name: String(hotel.name), city: String(hotel.city || ''), country: String(hotel.country || ''), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null });
+  // Bespoke, review-grounded FAQ when we have one for this hotel; else the data-tailored template.
+  const bespoke = (hotelFaqData as Record<string, { q: string; a: string }[]>)[String(hotel.id)];
+  const faqs = bespoke?.length
+    ? bespoke
+    : hotelFaqs({ name: String(hotel.name), city: String(hotel.city || ''), country: String(hotel.country || ''), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null });
   const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
