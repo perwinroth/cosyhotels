@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import ShareButton from "@/components/ShareButton";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
@@ -166,7 +167,10 @@ export default async function Home({ params }: { params: { locale: string } }) {
                         <div className="text-sm" style={{ color: "var(--muted)" }}>{placeLine(h.city, h.country)}</div>
                         {h.description && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>}
                         {/* Button below the text so it never overlaps a long hotel name. */}
-                        <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex mt-3 rounded-xl px-5 py-2.5 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
+                        <div className="mt-3 flex items-center gap-2">
+                          <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex rounded-xl px-5 py-2.5 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
+                          <ShareButton variant="icon" title={`${h.name_en || h.name} — cosy hotel in ${h.city}`} url={`/${locale}/hotels/${h.slug}`} />
+                        </div>
                       </div>
                       {h.image && (
                         <a href={`/${locale}/hotels/${h.slug}`} className="flex-none hidden sm:block no-underline">
