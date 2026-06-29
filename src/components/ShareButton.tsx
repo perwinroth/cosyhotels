@@ -12,6 +12,7 @@ type Variant = "pill" | "icon";
 export default function ShareButton({ title, text, url: urlProp, variant = "pill" }: { title?: string; text?: string; url?: string; variant?: Variant }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [igCopied, setIgCopied] = useState(false);
   const [url, setUrl] = useState("");
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -63,11 +64,17 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
 
   const e = encodeURIComponent;
   const emailBody = `Thought you'd like this cosy hotel:\n\n${t}\n${url}\n\n— shared from Got Cosy`;
+  // Messenger: Facebook's send dialog needs an app id (set NEXT_PUBLIC_FB_APP_ID to enable desktop
+  // prefill). Without one, fall back to the Messenger app deep link, which works on mobile.
+  const fbAppId = process.env.NEXT_PUBLIC_FB_APP_ID;
+  const messengerHref = fbAppId
+    ? `https://www.facebook.com/dialog/send?app_id=${fbAppId}&link=${e(url)}&redirect_uri=${e(url)}`
+    : `fb-messenger://share/?link=${e(url)}`;
   const links = [
     { label: "Email", href: `mailto:?subject=${e(t)}&body=${e(emailBody)}`, icon: ICON.mail },
     { label: "Pin it", href: `https://pinterest.com/pin/create/button/?url=${e(url)}&description=${e(t)}`, icon: ICON.pin },
     { label: "WhatsApp", href: `https://wa.me/?text=${e(`${t} ${url}`)}`, icon: ICON.whatsapp },
-    { label: "Share on X", href: `https://twitter.com/intent/tweet?text=${e(t)}&url=${e(url)}`, icon: ICON.x },
+    { label: "Messenger", href: messengerHref, icon: ICON.messenger },
   ];
   const row: React.CSSProperties = { display: "flex", alignItems: "center", gap: 11, padding: "9px 12px", fontSize: 13.5, color: "var(--foreground)", textDecoration: "none", whiteSpace: "nowrap", background: "transparent", border: "none", textAlign: "left", width: "100%", cursor: "pointer", borderRadius: 9 };
   const ico: React.CSSProperties = { width: 17, height: 17, flex: "none", color: "var(--muted)" };
@@ -95,10 +102,16 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
           </button>
           <div style={{ height: 1, background: "var(--line)", margin: "5px 6px" }} />
           {links.map((l) => (
-            <a key={l.label} className="hov" style={row} href={l.href} target={l.label === "Email" ? undefined : "_blank"} rel="noreferrer noopener" onClick={() => setOpen(false)}>
+            <a key={l.label} className="hov" style={row} href={l.href} target={l.label === "Email" || l.label === "Messenger" ? undefined : "_blank"} rel="noreferrer noopener" onClick={() => setOpen(false)}>
               <span style={ico} aria-hidden>{l.icon}</span>{l.label}
             </a>
           ))}
+          {/* Instagram has no web share — copy the link so it can be pasted into a story/DM. */}
+          <button className="hov" style={row} onClick={() => { try { navigator.clipboard.writeText(url); } catch { /* ignore */ } setIgCopied(true); setTimeout(() => setIgCopied(false), 2000); }}>
+            <span style={ico} aria-hidden>{ICON.instagram}</span>
+            <span style={{ flex: 1 }}>{igCopied ? "Copied — paste in Instagram" : "Instagram"}</span>
+            {igCopied && <span style={{ color: "var(--sage)", fontSize: 12 }}>✓</span>}
+          </button>
         </div>,
         document.body
       )}
@@ -112,5 +125,6 @@ const ICON = {
   mail: (<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>),
   pin: (<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-2.6 13.5L8 22l4-3 4 3-1.4-6.5A7 7 0 0 0 12 2Zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z" /></svg>),
   whatsapp: (<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.4A10 10 0 1 0 12 2Zm0 2a8 8 0 0 1 6.8 12.3l-.3.5.8 2.9-3-.8-.4.2A8 8 0 1 1 12 4Zm4.3 9.9c-.2.6-1.2 1.2-1.7 1.2-.4 0-1 .1-3.2-.9-2.7-1.2-4.4-4-4.5-4.2-.1-.2-1-1.4-1-2.6s.6-1.8.9-2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2.1.4 0 .6l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2 1.2.9 1.6.9 1.9 1 .2 0 .4 0 .5-.2l.6-.8c.2-.3.4-.2.6-.1l1.8.9c.3.1.4.2.5.3.1.3.1.7-.1 1.2Z" /></svg>),
-  x: (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h3l-6.6 7.6L21.7 21h-5.9l-4.6-6-5.3 6H2.9l7-8L2.6 3h6l4.2 5.5L17.5 3Zm-1 16h1.7L7.6 4.8H5.8L16.5 19Z" /></svg>),
+  messenger: (<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.3 2 2 6.2 2 11.3c0 2.9 1.4 5.5 3.6 7.2V22l3.3-1.8c.9.25 1.9.4 3.1.4 5.7 0 10-4.2 10-9.3S17.7 2 12 2Zm1 12.5-2.6-2.7-5 2.7 5.5-5.8 2.6 2.7 4.9-2.7-5.4 5.8Z" /></svg>),
+  instagram: (<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none" /></svg>),
 };
