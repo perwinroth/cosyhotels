@@ -1,10 +1,16 @@
 "use client";
 // "Add your cosy badge" embed block shown on a hotel page — the copy-paste backlink snippet.
 // When a hotel pastes it on their site, it links back to their Got Cosy ranking (utm=badge).
-import { useState } from "react";
+// Hidden for normal visitors (not useful to them); only shown when the URL carries ?badge —
+// the appendix we add to outreach links so the hotel sees their copy-paste snippet.
+import { useState, useEffect } from "react";
 
 export default function BadgeEmbed({ slug, score, name }: { slug: string; score: number; name: string }) {
   const [copied, setCopied] = useState(false);
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    try { setShow(new URLSearchParams(window.location.search).has("badge")); } catch { /* ignore */ }
+  }, []);
   const base = "https://gotcosy.com";
   const badgeSrc = `${base}/api/badge?score=${score.toFixed(1)}&name=${encodeURIComponent(name)}`;
   const link = `${base}/en/hotels/${slug}?utm_source=badge&utm_medium=referral`;
@@ -12,6 +18,7 @@ export default function BadgeEmbed({ slug, score, name }: { slug: string; score:
   const copy = async () => {
     try { await navigator.clipboard.writeText(snippet); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
   };
+  if (!show) return null;
   return (
     <section style={{ marginTop: 28, padding: 18, border: "1px solid var(--line)", borderRadius: 16, background: "var(--card)" }}>
       <div style={{ fontFamily: "var(--font-serif, Georgia), serif", fontSize: 17, fontWeight: 600 }}>Featured here? Add your cosy badge</div>
