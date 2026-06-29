@@ -56,29 +56,18 @@ const anthropic = new Anthropic({ apiKey });
 
 // ---- classifier: byte-for-byte the policy of src/lib/imageVision.ts -------------------------------
 const GOOD = new Set(["room", "interior", "exterior", "amenity", "view"]);
-const SYSTEM = `You are picking photos for a hotel's social media pin. The goal: an inviting, representative photo that makes a traveller want to BOOK. You are shown ONE image — classify it and decide if it's pin-worthy.
+const SYSTEM = `You classify ONE hotel photo for "Got Cosy", a site that ranks hotels by cosiness. The photo is shown and SHARED as the face of the hotel. Keep genuine, attractive photos of the hotel; reject only images that are clearly NOT cosy or not appealing as a hotel's face.
 
-PIN-WORTHY categories (a wide, attractive, representative shot of the hotel):
-- room: a guest room or suite, shown as a room (bed + space visible), not a tight detail
-- interior: a lobby, lounge, bar, restaurant interior, or spa — the SPACE, inviting
-- exterior: the hotel's own building/facade/entrance, garden, terrace, or pool
-- amenity: a clear, attractive hotel facility (pool, restaurant, bar, courtyard)
-- view: a beautiful view from the hotel
+pin_worthy = true: a normal, pleasant, real photo of the hotel — a guest room, a warm or characterful interior (lounge, bar, restaurant, library, spa), the building/facade/garden/terrace/courtyard/pool, an inviting amenity, or a nice view. It need NOT be maximally cosy — a clean, pleasant room or an attractive exterior counts.
 
-REJECT categories (NOT pin-worthy — be strict):
-- detail: a tight close-up of one object — a single pillow, a towel, a tap/faucet, a doorknob, a chair, a staircase alone, bedding folds. Lovely but not a pin.
-- landmark: a public church/cathedral, monument, statue, generic street scene, or city skyline that is NOT the hotel building
-- logo: a logo, wordmark, or brand graphic
-- badge: a rating/review badge ("9.2 Excellent"), award seal, certificate
-- map: a map, floor plan, or directions graphic
-- food: a generic food/drink close-up
-- person: a portrait/selfie/headshot
-- placeholder: a stock "image coming soon", grey box, watermark-only, or obvious filler
-- text: an image dominated by text/an ad/a banner
-- unrelated: anything else not the hotel (a casino table, a random object)
-- unloadable: blank, broken, or uninterpretable
+pin_worthy = false ONLY for clearly cold, corporate, utilitarian or non-hotel images:
+- conference & meeting rooms, banquet / event / function / wedding halls, big empty corporate lobbies, sterile convention-style spaces
+- a bathroom on its own, corridors, lifts, stairwells, gyms, car parks, reception desks, a totally bare/utilitarian room
+- detail crops (a single pillow/tap), public landmarks/streets that are NOT the hotel, logos, review badges, maps/floorplans, food close-ups, people/portraits, placeholders, text/ads, screenshots, marketing collages, anything not the hotel
 
-Decision rule: pin_worthy = true ONLY for room/interior/exterior/amenity/view that is a WIDE, inviting, representative shot. A detail crop (pillow, stairs), a cathedral, a logo, a placeholder → pin_worthy=false. When unsure, choose false — a weak photo on social is worse than a smaller carousel.`;
+Default to KEEP for a normal, pleasant photo of the hotel. Use the closest label even when rejecting (a banquet hall = "interior" with pin_worthy=false).
+
+Reply ONLY with JSON: {"label": "<single best category>", "pin_worthy": <true unless it matches a reject case above>}.`;
 const SCHEMA = { type: "object", additionalProperties: false, properties: {
   label: { type: "string", enum: ["room", "interior", "exterior", "amenity", "view", "detail", "landmark", "logo", "badge", "map", "food", "person", "placeholder", "text", "unrelated", "unloadable"] },
   pin_worthy: { type: "boolean" },
