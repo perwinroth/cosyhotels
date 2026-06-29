@@ -23,7 +23,7 @@ export function isLatin(s: string): boolean {
 
 export function displayCountry(c?: string | null): string {
   if (!c) return "";
-  const t = c.trim();
+  const t = c.trim().replace(/^[\d\s.,\-–]+/, "").trim(); // strip leaked leading postcode: "3915 Hungary" → "Hungary"
   const mapped = COUNTRY_EN[t] || COUNTRY_EN[t.toLowerCase()];
   if (mapped) return mapped;
   return isLatin(t) ? t : ""; // unknown non-Latin → drop rather than show foreign script
@@ -33,8 +33,14 @@ export function displayCountry(c?: string | null): string {
 // postal code or non-Latin.
 export function displayCity(city?: string | null, fallback = ""): string {
   if (!city) return fallback;
-  const t = city.replace(/^[\d\s.,\-–]+/, "").trim(); // strip leading postal code / numbers
+  let t = city.replace(/^[\d\s.,\-–]+/, "").trim();     // strip leading postal code / numbers
+  // Strip trailing postcode tokens: "London SW1X 8HQ" → "London", "Lào Cai 330000" → "Lào Cai".
+  // Cities don't carry digits, so any digit-bearing trailing token is postal noise.
+  const toks = t.split(/\s+/).filter(Boolean);
+  while (toks.length > 1 && /\d/.test(toks[toks.length - 1])) toks.pop();
+  t = toks.join(" ").replace(/[\s,]+$/, "").trim();
   if (!t || /\d{3,}/.test(t)) return fallback;          // still postal-like
+  if (/(^|\s)(u|út|str|stra(ss|ß)e|rd|ave|st|blvd|via|rue)\.?$/i.test(t)) return fallback; // a street, not a city → drop
   if (!isLatin(t)) return fallback;                     // non-Latin city → use fallback
   return t;
 }
