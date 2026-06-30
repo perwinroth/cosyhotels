@@ -17,5 +17,6 @@ export const metadata: Metadata = {
 
 export default function RootHome() {
   // Render the localized homepage (hero, how-it-works, top hotels, browse-by-city, stats) for en.
-  return <Home params={{ locale: 'en' }} />;
+  // Wrap in <main> for semantic HTML — the root "/" route doesn't get the [locale] layout's <main>.
+  return <main><Home params={{ locale: 'en' }} /></main>;
 }
