@@ -28,9 +28,9 @@ const DONT = [
 
 const DO = [
   { src: "do-room.png", label: "A warm, characterful room", why: "A wrought-iron bed, warm wood, patterned tiles, soft lamplight. The exact thing people are booking." },
-  { src: "do-interior2.jpeg", label: "A snug interior with character", why: "A reading nook, a lit lamp, a wall of books. One glance and you can feel what an evening here is like." },
-  { src: "do-interior.jpg", label: "A warm, intimate lobby", why: "Golden light, a velvet sofa, an antique mirror. Even a reception reads as cosy when it glows, not gleams." },
-  { src: "do-exterior.jpg", label: "Your building, full of character", why: "A timbered facade, lit windows, a glow on a winter night — the kind of character a guest travels for." },
+  { src: "do-lounge.jpg", label: "A lounge with real character", why: "Exposed beams, velvet armchairs, a chandelier, leaded windows. One look and you'd happily lose an evening here." },
+  { src: "do-interior2.jpeg", label: "A snug corner to yourself", why: "A reading nook, a lit lamp, a wall of books. You can feel exactly what a quiet hour in it is like." },
+  { src: "do-garden.jpg", label: "An intimate outdoor nook", why: "Fairy lights, a hanging chair, soft drapes after dark — cosiness carries outside too, not just indoors." },
 ];
 
 const BASE = "/guide-examples/";
@@ -80,7 +80,7 @@ export default function HotelGuidePage({ params }: { params: { locale: string } 
       <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Both of these come from real hotel listings. Glance once — which one would you book?</p>
       <div className="not-prose mt-4 grid grid-cols-2 gap-3">
         <ExampleCard src="dont-landmark.jpeg" label="What many hotels lead with" why="A beautiful city — but you can't book a bridge. A guest learns nothing about the room." kind="dont" />
-        <ExampleCard src="do-interior2.jpeg" label="What they could lead with" why="The actual lounge. Warmth, books, a lamp — you already know how a night here feels." kind="do" />
+        <ExampleCard src="do-manor.jpg" label="What they could lead with" why="The actual room — a fireplace, a chandelier, lamplight on panelled walls. You already know how a night here feels." kind="do" />
       </div>
       <p className="not-prose my-8 font-display text-2xl sm:text-3xl font-medium leading-snug" style={{ color: "var(--ember)" }}>Same half-second. One is a hotel you can picture sleeping in. The other is a postcard.</p>
 
