@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Home from "./[locale]/page";
+import SiteHeader from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
   alternates: {
@@ -16,7 +17,13 @@ export const metadata: Metadata = {
 };
 
 export default function RootHome() {
-  // Render the localized homepage (hero, how-it-works, top hotels, browse-by-city, stats) for en.
-  // Wrap in <main> for semantic HTML — the root "/" route doesn't get the [locale] layout's <main>.
-  return <main><Home params={{ locale: 'en' }} /></main>;
+  // The "/" (and "/en") homepage is served by THIS root page, which does NOT get the [locale]
+  // layout — so render the shared header here and wrap content in <main> for full semantic HTML
+  // (header + main + footer landmarks), matching every other page.
+  return (
+    <>
+      <SiteHeader locale="en" />
+      <main><Home params={{ locale: 'en' }} /></main>
+    </>
+  );
 }
