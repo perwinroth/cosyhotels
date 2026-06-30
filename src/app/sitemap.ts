@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { guides } from "@/data/guides";
 import { cityGuides } from "@/data/cityGuides";
+import { BLOG_POSTS } from "@/data/blogPosts";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 
@@ -24,6 +25,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     routes.push({ url: `${base}/${locale}/cosy-index`, lastModified: now, changeFrequency: "weekly", priority: 0.7 });
     routes.push({ url: `${base}/${locale}/what-makes-a-hotel-cosy`, lastModified: now, changeFrequency: "monthly", priority: 0.7 });
     routes.push({ url: `${base}/${locale}/make-your-hotel-look-cosy`, lastModified: now, changeFrequency: "monthly", priority: 0.6 });
+    routes.push({ url: `${base}/${locale}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 });
+    for (const p of BLOG_POSTS) {
+      routes.push({ url: `${base}/${locale}/blog/${p.slug}`, lastModified: now, changeFrequency: "monthly", priority: 0.6 });
+    }
   }
 
   // Add dynamic hotel detail URLs from Supabase, paginated to avoid timeouts
