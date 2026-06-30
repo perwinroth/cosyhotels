@@ -264,18 +264,18 @@ export const BLOG_POSTS: BlogPost[] = [
         ],
       },
       {
-        h2: "The chains that buck the trend",
+        h2: "The chains that come closest",
         paras: [
-          "The exceptions are almost all the newer, design-led or soft brands — the ones built to feel independent. Names like The Hoxton, Mama Shelter, 25hours, Hotel Indigo, citizenM and the Design Hotels collection lean on local character, warm interiors and a proper bar or lounge, and it shows in their scores.",
-          "The pattern is clear: the cosiest chains are the ones trying hardest not to feel like chains. A heritage grande-dame can also score well — but the cold spots are the mid-market business brands built for efficiency.",
+          "In our own data, the rare chain-branded hotels that clear the cosy bar are mostly heritage properties and soft-brand collections — not mid-market business hotels. The badge matters less than the building and the brief.",
+          "The pattern fits what you'd expect: the chains that score best are the ones trying hardest not to feel like chains. The soft and design-led brands — built around local character, warm interiors and a real bar rather than a brand-standard lobby — come closest. The reliably cold spots are the efficiency-built business brands.",
         ],
-        tip: "A chain's individual properties vary wildly. The same brand can have a cosy converted-townhouse location and a cold airport box. Always check the specific hotel, not just the badge.",
+        tip: "A single brand's properties vary wildly — the same name can sit over a cosy converted townhouse and a cold airport box. Always judge the specific hotel, not the badge.",
       },
     ],
     pick: {
-      chains: true, minScore: 6, limit: 12,
-      heading: "The cosiest chain-branded hotels we've scored",
-      blurb: "These are the chain or soft-brand hotels that clear our cosy bar — the rare ones with genuine warmth. Each shows its live Cosy Score, so you can see exactly how it compares.",
+      chains: true, minScore: 5, limit: 12,
+      heading: "The chain-branded hotels that actually cleared our cosy bar",
+      blurb: "This is not a long list, and that's the point. Of the few hundred chain-branded hotels in our dataset, only these clear the cosy bar — the genuine exceptions, each with its live Cosy Score. Compare them to almost any independent in the same city and you'll see the gap.",
     },
     outro: [
       {
@@ -290,7 +290,7 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
     faqs: [
       { q: "Are chain hotels less cosy than independents?", a: "Yes, clearly. In our analysis of 17,000+ hotels, chain-branded hotels average about 3.1 out of 10 for cosiness versus 4.6 for independents — a gap of more than a full point. Intimacy and character are exactly what large-scale operations standardise away." },
-      { q: "Which hotel chains are the cosiest?", a: "The design-led and soft brands built to feel independent — The Hoxton, Mama Shelter, 25hours, Hotel Indigo, citizenM and the Design Hotels collection tend to score best. Mid-market business brands score worst." },
+      { q: "Which hotel chains are the cosiest?", a: "We catalogue relatively few chains, and only a handful clear our cosy bar at all, so we won't pretend to a definitive brand ranking. As a rule the design-led and soft brands — the ones built to feel local, often in converted historic buildings — come closest, while mid-market business brands score worst. Always check the specific property rather than trusting the badge." },
       { q: "Should I book a chain or an independent for a cosy stay?", a: "For cosiness, an independent at the same price is almost always the better bet. If you do book a chain, choose a design-led brand in a converted historic building, and check that specific property rather than trusting the badge." },
     ],
     related: [

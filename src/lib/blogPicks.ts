@@ -13,7 +13,9 @@ export type BlogPick = {
 };
 
 // The chains that occasionally clear our cosy bar — used by the "are chains ever cosy?" post.
-const CHAIN_RE = /\b(marriott|hilton|hyatt|accor|radisson|kempinski|four seasons|ritz[- ]?carlton|intercontinental|sheraton|ibis|novotel|mercure|holiday inn|best western|wyndham|premier inn|travelodge|hampton|courtyard|doubletree|crowne plaza|ramada|sofitel|pullman|moxy|mama shelter|hoxton|citizenm|25hours|indigo|autograph|curio|tribute|design hotels)\b/i;
+// Brand-qualified to avoid false positives: a bare "courtyard" or "indigo" in an independent's
+// name (e.g. "Craigmhor Lodge & Courtyard") must NOT read as the Marriott/IHG brand.
+const CHAIN_RE = /\b(marriott|hilton|hyatt|accor|radisson|kempinski|four seasons|ritz[- ]?carlton|intercontinental|sheraton|ibis|novotel|mercure|holiday inn|best western|wyndham|premier inn|travelodge|hampton (inn|by hilton)|doubletree|crowne plaza|ramada|sofitel|pullman|moxy|mama shelter|the hoxton|citizenm|25hours|hotel indigo|courtyard by marriott|tribute portfolio|curio collection|autograph collection)\b/i;
 
 type SelectOpts = { re?: RegExp; chains?: boolean; minScore?: number; limit?: number; campaign?: string };
 
