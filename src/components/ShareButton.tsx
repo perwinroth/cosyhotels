@@ -2,9 +2,9 @@
 // Share control. Two shapes via `variant`:
 //   "pill" (default) — a warm ember "Share stay" pill for hotel/detail headers.
 //   "icon"           — a compact 34px round icon for list rows (guides, facets, homepage cards).
-// Mobile → native share sheet (Web Share API). Desktop → a popover: Copy link, Email, Pinterest,
-// WhatsApp, X. `url` lets a list row share a specific HOTEL (absolute or "/"-relative); defaults to
-// the current page.
+// Mobile → native share sheet (Web Share API) ONLY. Desktop → a popover: Copy link, Email, Pin it,
+// WhatsApp, Facebook, Messenger, Instagram. `url` lets a list row share a specific HOTEL (absolute
+// or "/"-relative); defaults to the current page.
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -54,7 +54,10 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
     // Pinterest/WhatsApp/X are visible (that's the point of the control).
     const coarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
     if (coarse && typeof navigator !== "undefined" && typeof navigator.share === "function") {
-      try { await navigator.share({ title: t, text: text || t, url: u }); return; } catch { /* cancelled — fall through to popover */ }
+      // Mobile uses the native share sheet ONLY. Whether the user shares or cancels, we're done —
+      // never fall through to the custom dropdown (that double-menu was the bug).
+      try { await navigator.share({ title: t, text: text || t, url: u }); } catch { /* user cancelled — do nothing */ }
+      return;
     }
     toggleMenu();
   };
