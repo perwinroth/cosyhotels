@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getBlogPost, BLOG_POSTS, type BlogSection } from "@/data/blogPosts";
-import { getServerSupabase } from "@/lib/supabase/server";
-import { selectBlogHotels, type BlogPick } from "@/lib/blogPicks";
+import blogPicksData from "@/data/blogPicks.json";
+
+// Picks are precomputed (scripts/generate-blog-picks.mts): each hotel assigned to ONE post, with a
+// bespoke grounded "why it fits this topic" line. Regenerate the JSON to refresh.
+type BlogPick = { slug: string; name: string; city: string; country: string; score: number; why: string; img: string | null; cta: string };
+const BLOG_PICKS = blogPicksData as Record<string, BlogPick[]>;
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
 import { site } from "@/config/site";
@@ -57,7 +61,12 @@ function PickCard({ h, idx, locale }: { h: BlogPick; idx: number; locale: string
             <h3 className="text-lg font-semibold leading-tight"><a href={detailsHref} className="hover:underline">{h.name}</a></h3>
           </div>
           <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>
-          {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.snippet}</p>}
+          {h.why && (
+            <div className="mt-2">
+              <span className="text-[11px] font-semibold uppercase" style={{ color: "var(--ember)", letterSpacing: "0.07em" }}>Why it&apos;s here</span>
+              <p className="mt-0.5 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.why}</p>
+            </div>
+          )}
           <div className="mt-3 flex items-center gap-2">
             <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a>
             <ShareButton variant="icon" title={`${h.name} — cosy hotel in ${h.city}`} url={detailsHref} />
@@ -81,15 +90,7 @@ export default async function BlogPostPage({ params }: Props) {
   const L = params.locale;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || site.url;
 
-  let picks: BlogPick[] = [];
-  if (post.pick) {
-    const db = getServerSupabase();
-    if (db) {
-      try {
-        picks = await selectBlogHotels(db, { ...post.pick, campaign: `blog-${post.slug}` });
-      } catch { picks = []; }
-    }
-  }
+  const picks: BlogPick[] = post.pick ? (BLOG_PICKS[post.slug] || []) : [];
 
   const articleLd = {
     "@context": "https://schema.org", "@type": "Article",
@@ -112,7 +113,7 @@ export default async function BlogPostPage({ params }: Props) {
         "@type": "Hotel", name: h.name, url: `${siteUrl}/${L}/hotels/${h.slug}`,
         ...(h.img && /^https?:\/\//.test(h.img) ? { image: h.img } : {}),
         ...(h.city || h.country ? { address: { "@type": "PostalAddress", ...(h.city ? { addressLocality: h.city } : {}), ...(h.country ? { addressCountry: h.country } : {}) } } : {}),
-        review: { "@type": "Review", author: { "@type": "Organization", name: "Got Cosy" }, reviewRating: { "@type": "Rating", ratingValue: h.score, bestRating: 10, worstRating: 0, name: "Cosy score" }, ...(h.snippet ? { reviewBody: h.snippet } : {}) },
+        review: { "@type": "Review", author: { "@type": "Organization", name: "Got Cosy" }, reviewRating: { "@type": "Rating", ratingValue: h.score, bestRating: 10, worstRating: 0, name: "Cosy score" }, ...(h.why ? { reviewBody: h.why } : {}) },
       },
     })),
   } : null;

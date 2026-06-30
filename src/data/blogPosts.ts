@@ -10,6 +10,8 @@ export type BlogRelated = { label: string; to: string }; // `to` is appended aft
 export type BlogPick = {
   re?: RegExp; chains?: boolean; minScore?: number; limit?: number;
   heading: string; blurb: string;
+  theme: string;     // what this topic needs — used to ground each pick's bespoke "why it fits" line
+  priority: number;  // lower = claims shared hotels first (global uniqueness across posts)
 };
 export type BlogPost = {
   slug: string;
@@ -57,6 +59,8 @@ export const BLOG_POSTS: BlogPost[] = [
     pick: {
       re: /\b(guest ?house|b&b|bed and breakfast|inn\b|independent|family[- ]?run|owner[- ]?run|boutique|intimate|small|welcom|riad|pension|home[- ]?like)\b/i,
       minScore: 7, limit: 12,
+      theme: "travelling alone: small, independent, warmly-staffed places with a shared lounge or breakfast table, central and easy to come home to at night",
+      priority: 5,
       heading: "Cosy hotels that suit a solo trip",
       blurb: "We started with the hotels our AI scores highest for cosiness, then surfaced the small, independent, warmly-reviewed ones — the kind where arriving alone feels like being expected. Each carries its live Cosy Score.",
     },
@@ -111,6 +115,8 @@ export const BLOG_POSTS: BlogPost[] = [
     pick: {
       re: /\b(desk|work|wifi|wi[- ]?fi|apartment|kitchenette|kitchen|long[- ]?stay|garden|quiet|peaceful|suite|terrace)\b/i,
       minScore: 7, limit: 12,
+      theme: "a workation: a real desk and space to work, daytime quiet, a kitchen or suite, a garden or terrace to step out to (wifi to be confirmed with the hotel separately)",
+      priority: 3,
       heading: "Cosy hotels that suit a working week",
       blurb: "From the hotels our AI scores highest for cosiness, these mention the things a workation needs — a desk, a kitchen or suite, a garden or terrace to decamp to. Always confirm the wifi speed with the hotel directly before you book a long stay.",
     },
@@ -166,6 +172,8 @@ export const BLOG_POSTS: BlogPost[] = [
     pick: {
       re: /\b(famil|garden|courtyard|apartment|kitchen|suite|family[- ]?run|child|kids?\b|playground|farm)\b/i,
       minScore: 7, limit: 12,
+      theme: "a family stay: room for everyone, a safe garden or courtyard, family-run flexibility around food and timings, a kitchen or family room",
+      priority: 2,
       heading: "Cosy hotels that suit a family",
       blurb: "From our highest-cosiness hotels, these mention what families actually use — a garden or courtyard, a family room or apartment, a kitchen, or family-run hospitality. Always confirm room capacity and any extra-bed cost before you book.",
     },
@@ -221,6 +229,8 @@ export const BLOG_POSTS: BlogPost[] = [
     pick: {
       re: /\b(spa|sauna|onsen|thermal|hot[- ]?spring|wellness|garden|countryside|rural|peaceful|quiet|tranquil|retreat|secluded|fireplace|hammam|soaking)\b/i,
       minScore: 7, limit: 12,
+      theme: "a quiet, restful escape: genuine calm, small scale, a spa/sauna/garden/fireplace, a rural or peaceful setting, and no events or through-traffic",
+      priority: 1,
       heading: "Cosy hotels for genuine quiet",
       blurb: "From the hotels our AI scores highest for cosiness, these are the ones whose details and reviews point to real calm — spas, gardens, fireplaces, rural settings. Each shows its live Cosy Score.",
     },
@@ -273,9 +283,11 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
     pick: {
-      chains: true, minScore: 5, limit: 12,
+      chains: true, minScore: 6, limit: 12,
+      theme: "a cosy stay despite being a chain: real warmth and character, a converted or heritage building, or a design-led soft brand that feels independent",
+      priority: 0,
       heading: "The chain-branded hotels that actually cleared our cosy bar",
-      blurb: "This is not a long list, and that's the point. Of the few hundred chain-branded hotels in our dataset, only these clear the cosy bar — the genuine exceptions, each with its live Cosy Score. Compare them to almost any independent in the same city and you'll see the gap.",
+      blurb: "Most chains aren't cosy — the data is blunt about it. But a handful genuinely clear the bar, and here they are: the cosiest chain-branded hotels we've scored, mostly heritage buildings and design-led soft brands. Each shows its live Cosy Score — compare it to almost any independent nearby and you'll see the gap.",
     },
     outro: [
       {
