@@ -17,7 +17,7 @@ export default function DisclosurePage() {
           Links are marked as sponsored and include tracking parameters so partners can attribute bookings to us. We do not sell personal data.
         </p>
         <p>
-          For questions, contact gotcosy@gmail.com.
+          For questions, contact per@gotcosy.com.
         </p>
       </div>
     </div>
