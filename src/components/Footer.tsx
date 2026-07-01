@@ -7,7 +7,7 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
   return (
     <footer className="border-t mt-16" style={{ borderColor: "var(--line)", background: "var(--surface-2)" }}>
       <div className="mx-auto max-w-6xl px-4 pt-12 pb-7">
-        <div className="grid md:grid-cols-[1.6fr_1fr_1fr_1fr] gap-10">
+        <nav aria-label="Footer" className="grid md:grid-cols-[1.6fr_1fr_1fr_1fr] gap-10">
           <div>
             <Link href={`/${locale}`} className="flex items-center gap-2.5 no-underline">
               <span aria-hidden className="flex items-center justify-center rounded-[11px] font-display font-bold" style={{ width: 34, height: 34, background: "linear-gradient(135deg, var(--ember), var(--gold))", color: "#16201C", fontSize: 16 }}>c</span>
@@ -34,7 +34,7 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
             <FLink href={`/${locale}/privacy`}>{m.footer?.privacy || "Privacy"}</FLink>
             <FLink href={`/${locale}/disclosure`}>{m.footer?.disclosure || "Affiliate disclosure"}</FLink>
           </FooterCol>
-        </div>
+        </nav>
         <div className="mt-11 pt-5 flex flex-col sm:flex-row justify-between gap-2 text-[13px]" style={{ borderTop: "1px solid var(--line)", color: "var(--muted)" }}>
           <div>© {new Date().getFullYear()} {site.name}</div>
           <div>Bookings via partner sites — we may earn a commission.</div>
