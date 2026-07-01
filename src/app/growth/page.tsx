@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
 import outreachData from "@/data/outreach.json";
+import OutreachStatus from "@/components/OutreachStatus";
 
 type OutreachItem = { id: string; outlet: string; type: string; fit: string; email: string; contactRoute: string; region: string; notes: string; status: string; rec?: string };
 const outreach = outreachData as OutreachItem[];
@@ -79,6 +80,17 @@ export default async function GrowthPage() {
     </a>
   );
 
+  // Live outreach from Supabase (editable from any phone via the status picker); fall back to the
+  // committed snapshot if the table doesn't exist yet.
+  let outreachRows: OutreachItem[] = outreach;
+  try {
+    const { data } = await db.from("outreach").select("id,outlet,type,fit,email,contact_route,region,notes,rec,status");
+    if (data && data.length) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      outreachRows = data.map((r: any) => ({ id: r.id, outlet: r.outlet, type: r.type, fit: r.fit, email: r.email || "", contactRoute: r.contact_route || "", region: r.region || "", notes: r.notes || "", rec: r.rec ?? undefined, status: r.status || "queued" }));
+    }
+  } catch { /* table not created yet — use snapshot */ }
+
   return (
     <div style={{ minHeight: "100vh", background: "#0F1512", color: "#F3EEE6", fontFamily: "Inter, system-ui, sans-serif", padding: "32px 20px" }}>
       <meta httpEquiv="refresh" content="120" />
@@ -131,13 +143,14 @@ export default async function GrowthPage() {
           <Link href="/en/cosy-index" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🏆 /cosy-index</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Flagship ranking — share / pitch for backlinks.</div></Link>
         </div>
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>PR &amp; backlink outreach <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {outreach.length} targets · {outreach.filter((o) => o.rec === "start-here").length} to start with</span></h2>
-        <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 6 }}>Journalist platforms, media, blogs, directories, data-citation sites &amp; podcasts. ★ = do first. Status is edited in the local command centre; this is the read-only pipeline (snapshot).</p>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>PR &amp; backlink outreach <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {outreachRows.length} targets · {outreachRows.filter((o) => o.rec === "start-here").length} to start with</span></h2>
+        <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 6 }}>Journalist platforms, media, blogs, directories, data-citation sites &amp; podcasts. ★ = do first. Change a status below — it saves straight to the database, so you can update the pipeline from your phone.</p>
         <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
-          {[...outreach].sort((a, b) => recRank(a.rec) - recRank(b.rec)).map((o) => (
+          {[...outreachRows].sort((a, b) => recRank(a.rec) - recRank(b.rec)).map((o) => (
             <div key={o.id} style={{ padding: "9px 14px", borderTop: "1px solid #243029" }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                 <span style={{ fontWeight: 600, color: "#F3EEE6", fontSize: 14 }}>{o.outlet}</span>
+                <OutreachStatus id={o.id} status={o.status} />
                 {o.rec === "start-here" && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, background: "#1c3b2e", color: "#7FB7A2" }}>★ START HERE</span>}
                 {o.rec === "if-budget" && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, background: "#3a3320", color: "#D8B25A" }}>IF BUDGET</span>}
                 {o.rec === "skip" && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, background: "#243029", color: "#b07a4a" }}>SKIP</span>}
