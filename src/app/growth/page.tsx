@@ -5,6 +5,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
+import outreachData from "@/data/outreach.json";
+
+type OutreachItem = { id: string; outlet: string; type: string; fit: string; email: string; contactRoute: string; region: string; notes: string; status: string; rec?: string };
+const outreach = outreachData as OutreachItem[];
+const recRank = (r?: string) => (({ "start-here": 0, "if-budget": 2, skip: 3 }) as Record<string, number>)[r ?? ""] ?? 1;
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -124,6 +129,28 @@ export default async function GrowthPage() {
           <Link href="/outreach" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>✉️ /outreach</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>{withInstagram.toLocaleString()} hotels with handles — DM their feature for backlinks + reposts.</div></Link>
           <Link href="/posts" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🖼 /posts</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Exactly what publishes per city.</div></Link>
           <Link href="/en/cosy-index" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🏆 /cosy-index</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Flagship ranking — share / pitch for backlinks.</div></Link>
+        </div>
+
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>PR &amp; backlink outreach <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {outreach.length} targets · {outreach.filter((o) => o.rec === "start-here").length} to start with</span></h2>
+        <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 6 }}>Journalist platforms, media, blogs, directories, data-citation sites &amp; podcasts. ★ = do first. Status is edited in the local command centre; this is the read-only pipeline (snapshot).</p>
+        <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
+          {[...outreach].sort((a, b) => recRank(a.rec) - recRank(b.rec)).map((o) => (
+            <div key={o.id} style={{ padding: "9px 14px", borderTop: "1px solid #243029" }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap" }}>
+                <span style={{ fontWeight: 600, color: "#F3EEE6", fontSize: 14 }}>{o.outlet}</span>
+                {o.rec === "start-here" && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, background: "#1c3b2e", color: "#7FB7A2" }}>★ START HERE</span>}
+                {o.rec === "if-budget" && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, background: "#3a3320", color: "#D8B25A" }}>IF BUDGET</span>}
+                {o.rec === "skip" && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, background: "#243029", color: "#b07a4a" }}>SKIP</span>}
+                <span style={{ fontSize: 10.5, color: "#6f7a72", border: "1px solid #243029", borderRadius: 5, padding: "1px 6px" }}>{o.type}</span>
+                <span style={{ fontSize: 10.5, color: "#6f7a72", border: "1px solid #243029", borderRadius: 5, padding: "1px 6px" }}>{o.fit}</span>
+                {o.region && <span style={{ fontSize: 10.5, color: "#6f7a72", border: "1px solid #243029", borderRadius: 5, padding: "1px 6px" }}>{o.region}</span>}
+              </div>
+              {o.notes && <div style={{ color: "#9DA89F", fontSize: 12.5, marginTop: 3 }}>{o.notes}</div>}
+              <div style={{ marginTop: 3, fontSize: 12 }}>
+                {o.email ? <a href={"mailto:" + o.email} style={{ color: "#7FB4FF" }}>{o.email}</a> : /^https?:/.test(o.contactRoute) ? <a href={o.contactRoute} target="_blank" rel="noreferrer" style={{ color: "#7FB4FF" }}>{o.contactRoute} ↗</a> : <span style={{ color: "#6f7a72" }}>{o.contactRoute}</span>}
+              </div>
+            </div>
+          ))}
         </div>
 
         <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>External analytics — the numbers that matter</h2>
