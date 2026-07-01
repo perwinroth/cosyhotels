@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         <p>You may contact us to request removal of public shortlist pages you created or to ask questions about this policy.</p>
 
         <h2>Contact</h2>
-        <p>Email: support@cosyhotelroom.com</p>
+        <p>Email: gotcosy@gmail.com</p>
       </div>
     </div>
   );

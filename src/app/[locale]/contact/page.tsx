@@ -11,7 +11,7 @@ export function generateMetadata({ params }: { params: { locale: string } }): Me
 }
 
 export default function ContactPage() {
-  const email = "support@cosyhotelroom.com";
+  const email = "gotcosy@gmail.com";
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="font-display text-4xl font-semibold tracking-tight">Contact</h1>
