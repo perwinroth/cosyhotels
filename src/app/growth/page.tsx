@@ -7,6 +7,7 @@ import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
 import outreachData from "@/data/outreach.json";
 import OutreachStatus from "@/components/OutreachStatus";
+import { gmailComposeUrl } from "@/lib/outreachTemplates";
 
 type OutreachItem = { id: string; outlet: string; type: string; fit: string; email: string; contactRoute: string; region: string; notes: string; status: string; rec?: string };
 const outreach = outreachData as OutreachItem[];
@@ -159,8 +160,13 @@ export default async function GrowthPage() {
                 {o.region && <span style={{ fontSize: 10.5, color: "#6f7a72", border: "1px solid #243029", borderRadius: 5, padding: "1px 6px" }}>{o.region}</span>}
               </div>
               {o.notes && <div style={{ color: "#9DA89F", fontSize: 12.5, marginTop: 3 }}>{o.notes}</div>}
-              <div style={{ marginTop: 3, fontSize: 12 }}>
-                {o.email ? <a href={"mailto:" + o.email} style={{ color: "#7FB4FF" }}>{o.email}</a> : /^https?:/.test(o.contactRoute) ? <a href={o.contactRoute} target="_blank" rel="noreferrer" style={{ color: "#7FB4FF" }}>{o.contactRoute} ↗</a> : <span style={{ color: "#6f7a72" }}>{o.contactRoute}</span>}
+              <div style={{ marginTop: 5, fontSize: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                {o.email ? (
+                  <>
+                    <a href={gmailComposeUrl(o)} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: "#0F1512", background: "#7FB7A2", borderRadius: 6, padding: "4px 10px", textDecoration: "none" }}>✉ Draft in Gmail ↗</a>
+                    <a href={"mailto:" + o.email} style={{ color: "#6f7a72" }}>{o.email}</a>
+                  </>
+                ) : /^https?:/.test(o.contactRoute) ? <a href={o.contactRoute} target="_blank" rel="noreferrer" style={{ color: "#7FB4FF" }}>{o.contactRoute} ↗</a> : <span style={{ color: "#6f7a72" }}>{o.contactRoute}</span>}
               </div>
             </div>
           ))}
