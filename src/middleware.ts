@@ -24,6 +24,28 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  // SECURITY: gate the internal PAGE dashboards (/growth, /admin, and their locale variants).
+  // These surface internal growth metrics + the outreach pipeline — noindex is not a lock.
+  // Unlock once with ?key=<CRON_SECRET>; we then set an httpOnly cookie so it sticks. Fail-closed.
+  if (/^\/(?:[a-z]{2}\/)?(?:growth|admin)(?:\/|$)/.test(path)) {
+    const secret = process.env.CRON_SECRET;
+    const key = req.nextUrl.searchParams.get("key");
+    const cookie = req.cookies.get("gc_panel")?.value;
+    if (secret && key === secret) {
+      const clean = new URL(req.url);
+      clean.searchParams.delete("key");
+      const res = NextResponse.redirect(clean);
+      res.cookies.set("gc_panel", secret, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 30 });
+      return res;
+    }
+    if (!secret || cookie !== secret) {
+      return new NextResponse(
+        '<!doctype html><meta charset=utf8><title>Locked</title><body style="background:#0f1512;color:#f3eee6;font:15px/1.6 system-ui;max-width:36rem;margin:12vh auto;padding:0 1.5rem"><h1 style="font-family:Georgia,serif">Locked</h1><p>Internal Got Cosy panel. Append <code style="color:#e08a4b">?key=YOUR_CRON_SECRET</code> to the URL to unlock (it will remember you after that).</p></body>',
+        { status: 401, headers: { "content-type": "text/html; charset=utf-8" } },
+      );
+    }
+  }
+
   const host = (req.headers.get("host") || "").split(":")[0].toLowerCase();
   if (REDIRECT_HOSTS.has(host)) {
     const url = new URL(req.url);
