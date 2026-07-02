@@ -1,14 +1,16 @@
 import type { MetadataRoute } from "next";
 import { guides } from "@/data/guides";
 import { cityGuides } from "@/data/cityGuides";
-import { BLOG_POSTS } from "@/data/blogPosts";
 import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getVisibleBlogPosts } from "@/lib/blogSchedule";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const now = new Date();
   const routes: MetadataRoute.Sitemap = [];
+  // Only publicly-released journal posts (per the /growth schedule) belong in the sitemap.
+  const blogPosts = await getVisibleBlogPosts();
   // Root homepage (English default)
   routes.push({ url: `${base}/`, lastModified: now, changeFrequency: "weekly", priority: 0.9 });
   for (const locale of locales) {
@@ -26,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     routes.push({ url: `${base}/${locale}/what-makes-a-hotel-cosy`, lastModified: now, changeFrequency: "monthly", priority: 0.7 });
     routes.push({ url: `${base}/${locale}/make-your-hotel-look-cosy`, lastModified: now, changeFrequency: "monthly", priority: 0.6 });
     routes.push({ url: `${base}/${locale}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 });
-    for (const p of BLOG_POSTS) {
+    for (const p of blogPosts) {
       routes.push({ url: `${base}/${locale}/blog/${p.slug}`, lastModified: now, changeFrequency: "monthly", priority: 0.6 });
     }
   }

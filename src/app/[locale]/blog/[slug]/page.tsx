@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { getBlogPost, BLOG_POSTS, type BlogSection } from "@/data/blogPosts";
+import { isBlogPostVisible } from "@/lib/blogSchedule";
 import blogPicksData from "@/data/blogPicks.json";
 
 // Picks are precomputed (scripts/generate-blog-picks.mts): each hotel assigned to ONE post, with a
@@ -87,6 +88,8 @@ function PickCard({ h, idx, locale }: { h: BlogPick; idx: number; locale: string
 export default async function BlogPostPage({ params }: Props) {
   const post = getBlogPost(params.slug);
   if (!post) notFound();
+  // Not yet released per the /growth schedule → 404 (re-evaluated each revalidate window).
+  if (!(await isBlogPostVisible(params.slug))) notFound();
   const L = params.locale;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || site.url;
 

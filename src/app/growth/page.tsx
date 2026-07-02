@@ -7,6 +7,8 @@ import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
 import outreachData from "@/data/outreach.json";
 import OutreachStatus from "@/components/OutreachStatus";
+import BlogScheduleRow from "@/components/BlogScheduleRow";
+import { getScheduleForPanel } from "@/lib/blogSchedule";
 import { gmailComposeUrl } from "@/lib/outreachTemplates";
 
 type OutreachItem = { id: string; outlet: string; type: string; fit: string; email: string; contactRoute: string; region: string; notes: string; status: string; rec?: string };
@@ -92,6 +94,10 @@ export default async function GrowthPage() {
     }
   } catch { /* table not created yet — use snapshot */ }
 
+  // Journal release schedule (editable from any phone via the pickers below).
+  const blogSchedule = await getScheduleForPanel();
+  const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "");
+
   return (
     <div style={{ minHeight: "100vh", background: "#0F1512", color: "#F3EEE6", fontFamily: "Inter, system-ui, sans-serif", padding: "32px 20px" }}>
       <meta httpEquiv="refresh" content="120" />
@@ -142,6 +148,21 @@ export default async function GrowthPage() {
           <Link href="/outreach" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>✉️ /outreach</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>{withInstagram.toLocaleString()} hotels with handles — DM their feature for backlinks + reposts.</div></Link>
           <Link href="/posts" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🖼 /posts</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Exactly what publishes per city.</div></Link>
           <Link href="/en/cosy-index" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🏆 /cosy-index</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Flagship ranking — share / pitch for backlinks.</div></Link>
+        </div>
+
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Journal — release schedule <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {blogSchedule.filter((b) => b.visible).length}/{blogSchedule.length} live</span></h2>
+        <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 6 }}>Drip the posts out instead of all at once. <strong>live</strong> = public now; <strong>scheduled</strong> = goes public on its date (within the hour); <strong>draft</strong> = hidden. Saves straight to the database — reschedule from your phone.</p>
+        <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
+          {blogSchedule.map((b) => (
+            <div key={b.slug} style={{ padding: "10px 14px", borderTop: "1px solid #243029", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ width: 8, height: 8, borderRadius: 8, flex: "none", background: b.visible ? "#7FB7A2" : "#3a4038" }} title={b.visible ? "public" : "hidden"} />
+              <span style={{ flex: 1, minWidth: 180 }}>
+                <a href={`/en/blog/${b.slug}`} target="_blank" rel="noreferrer" style={{ color: "#F3EEE6", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>{b.title} ↗</a>
+                <span style={{ display: "block", fontSize: 11, color: "#6f7a72", marginTop: 2 }}>{b.eyebrow}{b.status === "scheduled" && b.publish_at ? ` · scheduled ${fmtDate(b.publish_at)}` : b.visible ? " · live" : " · hidden"}</span>
+              </span>
+              <BlogScheduleRow slug={b.slug} status={b.status} publishAt={b.publish_at} />
+            </div>
+          ))}
         </div>
 
         <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>PR &amp; backlink outreach <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {outreachRows.length} targets · {outreachRows.filter((o) => o.rec === "start-here").length} to start with</span></h2>

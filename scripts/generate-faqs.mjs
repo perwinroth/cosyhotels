@@ -69,6 +69,12 @@ const reviewCache = JSON.parse(readFileSync("scripts/backups/review-cache.json",
 const reviewIds = Object.entries(reviewCache).filter(([, v]) => Array.isArray(v) && v.length >= 2).map(([k]) => k);
 const out = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : {};
 
+// The FAQ universe = all shown hotels (score>=MIN). Progress is reported against this global target
+// so the monitor climbs toward "all" (~9,700) instead of resetting to each run's available batch.
+const { count: shownCount } = await db.from("cosy_scores").select("*", { count: "exact", head: true }).gte("score", MIN);
+const GLOBAL = shownCount || 0;
+const writeProg = (written, failed) => { try { writeFileSync(PROGRESS, JSON.stringify({ total: GLOBAL, done: Object.keys(out).length, written, failed, updatedAt: Date.now() }, null, 2)); } catch {} };
+
 const work = [];
 for (let i = 0; i < reviewIds.length; i += 200) {
   const slice = reviewIds.slice(i, i + 200);
@@ -87,7 +93,7 @@ for (let i = 0; i < reviewIds.length; i += 200) {
 }
 const todo = LIMIT ? work.slice(0, LIMIT) : work;
 console.log(`${todo.length} hotels to FAQ (review-cached, score>=${MIN}, not yet done) · ${Object.keys(out).length} already in ${OUT} · model ${MODEL} · ${EXECUTE ? "EXECUTE" : "DRY-RUN"}\n`);
-if (!todo.length) { console.log("nothing to do."); process.exit(0); }
+if (!todo.length) { writeProg(0, 0); console.log("nothing to do (waiting on more reviews)."); process.exit(0); }
 
 if (!EXECUTE) {
   for (const h of todo.slice(0, 6)) {
@@ -108,7 +114,7 @@ for (let i = 0; i < todo.length; i += CONC) {
     catch { failed++; }
   }));
   writeFileSync(OUT, JSON.stringify(out, null, 0)); // compact; written incrementally for crash-safety
-  writeFileSync(PROGRESS, JSON.stringify({ total: todo.length, done: n, written: done, failed, updatedAt: Date.now() }, null, 2));
-  if (n % 30 === 0) console.log(`${String(n).padStart(4)}/${todo.length}  written ${done} · failed ${failed}`);
+  writeProg(done, failed); // progress vs the GLOBAL shown-hotel target
+  if (n % 30 === 0) console.log(`${String(n).padStart(4)}/${todo.length}  written ${done} · failed ${failed} · total ${Object.keys(out).length}/${GLOBAL}`);
 }
 console.log(`\ndone — ${done} hotels given bespoke FAQs · ${failed} failed · total in file: ${Object.keys(out).length} → ${OUT}`);
