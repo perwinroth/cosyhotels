@@ -1,0 +1,15 @@
+# Gitleaks config — extends the default rules; allowlists confirmed false positives.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Confirmed false positives (model-id/config strings, not credentials)"
+# bakeoff scripts: gitleaks' generic-api-key rule matches model-label config lines like
+# `{ key: "opus", label: "claude-opus-4-8", kind: "api" }` — both scripts read real keys from env.
+regexTarget = "line"
+regexes = [
+  '''label: "claude-[a-z0-9.-]+"''',
+]
+paths = [
+  '''\.gitleaksignore$''',
+]

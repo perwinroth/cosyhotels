@@ -1,0 +1,4 @@
+# Confirmed false positives — model-config lines (`key: "qwen14b_think"`), not credentials.
+# Both scripts read real API keys from env only.
+scripts/bakeoff-monitor.mjs:generic-api-key:16
+scripts/review-bakeoff.mjs:generic-api-key:42
