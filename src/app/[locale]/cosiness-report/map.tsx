@@ -27,16 +27,25 @@ export function CosyMap({ towns, locale }: { towns: Town[]; locale: string }) {
       const L = (await import("leaflet")).default;
       if (cancelled || !node || node.dataset.init) return;
       node.dataset.init = "1";
-      map = L.map(node, { scrollWheelZoom: false, worldCopyJump: true });
+      map = L.map(node, { scrollWheelZoom: false, worldCopyJump: true, minZoom: 3 });
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
-      // Scroll-zoom only after the reader engages, so page scrolling stays pleasant.
-      map.once("click", () => map && map.scrollWheelZoom.enable());
-
+      // Open correctly framed on all towns (Europe + Morocco). fitBounds must run AFTER the
+      // container has its real size — during hydration/layout it can be 0-height, which mis-fits
+      // the view. Invalidate then fit on the next frame, and re-fit on container resize until the
+      // reader genuinely interacts (drag/click — NOT our own fitBounds, which also fires move events).
       const bounds = L.latLngBounds(towns.map((t) => [t.lat, t.lng] as [number, number]));
-      map.fitBounds(bounds, { padding: [36, 36] });
+      const frame = () => { if (!map) return; map.invalidateSize(); map.fitBounds(bounds, { padding: [36, 36] }); };
+      frame();
+      requestAnimationFrame(frame);
+      let interacted = false;
+      map.on("dragstart", () => { interacted = true; });
+      map.once("click", () => { interacted = true; if (map) map.scrollWheelZoom.enable(); }); // scroll-zoom after engagement
+      const ro = new ResizeObserver(() => { if (!interacted) frame(); else if (map) map.invalidateSize(); });
+      ro.observe(node);
+      map.once("unload", () => ro.disconnect());
 
       for (const t of towns) {
         const r = 8 + Math.max(0, t.avg - 6.45) * 55; // size = distance above the pack
