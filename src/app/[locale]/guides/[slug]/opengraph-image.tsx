@@ -1,7 +1,10 @@
-// Per-guide social-share card (1200×630 PNG). Replaces the old logo-seal.svg og:image that
+// Per-guide social-share card (1200×630). Replaces the old logo-seal.svg og:image that
 // rendered blank on Pinterest/Reddit/X/Slack — every share of a money page now shows the city,
 // the #1 cosy hotel, its score, and (when available) that hotel's real photo as the background.
+// Output is JPEG: satori/ImageResponse emits PNG, but photographic PNGs run ~1MB+, so we
+// re-encode with sharp (~6-8x smaller) and cache the result at the edge.
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityFromSlug } from "@/lib/citySlug";
 import { displayCity } from "@/lib/placeText";
@@ -9,7 +12,19 @@ import { displayCity } from "@/lib/placeText";
 export const runtime = "nodejs";
 export const alt = "Got Cosy? — the cosiest hotels, AI-ranked";
 export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const contentType = "image/jpeg";
+
+async function toJpeg(png: ImageResponse): Promise<Response> {
+  const buf = Buffer.from(await png.arrayBuffer());
+  const jpeg = await sharp(buf).jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+  return new Response(new Uint8Array(jpeg), {
+    headers: {
+      "Content-Type": "image/jpeg",
+      // Crawlers fetch share images repeatedly; cache a day at the edge, serve stale while refreshing.
+      "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+    },
+  });
+}
 
 function resolveCity(slug: string): string {
   return cityFromSlug(slug) || slug.replace(/-cosy-hotel$/, "").replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
@@ -59,7 +74,7 @@ export default async function OG({ params }: { params: { slug: string } }) {
   const scoreStr = topScore ? topScore.toFixed(1) : "";
   // Non-city slug (e.g. an editorial guide) — no top hotel found: render the branded generic card.
   if (!topName) {
-    return new ImageResponse(
+    return toJpeg(new ImageResponse(
       (
         <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "radial-gradient(900px 500px at 50% 0%, #1d2a22, #0F1512)", color: "#F3EEE6", fontFamily: "serif" }}>
           <div style={{ fontSize: 30, letterSpacing: 6, textTransform: "uppercase", color: "#E08A4B", fontFamily: "sans-serif", marginBottom: 28 }}>AI-rated hotels for cosiness</div>
@@ -69,9 +84,9 @@ export default async function OG({ params }: { params: { slug: string } }) {
         </div>
       ),
       { ...size }
-    );
+    ));
   }
-  return new ImageResponse(
+  return toJpeg(new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", fontFamily: "serif", color: "#F3EEE6", background: "radial-gradient(900px 500px at 30% 0%, #1d2a22, #0F1512)" }}>
         {hero && (
@@ -107,5 +122,5 @@ export default async function OG({ params }: { params: { slug: string } }) {
       </div>
     ),
     { ...size }
-  );
+  ));
 }
