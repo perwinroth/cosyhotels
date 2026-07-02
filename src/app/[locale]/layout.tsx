@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import "../globals.css";
@@ -53,7 +54,12 @@ export default async function LocaleLayout({
       <SiteHeader locale={locale} />
       <main className="min-h-[75vh]">{children}</main>
       {/* Footer + ThemeToggle are rendered globally in the root layout to avoid duplicates */}
-      <Analytics />
+      {/* Suspense is REQUIRED: Analytics calls useSearchParams(), and on static/ISR pages
+          (hotels/[slug]) an unsuspended CSR bailout is a hard 500 at on-demand render time.
+          Local builds don't catch it — no hotel page prerenders at build. */}
+      <Suspense fallback={null}>
+        <Analytics />
+      </Suspense>
     </>
   );
 }
