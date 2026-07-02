@@ -13,6 +13,8 @@ import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { cityToSlug } from "@/lib/citySlug";
+import { FACETS, matchesFacet } from "@/lib/facets";
+import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/components/HotelGraph";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
 // window, never on every view. These are the top SEO landing pages, so cache them hard.
@@ -142,6 +144,32 @@ export default async function HotelDetail({ params }: Props) {
   const cosy = (scoreRow?.score_final as number | null) ?? (scoreRow?.score as number | null) ?? null;
   const cosyDescription = (scoreRow?.description as string | null) ?? null;
 
+  // ——— WP2: build the internal-linking graph (same-city hotels + safe collection links) ———
+  const cityName = String(hotel.city || "").trim();
+  const citySlugBase = cityName ? cityToSlug(cityName).replace(/-cosy-hotel$/, "") : "";
+  let sameCity: MiniHotel[] = [];
+  const collectionLinks: LinkItem[] = [];
+  if (cityName) {
+    const { data: peers } = await db
+      .from("cosy_scores")
+      .select("score,score_final,signals,description,hotel:hotel_id!inner(slug,name,name_en,city)")
+      .gte("score", 5)
+      .eq("hotel.city", cityName)
+      .neq("hotel_id", hotel.id)
+      .order("score", { ascending: false })
+      .limit(40);
+    type Peer = { score: number | null; score_final: number | null; signals: string[] | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null } | null };
+    const rows = (peers || []) as unknown as Peer[];
+    sameCity = rows.slice(0, 6).map((r) => ({ slug: String(r.hotel?.slug), name: String(r.hotel?.name_en || r.hotel?.name || ""), score: Number((r.score_final ?? r.score) || 0) })).filter((h) => h.slug && h.name);
+    // Safe collection links: a facet page needs ≥2 in-city matches, so only link facets where this
+    // hotel + its peers give ≥2 — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
+    for (const f of FACETS) {
+      const self = matchesFacet(f, (scoreRow?.signals as string[] | null) ?? null, cosyDescription) ? 1 : 0;
+      const peerMatches = rows.filter((r) => matchesFacet(f, r.signals, r.description)).length;
+      if (self + peerMatches >= 2 && citySlugBase) collectionLinks.push({ href: `/${params.locale}/cosy-hotels/${f.slug}/${citySlugBase}`, label: `Cosy hotels ${f.label} in ${cityName}` });
+    }
+  }
+
   // Real cached photo only (no placeholder).
   let photo: string | null = null;
   try {
@@ -195,6 +223,16 @@ export default async function HotelDetail({ params }: Props) {
     ...(hotel.city ? [{ name: String(hotel.city), url: `/${params.locale}/guides/${cityToSlug(String(hotel.city))}` }] : []),
     { name: String(hotel.name), url: `/${params.locale}/hotels/${hotel.slug}` },
   ]);
+  const cityGuideHref = `/${params.locale}/guides/${cityToSlug(cityName || "")}`;
+  const crumbItems: LinkItem[] = [
+    { href: `/${params.locale}/guides`, label: "Guides" },
+    ...(cityName ? [{ href: cityGuideHref, label: cityName }] : []),
+    { href: `/${params.locale}/hotels/${hotel.slug}`, label: String(hotel.name) },
+  ];
+  const graphExtra: LinkItem[] = [
+    { href: `/${params.locale}/cosy-index`, label: "The Cosy Index" },
+    ...(cityName ? [{ href: cityGuideHref, label: `Cosy hotels in ${cityName}` }] : []),
+  ];
   // Bespoke, review-grounded FAQ when we have one for this hotel; else the data-tailored template.
   const bespoke = (hotelFaqData as Record<string, { q: string; a: string }[]>)[String(hotel.id)];
   const faqs = bespoke?.length
@@ -205,6 +243,7 @@ export default async function HotelDetail({ params }: Props) {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(hotelJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(breadcrumbJsonLd)} />
+      <Breadcrumb items={crumbItems} />
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>
@@ -237,9 +276,11 @@ export default async function HotelDetail({ params }: Props) {
       </div>
 
       <div className="mt-6 flex items-center gap-3">
-        <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={`/${params.locale}/guides`}>← Browse guides</a>
+        <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName ? cityGuideHref : `/${params.locale}/guides`}>← {cityName ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
         <a className="ml-auto rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={String(hotel.name)} data-city={String(hotel.city || '')}>Check availability</a>
       </div>
+
+      <HotelGraph city={cityName} cityLabel={cityName} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinks} extra={graphExtra} />
 
       <section className="mt-12">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
