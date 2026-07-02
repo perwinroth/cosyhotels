@@ -18,6 +18,7 @@ import { locales } from "@/i18n/locales";
 import { bboxFor } from "@/data/cityCoords";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { cosyBadgeColor } from "@/lib/cosyColor";
+import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 
 type Props = { params: { slug: string; locale: string } };
 
@@ -73,7 +74,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ...locales.map((l) => [l, `/${l}/guides/${cg.slug}`]),
         ["x-default", `/en/guides/${cg.slug}`],
       ]);
-      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url, images: [{ url: "/logo-seal.svg", width: 1200, height: 800 }] }, twitter: { card: "summary_large_image", title, description } };
+      // og:image is provided by the co-located opengraph-image.tsx (dynamic 1200×630 PNG per city).
+      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary_large_image", title, description } };
     }
     return {};
   }
@@ -362,7 +364,7 @@ export default async function GuidePage({ params }: Props) {
   if (!chosen.length) {
     intro = scoreQueryFailed
       ? `Cosy scores for ${cityName} are temporarily unavailable — please try again shortly.`
-      : `We're still scoring cosy hotels in ${cityName}.`;
+      : `We haven't found any cosy hotels in ${cityName} yet — we only list places we've actually scored from real guest reviews.`;
   } else if (topScore >= STANDOUT) {
     intro = `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy — led by ${topPick.name} at ${topScore.toFixed(1)}/10. Here are the cosiest, ranked best first.`;
   } else if (topScore >= WARM) {
@@ -388,6 +390,11 @@ export default async function GuidePage({ params }: Props) {
       acceptedAnswer: { '@type': 'Answer', text: f.a },
     })),
   };
+  // BreadcrumbList — the one schema type these pages were missing (hotel pages already emit it).
+  const breadcrumbJsonLd = breadcrumbSchema([
+    { name: 'Cosy hotel guides', url: `/${params.locale}/guides` },
+    { name: cityName, url: `/${params.locale}/guides/${params.slug}` },
+  ]);
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex items-start justify-between gap-4">
@@ -395,8 +402,26 @@ export default async function GuidePage({ params }: Props) {
         <div className="flex-none"><ShareButton title={`Cosy hotels in ${cityName}`} /></div>
       </div>
       <p className="mt-2" style={{ color: 'var(--muted)' }}>{intro}</p>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />
+      {chosen.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(breadcrumbJsonLd)} />
+      {chosen.length === 0 && !scoreQueryFailed && (
+        <div className="mt-6 rounded-xl border p-6" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+          <h2 className="text-lg font-semibold">No cosy listings in {cityName} yet</h2>
+          <p className="mt-2" style={{ color: 'var(--muted)' }}>
+            We only feature hotels scored from real guest reviews, and we don&apos;t have enough for {cityName} to rank yet. Run a hotel through our cosy score and it can appear here.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a href={`/${params.locale}/for-hotels`} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>Rate your hotel</a>
+            <a href={`/${params.locale}`} className="inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium no-underline" style={{ borderColor: 'var(--line)' }}>Browse cosy hotels</a>
+          </div>
+          {otherCities.length > 0 && (
+            <p className="mt-4 text-sm" style={{ color: 'var(--muted)' }}>
+              Or explore {otherCities.slice(0, 6).map((c, i) => (<span key={c.city}>{i > 0 ? ', ' : ''}<a className="underline" href={`/${params.locale}/guides/${cityToSlug(c.city)}`}>{displayCity(String(c.city))}</a></span>))}.
+            </p>
+          )}
+        </div>
+      )}
       {chosen.length > 0 && (
         <ol className="mt-6 space-y-3">
           {chosen.map((h, idx) => (
