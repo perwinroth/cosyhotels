@@ -3,6 +3,7 @@
 // estimated or invented. Built for PR: citable stats, interactive charts, Article+Dataset JSON-LD.
 import type { Metadata } from "next";
 import { Histogram, StarsChart, LiftChart, CitiesChart } from "./charts";
+import { CosyMap, type Town } from "./map";
 
 export const revalidate = 86400;
 
@@ -45,7 +46,30 @@ const CITIES = [
   { city: "Antwerp", country: "Belgium", n: 23, avg: 6.55, standouts: 3 },
   { city: "Keswick", country: "England", n: 18, avg: 6.54, standouts: 3 },
   { city: "Kinsale", country: "Ireland", n: 17, avg: 6.54, standouts: 3 },
-  { city: "Bruges", country: "Belgium", n: 60, avg: 6.52, standouts: 13 },
+  { city: "Bruges", country: "Belgium", n: 87, avg: 6.47, standouts: 15 },
+];
+// Map data: town coordinates are public geography; stats + top hotels verified against the DB.
+const TOWNS: Town[] = [
+  { city: "Sighișoara", country: "Romania", lat: 46.219, lng: 24.792, n: 15, avg: 6.66, standouts: 3, guideSlug: "sighisoara-cosy-hotel" },
+  { city: "Fez", country: "Morocco", lat: 34.06, lng: -4.98, n: 18, avg: 6.64, standouts: 6, guideSlug: "fez-cosy-hotel", topHotel: { name: "Riad Fes Aicha", score: 7.1, photo: "https://res.cloudinary.com/amenitiz/image/upload/w_500,dpr_auto,f_auto,q_auto:good/v1780891383/es5ofa3bdj0mv4pxnxkq.jpg" } },
+  { city: "Matera", country: "Italy", lat: 40.667, lng: 16.604, n: 21, avg: 6.64, standouts: 3, guideSlug: "matera-cosy-hotel", topHotel: { name: "L'Hotel In Pietra", score: 7.2, photo: "https://www.hotelinpietra.it/wp-content/uploads/2022/03/suite_3.jpg" } },
+  { city: "Marrakech", country: "Morocco", lat: 31.63, lng: -7.99, n: 48, avg: 6.61, standouts: 9, guideSlug: "marrakech-cosy-hotel", topHotel: { name: "Riad des Lys", score: 6.8, photo: "https://riaddeslys.com/wp-content/uploads/2023/04/RIAD-DES-LYS-TERRASSE-29-scaled.jpg" } },
+  { city: "Pitlochry", country: "Scotland", lat: 56.703, lng: -3.731, n: 18, avg: 6.59, standouts: 2, guideSlug: "pitlochry-cosy-hotel", topHotel: { name: "Craigmhor Lodge & Courtyard", score: 6.8, photo: "https://www.craigmhorlodge.co.uk/img/Craigmhor-Lodge.jpg" } },
+  { city: "Como", country: "Italy", lat: 45.81, lng: 9.086, n: 15, avg: 6.57, standouts: 3, guideSlug: "como-cosy-hotel", topHotel: { name: "Villino Clarina", score: 6.3, photo: "https://www.villinoclarina.ch/images/2023/12/11/villinoclarina.webp" } },
+  { city: "Siena", country: "Italy", lat: 43.318, lng: 11.33, n: 42, avg: 6.55, standouts: 11, guideSlug: "siena-cosy-hotel", topHotel: { name: "Agriturismo Torraccia di Chiusi", score: 7.1, photo: "https://www.torracciadichiusi.it/wp-content/uploads/2019/04/TORRACCIA-DI-CHIUSI-127-1-768x512.jpg" } },
+  { city: "Antwerp", country: "Belgium", lat: 51.22, lng: 4.4, n: 23, avg: 6.55, standouts: 3, guideSlug: "antwerp-cosy-hotel", topHotel: { name: "De Vitshaag", score: 6.9, photo: "https://www.devitshaag.be/wp-content/uploads/2018/11/onepage_slide_1.jpg" } },
+  { city: "Keswick", country: "England", lat: 54.601, lng: -3.135, n: 18, avg: 6.54, standouts: 3, labelBelow: true, guideSlug: "keswick-cosy-hotel", topHotel: { name: "Seven Oaks", score: 7.4, photo: "https://www.sevenoaks-keswick.co.uk/guesthouse/hs-accommodation-23.jpg" } },
+  { city: "Kinsale", country: "Ireland", lat: 51.706, lng: -8.523, n: 17, avg: 6.54, standouts: 3, guideSlug: "kinsale-cosy-hotel", topHotel: { name: "The K Kinsale", score: 7.1, photo: "https://www.thekkinsale.com/wp-content/uploads/2014/06/lounge_8683.jpg" } },
+  { city: "Bruges", country: "Belgium", lat: 51.209, lng: 3.225, n: 87, avg: 6.47, standouts: 15, labelBelow: true, guideSlug: "bruges-cosy-hotel", topHotel: { name: "Boutique B&B Everelmus", score: 7.6, photo: "https://cdn.stardekk.com/6454ed8a-6c25-4ce1-b63b-d98600956677/5.JPG" } },
+];
+// "What the top 2.3% looks like" — highest-scoring hotels with a vetted photo (verified via SQL).
+const TOP_PHOTOS = [
+  { name: "Townhouse Weisses Kreuz", city: "Salzburg, Austria", score: 7.6, photo: "https://townhouse-weisses-kreuz.at/wp-content/uploads/2021/10/151030_WeissesKreuz_HP-Bilder-scaled.jpg" },
+  { name: "Hiiragiya", city: "Kyoto, Japan", score: 7.6, photo: "https://www.hiiragiya.co.jp/upload_assets/L1060532-2_PC.jpg" },
+  { name: "Boutique B&B Everelmus", city: "Bruges, Belgium", score: 7.6, photo: "https://cdn.stardekk.com/6454ed8a-6c25-4ce1-b63b-d98600956677/5.JPG" },
+  { name: "The Merchant's House", city: "Corfu, Greece", score: 7.5, photo: "https://themerchantshousecorfu.com/wp-content/uploads/2021/09/Old-Perithia-by-night-at-The-Merchant-House-Hotel-13.jpg" },
+  { name: "Domaine le Bois des Dames", city: "Provence, France", score: 7.5, photo: "https://www.leboisdesdames.com/wp-content/uploads/2025/02/header-1-1.webp" },
+  { name: "The Inn at Antietam", city: "Sharpsburg, USA", score: 7.5, photo: "https://images.squarespace-cdn.com/content/v1/5e9dead28e022e5d445a86bd/1587428349051-I89SCLZJNP8KOCZQYNBX/Inn_fullhouse3.jpg" },
 ];
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -153,7 +177,30 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
         don&apos;t make the list; their averages drown in large modern builds.
       </p>
       <div className="mt-6 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
+        <CosyMap towns={TOWNS} locale={l} />
+      </div>
+      <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
         <CitiesChart data={CITIES} />
+      </div>
+
+      <H2>What the top 2.3% looks like</H2>
+      <p className="leading-relaxed">
+        Six of the highest-scoring hotels in the dataset — every photo below is the hotel&apos;s own, vetted by our
+        image pipeline. Notice what they have in common: small rooms, wood, stone, lamplight — and not a lobby
+        in sight.
+      </p>
+      <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {TOP_PHOTOS.map((h) => (
+          <figure key={h.name} className="relative m-0 overflow-hidden rounded-xl border" style={{ borderColor: "var(--line)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={h.photo} alt={`${h.name}, ${h.city}`} className="w-full object-cover" style={{ height: 150 }} loading="lazy" />
+            <figcaption className="absolute inset-x-0 bottom-0 px-2.5 py-1.5 text-white" style={{ background: "linear-gradient(transparent, rgba(10,12,10,0.85))" }}>
+              <span className="mr-1.5 rounded px-1 text-xs font-bold" style={{ background: "var(--ember)" }}>{h.score.toFixed(1)}</span>
+              <span className="text-xs font-medium">{h.name}</span>
+              <span className="block text-[10px] opacity-80">{h.city}</span>
+            </figcaption>
+          </figure>
+        ))}
       </div>
 
       <H2>The cosiest hotel we found has six rooms</H2>
