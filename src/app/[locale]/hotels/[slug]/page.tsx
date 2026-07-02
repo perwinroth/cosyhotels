@@ -1,4 +1,4 @@
-// Hotel detail (Amadeus-first for am- slugs; Supabase otherwise)
+// Hotel detail — persisted, pre-scored Supabase hotels only.
 import { notFound, permanentRedirect } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -9,33 +9,24 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import ShareButton from "@/components/ShareButton";
 import BadgeEmbed from "@/components/BadgeEmbed";
-import { cosyScore } from "@/lib/scoring/cosy";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { cityToSlug } from "@/lib/citySlug";
-import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
-import { unstable_cache } from "next/cache";
 
-// Live OSM hotels aren't persisted, so we score them on the detail page with Claude.
-// Cached per (name, city, country) for 7 days so it's at most ~one paid call per hotel
-// regardless of how many times the page is viewed.
-const cachedOsmScore = unstable_cache(
-  async (name: string, city: string, country: string) => {
-    try {
-      const r = await claudeCosyScore({ name, city, country });
-      return { score10: r.score10, signals: r.signals, description: r.description };
-    } catch {
-      return null;
-    }
-  },
-  ["osm-claude-cosy"],
-  { revalidate: 60 * 60 * 24 * 7 }
-);
+// Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
+// window, never on every view. These are the top SEO landing pages, so cache them hard.
+export const revalidate = 86400;
+export const dynamicParams = true;
+
+// Prebuild none at build time (9k+ hotels); every slug renders on first request, then caches (ISR).
+export function generateStaticParams() {
+  return [] as { slug: string }[];
+}
 
 // Using implicit types from Supabase rows to avoid unused warnings
 
-type Props = { params: { slug: string; locale: string }, searchParams?: { [k: string]: string | string[] | undefined } };
+type Props = { params: { slug: string; locale: string } };
 
 export async function generateMetadata({ params }: { params: { slug: string; locale: string } }): Promise<Metadata> {
   const languages = Object.fromEntries([
@@ -47,13 +38,23 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
   if (db) {
     const { data: h } = await db
       .from("hotels")
-      .select("name, city, country, slug")
+      .select("id, name, city, country, slug")
       .eq("slug", params.slug)
       .maybeSingle();
     if (h) {
       const title = `${h.name} | ${site.name}`;
-      const description = [h.city, h.country].filter(Boolean).join(", ") || "Cosy boutique stay.";
-      return { title, description, alternates: { canonical: url, languages } };
+      // Unique, review-grounded meta description per hotel (SEO/AEO) — the same one-sentence
+      // description shown on the page; falls back to location only if the hotel has none.
+      let description = [h.city, h.country].filter(Boolean).join(", ") || "Cosy boutique stay.";
+      const { data: s } = await db.from("cosy_scores").select("description,score,score_final").eq("hotel_id", h.id).maybeSingle();
+      const cosy = (s?.score_final as number | null) ?? (s?.score as number | null) ?? null;
+      // Unrated / hidden hotels (no review-grounded score above the public floor) stay reachable
+      // but are noindexed until they earn a rating — no thin pages in the index.
+      const rated = cosy != null && cosy >= 5;
+      if (s?.description && rated) {
+        description = `Cosy score ${Number(cosy).toFixed(1)}/10. ${s.description}`.slice(0, 300);
+      }
+      return { title, description, alternates: { canonical: url, languages }, ...(rated ? {} : { robots: { index: false, follow: true } }) };
     }
   }
   return { alternates: { canonical: url, languages } };
@@ -113,110 +114,10 @@ function hotelFaqs(o: { name: string; city: string; country: string; cosy: numbe
   return faqs;
 }
 
-export default async function HotelDetail({ params, searchParams }: Props) {
+export default async function HotelDetail({ params }: Props) {
   // Live OSM/Amadeus detail paths are retired — they served junk, scored per-visitor (cost),
   // and broke consistency. Only persisted, pre-scored Supabase hotels are served now.
   if (params.slug.startsWith('osm-') || params.slug.startsWith('am-')) return notFound();
-  // Handle Amadeus slugs first so live tiles never 404
-  if (params.slug.startsWith('am-')) {
-    const id = params.slug.slice(3);
-    try {
-      const { amadeusGetHotelDetails } = await import('@/lib/vendors/amadeus');
-      const { bookingSearchUrl, buildAffiliateUrl } = await import('@/lib/affiliates');
-      const d = await amadeusGetHotelDetails(id);
-      const qName = typeof searchParams?.name === 'string' ? searchParams!.name : '';
-      const qCity = typeof searchParams?.city === 'string' ? searchParams!.city : '';
-      const qCountry = typeof searchParams?.country === 'string' ? searchParams!.country : '';
-      const name = (d?.name || qName || 'Hotel');
-      const city = (d?.city || qCity || '');
-      const country = (d?.country || qCountry || '');
-      const affiliateBase = bookingSearchUrl({ name, city, country });
-      const affiliateUrl = buildAffiliateUrl(affiliateBase);
-      // Use the same cosy scoring as tiles to ensure consistency
-      const rating10 = typeof d?.rating10 === 'number' ? d!.rating10 : undefined;
-      const cosy = typeof rating10 === 'number' ? cosyScore({ rating: rating10 }) : (() => {
-        const n = name.toLowerCase();
-        let s = 6.6;
-        const boost = ["boutique","design","charm","charming","cozy","cosy","intimate","romantic","maison","atelier","residenza","palazzo"];
-        const penal = ["marriott","hilton","hyatt","accor","radisson","kempinski","intercontinental","sheraton","ibis","novotel","mercure","holiday inn","best western","wyndham"];
-        if (boost.some(k=>n.includes(k))) s += 0.8;
-        if (penal.some(k=>n.includes(k))) s -= 0.8;
-        return Math.max(5.0, Math.min(9.5, s));
-      })();
-      return (
-        <div className="mx-auto max-w-3xl px-4 py-8">
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
-          <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
-          <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy.toFixed(1)} out of 10`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm text-zinc-600">Cosy score</div>
-                <div className="text-2xl font-semibold">{cosy.toFixed(1)}<span className="text-base text-zinc-500">/10</span></div>
-              </div>
-              <span />
-            </div>
-          </div>
-          <div className="mt-5 flex items-center gap-3">
-            <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
-              Back to results
-            </a>
-            <div className="ml-auto flex gap-2">
-              <a className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 font-medium no-underline" style={{ background: 'var(--ember)' }} href={affiliateUrl} target="_blank" rel="noopener nofollow sponsored">Check availability</a>
-            </div>
-          </div>
-        </div>
-      );
-    } catch {
-      return notFound();
-    }
-  }
-
-  // Live OSM slugs aren't in Supabase — render from query params + Claude score.
-  if (params.slug.startsWith('osm-')) {
-    const { bookingSearchUrl, buildAffiliateUrl } = await import('@/lib/affiliates');
-    const qName = typeof searchParams?.name === 'string' ? searchParams!.name : '';
-    const qCity = typeof searchParams?.city === 'string' ? searchParams!.city : '';
-    const qCountry = typeof searchParams?.country === 'string' ? searchParams!.country : '';
-    const name = qName || 'Hotel';
-    const city = qCity || '';
-    const country = qCountry || '';
-    const affiliateUrl = buildAffiliateUrl(bookingSearchUrl({ name, city, country }));
-    const scored = await cachedOsmScore(name, city, country);
-    const cosy = scored?.score10 ?? null;
-    const description = scored?.description || null;
-    const signals = scored?.signals || null;
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight">{name}</h1>
-        <div className="mt-1 text-zinc-600">{[city, country].filter(Boolean).join(', ')}</div>
-        {description && <p className="mt-3 text-sm text-zinc-700">{description}</p>}
-        {signals && signals.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {signals.slice(0, 4).map((s) => (
-              <span key={s} className="text-xs px-2.5 py-1 rounded-full border border-zinc-200 text-zinc-600 bg-zinc-50">{s}</span>
-            ))}
-          </div>
-        )}
-        <div className="mt-4 border border-zinc-200 rounded-lg p-4 bg-white" aria-label={`Cosy score ${cosy != null ? cosy.toFixed(1) : '–'} out of 10`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-zinc-600">Cosy score</div>
-              <div className="text-2xl font-semibold">{cosy != null ? cosy.toFixed(1) : '–'}<span className="text-base text-zinc-500">/10</span></div>
-            </div>
-            <span />
-          </div>
-        </div>
-        <div className="mt-5 flex items-center gap-3">
-          <a className="inline-flex items-center justify-center rounded-lg bg-[#0EA5A4] text-white !text-white no-underline px-4 py-2 hover:bg-[#0B807F]" href={`/${params.locale}/hotels`}>
-            Back to results
-          </a>
-          <div className="ml-auto flex gap-2">
-            <a className="inline-flex items-center justify-center rounded-lg bg-white text-black border border-zinc-300 px-3 py-2 hover:bg-zinc-50" href={affiliateUrl} target="_blank" rel="noopener nofollow sponsored">View on Booking</a>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const db = getServerSupabase();
   if (!db) return notFound();
@@ -257,7 +158,8 @@ export default async function HotelDetail({ params, searchParams }: Props) {
 
   // Use DB values to compose concise snippet
   const rating5 = typeof hotel.rating === 'number' ? Number(hotel.rating) / 2 : undefined;
-  const cosyDisplay = typeof cosy === 'number' ? cosy : undefined;
+  // Below the public floor (or hidden for lack of findings) = not rated: no score is shown anywhere.
+  const cosyDisplay = typeof cosy === 'number' && cosy >= 5 ? cosy : undefined;
   const cosySnippet = buildCosySnippet(params.locale, {
     city: String(hotel.city || ''),
     name: String(hotel.name),
@@ -318,11 +220,19 @@ export default async function HotelDetail({ params, searchParams }: Props) {
       )}
 
       <div className="mt-6 flex items-center gap-5 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
-        <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 76, height: 76, background: badge, color: '#16201C', fontSize: 28 }} aria-label={`Cosy score ${cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'} out of 10`}>
-          {cosyDisplay != null ? cosyDisplay.toFixed(1) : '–'}<span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', opacity: 0.8 }}>COSY</span>
-        </div>
+        {cosyDisplay != null ? (
+          <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 76, height: 76, background: badge, color: '#16201C', fontSize: 28 }} aria-label={`Cosy score ${cosyDisplay.toFixed(1)} out of 10`}>
+            {cosyDisplay.toFixed(1)}<span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', opacity: 0.8 }}>COSY</span>
+          </div>
+        ) : (
+          <div className="flex-none rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }} aria-label="Not yet rated">
+            Not yet rated<br /><span className="text-xs font-normal">insufficient data</span>
+          </div>
+        )}
         <div className="flex-1 min-w-0">
-          {(cosyDescription ?? cosySnippet) && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{cosyDescription ?? cosySnippet}</p>}
+          {cosyDisplay != null && (cosyDescription ?? cosySnippet)
+            ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{cosyDescription ?? cosySnippet}</p>
+            : cosyDisplay == null && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We haven&apos;t gathered enough guest evidence to score this hotel for cosiness yet. It will earn a score once we have real reviews or vetted photos.</p>}
         </div>
       </div>
 
