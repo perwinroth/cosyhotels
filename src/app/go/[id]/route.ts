@@ -4,19 +4,38 @@ import { type Provider, bookingSearchUrl, expediaSearchUrl, buildAffiliateUrl } 
 import { getServerSupabase } from "@/lib/supabase/server";
 // no Places usage in go redirect
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const supabase = getServerSupabase();
-  let target = "/";
+  // Fallback redirect MUST be absolute — NextResponse.redirect() throws on a relative URL (that was
+  // the 5xx: any not-found /go/* hit `redirect("/")` and 500'd).
+  const home = () => NextResponse.redirect(new URL("/", req.url), { status: 302 });
+  let target = "";
   let slug = id;
   let hotelId: string | undefined;
   if (supabase) {
     try {
-      const { data } = await supabase
+      // `id` is a hotel slug OR a uuid. Comparing a non-uuid string to the uuid `id` column errors
+      // at the DB (that 500'd /go/30121-venezia-…, an old slug), so only match id.eq for real uuids.
+      const isUuid = UUID_RE.test(id);
+      let { data } = await supabase
         .from("hotels")
         .select("id,slug,affiliate_url,website,name,city,country")
-        .or(`slug.eq.${id},id.eq.${id}`)
-        .single();
+        .or(isUuid ? `slug.eq.${id},id.eq.${id}` : `slug.eq.${id}`)
+        .maybeSingle();
+      // Old/reslugged slug? resolve via hotel_slug_redirects so the affiliate link still works.
+      if (!data && !isUuid) {
+        const { data: redir } = await supabase.from("hotel_slug_redirects").select("new_slug").eq("old_slug", id).maybeSingle();
+        if (redir?.new_slug) {
+          ({ data } = await supabase
+            .from("hotels")
+            .select("id,slug,affiliate_url,website,name,city,country")
+            .eq("slug", redir.new_slug)
+            .maybeSingle());
+        }
+      }
       if (data) {
         type Row = { id: string; slug: string; affiliate_url: string | null; website: string | null; name: string | null; city: string | null; country: string | null };
         const h = data as unknown as Row;
@@ -36,14 +55,21 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
           const base = expediaSearchUrl({ name: String(h.name || ''), city: h.city || null, country: h.country || null });
           target = buildAffiliateUrl(base, { provider: network });
         } else {
-          target = h.affiliate_url || h.website || "/";
+          target = h.affiliate_url || h.website || "";
         }
       }
-    } catch {}
+    } catch (e) {
+      console.error("go_lookup_error", e);
+    }
   }
-  if (target === "/") {
-    // If Places disabled or no website found, go home
-    return NextResponse.redirect('/', { status: 302 });
+  // No usable target (hotel not found, no website/affiliate) → home (absolute URL).
+  if (!target) return home();
+  // Absolutize the target so NextResponse.redirect never throws on a relative/malformed value.
+  let dest: URL;
+  try {
+    dest = new URL(target, req.url);
+  } catch {
+    return home();
   }
 
   // Optional: Accept provider and clickId
@@ -75,5 +101,5 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     }
   }
 
-  return NextResponse.redirect(target, { status: 302 });
+  return NextResponse.redirect(dest, { status: 302 });
 }
