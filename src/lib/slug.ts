@@ -1,5 +1,6 @@
 import slugify from "slugify";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { displayCity } from "@/lib/placeText";
 
 function cleanPart(s: string | null | undefined) {
   return slugify(String(s || "").trim(), { lower: true, strict: true });
@@ -38,7 +39,9 @@ export async function generateHotelSlug(
   opts?: { reserved?: Set<string>; exclude?: string }
 ) {
   const n = cleanPart(name);
-  const c = cleanPart(city);
+  // Slugify the CLEANED city (strips leaked postcodes/region codes, maps native→English exonym), so
+  // new slugs read "paris-…" not "75005-paris-…" and "prague-…" not "praha-praha-1-…".
+  const c = cleanPart(displayCity(city, ""));
   const k = cleanPart(country);
   let base = c ? `${c}-${n}` : n;
   if (c) {

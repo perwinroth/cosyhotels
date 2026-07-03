@@ -3,7 +3,6 @@ import { notFound, permanentRedirect } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
-import { locales } from "@/i18n/locales";
 import { buildCosySnippet } from "@/i18n/snippets";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { stay22AllezUrl } from "@/lib/affiliates";
@@ -32,11 +31,11 @@ export function generateStaticParams() {
 type Props = { params: { slug: string; locale: string } };
 
 export async function generateMetadata({ params }: { params: { slug: string; locale: string } }): Promise<Metadata> {
-  const languages = Object.fromEntries([
-    ...locales.map((l) => [l, `/${l}/hotels/${params.slug}`]),
-    ["x-default", `/en/hotels/${params.slug}`],
-  ]);
-  const url = `/${params.locale}/hotels/${params.slug}`;
+  // Hotel content (description/FAQ) is not translated per locale, so the /fr /es /de … pages are
+  // duplicate English. Point every locale's canonical at the /en page (and drop hreflang, which is
+  // only valid for genuinely translated pages) so Google consolidates ranking on /en. Reversible —
+  // restore self-canonical + hreflang if/when the content is actually localized.
+  const canonical = `/en/hotels/${params.slug}`;
   const db = getServerSupabase();
   if (db) {
     const { data: h } = await db
@@ -57,10 +56,10 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
       if (s?.description && rated) {
         description = `Cosy score ${Number(cosy).toFixed(1)}/10. ${s.description}`.slice(0, 300);
       }
-      return { title, description, alternates: { canonical: url, languages }, ...(rated ? {} : { robots: { index: false, follow: true } }) };
+      return { title, description, alternates: { canonical }, ...(rated ? {} : { robots: { index: false, follow: true } }) };
     }
   }
-  return { alternates: { canonical: url, languages } };
+  return { alternates: { canonical } };
 }
 
 // Per-hotel FAQ — natural-language Q&A for SEO rich results + GEO/AEO (answer engines lift these).
