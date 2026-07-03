@@ -32,11 +32,8 @@ export function websiteSchema() {
     name: site.name,
     description: site.description,
     publisher: { "@id": ORG_ID },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: { "@type": "EntryPoint", urlTemplate: `${site.url}/en/guides/{search_term_string}-cosy-hotel` },
-      "query-input": "required name=search_term_string",
-    },
+    // No SearchAction: we have no dedicated search-results endpoint. The old target pointed at
+    // /en/guides/{search_term_string}-cosy-hotel, which crawlers indexed as a literal garbage URL.
   };
 }
 

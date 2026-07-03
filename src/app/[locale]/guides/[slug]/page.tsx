@@ -130,6 +130,7 @@ export default async function GuidePage({ params }: Props) {
     );
   }
   let cg = getCityGuide(params.slug);
+  const fabricated = !cg; // not a curated city guide — we synthesize one below, but it must earn ≥3 live hotels or 404
   if (!cg) {
     const slug = params.slug.toLowerCase();
     // Only allow lightweight fallback for city-style slugs ending with -cosy-hotel
@@ -303,6 +304,10 @@ export default async function GuidePage({ params }: Props) {
     if (picks.length >= 12) break;
   }
   const take = picks;
+  // A fabricated (non-curated) guide with fewer than 3 live hotels is junk — e.g. the old
+  // SearchAction "{search_term_string}" template, or a slug for a place we don't really cover.
+  // 404 it rather than render a thin/empty page that Google indexes as garbage.
+  if (fabricated && picks.length < 3) notFound();
   // Prefer cached images from Supabase to avoid slow/fragile lookups; fall back to Places-based helper
   const idsForImgs = take.map(({ h }) => String(h.id));
   const imgMap = new Map<string, string>();

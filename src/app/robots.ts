@@ -9,10 +9,14 @@ export default function robots(): MetadataRoute.Robots {
     "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot-Extended", "CCBot",
     "Amazonbot", "Bytespider", "Meta-ExternalAgent", "cohere-ai", "DuckAssistBot",
   ];
+  // Non-content surfaces: API/image/badge endpoints, internal panels, and redirect/utility routes
+  // should never be indexed. (Gated pages are 401-locked in middleware, but list them too so
+  // crawlers don't waste budget on them.)
+  const disallow = ["/api/", "/growth", "/admin", "/badge-outreach", "/outreach", "/today", "/posts", "/go/", "/follow", "/grade", "/rate", "/status", "/brand"];
   return {
     rules: [
-      { userAgent: "*", allow: "/" },
-      { userAgent: aiAgents, allow: "/" },
+      { userAgent: "*", allow: "/", disallow },
+      { userAgent: aiAgents, allow: "/", disallow },
     ],
     sitemap: `${url}/sitemap.xml`,
   };

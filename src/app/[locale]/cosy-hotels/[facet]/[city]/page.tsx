@@ -76,7 +76,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
   }
 
   const top = hotels[0];
-  const intro = `${hotels.length} of the cosy hotels we've scored in ${cityName} ${facet.label} — ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score.`;
+  const intro = `We've scored ${hotels.length} cosy ${hotels.length === 1 ? "hotel" : "hotels"} ${facet.label} in ${cityName} — ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score.`;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
   const jsonLd = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${facet.label} in ${cityName}`, numberOfItems: hotels.length,
