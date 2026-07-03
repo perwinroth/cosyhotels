@@ -13,5 +13,8 @@ export function GET(req: Request) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
   revalidatePath("/", "layout"); // homepage + all locale pages and guides under it
-  return NextResponse.json({ ok: true, revalidated: true, at: Date.now() });
+  // Also refresh the split sitemaps (they're DB-driven route handlers with a daily cache) so slug/
+  // catalogue changes surface to Google promptly instead of waiting out the s-maxage.
+  for (const p of ["/sitemap.xml", "/sitemap-hotels.xml", "/sitemap-cities.xml", "/sitemap-collections.xml", "/sitemap-static.xml", "/sitemap-blog.xml"]) revalidatePath(p);
+  return NextResponse.json({ ok: true, revalidated: true, sitemaps: true, at: Date.now() });
 }
