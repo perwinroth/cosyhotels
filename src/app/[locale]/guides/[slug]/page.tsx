@@ -74,8 +74,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ...locales.map((l) => [l, `/${l}/guides/${cg.slug}`]),
         ["x-default", `/en/guides/${cg.slug}`],
       ]);
+      // WP4 index gate: a city guide with fewer than 3 live cosy hotels is thin — keep it reachable
+      // but noindex it until it has enough (so Google only indexes substantive guides).
+      let liveCount = 99;
+      try {
+        const db = getServerSupabase();
+        if (db) {
+          const { count } = await db
+            .from("cosy_scores")
+            .select("hotel_id, hotel:hotel_id!inner(city)", { count: "exact", head: true })
+            .gte("score", 5)
+            .ilike("hotel.city", `%${cg.city.replace(/\s+/g, "-")}%`);
+          liveCount = count ?? 0;
+        }
+      } catch { /* on error, default to indexable */ }
+      const thin = liveCount < 3;
       // og:image is provided by the co-located opengraph-image.tsx (dynamic 1200×630 PNG per city).
-      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary_large_image", title, description } };
+      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary_large_image", title, description }, ...(thin ? { robots: { index: false, follow: true } } : {}) };
     }
     return {};
   }
