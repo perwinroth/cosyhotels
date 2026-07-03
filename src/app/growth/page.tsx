@@ -8,6 +8,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import outreachData from "@/data/outreach.json";
 import OutreachStatus from "@/components/OutreachStatus";
 import BlogScheduleRow from "@/components/BlogScheduleRow";
+import BlogFeedback from "@/components/BlogFeedback";
 import RedditLeadStatus from "@/components/RedditLeadStatus";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
 import { gmailComposeUrl } from "@/lib/outreachTemplates";
@@ -121,6 +122,12 @@ export default async function GrowthPage() {
   // Journal release schedule (editable from any phone via the pickers below).
   const blogSchedule = await getScheduleForPanel();
   const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "");
+  // Existing per-post feedback notes (blog content lives in code, so feedback is the edit loop).
+  const blogFeedback = new Map<string, string>();
+  try {
+    const { data } = await db.from("blog_feedback").select("slug,note");
+    for (const r of (data || []) as Array<{ slug: string; note: string | null }>) if (r.note) blogFeedback.set(r.slug, r.note);
+  } catch { /* table not created yet */ }
 
   // Reddit opportunities — threads asking for cosy/boutique hotel recs (from find-reddit-threads.mjs).
   // Reply MANUALLY + genuinely; dismissed ones drop off. Empty until the finder script is run.
@@ -292,7 +299,7 @@ export default async function GrowthPage() {
           <Link href="/badge-outreach" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🏅 /badge-outreach</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Top-2.3% hotels — pitch their &quot;Rated Cosy&quot; badge for editorial backlinks.</div></Link>
         </div>
 
-        <SectionHead id="journal" icon="📝" title="Journal — release schedule" aside={`${blogSchedule.filter((b) => b.visible).length}/${blogSchedule.length} live`} how="Drip posts out over time. Per row: live = public now · scheduled = auto-publishes on its date · draft = hidden. The picker saves instantly." />
+        <SectionHead id="journal" icon="📝" title="Journal — posts & feedback" aside={`${blogSchedule.filter((b) => b.visible).length}/${blogSchedule.length} live`} how="Read each post (↗), leave feedback for me to action, and set live / scheduled / draft (live = public now · scheduled = auto-publishes on its date · draft = hidden). Everything saves instantly." />
         <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
           {blogSchedule.map((b) => (
             <div key={b.slug} style={{ padding: "10px 14px", borderTop: "1px solid #243029", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -302,6 +309,7 @@ export default async function GrowthPage() {
                 <span style={{ display: "block", fontSize: 11, color: "#6f7a72", marginTop: 2 }}>{b.eyebrow}{b.status === "scheduled" && b.publish_at ? ` · scheduled ${fmtDate(b.publish_at)}` : b.visible ? " · live" : " · hidden"}</span>
               </span>
               <BlogScheduleRow slug={b.slug} status={b.status} publishAt={b.publish_at} />
+              <BlogFeedback slug={b.slug} initial={blogFeedback.get(b.slug) || ""} />
             </div>
           ))}
         </div>
