@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ShareButton from "@/components/ShareButton";
-import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
 import { cityGuides } from "@/data/cityGuides";
@@ -15,11 +14,11 @@ import { cosyBadgeColor } from "@/lib/cosyColor";
 
 export const revalidate = 3600;
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  const { locale } = params;
-  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}`]));
+export function generateMetadata(): Metadata {
+  // Untranslated locales are duplicate English; only the root "/" homepage is indexed. Every
+  // locale homepage canonicalizes to "/" (and drops hreflang, valid only for real translations).
   return {
-    alternates: { canonical: `/${locale}`, languages },
+    alternates: { canonical: `/` },
     title: `${site.name} – ${site.tagline}`,
     description: site.description,
   };

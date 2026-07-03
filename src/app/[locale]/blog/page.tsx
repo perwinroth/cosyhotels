@@ -8,7 +8,8 @@ const TITLE = "The Got Cosy journal — cosy hotel guides, backed by data";
 const DESC = "Genuinely useful guides to cosy hotels — for solo trips, families, quiet escapes, working weeks and more — drawn from our scored dataset of 17,000+ hotels.";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  const url = `/${params.locale}/blog`;
+  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
+  const url = `/en/blog`;
   return { title: TITLE, description: DESC, alternates: { canonical: url }, openGraph: { title: TITLE, description: DESC, type: "website", url } };
 }
 

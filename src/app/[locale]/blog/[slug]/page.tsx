@@ -25,7 +25,8 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: Props): Metadata {
   const post = getBlogPost(params.slug);
   if (!post) return {};
-  const url = `/${params.locale}/blog/${post.slug}`;
+  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
+  const url = `/en/blog/${post.slug}`;
   return {
     title: post.title, description: post.dek,
     alternates: { canonical: url },

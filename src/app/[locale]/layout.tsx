@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import { site } from "@/config/site";
 import { locales } from "@/i18n/locales";
 import "../globals.css";
@@ -19,13 +20,9 @@ export const metadata: Metadata = {
       'impact-site-verification': '62d9ebe5-297e-48ad-8542-54ddc8680420',
     },
   },
-  alternates: {
-    canonical: "/",
-    languages: Object.fromEntries([
-      ...locales.map((l) => [l, `/${l}`]),
-      ["x-default", "/"],
-    ]),
-  },
+  // NB: no layout-level `alternates` — a shared canonical here is inherited by every page that
+  // doesn't set its own, so canonical-less pages (cosy-score, privacy, …) were all claiming the
+  // homepage ("/") as their canonical. Each page now sets its own self-referencing canonical.
   openGraph: {
     type: "website",
     url: "/",
@@ -45,6 +42,10 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+  // Reject unknown locales. Without this, ANY path segment (/randomjunk123, /sitemap-foo.xml,
+  // /xx/hotels/…) rendered a real 200 page, self-canonical to the junk URL — a canonical-confusion
+  // factory in Google Search Console. Only the 6 known locales render; everything else 404s.
+  if (!(locales as readonly string[]).includes(locale)) notFound();
   // NB: do NOT render <html>/<body> here — the ROOT layout (src/app/layout.tsx) owns them, along
   // with data-theme="light" and the no-flash script. A second <html> in this nested layout dropped
   // the theme attribute on client navigation (logo click flipped the site to dark). This is a

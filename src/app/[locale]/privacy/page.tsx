@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
+  // Self-referencing canonical to the /en twin (only /en is indexed).
+  alternates: { canonical: "/en/privacy" },
 };
 
 export default function PrivacyPage() {

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { locales } from "@/i18n/locales";
 import { site } from "@/config/site";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/about`]));
+export function generateMetadata(): Metadata {
   return {
-    alternates: { canonical: `/${params.locale}/about`, languages },
+    // Untranslated pages: only /en is indexed, so canonical points at the /en twin (no hreflang).
+    alternates: { canonical: `/en/about` },
     title: "About",
     description: `What ${site.name.replace(/\?$/, "")} stands for and how we score cosiness.`,
   };

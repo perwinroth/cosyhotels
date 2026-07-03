@@ -6,8 +6,12 @@ import Script from "next/script";
 import Toaster from "@/components/Toaster";
 import ThemeToggle from "@/components/ThemeToggle";
 import { organizationSchema, websiteSchema, jsonLd } from "@/lib/schema";
+import { site } from "@/config/site";
 
 export const metadata: Metadata = {
+  // The "/" and "/en" homepages render under THIS root layout (not the [locale] layout), so their
+  // relative canonicals need a metadataBase here to resolve to absolute gotcosy.com URLs.
+  metadataBase: new URL(site.url),
   title: "Get Cosy – Find cosy hotel rooms",
   description: "Curated cosy getaways.",
   other: {

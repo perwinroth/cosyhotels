@@ -76,7 +76,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const title = `We scored ${TOTAL.toLocaleString("en-GB")} hotels for cosiness. Only ${COSY_N} made the cut.`;
   const description = `A data study of ${REVIEWS.toLocaleString("en-GB")} guest reviews: cosiness is rare (${COSY_PCT}% of hotels), star ratings can't predict it, and a fireplace is its strongest single signal.`;
-  const url = `/${locale}/cosiness-report`;
+  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
+  const url = `/en/cosiness-report`;
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary_large_image", title, description } };
 }
 

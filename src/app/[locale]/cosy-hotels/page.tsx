@@ -8,7 +8,8 @@ import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 export const revalidate = 3600;
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  const url = `/${params.locale}/cosy-hotels`;
+  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
+  const url = `/en/cosy-hotels`;
   const title = "Cosy hotels — browse by theme and country";
   const description = "Find genuinely cosy hotels by what makes them cosy — a fireplace, a spa, boutique character, a view — or by country. Every hotel AI-scored 0–10 for warmth and character.";
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };

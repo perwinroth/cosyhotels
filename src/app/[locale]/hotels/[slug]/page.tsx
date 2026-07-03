@@ -14,6 +14,7 @@ import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { cityToSlug } from "@/lib/citySlug";
 import { displayCity, displayCountry } from "@/lib/placeText";
 import { FACETS, matchesFacet } from "@/lib/facets";
+import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/components/HotelGraph";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
@@ -35,6 +36,9 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
   // duplicate English. Point every locale's canonical at the /en page (and drop hreflang, which is
   // only valid for genuinely translated pages) so Google consolidates ranking on /en. Reversible —
   // restore self-canonical + hreflang if/when the content is actually localized.
+  // Malformed/placeholder slugs (e.g. %7Bsearch_term_string%7D, undefined) must never render an
+  // indexable page — the body 404s them, so metadata stays noindex and skips the DB round-trip.
+  if (isMalformedSlug(params.slug)) return { robots: { index: false, follow: false } };
   const canonical = `/en/hotels/${params.slug}`;
   const db = getServerSupabase();
   if (db) {
@@ -120,6 +124,7 @@ export default async function HotelDetail({ params }: Props) {
   // Live OSM/Amadeus detail paths are retired — they served junk, scored per-visitor (cost),
   // and broke consistency. Only persisted, pre-scored Supabase hotels are served now.
   if (params.slug.startsWith('osm-') || params.slug.startsWith('am-')) return notFound();
+  if (isMalformedSlug(params.slug)) return notFound();
 
   const db = getServerSupabase();
   if (!db) return notFound();

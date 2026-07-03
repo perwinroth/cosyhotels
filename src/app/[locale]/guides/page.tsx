@@ -3,18 +3,17 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { guides } from "@/data/guides";
 import { cityGuides } from "@/data/cityGuides";
-import { locales } from "@/i18n/locales";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityPin } from "@/lib/social";
 import { cityCopy } from "@/data/cityCopy";
 
 export const revalidate = 3600;
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/guides`]));
+export function generateMetadata(): Metadata {
   const title = "Cosy hotel guides — find a cosy stay, city by city";
   const description = "Hand-picked, AI-scored cosy hotels in the world's most characterful cities — boutique, independent and romantic stays, ranked 0–10 for warmth and character.";
-  return { alternates: { canonical: `/${params.locale}/guides`, languages }, title, description, openGraph: { title, description, type: "website" } };
+  // Untranslated pages: only /en is indexed, so canonical points at the /en twin (no hreflang).
+  return { alternates: { canonical: `/en/guides` }, title, description, openGraph: { title, description, type: "website" } };
 }
 
 export default async function GuidesIndex({ params }: { params: { locale: string } }) {

@@ -29,7 +29,8 @@ async function liveCount(slug: string): Promise<number> {
 export async function generateMetadata({ params }: { params: { locale: string; country: string } }): Promise<Metadata> {
   const country = countryBySlug(params.country);
   if (!country) return {};
-  const url = `/${params.locale}/cosy-hotels/in/${country.slug}`;
+  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
+  const url = `/en/cosy-hotels/in/${country.slug}`;
   const title = `Cosy hotels in ${country.name} — AI-ranked for cosiness`;
   const description = `The cosiest boutique and independent hotels in ${country.name}, each AI-scored 0–10 for warmth, character and intimacy — ranked best first, not by stars.`;
   const thin = (await liveCount(country.slug)) < HUB_MIN;

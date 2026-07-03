@@ -12,7 +12,8 @@ const TITLE = "How to make your hotel look cosy online — what 17,000 hotels ta
 const DESC = "We analysed photos from 17,000+ hotels. Here's exactly which images make a hotel look cosy — and which quietly make it look cold — with real before/after examples. A practical guide for hoteliers.";
 
 export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  const url = `/${params.locale}/make-your-hotel-look-cosy`;
+  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
+  const url = `/en/make-your-hotel-look-cosy`;
   return { title: TITLE, description: DESC, alternates: { canonical: url }, openGraph: { title: TITLE, description: DESC, type: "article", url }, twitter: { card: "summary_large_image", title: TITLE, description: DESC } };
 }
 

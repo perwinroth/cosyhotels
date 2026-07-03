@@ -54,7 +54,8 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   const cityName = resolveCity(params.city);
   const title = `Cosy hotels ${facet.label} in ${cityName}`;
   const description = `AI-ranked cosy hotels ${facet.label} in ${cityName} — scored 0–10 for warmth and character, with real photos and honest cosy scores.`;
-  const url = `/${params.locale}/cosy-hotels/${params.facet}/${params.city}`;
+  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
+  const url = `/en/cosy-hotels/${params.facet}/${params.city}`;
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };
 }
 

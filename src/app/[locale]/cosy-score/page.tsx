@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Cosy score explained",
   description: "How we estimate the coziness of hotels.",
+  // Self-referencing canonical to the /en twin (only /en is indexed). Without this the page
+  // inherited no canonical and Google left it "duplicate without user-selected canonical".
+  alternates: { canonical: "/en/cosy-score" },
 };
 
 export default function CosyScorePage() {

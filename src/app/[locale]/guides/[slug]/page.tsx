@@ -8,13 +8,13 @@ import ShareButton from "@/components/ShareButton";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { populatedCities } from "@/lib/social";
 import { FACETS, matchesFacet } from "@/lib/facets";
+import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
-import { locales } from "@/i18n/locales";
 import { bboxFor } from "@/data/cityCoords";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { cosyBadgeColor } from "@/lib/cosyColor";
@@ -61,6 +61,7 @@ function cityFaqs(city: string, opts?: { count?: number; topName?: string; topSc
 // Strip leading postcode noise from polluted OSM city values ("211 21 Malmö" -> "Malmö").
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  if (isMalformedSlug(params.slug)) return { robots: { index: false, follow: false } };
   const g = getGuide(params.slug);
   if (!g) {
     const cg = getCityGuide(params.slug);
@@ -69,11 +70,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const descBase = `The cosiest boutique hotels in ${cg.city}, each AI-scored 0–10 for warmth, character and intimacy — ranked best first. Cosy, romantic and independent stays, not corporate chains.`;
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
-      const url = `/${params.locale}/guides/${cg.slug}`;
-      const languages = Object.fromEntries([
-        ...locales.map((l) => [l, `/${l}/guides/${cg.slug}`]),
-        ["x-default", `/en/guides/${cg.slug}`],
-      ]);
+      // Only /en is indexed (body is English hotel data; title/excerpt are machine-translated).
+      // Canonicalize every locale to the /en twin — this agrees with the canonical Google already
+      // picks for these near-duplicate pages — and drop hreflang (valid only for real translations).
+      const url = `/en/guides/${cg.slug}`;
       // WP4 index gate: a city guide with fewer than 3 live cosy hotels is thin — keep it reachable
       // but noindex it until it has enough (so Google only indexes substantive guides).
       let liveCount = 99;
@@ -90,27 +90,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       } catch { /* on error, default to indexable */ }
       const thin = liveCount < 3;
       // og:image is provided by the co-located opengraph-image.tsx (dynamic 1200×630 PNG per city).
-      return { title, description, alternates: { canonical: url, languages }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary_large_image", title, description }, ...(thin ? { robots: { index: false, follow: true } } : {}) };
+      return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary_large_image", title, description }, ...(thin ? { robots: { index: false, follow: true } } : {}) };
     }
-    return {};
+    // Fabricated (non-curated) guide. If it survives the ≥3-live-hotels body guard it renders 200,
+    // so give it a self-referencing /en canonical and noindex it — it's an auto-generated doorway
+    // page: useful to visitors, but not something we want Google to index as thin content.
+    return { alternates: { canonical: `/en/guides/${params.slug}` }, robots: { index: false, follow: true } };
   }
-  const url = `/${params.locale}/guides/${g.slug}`;
-  const languages = Object.fromEntries([
-    ...locales.map((l) => [l, `/${l}/guides/${g.slug}`]),
-    ["x-default", `/en/guides/${g.slug}`],
-  ]);
+  // Only /en is indexed; canonicalize every locale to the /en twin (no hreflang).
+  const url = `/en/guides/${g.slug}`;
   const title = params.locale === 'en' ? g.title : await translate(g.title, params.locale);
   const description = params.locale === 'en' ? g.excerpt : await translate(g.excerpt, params.locale);
   return {
     title,
     description,
-    alternates: { canonical: url, languages },
+    alternates: { canonical: url },
     openGraph: { title, description, type: "article", url },
     twitter: { card: "summary", title, description },
   };
 }
 
 export default async function GuidePage({ params }: Props) {
+  if (isMalformedSlug(params.slug)) notFound();
   const g = getGuide(params.slug);
   if (g) {
     const title = params.locale === 'en' ? g.title : await translate(g.title, params.locale);

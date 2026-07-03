@@ -66,7 +66,8 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   if (!facet) return {};
   const res = await loadFacet(params.facet);
   const n = res?.hotels.length ?? 0;
-  const url = `/${params.locale}/cosy-hotels/${facet.slug}`;
+  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
+  const url = `/en/cosy-hotels/${facet.slug}`;
   const title = `Cosy hotels ${facet.label} — AI-ranked worldwide`;
   const description = `The cosiest hotels ${facet.label}, from around the world — each AI-scored 0–10 for warmth and character, ranked best first.`;
   return {

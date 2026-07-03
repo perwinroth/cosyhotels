@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { locales } from "@/i18n/locales";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  const languages = Object.fromEntries(locales.map((l) => [l, `/${l}/contact`]));
+export function generateMetadata(): Metadata {
   return {
-    alternates: { canonical: `/${params.locale}/contact`, languages },
+    // Untranslated pages: only /en is indexed, so canonical points at the /en twin (no hreflang).
+    alternates: { canonical: `/en/contact` },
     title: "Contact",
     description: "How to reach Cosy Hotel Room for questions and feedback.",
   };
