@@ -53,7 +53,7 @@
   ],
   "cosiest-hotels-for-a-quiet-escape": [
     {
-      "slug": "605-0824-kyokoyado-yasaka-yutone",
+      "slug": "japan-kyokoyado-yasaka-yutone",
       "name": "Kyokoyado Yasaka Yutone",
       "city": "",
       "country": "Japan",
@@ -163,7 +163,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Leon%27s+Place&address=Rome%2C+Italy&lat=41.9079747&lng=12.4995868"
     },
     {
-      "slug": "72297-seewald-hotel-konradshof-3",
+      "slug": "seewald-hotel-konradshof",
       "name": "Hotel Konradshof",
       "city": "Seewald",
       "country": "Germany",
@@ -205,7 +205,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hidatakayama+Futarishizuka+Hakuun&address=Takayama%2C+Japan&lat=36.1399758&lng=137.2625803"
     },
     {
-      "slug": "180-00-praha-8-strizkov-hotel-svatojansky-dvur-2",
+      "slug": "prague-hotel-svatojansky-dvur",
       "name": "Hotel Svatojánský Dvůr",
       "city": "Praha",
       "country": "Czechia",
@@ -215,7 +215,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hotel+Svatoj%C3%A1nsk%C3%BD+Dv%C5%AFr&address=Praha%2C+Czechia&lat=50.1250563&lng=14.4830696"
     },
     {
-      "slug": "51100-reims-la-demeure-des-sacres-4",
+      "slug": "reims-la-demeure-des-sacres",
       "name": "LA DEMEURE DES SACRES",
       "city": "Reims",
       "country": "France",
@@ -275,7 +275,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=H%C3%B4tel+Particulier+Montmartre&address=Paris%2C+France&lat=48.888158&lng=2.3355125"
     },
     {
-      "slug": "5020-salzburg-hotel-pension-frauenschuh",
+      "slug": "austria-salzburg-hotel-pension-frauenschuh",
       "name": "Hotel Pension Frauenschuh",
       "city": "Salzburg",
       "country": "Austria",
@@ -367,7 +367,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Novecento+Boutique+Hotel&address=Venice%2C+Italy&lat=45.4323817&lng=12.3312206"
     },
     {
-      "slug": "600-8437-kyokoyado-muromachi-yutone-2",
+      "slug": "japan-kyokoyado-muromachi-yutone",
       "name": "Kyokoyado Muromachi Yutone",
       "city": "",
       "country": "Japan",
@@ -387,7 +387,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=HOTEL+RURAL+3+CABOS&address=Asturias%2C+Spain&lat=43.5161353&lng=-6.5881466"
     },
     {
-      "slug": "605-0046-azukiya-2",
+      "slug": "japan-azukiya",
       "name": "Azukiya",
       "city": "",
       "country": "Japan",
