@@ -8,8 +8,10 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import outreachData from "@/data/outreach.json";
 import OutreachStatus from "@/components/OutreachStatus";
 import BlogScheduleRow from "@/components/BlogScheduleRow";
+import RedditLeadStatus from "@/components/RedditLeadStatus";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
 import { gmailComposeUrl } from "@/lib/outreachTemplates";
+import { cityToSlug } from "@/lib/citySlug";
 
 type OutreachItem = { id: string; outlet: string; type: string; fit: string; email: string; contactRoute: string; region: string; notes: string; status: string; rec?: string };
 const outreach = outreachData as OutreachItem[];
@@ -97,6 +99,15 @@ export default async function GrowthPage() {
   // Journal release schedule (editable from any phone via the pickers below).
   const blogSchedule = await getScheduleForPanel();
   const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "");
+
+  // Reddit opportunities — threads asking for cosy/boutique hotel recs (from find-reddit-threads.mjs).
+  // Reply MANUALLY + genuinely; dismissed ones drop off. Empty until the finder script is run.
+  type RedditLead = { id: string; subreddit: string | null; title: string | null; url: string; snippet: string | null; city: string | null; status: string };
+  let redditLeads: RedditLead[] = [];
+  try {
+    const { data } = await db.from("reddit_leads").select("id,subreddit,title,url,snippet,city,status").neq("status", "dismissed").order("found_at", { ascending: false }).limit(120);
+    redditLeads = (data || []) as RedditLead[];
+  } catch { /* table not created yet */ }
 
   return (
     <div style={{ minHeight: "100vh", background: "#0F1512", color: "#F3EEE6", fontFamily: "Inter, system-ui, sans-serif", padding: "32px 20px" }}>
@@ -193,6 +204,29 @@ export default async function GrowthPage() {
             </div>
           ))}
         </div>
+
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Reddit opportunities <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {redditLeads.length} open{redditLeads.filter((r) => r.status === "new").length ? ` · ${redditLeads.filter((r) => r.status === "new").length} new` : ""}</span></h2>
+        <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 6 }}>Threads asking for cosy/boutique hotel recs in cities we cover. <strong style={{ color: "#D8B25A" }}>Reply manually + genuinely</strong> — never drop a bare link or the same message twice (that&apos;s how you get banned). One helpful reply that happens to mention our guide. Run <code>node --env-file=.env.local scripts/find-reddit-threads.mjs --execute</code> to refresh.</p>
+        {redditLeads.length === 0 ? (
+          <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 8 }}>No leads yet — run the finder script above.</p>
+        ) : (
+          <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
+            {redditLeads.map((r) => (
+              <div key={r.id} style={{ padding: "10px 14px", borderTop: "1px solid #243029" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <a href={r.url} target="_blank" rel="noreferrer" style={{ color: "#F3EEE6", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>{r.title || r.url} ↗</a>
+                  <RedditLeadStatus id={r.id} status={r.status} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 4, fontSize: 11.5, color: "#6f7a72" }}>
+                  {r.subreddit && <span style={{ border: "1px solid #243029", borderRadius: 5, padding: "1px 6px" }}>r/{r.subreddit}</span>}
+                  {r.city && <span style={{ border: "1px solid #243029", borderRadius: 5, padding: "1px 6px" }}>{r.city}</span>}
+                  {r.city && <a href={`/en/guides/${cityToSlug(r.city)}`} target="_blank" rel="noreferrer" style={{ color: "#7FB4FF" }}>reply with {r.city} guide ↗</a>}
+                </div>
+                {r.snippet && <div style={{ color: "#9DA89F", fontSize: 12.5, marginTop: 4 }}>{r.snippet}</div>}
+              </div>
+            ))}
+          </div>
+        )}
 
         <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>External analytics — the numbers that matter</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginTop: 12 }}>
