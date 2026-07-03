@@ -1,7 +1,7 @@
 // Outreach pitch templates keyed by `fit`, and a Gmail-compose deep link builder.
 // Shared by the /growth panel (one-tap "Draft in Gmail") and the local command centre so the
-// copy stays identical. The link opens Gmail with to/subject/body pre-filled — you review & send
-// from your own address (replies thread back to you); nothing is auto-sent.
+// copy stays identical. The link opens Gmail (in the gotcosy@gmail.com account) with to/subject/body
+// pre-filled — you review & send from per@gotcosy.com (the default Send-As); nothing is auto-sent.
 const SITE = "https://gotcosy.com";
 type Pitch = { subject: string; body: string };
 
@@ -25,8 +25,12 @@ export const TEMPLATES: Record<string, (outlet: string) => Pitch> = {
 };
 
 // Gmail compose deep link (mobile + desktop): opens a pre-filled, editable draft you send yourself.
+// Compose opens in the gotcosy@gmail.com account, where per@gotcosy.com is the default "Send As"
+// alias — so the outgoing From is per@gotcosy.com (Gmail compose URLs can't set From directly, only
+// the account). Requires being signed into gotcosy@gmail.com in that browser.
+const GMAIL_ACCOUNT = "gotcosy@gmail.com";
 export function gmailComposeUrl(row: { email?: string; outlet: string; fit: string }): string {
   const t = (TEMPLATES[row.fit] || TEMPLATES["data-study"])(row.outlet);
   const p = new URLSearchParams({ view: "cm", fs: "1", to: row.email || "", su: t.subject, body: t.body });
-  return "https://mail.google.com/mail/?" + p.toString();
+  return `https://mail.google.com/mail/u/${GMAIL_ACCOUNT}/?` + p.toString();
 }
