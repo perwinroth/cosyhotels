@@ -31,10 +31,16 @@ function isVisible(row: BlogScheduleRow | undefined, now: number): boolean {
   return false;
 }
 
-/** Public journal posts, filtered by the schedule. Fail-open (all posts) on DB error/missing. */
-export async function getVisibleBlogPosts(): Promise<BlogPost[]> {
+/**
+ * Public journal posts, filtered by the schedule.
+ * - Default (fail-OPEN): on DB error/missing schedule, returns ALL posts — used by the rendered
+ *   pages so a DB hiccup can never blank the blog or 404 a live post.
+ * - `failClosed` (fail-CLOSED): on DB error, returns [] — used by the sitemap so an outage can never
+ *   leak unreleased draft posts into the sitemap.
+ */
+export async function getVisibleBlogPosts(failClosed = false): Promise<BlogPost[]> {
   const schedule = await fetchSchedule();
-  if (!schedule) return BLOG_POSTS;
+  if (!schedule) return failClosed ? [] : BLOG_POSTS;
   const now = Date.now();
   return BLOG_POSTS.filter((p) => isVisible(schedule.get(p.slug), now));
 }

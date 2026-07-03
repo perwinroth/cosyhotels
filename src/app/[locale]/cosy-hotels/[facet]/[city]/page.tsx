@@ -5,47 +5,24 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
-import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
+import { cityToSlug } from "@/lib/citySlug";
 import { stay22AllezUrl } from "@/lib/affiliates";
-import { facetBySlug, matchesFacet } from "@/lib/facets";
+import { facetBySlug } from "@/lib/facets";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
+import { loadCityCosyHotels, facetHotels, resolveCity } from "@/lib/seo/cityHotels";
 
 export const revalidate = 3600;
 
-type Row = { hotel_id: string; score: number | null; score_final: number | null; signals: string[] | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat?: number | null; lng?: number | null } | null };
-
-function resolveCity(slug: string): string {
-  return cityFromSlug(`${slug}-cosy-hotel`) || slug.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
-}
-
+// Hotels + city resolution come from the shared loadCityCosyHotels (see src/lib/seo/cityHotels.ts)
+// so the sitemap and this page apply IDENTICAL dedup/isLatin/city-match rules and never disagree
+// on the ≥2 threshold.
 async function load(facetSlug: string, citySlug: string) {
   const facet = facetBySlug(facetSlug);
   if (!facet) return null;
-  const db = getServerSupabase();
-  if (!db) return null;
-  const cityName = resolveCity(citySlug);
-  const cityMatch = cityName.replace(/\s+/g, "-"); // hyphenated form matches stored city values
-  const { data } = await db
-    .from("cosy_scores")
-    .select("hotel_id, score, score_final, signals, description, hotel:hotel_id!inner(slug, name, name_en, city, country, lat, lng)")
-    .gte("score", 5)
-    .ilike("hotel.city", `%${cityMatch}%`)
-    .order("score", { ascending: false })
-    .limit(80);
-
-  const seen = new Set<string>();
-  const hotels: Array<{ id: string; slug: string; name: string; city: string; country: string; score: number; snippet: string; lat: number | null; lng: number | null }> = [];
-  for (const r of (data || []) as unknown as Row[]) {
-    const h = r.hotel; if (!h || !r.hotel_id) continue;
-    const name = String(h.name_en || h.name || "").trim();
-    if (!name || !isLatin(name) || seen.has(name)) continue;
-    if (!matchesFacet(facet, r.signals, r.description)) continue;
-    seen.add(name);
-    hotels.push({ id: String(r.hotel_id), slug: h.slug, name, city: displayCity(h.city, cityName), country: displayCountry(h.country), score: Number((r.score_final ?? r.score) || 0), snippet: r.description || "", lat: h.lat ?? null, lng: h.lng ?? null });
-  }
-  return { facet, cityName, hotels };
+  const res = await loadCityCosyHotels(citySlug);
+  if (!res) return null;
+  return { facet, cityName: res.cityName, hotels: facetHotels(facet, res.hotels) };
 }
 
 export async function generateMetadata({ params }: { params: { locale: string; facet: string; city: string } }): Promise<Metadata> {

@@ -72,8 +72,7 @@ const TOP_PHOTOS = [
   { name: "The Inn at Antietam", city: "Sharpsburg, USA", score: 7.5, photo: "https://images.squarespace-cdn.com/content/v1/5e9dead28e022e5d445a86bd/1587428349051-I89SCLZJNP8KOCZQYNBX/Inn_fullhouse3.jpg" },
 ];
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
-  const { locale } = await params;
+export async function generateMetadata(): Promise<Metadata> {
   const title = `We scored ${TOTAL.toLocaleString("en-GB")} hotels for cosiness. Only ${COSY_N} made the cut.`;
   const description = `A data study of ${REVIEWS.toLocaleString("en-GB")} guest reviews: cosiness is rare (${COSY_PCT}% of hotels), star ratings can't predict it, and a fireplace is its strongest single signal.`;
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.

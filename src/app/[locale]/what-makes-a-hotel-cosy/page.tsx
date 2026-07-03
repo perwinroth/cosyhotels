@@ -12,7 +12,7 @@ export const revalidate = 86400;
 const TITLE = "What makes a hotel cosy? We scored 17,727 to find out";
 const DESC = "An AI analysis of 17,727 hotels for cosiness — and the surprising answer: stars barely move it. Independent ownership, small scale, and warm rooms do. With the data.";
 
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
+export function generateMetadata(): Metadata {
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/what-makes-a-hotel-cosy`;
   return { title: TITLE, description: DESC, alternates: { canonical: url }, openGraph: { title: TITLE, description: DESC, type: "article", url }, twitter: { card: "summary_large_image", title: TITLE, description: DESC } };

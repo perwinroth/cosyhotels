@@ -15,7 +15,7 @@ const DESC = "An AI-scored ranking of the world's cosiest hotels — rated 0–1
 // empty the page the way a hard-coded 8.0 did.
 const INDEX_MIN = 7.0; // "makes the Index" — the standout tier
 
-export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-index`;
   return { title: TITLE, description: DESC, alternates: { canonical: url }, openGraph: { title: TITLE, description: DESC, type: "website", url }, twitter: { card: "summary_large_image", title: TITLE, description: DESC } };
