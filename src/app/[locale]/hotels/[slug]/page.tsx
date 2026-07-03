@@ -13,6 +13,7 @@ import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { cityToSlug } from "@/lib/citySlug";
+import { displayCity, displayCountry } from "@/lib/placeText";
 import { FACETS, matchesFacet } from "@/lib/facets";
 import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/components/HotelGraph";
 
@@ -47,7 +48,7 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
       const title = `${h.name} | ${site.name}`;
       // Unique, review-grounded meta description per hotel (SEO/AEO) — the same one-sentence
       // description shown on the page; falls back to location only if the hotel has none.
-      let description = [h.city, h.country].filter(Boolean).join(", ") || "Cosy boutique stay.";
+      let description = [displayCity(h.city as string | null, ""), displayCountry(h.country as string | null)].filter(Boolean).join(", ") || "Cosy boutique stay.";
       const { data: s } = await db.from("cosy_scores").select("description,score,score_final").eq("hotel_id", h.id).maybeSingle();
       const cosy = (s?.score_final as number | null) ?? (s?.score as number | null) ?? null;
       // Unrated / hidden hotels (no review-grounded score above the public floor) stay reachable
@@ -145,16 +146,20 @@ export default async function HotelDetail({ params }: Props) {
   const cosyDescription = (scoreRow?.description as string | null) ?? null;
 
   // ——— WP2: build the internal-linking graph (same-city hotels + safe collection links) ———
-  const cityName = String(hotel.city || "").trim();
+  // cityRaw = the messy stored value (used ONLY to match same-city peers, which share it);
+  // cityName = the cleaned display name (postcode/region/native-name junk removed) used for every
+  // user-facing string AND for slugs, so links point at the real city guide, not a junk 404.
+  const cityRaw = String(hotel.city || "").trim();
+  const cityName = displayCity(cityRaw, "");
   const citySlugBase = cityName ? cityToSlug(cityName).replace(/-cosy-hotel$/, "") : "";
   let sameCity: MiniHotel[] = [];
   const collectionLinks: LinkItem[] = [];
-  if (cityName) {
+  if (cityRaw) {
     const { data: peers } = await db
       .from("cosy_scores")
       .select("score,score_final,signals,description,hotel:hotel_id!inner(slug,name,name_en,city)")
       .gte("score", 5)
-      .eq("hotel.city", cityName)
+      .eq("hotel.city", cityRaw)
       .neq("hotel_id", hotel.id)
       .order("score", { ascending: false })
       .limit(40);
@@ -189,7 +194,7 @@ export default async function HotelDetail({ params }: Props) {
   // Below the public floor (or hidden for lack of findings) = not rated: no score is shown anywhere.
   const cosyDisplay = typeof cosy === 'number' && cosy >= 5 ? cosy : undefined;
   const cosySnippet = buildCosySnippet(params.locale, {
-    city: String(hotel.city || ''),
+    city: cityName,
     name: String(hotel.name),
     rating: rating5,
     reviewsCount: (typeof hotel.reviews_count === 'number' ? hotel.reviews_count : undefined),
@@ -214,13 +219,13 @@ export default async function HotelDetail({ params }: Props) {
     name: String(hotel.name),
     description: cosyDescription ?? undefined,
     image: photo ?? undefined,
-    address: { "@type": "PostalAddress", addressLocality: String(hotel.city || ""), addressCountry: String(hotel.country || "") },
+    address: { "@type": "PostalAddress", addressLocality: cityName, addressCountry: displayCountry(String(hotel.country || "")) },
     ...(rating5 != null ? { aggregateRating: { "@type": "AggregateRating", ratingValue: Number(rating5.toFixed(1)), bestRating: 5, worstRating: 1, ...(typeof hotel.reviews_count === 'number' && hotel.reviews_count > 0 ? { ratingCount: hotel.reviews_count } : {}) } } : {}),
     url: `${site.url}/${params.locale}/hotels/${hotel.slug}`,
   };
   const breadcrumbJsonLd = breadcrumbSchema([
     { name: "Cosy hotel guides", url: `/${params.locale}/guides` },
-    ...(hotel.city ? [{ name: String(hotel.city), url: `/${params.locale}/guides/${cityToSlug(String(hotel.city))}` }] : []),
+    ...(cityName ? [{ name: cityName, url: `/${params.locale}/guides/${cityToSlug(cityName)}` }] : []),
     { name: String(hotel.name), url: `/${params.locale}/hotels/${hotel.slug}` },
   ]);
   const cityGuideHref = `/${params.locale}/guides/${cityToSlug(cityName || "")}`;
@@ -237,7 +242,7 @@ export default async function HotelDetail({ params }: Props) {
   const bespoke = (hotelFaqData as Record<string, { q: string; a: string }[]>)[String(hotel.id)];
   const faqs = bespoke?.length
     ? bespoke
-    : hotelFaqs({ name: String(hotel.name), city: String(hotel.city || ''), country: String(hotel.country || ''), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null, amenities: Array.isArray(hotel.amenities) ? (hotel.amenities as string[]) : [] });
+    : hotelFaqs({ name: String(hotel.name), city: cityName, country: displayCountry(String(hotel.country || '')), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null, amenities: Array.isArray(hotel.amenities) ? (hotel.amenities as string[]) : [] });
   const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -247,14 +252,14 @@ export default async function HotelDetail({ params }: Props) {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>
-          <div className="mt-1.5 text-base" style={{ color: 'var(--muted)' }}>{[hotel.city, hotel.country].filter(Boolean).join(', ')}</div>
+          <div className="mt-1.5 text-base" style={{ color: 'var(--muted)' }}>{[cityName, displayCountry(String(hotel.country || ''))].filter(Boolean).join(', ')}</div>
         </div>
-        <div className="flex-none pt-1"><ShareButton title={`${hotel.name} — cosy hotel in ${hotel.city || ''}`} /></div>
+        <div className="flex-none pt-1"><ShareButton title={`${hotel.name} — cosy hotel${cityName ? ` in ${cityName}` : ''}`} /></div>
       </div>
 
       {photo && (
         <div className="relative mt-5 w-full overflow-hidden rounded-2xl" style={{ aspectRatio: "16/9", border: "1px solid var(--line)" }}>
-          <Image src={photo} alt={`${hotel.name} — ${hotel.city || ''}`} fill className="object-cover" sizes="(max-width:768px) 100vw, 768px" quality={70} unoptimized={/^https?:\/\//.test(photo)} />
+          <Image src={photo} alt={`${hotel.name}${cityName ? ` — ${cityName}` : ''}`} fill className="object-cover" sizes="(max-width:768px) 100vw, 768px" quality={70} unoptimized={/^https?:\/\//.test(photo)} />
         </div>
       )}
 
@@ -277,7 +282,7 @@ export default async function HotelDetail({ params }: Props) {
 
       <div className="mt-6 flex items-center gap-3">
         <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName ? cityGuideHref : `/${params.locale}/guides`}>← {cityName ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
-        <a className="ml-auto rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={String(hotel.name)} data-city={String(hotel.city || '')}>Check availability</a>
+        <a className="ml-auto rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={String(hotel.name)} data-city={cityName}>Check availability</a>
       </div>
 
       <HotelGraph city={cityName} cityLabel={cityName} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinks} extra={graphExtra} />

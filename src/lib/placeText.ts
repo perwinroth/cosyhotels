@@ -16,6 +16,18 @@ const COUNTRY_EN: Record<string, string> = {
   "portugal": "Portugal", "україна": "Ukraine",
 };
 
+// Native/local city names → the English exonym we display site-wide (consistency + matches our
+// city guides, e.g. so "Praha 1-Staré Město" resolves to the real Prague guide, not a junk slug).
+const CITY_EN: Record<string, string> = {
+  praha: "Prague", praga: "Prague", firenze: "Florence", venezia: "Venice", roma: "Rome",
+  milano: "Milan", torino: "Turin", napoli: "Naples", genova: "Genoa", "köln": "Cologne",
+  "münchen": "Munich", wien: "Vienna", sevilla: "Seville", bruxelles: "Brussels", brussel: "Brussels",
+  brugge: "Bruges", "københavn": "Copenhagen", lisboa: "Lisbon", "reykjavík": "Reykjavik",
+  "krung thep maha nakhon": "Bangkok", "athína": "Athens", "wien-innere stadt": "Vienna",
+};
+// Sub-national codes that leak into the city field after a postcode ("Sydney NSW 2000" → "Sydney").
+const REGION_CODE = new Set(["nsw", "vic", "qld", "wa", "sa", "tas", "act", "nt"]);
+
 // "Mostly Latin script" — has Latin letters and no CJK/Cyrillic/Thai/Korean/Arabic blocks.
 export function isLatin(s: string): boolean {
   return /[A-Za-z]/.test(s) && !/[　-鿿가-힯Ѐ-ӿ฀-๿؀-ۿ]/.test(s);
@@ -34,13 +46,22 @@ export function displayCountry(c?: string | null): string {
 export function displayCity(city?: string | null, fallback = ""): string {
   if (!city) return fallback;
   let t = city.replace(/^[\d\s.,\-–]+/, "").trim();     // strip leading postal code / numbers
-  // Strip trailing postcode tokens: "London SW1X 8HQ" → "London", "Lào Cai 330000" → "Lào Cai".
-  // Cities don't carry digits, so any digit-bearing trailing token is postal noise.
+  t = t.replace(/^chang wat\s+/i, "");                  // Thai "Province of X" prefix → "X"
+  // Strip trailing postcode + sub-national-code tokens: "London SW1X 8HQ" → "London",
+  // "Sydney NSW 2000" → "Sydney". Cities don't carry digits, so any digit-bearing trailing token is
+  // postal noise; a trailing region code (NSW, VIC…) is admin noise.
   const toks = t.split(/\s+/).filter(Boolean);
-  while (toks.length > 1 && /\d/.test(toks[toks.length - 1])) toks.pop();
+  while (toks.length > 1 && (/\d/.test(toks[toks.length - 1]) || REGION_CODE.has(toks[toks.length - 1].toLowerCase().replace(/[.,]/g, "")))) toks.pop();
   t = toks.join(" ").replace(/[\s,]+$/, "").trim();
+  // English exonym: whole-string ("Krung Thep Maha Nakhon" → "Bangkok"), else first segment before a
+  // district hyphen/space ("Praha 1-Staré Město" / "Praha-Praha 1" → "Prague"). Keys are specific
+  // native names, so an English city like "New York" (first seg "New") never mis-maps.
+  const whole = CITY_EN[t.toLowerCase()];
+  if (whole) return whole;
+  const firstSeg = (t.split(/[\s\-–,]/).filter(Boolean)[0] || "").toLowerCase();
+  if (CITY_EN[firstSeg]) return CITY_EN[firstSeg];
   if (!t || /\d{3,}/.test(t)) return fallback;          // still postal-like
-  if (/(^|\s)(u|út|str|stra(ss|ß)e|rd|ave|st|blvd|via|rue)\.?$/i.test(t)) return fallback; // a street, not a city → drop
+  if (/(^|\s)(u|út|str|stra(ss|ß)e|rd|ave|st|blvd|via|rue|rkp)\.?$/i.test(t)) return fallback; // a street, not a city → drop
   if (!isLatin(t)) return fallback;                     // non-Latin city → use fallback
   return t;
 }
