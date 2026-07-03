@@ -37,7 +37,7 @@ export function middleware(req: NextRequest) {
 
   // Gate the internal PAGE dashboards (/growth, /admin, locale variants). Unlock once with
   // ?key=<PANEL_KEY>; we set an httpOnly cookie so it sticks. noindex is not a lock. Fail-closed.
-  if (/^\/(?:[a-z]{2}\/)?(?:growth|admin)(?:\/|$)/.test(path)) {
+  if (/^\/(?:[a-z]{2}\/)?(?:growth|admin|badge-outreach)(?:\/|$)/.test(path)) {
     if (PANEL && key === PANEL) {
       const clean = new URL(req.url);
       clean.searchParams.delete("key");
