@@ -142,6 +142,7 @@ export default async function GrowthPage() {
   // Jump menu (matches page order). ⚡📝✉️👽🧰 = things you DO · 🔍📊📦📈 = things you MONITOR.
   const NAV = [
     { id: "today", icon: "⚡", label: "Today" },
+    { id: "roadmap", icon: "🗺", label: "Roadmap" },
     { id: "journal", icon: "📝", label: "Journal" },
     { id: "pr", icon: "✉️", label: "PR" },
     { id: "reddit", icon: "👽", label: "Reddit" },
@@ -152,6 +153,18 @@ export default async function GrowthPage() {
     { id: "analytics", icon: "📈", label: "External" },
   ];
   const todoChip = { flex: "none", display: "inline-flex", alignItems: "baseline", gap: 7, padding: "11px 15px", borderRadius: 12, border: "1px solid #2f4133", background: "#16201A", color: "#C7CFC8", fontSize: 13, fontWeight: 600, textDecoration: "none" } as const;
+  // Where the growth build stands. status: done | ready (I can start now) | blocked (needs you).
+  const ROADMAP: Array<{ wp: string; label: string; status: "done" | "ready" | "blocked"; note?: string }> = [
+    { wp: "WP1–4", label: "SEO foundation — split sitemaps, internal links, theme/country hubs, thin-page noindex", status: "done" },
+    { wp: "WP5", label: "Reddit lead finder · badge-outreach engine · Today action queue", status: "done" },
+    { wp: "WP6", label: "Search Console KPI panel (above)", status: "done" },
+    { wp: "WP8", label: "Competitor backlinks — 16 pitchable targets added to the PR list (rest were spam / rival hotels)", status: "done" },
+    { wp: "WP5", label: "Real Gmail drafts (replace the compose links that break on mobile)", status: "blocked", note: "Needs your Google Cloud OAuth steps, then I run a one-time capture script." },
+    { wp: "WP6", label: "Daily 08:30 + Friday calendar reminders → “open /growth Today”", status: "ready", note: "Not blocked — say go and pick calendar events vs phone push." },
+    { wp: "WP7", label: "Blog audit + rewrite + 40-listicle drip", status: "ready", note: "Audit-first — you read everything before it publishes." },
+  ];
+  const stStyle: Record<string, { background: string; color: string }> = { done: { background: "#1c3b2e", color: "#7FB7A2" }, ready: { background: "#243b52", color: "#7FB4FF" }, blocked: { background: "#3a3320", color: "#D8B25A" } };
+  const stLabel: Record<string, string> = { done: "✓ done", ready: "🟢 ready", blocked: "🔒 needs you" };
   const navPill = { flex: "none", display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, border: "1px solid #243029", background: "#16201A", color: "#C7CFC8", fontSize: 13, fontWeight: 600, textDecoration: "none" } as const;
 
   return (
@@ -177,6 +190,20 @@ export default async function GrowthPage() {
             {scheduledPosts > 0 && <a href="#journal" style={todoChip}><b style={{ color: "#D8B25A", fontSize: 18 }}>{scheduledPosts}</b> blog {scheduledPosts === 1 ? "post" : "posts"} scheduled →</a>}
           </div>
         )}
+
+        <SectionHead id="roadmap" icon="🗺" title="Roadmap" how="What’s shipped and what’s next. 🔒 = waiting on you · 🟢 = I can start now, just say go." />
+        <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
+          {ROADMAP.map((r, i) => (
+            <div key={i} style={{ padding: "10px 14px", borderTop: i ? "1px solid #243029" : "none", display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <span style={{ flex: "none", fontSize: 11, fontWeight: 700, color: "#6f7a72", width: 46, paddingTop: 3 }}>{r.wp}</span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 13.5, color: r.status === "done" ? "#9DA89F" : "#F3EEE6" }}>{r.label}</span>
+                {r.note && <span style={{ display: "block", fontSize: 12, color: "#9DA89F", marginTop: 2 }}>{r.note}</span>}
+              </span>
+              <span style={{ flex: "none", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, whiteSpace: "nowrap", ...stStyle[r.status] }}>{stLabel[r.status]}</span>
+            </div>
+          ))}
+        </div>
 
         <SectionHead id="funnel" icon="📊" title="Traffic & funnel" aside="last 30 days, in-app" how="Which sources send visitors who click “Check availability”. Pour effort into the ones that convert." />
         {funnelError ? (
