@@ -11,7 +11,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=The+Ritz-Carlton%2C+Pentagon+City&address=Arlington%2C+USA&lat=38.8625791&lng=-77.0605463"
     },
     {
-      "slug": "the-vagabond-club-singapore-a-tribute-portfolio-hotel-4302905831",
+      "slug": "the-vagabond-club-singapore-a-tribute-portfolio-hotel",
       "name": "The Vagabond Club, Singapore, a Tribute Portfolio Hotel",
       "city": "Singapore",
       "country": "Singapore",
@@ -103,7 +103,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Soleil+Boutique+Hotel&address=H%C3%A0+N%E1%BB%99i%2C+Vietnam&lat=21.0287952&lng=105.8444792"
     },
     {
-      "slug": "relais-villa-il-sasso-9621585911",
+      "slug": "relais-villa-il-sasso",
       "name": "Relais “Villa Il Sasso”",
       "city": "Florence",
       "country": "Italy",
@@ -123,7 +123,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=The+Greenwood%2C+Guwahati+%3A+A+Luxury+Boutique+Hotel&address=Assam%2C+India&lat=26.1152294&lng=91.797814"
     },
     {
-      "slug": "boulevard-leopold-12444703865",
+      "slug": "boulevard-leopold",
       "name": "Boulevard Leopold",
       "city": "Antwerp",
       "country": "België / Belgique / Belgien",
@@ -133,7 +133,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Boulevard+Leopold&address=Antwerp%2C+Belgi%C3%AB+%2F+Belgique+%2F+Belgien&lat=51.2044846&lng=4.4166497"
     },
     {
-      "slug": "flatflesa-fyr-8008432920",
+      "slug": "flatflesa-fyr",
       "name": "Flatflesa Fyr",
       "city": "Ålesund",
       "country": "Norway",
@@ -195,7 +195,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Eden+Vale+Inn&address=Placerville%2C+USA&lat=38.7513533&lng=-120.9364608"
     },
     {
-      "slug": "hidatakayama-futarishizuka-hakuun-3773041770",
+      "slug": "hidatakayama-futarishizuka-hakuun",
       "name": "Hidatakayama Futarishizuka Hakuun",
       "city": "Takayama",
       "country": "Japan",
@@ -235,7 +235,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Crosby+Street+Hotel&address=New+York%2C+USA&lat=40.7230126&lng=-73.997417"
     },
     {
-      "slug": "riad-maialou-2640811616",
+      "slug": "riad-maialou",
       "name": "Riad Maïalou",
       "city": "Marrakech",
       "country": "",
@@ -245,7 +245,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Riad+Ma%C3%AFalou&address=Marrakech&lat=31.6280975&lng=-7.9919203"
     },
     {
-      "slug": "hotel-casa-del-capitel-nazari-13614480774",
+      "slug": "hotel-casa-del-capitel-nazari",
       "name": "Hotel Casa del Capitel Nazarí",
       "city": "Granada",
       "country": "Spain",
@@ -265,7 +265,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Alam+Shanti&address=Bali%2C+Indonesia&lat=-8.5217398&lng=115.256838"
     },
     {
-      "slug": "hotel-particulier-montmartre-346359755",
+      "slug": "hotel-particulier-montmartre",
       "name": "Hôtel Particulier Montmartre",
       "city": "Paris",
       "country": "France",
@@ -285,7 +285,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hotel+Pension+Frauenschuh&address=Salzburg%2C+Austria&lat=47.7780895&lng=13.0225903"
     },
     {
-      "slug": "villa-amara-377541415",
+      "slug": "villa-amara",
       "name": "Villa Amara",
       "city": "Aix-en-Provence",
       "country": "France",
@@ -297,7 +297,7 @@
   ],
   "cosiest-hotels-for-a-workation": [
     {
-      "slug": "ryokan-izuyasu-5085959350",
+      "slug": "ryokan-izuyasu",
       "name": "Ryokan Izuyasu",
       "city": "Kyoto",
       "country": "Japan",
@@ -307,7 +307,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Ryokan+Izuyasu&address=Kyoto%2C+Japan&lat=34.9909187&lng=135.7611801"
     },
     {
-      "slug": "hotel-jan-luyken-amsterdam-497179288",
+      "slug": "hotel-jan-luyken-amsterdam",
       "name": "Hotel Jan Luyken Amsterdam",
       "city": "Amsterdam",
       "country": "Netherlands",
@@ -337,7 +337,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Hotel+Isa&address=Rome%2C+Italy&lat=41.9068897&lng=12.4689672"
     },
     {
-      "slug": "maktub-guest-house-374049233",
+      "slug": "maktub-guest-house",
       "name": "Maktub Guest House",
       "city": "Calheta",
       "country": "Portugal",
@@ -347,7 +347,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Maktub+Guest+House&address=Calheta%2C+Portugal&lat=32.7386608&lng=-17.2117257"
     },
     {
-      "slug": "pension-gimmelwald-223032728",
+      "slug": "pension-gimmelwald",
       "name": "Pension Gimmelwald",
       "city": "Gimmelwald",
       "country": "Schweiz/Suisse/Svizzera/Svizra",
@@ -397,7 +397,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Azukiya&address=Japan&lat=35.0095203&lng=135.787911"
     },
     {
-      "slug": "riad-la-maison-nomade-2591579074",
+      "slug": "riad-la-maison-nomade",
       "name": "Riad La Maison Nomade",
       "city": "Marrakech",
       "country": "",
@@ -407,7 +407,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Riad+La+Maison+Nomade&address=Marrakech&lat=31.6376671&lng=-7.9928541"
     },
     {
-      "slug": "agriturismo-frates-1576336916",
+      "slug": "agriturismo-frates",
       "name": "Agriturismo Frates",
       "city": "Piegaro",
       "country": "Italy",
@@ -429,7 +429,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Hotel+Can+Cera&address=Illes+Balears%2C+Spain&lat=39.5687331&lng=2.6515194"
     },
     {
-      "slug": "ryan-s-bed-and-breakfast-972651616",
+      "slug": "ryan-s-bed-and-breakfast",
       "name": "Ryan's Bed and Breakfast",
       "city": "Dublin",
       "country": "Éire / Ireland",
@@ -459,7 +459,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=LARET+private+Boutique+Hotel+-+Adults+only&address=Samnaun%2C+Switzerland&lat=46.9594996&lng=10.3953109"
     },
     {
-      "slug": "chalet-4-etoiles-la-tete-aux-vents-4315993006",
+      "slug": "chalet-4-etoiles-la-tete-aux-vents",
       "name": "Chalet 4 étoiles \"La Tête aux Vents\"",
       "city": "Chamonix",
       "country": "France",
@@ -499,7 +499,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Anantara+Rasananda+Koh+Phangan+Villas&address=Surat+Thani%2C+Thailand&lat=9.7792992&lng=100.0554169"
     },
     {
-      "slug": "nazuna-hakone-miyanoshita-668576969",
+      "slug": "nazuna-hakone-miyanoshita",
       "name": "Nazuna Hakone Miyanoshita",
       "city": "Hakone-machi",
       "country": "Japan",
@@ -509,7 +509,7 @@
       "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Nazuna+Hakone+Miyanoshita&address=Hakone-machi%2C+Japan&lat=35.2457106&lng=139.0559959"
     },
     {
-      "slug": "glenella-guesthouse-7138923172",
+      "slug": "glenella-guesthouse",
       "name": "Glenella Guesthouse",
       "city": "Sydney",
       "country": "Australia",
