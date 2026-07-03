@@ -36,7 +36,7 @@ export const BLOG_POSTS: BlogPost[] = [
     dek: "The best hotels for travelling alone aren't the big ones. They're small, warm, independent places where a stranger learns your name. Here's how to find them — with real cosy-scored picks.",
     eyebrow: "Solo travel",
     h1: "The cosiest hotels for travelling alone",
-    lead: "The worst feeling on a solo trip isn't being alone — it's being processed. A keycard, a corridor, a room that could be in any city. The cure is a small, warm, independent place where someone is actually pleased you arrived. Those are the hotels that score highest for cosiness, and they're the ones worth booking when it's just you.",
+    lead: "The worst feeling on a solo trip isn't solitude. It's anonymity — a keycard, a corridor, a room that could be in any city. The cure is a small, warm, independent place where someone is actually pleased you arrived. Those are the hotels that score highest for cosiness, and they're the ones worth booking when it's just you.",
     updated: "2026-06-30",
     intro: [
       {
@@ -83,14 +83,15 @@ export const BLOG_POSTS: BlogPost[] = [
       { label: "What makes a hotel cosy — the data", to: "what-makes-a-hotel-cosy" },
       { label: "The Cosy Index", to: "cosy-index" },
       { label: "Cosy hotels for a quiet escape", to: "blog/cosiest-hotels-for-a-quiet-escape" },
+      { label: "Cosy hotels for a workation", to: "blog/cosiest-hotels-for-a-workation" },
     ],
   },
 
   // ── 2. WORKATION ───────────────────────────────────────────────────────────────────────────
   {
     slug: "cosiest-hotels-for-a-workation",
-    title: "The cosiest hotels for a workation — what to look for (honestly)",
-    dek: "A good workation hotel needs a desk, wifi you've verified, daytime quiet and somewhere to switch off. Here's the honest checklist — plus cosy-scored hotels that fit.",
+    title: "The cosiest hotels for a workation — what to look for",
+    dek: "A good workation hotel needs a desk, wifi you've verified, daytime quiet and somewhere to switch off. Here's the checklist that matters — plus cosy-scored hotels that fit.",
     eyebrow: "Remote work",
     h1: "The cosiest hotels for a workation",
     lead: "Working from a hotel sounds romantic until you're hunched on a bed, hotspotting your phone, listening to a vacuum in the corridor. A good workation hotel is a specific thing — and it's almost never the glassy business tower. It's a warm, quiet, independent place that happens to have a proper desk and wifi that works.",
@@ -122,7 +123,7 @@ export const BLOG_POSTS: BlogPost[] = [
     },
     outro: [
       {
-        h2: "The honest pre-booking checklist",
+        h2: "What to confirm before you book",
         paras: [
           "Confirm the wifi speed in writing — ask for a number, not \"yes we have wifi\".",
           "Ask for a photo of the actual desk and chair in the room type you're booking, not the suite in the brochure.",
@@ -140,13 +141,14 @@ export const BLOG_POSTS: BlogPost[] = [
       { label: "Cosy hotels for a quiet escape", to: "blog/cosiest-hotels-for-a-quiet-escape" },
       { label: "What makes a hotel cosy — the data", to: "what-makes-a-hotel-cosy" },
       { label: "The Cosy Index", to: "cosy-index" },
+      { label: "Cosy hotels for a family stay", to: "blog/cosiest-hotels-for-a-family-stay" },
     ],
   },
 
   // ── 3. FAMILIES ────────────────────────────────────────────────────────────────────────────
   {
     slug: "cosiest-hotels-for-a-family-stay",
-    title: "The cosiest hotels for a family stay — small, warm and genuinely kid-friendly",
+    title: "The cosiest hotels for a family stay — family-run, warm and built for children",
     dek: "The best family hotels aren't the giant resorts. They're warm, family-run places with space, a garden and people who mean it when they say children are welcome. Here's how to find them.",
     eyebrow: "Family travel",
     h1: "The cosiest hotels for a family stay",
@@ -154,7 +156,7 @@ export const BLOG_POSTS: BlogPost[] = [
     updated: "2026-06-30",
     intro: [
       {
-        h2: "What makes a hotel genuinely good with children",
+        h2: "What matters most when children are along",
         paras: [
           "Space and warmth, not waterslides. The things that actually make a family trip easy are a room you can all fit in without climbing over each other, somewhere safe for children to be children (a garden, a courtyard, a quiet lounge), and flexibility around food and timings.",
           "Family-run places tend to do this best. When the people running the hotel have raised children in the building, a high chair, an early dinner or a warmed bottle isn't a special request — it's just Tuesday.",
@@ -181,7 +183,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         h2: "What to ask before you book",
         paras: [
-          "How many people genuinely fit in the room — and whether a cot or extra bed costs more.",
+          "How many people really fit in the room — and whether a cot or extra bed costs more.",
           "Whether there's a garden, courtyard or other safe outdoor space, and whether it's enclosed.",
           "How flexible mealtimes are — an early children's dinner, or a kitchen you can use, changes a trip.",
           "Whether the cosy room with the open staircase and the antiques is actually practical for your child's age. Sometimes the cosiest room isn't the right one — ask.",
@@ -189,7 +191,7 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
     faqs: [
-      { q: "Are small hotels good for families?", a: "Often better than big resorts, for warmth. Small, family-run hotels score far higher for cosiness, and tend to be more flexible about cots, early dinners and the realities of travelling with children — though you should always confirm the room genuinely fits your family." },
+      { q: "Are small hotels good for families?", a: "Often better than big resorts, for warmth. Small, family-run hotels score far higher for cosiness, and tend to be more flexible about cots, early dinners and the realities of travelling with children — though you should always confirm the room properly fits your family." },
       { q: "What's the most useful feature in a family hotel?", a: "A safe outdoor space — a garden or enclosed courtyard. It's where children burn off energy and parents get a moment, and it matters far more day-to-day than a pool or a kids' club." },
       { q: "Is a cosy boutique hotel suitable for young children?", a: "Many are, but not all — some cosy features (open staircases, antiques, a hushed adult atmosphere) suit couples more than toddlers. Pick a family-run place that actively welcomes children, and ask about the specific room before booking." },
     ],
@@ -197,6 +199,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { label: "Cosy hotels for a quiet escape", to: "blog/cosiest-hotels-for-a-quiet-escape" },
       { label: "What makes a hotel cosy — the data", to: "what-makes-a-hotel-cosy" },
       { label: "City guides", to: "guides" },
+      { label: "Cosy hotels for solo travellers", to: "blog/cosiest-hotels-for-solo-travellers" },
     ],
   },
 
@@ -204,16 +207,16 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     slug: "cosiest-hotels-for-a-quiet-escape",
     title: "The cosiest hotels for a quiet, restful escape",
-    dek: "A genuinely restful hotel is a specific thing: small, often rural, no events, no through-traffic, and warmth you can feel. Here's what to look for — with cosy-scored picks.",
+    dek: "A genuinely restful hotel comes down to a short list: small, often rural, no events, no through-traffic, and warmth you can feel. Here's what to look for — with cosy-scored picks.",
     eyebrow: "Rest & relaxation",
     h1: "The cosiest hotels for a quiet, restful escape",
-    lead: "There's a particular disappointment in arriving somewhere to switch off and finding a wedding in the function room, a motorway behind the garden, and a lobby playing music. Genuine quiet is a feature you have to choose deliberately — and it lives in the same small, warm, characterful places that score highest for cosiness.",
+    lead: "There's a particular disappointment in arriving somewhere to switch off and finding a wedding in the function room, a motorway behind the garden, and a lobby playing music. Genuine quiet is a feature you have to choose deliberately — and it lives in the same intimate, characterful places that score highest for cosiness.",
     updated: "2026-06-30",
     intro: [
       {
         h2: "What actually makes a hotel restful",
         paras: [
-          "Calm isn't the absence of a spa menu — it's the absence of interruption. The most restful hotels share a pattern: small scale, often rural or on a quiet street, no big events business, and a building old or solid enough that you don't hear your neighbours.",
+          "Calm has less to do with a spa menu than with the absence of interruption. The most restful hotels share a pattern: small scale, often rural or on a quiet street, no big events business, and a building old or solid enough that you don't hear your neighbours.",
           "Add the warmth signals that drive a high cosy score — a fireplace, natural materials, soft light, a garden — and you have a place that does the actual work of relaxing you, rather than just advertising it.",
         ],
         tip: "A hotel that hosts weddings and conferences is rarely restful at the weekend. If reviews mention \"events\" or \"functions\", read closely before booking a quiet break.",
@@ -221,7 +224,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         h2: "The signals that predict calm",
         paras: [
-          "In our data, the hotels guests describe as peaceful cluster around a few words: countryside, garden, spa or sauna, fireplace, retreat, and small. A spa or thermal bath gives you somewhere to decompress; a garden gives you outdoors without effort; a fireplace gives an evening a centre of gravity.",
+          "In our data, the hotels guests describe as peaceful cluster around a few words: countryside, garden, spa or sauna, fireplace, retreat, and small. A spa or thermal bath gives you somewhere to decompress; a garden gives you outdoors without effort; a fireplace gives an evening a centre of gravity — hotels with a real fireplace are roughly 8.5 times more likely to reach our top cosiness tier.",
           "Rural and small-town settings help too — the cosiest, calmest stays are disproportionately in old, small places built long before the car, where quiet is simply the default.",
         ],
       },
@@ -245,14 +248,15 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
     faqs: [
-      { q: "What makes a hotel genuinely quiet?", a: "Small scale, a quiet or rural location, solid old construction, and no events business. The cosiest hotels tend to tick all four, which is why they so often double as the most restful. Always check the map and recent reviews for noise before booking." },
-      { q: "Are spa hotels the most relaxing?", a: "A spa or thermal bath helps, but it's not the whole story — a small, quiet, warm hotel with a garden and a fireplace can be far more restful than a large spa hotel that also runs conferences. Look for calm signals across the whole place, not just a treatment menu." },
+      { q: "What makes a hotel really quiet?", a: "Small scale, a quiet or rural location, solid old construction, and no events business. The cosiest hotels tend to tick all four, which is why they so often double as the most restful. Always check the map and recent reviews for noise before booking." },
+      { q: "Are spa hotels the most relaxing?", a: "A spa or thermal bath helps, but the whole picture matters more — a small, quiet, warm hotel with a garden and a fireplace can be far more restful than a large spa hotel that also runs conferences. Look for calm signals across the whole place, not just a treatment menu." },
       { q: "Where are the most restful cosy hotels?", a: "Disproportionately in old, small, rural places built before the car, where quiet is the default rather than a feature. Our city and country rankings lean heavily towards exactly these kinds of destinations." },
     ],
     related: [
       { label: "What makes a hotel cosy — the data", to: "what-makes-a-hotel-cosy" },
       { label: "The Cosy Index", to: "cosy-index" },
       { label: "Cosy hotels for solo travellers", to: "blog/cosiest-hotels-for-solo-travellers" },
+      { label: "Cosy hotels for a workation", to: "blog/cosiest-hotels-for-a-workation" },
     ],
   },
 
@@ -260,10 +264,10 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     slug: "are-hotel-chains-ever-cosy",
     title: "Are hotel chains ever cosy? The rare ones that are",
-    dek: "We scored 17,000+ hotels. Chains average 3.1/10 for cosiness; independents 4.6. But a few chains genuinely buck the trend — here's how to spot a cosy one.",
+    dek: "We scored 17,000+ hotels. Chains average 3.1/10 for cosiness; independents 4.6. But a few chains buck the trend — here's how to spot a cosy one.",
     eyebrow: "The data",
     h1: "Are hotel chains ever cosy?",
-    lead: "Mostly, no — and we have the numbers. Across the 17,000+ hotels we've scored, chain-branded hotels average 3.1 out of 10 for cosiness; independents average 4.6. Intimacy is the first thing a global chain optimises away. But a handful of chains buck the trend, and if you know what you're looking for, you can find the cosy one.",
+    lead: "Mostly, no — and we have the numbers. Across the 17,000+ hotels we've scored, chain-branded hotels average 3.1 out of 10 for cosiness; independents average 4.6. Cosiness is hard to earn full stop — no hotel we've scored, chain or independent, has ever cleared 8 out of 10. Intimacy is the first thing a global chain optimises away. But a handful of chains genuinely buck the trend, and if you know what you're looking for, you can find the cosy one.",
     updated: "2026-06-30",
     intro: [
       {
@@ -287,7 +291,7 @@ export const BLOG_POSTS: BlogPost[] = [
       theme: "a cosy stay despite being a chain: real warmth and character, a converted or heritage building, or a design-led soft brand that feels independent",
       priority: 0,
       heading: "The chain-branded hotels that actually cleared our cosy bar",
-      blurb: "Most chains aren't cosy — the data is blunt about it. But a handful genuinely clear the bar, and here they are: the cosiest chain-branded hotels we've scored, mostly heritage buildings and design-led soft brands. Each shows its live Cosy Score — compare it to almost any independent nearby and you'll see the gap.",
+      blurb: "Most chains aren't cosy — the data is blunt about it. But a handful clear the bar anyway, and here they are: the cosiest chain-branded hotels we've scored, mostly heritage buildings and design-led soft brands. Each shows its live Cosy Score — compare it to almost any independent nearby and you'll see the gap.",
     },
     outro: [
       {
@@ -296,7 +300,7 @@ export const BLOG_POSTS: BlogPost[] = [
           "Favour the soft and design-led brands over the mid-market business ones — they're built to feel local.",
           "Look for a converted historic building rather than a purpose-built block; character is hard to fake and easy to inherit.",
           "Check the specific property's photos for warm light, a real lounge or bar, and rooms with texture — and ignore the brand-standard marketing shots.",
-          "When in doubt, an independent of the same price will almost always be cosier. The chain is the compromise, not the prize.",
+          "When in doubt, an independent at the same price will almost always be cosier — the chain is rarely the better bet.",
         ],
       },
     ],
