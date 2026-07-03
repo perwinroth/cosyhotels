@@ -18,6 +18,7 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
             </p>
           </div>
           <FooterCol title="Explore">
+            <FLink href={`/${locale}/cosy-hotels`}>Browse by theme &amp; country</FLink>
             <FLink href={`/${locale}/guides`}>City guides</FLink>
             <FLink href={`/${locale}/blog`}>The journal</FLink>
             <FLink href={`/${locale}/cosy-index`}>The Cosy Index</FLink>

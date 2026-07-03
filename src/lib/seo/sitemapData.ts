@@ -8,6 +8,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { getVisibleBlogPosts } from "@/lib/blogSchedule";
 import { FACETS, matchesFacet } from "@/lib/facets";
 import { cityToSlug, cityFromSlug } from "@/lib/citySlug";
+import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
 export type Url = { loc: string; lastmod?: string; changefreq?: string; priority?: number };
@@ -25,6 +26,7 @@ export function staticUrls(): Url[] {
     p("/en/what-makes-a-hotel-cosy", 0.7),
     p("/en/cosy-score", 0.6),
     p("/en/collections", 0.6, "weekly"),
+    p("/en/cosy-hotels", 0.7, "weekly"),
     p("/en/guides", 0.5),
     p("/en/for-hotels", 0.5),
     p("/en/make-your-hotel-look-cosy", 0.6),
@@ -101,6 +103,12 @@ export async function collectionUrls(): Promise<Url[]> {
       const n = rows.filter((r) => matchesFacet(f, r.signals, r.description)).length;
       if (n >= 2) urls.push({ loc: `${SITE}/en/cosy-hotels/${f.slug}/${citySlug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
     }
+  }
+  // Theme hubs (one per facet, all substantive) + country hubs (only those clearing the index gate,
+  // so the sitemap never lists a noindexed thin hub).
+  for (const f of FACETS) urls.push({ loc: `${SITE}/en/cosy-hotels/${f.slug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
+  for (const c of await loadCountryCounts()) {
+    if (c.live >= HUB_MIN) urls.push({ loc: `${SITE}/en/cosy-hotels/in/${c.country.slug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
   }
   return urls;
 }

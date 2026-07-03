@@ -108,7 +108,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
           );
         })}
       </ol>
-      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>See all <a href={`/${params.locale}/guides/${cityToSlug(cityName)}`} className="underline">cosy hotels in {cityName}</a>.</p>
+      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>See all <a href={`/${params.locale}/guides/${cityToSlug(cityName)}`} className="underline">cosy hotels in {cityName}</a>, or cosy hotels {facet.label} <a href={`/${params.locale}/cosy-hotels/${facet.slug}`} className="underline">worldwide</a>.</p>
     </div>
   );
 }
