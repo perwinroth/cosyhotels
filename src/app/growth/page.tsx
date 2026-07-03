@@ -12,6 +12,7 @@ import RedditLeadStatus from "@/components/RedditLeadStatus";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
 import { gmailComposeUrl } from "@/lib/outreachTemplates";
 import { cityToSlug } from "@/lib/citySlug";
+import { getGscSummary, gscConfigured } from "@/lib/gsc";
 
 type OutreachItem = { id: string; outlet: string; type: string; fit: string; email: string; contactRoute: string; region: string; notes: string; status: string; rec?: string };
 const outreach = outreachData as OutreachItem[];
@@ -109,6 +110,12 @@ export default async function GrowthPage() {
     redditLeads = (data || []) as RedditLead[];
   } catch { /* table not created yet */ }
 
+  // Google Search Console — the SEO signal (impressions/clicks for our queries). null until the
+  // service account is wired (GSC_SA_EMAIL + GSC_SA_PRIVATE_KEY).
+  const gsc = await getGscSummary().catch(() => null);
+  const gscOn = gscConfigured();
+  const host = (u: string) => { try { return new URL(u).pathname || u; } catch { return u; } };
+
   return (
     <div style={{ minHeight: "100vh", background: "#0F1512", color: "#F3EEE6", fontFamily: "Inter, system-ui, sans-serif", padding: "32px 20px" }}>
       <meta httpEquiv="refresh" content="120" />
@@ -141,6 +148,44 @@ export default async function GrowthPage() {
           </>
         ) : (
           <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 8 }}>No events yet. Once <code>2026_events.sql</code> is applied and visitors arrive, traffic, unique visitors and source→click funnels appear here.</p>
+        )}
+
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Search Console — last 28 days <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· the SEO signal</span></h2>
+        {!gscOn ? (
+          <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 8 }}>Not wired yet — add <code>GSC_SA_EMAIL</code> + <code>GSC_SA_PRIVATE_KEY</code> to Vercel (service account <code>gsc-reader@cosy-hotels.iam.gserviceaccount.com</code> must be a user on the gotcosy.com property). Then Google impressions/clicks/queries appear here.</p>
+        ) : !gsc ? (
+          <p style={{ color: "#E0654B", fontSize: 13, marginTop: 8 }}>Credentials set but the API returned nothing — the SA may not have access to the property yet, or <code>GSC_PROPERTY</code> is the wrong form. Run <code>node --env-file=.env.local scripts/gsc-test.mjs</code> to diagnose.</p>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginTop: 12 }}>
+              <Stat label="Impressions" value={Math.round(gsc.totals.impressions).toLocaleString()} sub="in Google search" />
+              <Stat label="Clicks" value={Math.round(gsc.totals.clicks).toLocaleString()} sub="to the site" />
+              <Stat label="Avg CTR" value={`${(gsc.totals.ctr * 100).toFixed(1)}%`} />
+              <Stat label="Avg position" value={gsc.totals.position ? gsc.totals.position.toFixed(1) : "—"} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+              <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, overflow: "hidden" }}>
+                <div style={{ padding: "8px 12px", fontSize: 11, color: "#6f7a72", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Top queries</div>
+                {gsc.queries.length === 0 && <div style={{ padding: "8px 12px", fontSize: 12.5, color: "#9DA89F" }}>No query data yet.</div>}
+                {gsc.queries.map((q) => (
+                  <div key={q.keys?.[0]} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "7px 12px", borderTop: "1px solid #243029", fontSize: 13 }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{q.keys?.[0]}</span>
+                    <span style={{ color: "#7FB7A2", flexShrink: 0 }}>{Math.round(q.clicks)}c · {Math.round(q.impressions)}i</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, overflow: "hidden" }}>
+                <div style={{ padding: "8px 12px", fontSize: 11, color: "#6f7a72", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Top pages</div>
+                {gsc.pages.length === 0 && <div style={{ padding: "8px 12px", fontSize: 12.5, color: "#9DA89F" }}>No page data yet.</div>}
+                {gsc.pages.map((p) => (
+                  <div key={p.keys?.[0]} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "7px 12px", borderTop: "1px solid #243029", fontSize: 13 }}>
+                    <a href={p.keys?.[0]} target="_blank" rel="noreferrer" style={{ color: "#F3EEE6", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{host(p.keys?.[0] || "")}</a>
+                    <span style={{ color: "#7FB7A2", flexShrink: 0 }}>{Math.round(p.clicks)}c · {Math.round(p.impressions)}i</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         )}
 
         <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Content inventory</h2>
