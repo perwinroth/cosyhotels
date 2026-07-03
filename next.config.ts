@@ -18,6 +18,17 @@ const nextConfig: NextConfig = {
     // Increase CDN cache time for optimized results
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
+  async redirects() {
+    return [
+      // The New York city guide was renamed "New York City" → "New York" (to match the DB city and
+      // index). 308 the old slug (any locale) to the new one so no inbound link 404s.
+      {
+        source: "/:locale/guides/new-york-city-cosy-hotel",
+        destination: "/:locale/guides/new-york-cosy-hotel",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

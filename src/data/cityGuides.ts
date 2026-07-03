@@ -15,7 +15,9 @@ export const cityGuides: CityGuide[] = [
   { city: 'Copenhagen', region: 'Europe', slug: toSlug('Copenhagen') },
   { city: 'Santorini', region: 'Europe', slug: toSlug('Santorini') },
   // North America
-  { city: 'New York City', region: 'North America', slug: toSlug('New York City') },
+  // Named "New York" to match the DB city + the common online name (was "New York City", which
+  // matched no hotels → the guide was empty/noindex). Old slug 308s to this via next.config.
+  { city: 'New York', region: 'North America', slug: toSlug('New York') },
   { city: 'San Francisco', region: 'North America', slug: toSlug('San Francisco') },
   { city: 'Charleston', region: 'North America', slug: toSlug('Charleston') },
   { city: 'Savannah', region: 'North America', slug: toSlug('Savannah') },

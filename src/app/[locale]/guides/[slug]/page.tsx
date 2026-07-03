@@ -167,6 +167,7 @@ export default async function GuidePage({ params }: Props) {
     'Copenhagen': ['København'],
     'Reykjavik': ['Reykjavík'],
     'Quebec City': ['Québec','Quebec'],
+    'Lucerne': ['Luzern'],
     'Porto': ['Oporto'],
     'Rome': ['Roma'],
     'Milan': ['Milano'],
