@@ -13,6 +13,8 @@ import { getScheduleForPanel } from "@/lib/blogSchedule";
 import { gmailComposeUrl } from "@/lib/outreachTemplates";
 import { cityToSlug } from "@/lib/citySlug";
 import { getGscSummary, gscConfigured } from "@/lib/gsc";
+import { gmailConfigured } from "@/lib/gmail";
+import GmailDraftButton from "@/components/GmailDraftButton";
 
 type OutreachItem = { id: string; outlet: string; type: string; fit: string; email: string; contactRoute: string; region: string; notes: string; status: string; rec?: string };
 const outreach = outreachData as OutreachItem[];
@@ -133,6 +135,7 @@ export default async function GrowthPage() {
   // service account is wired (GSC_SA_EMAIL + GSC_SA_PRIVATE_KEY).
   const gsc = await getGscSummary().catch(() => null);
   const gscOn = gscConfigured();
+  const gmailOn = gmailConfigured();
   const host = (u: string) => { try { return new URL(u).pathname || u; } catch { return u; } };
 
   // What needs doing right now — surfaced in the Today strip so you never hunt for the next action.
@@ -159,7 +162,7 @@ export default async function GrowthPage() {
     { wp: "WP5", label: "Reddit lead finder · badge-outreach engine · Today action queue", status: "done" },
     { wp: "WP6", label: "Search Console KPI panel (above)", status: "done" },
     { wp: "WP8", label: "Competitor backlinks — 16 pitchable targets added to the PR list (rest were spam / rival hotels)", status: "done" },
-    { wp: "WP5", label: "Real Gmail drafts (replace the compose links that break on mobile)", status: "blocked", note: "Needs your Google Cloud OAuth steps, then I run a one-time capture script." },
+    { wp: "WP5", label: "Real Gmail drafts from per@gotcosy.com (the ✉ buttons below)", status: "done" },
     { wp: "WP6", label: "Daily 08:30 + Friday calendar reminders → “open /growth Today”", status: "ready", note: "Not blocked — say go and pick calendar events vs phone push." },
     { wp: "WP7", label: "Blog audit + rewrite + 40-listicle drip", status: "ready", note: "Audit-first — you read everything before it publishes." },
   ];
@@ -322,7 +325,9 @@ export default async function GrowthPage() {
               <div style={{ marginTop: 5, fontSize: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 {o.email ? (
                   <>
-                    <a href={gmailComposeUrl(o)} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: "#0F1512", background: "#7FB7A2", borderRadius: 6, padding: "4px 10px", textDecoration: "none" }}>✉ Draft in Gmail ↗</a>
+                    {gmailOn
+                      ? <GmailDraftButton outlet={o.outlet} fit={o.fit} email={o.email} />
+                      : <a href={gmailComposeUrl(o)} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: "#0F1512", background: "#7FB7A2", borderRadius: 6, padding: "4px 10px", textDecoration: "none" }}>✉ Draft in Gmail ↗</a>}
                     <a href={"mailto:" + o.email} style={{ color: "#6f7a72" }}>{o.email}</a>
                   </>
                 ) : /^https?:/.test(o.contactRoute) ? <a href={o.contactRoute} target="_blank" rel="noreferrer" style={{ color: "#7FB4FF" }}>{o.contactRoute} ↗</a> : <span style={{ color: "#6f7a72" }}>{o.contactRoute}</span>}

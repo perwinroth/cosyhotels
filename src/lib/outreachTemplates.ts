@@ -29,6 +29,10 @@ export const TEMPLATES: Record<string, (outlet: string) => Pitch> = {
 // alias — so the outgoing From is per@gotcosy.com (Gmail compose URLs can't set From directly, only
 // the account). Requires being signed into gotcosy@gmail.com in that browser.
 const GMAIL_ACCOUNT = "gotcosy@gmail.com";
+// The pitch (subject + body) for a target — shared by the compose-URL and the Gmail-API draft paths.
+export function outreachPitch(row: { outlet: string; fit: string }): { subject: string; body: string } {
+  return (TEMPLATES[row.fit] || TEMPLATES["data-study"])(row.outlet);
+}
 export function gmailComposeUrl(row: { email?: string; outlet: string; fit: string }): string {
   const t = (TEMPLATES[row.fit] || TEMPLATES["data-study"])(row.outlet);
   const p = new URLSearchParams({ view: "cm", fs: "1", to: row.email || "", su: t.subject, body: t.body });
