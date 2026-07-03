@@ -17,6 +17,25 @@ import { getGscSummary, gscConfigured } from "@/lib/gsc";
 type OutreachItem = { id: string; outlet: string; type: string; fit: string; email: string; contactRoute: string; region: string; notes: string; status: string; rec?: string };
 const outreach = outreachData as OutreachItem[];
 const recRank = (r?: string) => (({ "start-here": 0, "if-budget": 2, skip: 3 }) as Record<string, number>)[r ?? ""] ?? 1;
+// Per-target: what to actually pitch, keyed by the row's `fit`. Turns an opaque tag into a next step.
+const fitAngle: Record<string, string> = {
+  "data-study": "Pitch the cosiness data study — citable stats they can quote.",
+  "hotelier-asset": "Offer the “make your hotel look cosy” guide for their audience.",
+  "listicle": "Offer a “best cosy hotels for X” round-up angle.",
+  "expert-source": "Offer yourself as an expert source on cosy / boutique travel.",
+};
+
+// Section heading with an anchor (for the jump menu) + a one-line, action-first "how to use" note.
+function SectionHead({ id, icon, title, aside, how }: { id: string; icon: string; title: string; aside?: string; how?: string }) {
+  return (
+    <>
+      <h2 id={id} style={{ fontSize: 16, fontWeight: 700, marginTop: 30, scrollMarginTop: 62 }}>
+        {icon} {title}{aside ? <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}> · {aside}</span> : null}
+      </h2>
+      {how ? <p style={{ color: "#D8B25A", fontSize: 12.5, marginTop: 5, marginBottom: 0, lineHeight: 1.5 }}>▸ {how}</p> : null}
+    </>
+  );
+}
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -116,14 +135,50 @@ export default async function GrowthPage() {
   const gscOn = gscConfigured();
   const host = (u: string) => { try { return new URL(u).pathname || u; } catch { return u; } };
 
+  // What needs doing right now — surfaced in the Today strip so you never hunt for the next action.
+  const redditNew = redditLeads.filter((r) => r.status === "new").length;
+  const prToStart = outreachRows.filter((o) => o.rec === "start-here" && o.status === "queued").length;
+  const scheduledPosts = blogSchedule.filter((b) => b.status === "scheduled").length;
+  // Jump menu (matches page order). ⚡📝✉️👽🧰 = things you DO · 🔍📊📦📈 = things you MONITOR.
+  const NAV = [
+    { id: "today", icon: "⚡", label: "Today" },
+    { id: "journal", icon: "📝", label: "Journal" },
+    { id: "pr", icon: "✉️", label: "PR" },
+    { id: "reddit", icon: "👽", label: "Reddit" },
+    { id: "tools", icon: "🧰", label: "Tools" },
+    { id: "search", icon: "🔍", label: "Search" },
+    { id: "funnel", icon: "📊", label: "Traffic" },
+    { id: "inventory", icon: "📦", label: "Inventory" },
+    { id: "analytics", icon: "📈", label: "External" },
+  ];
+  const todoChip = { flex: "none", display: "inline-flex", alignItems: "baseline", gap: 7, padding: "11px 15px", borderRadius: 12, border: "1px solid #2f4133", background: "#16201A", color: "#C7CFC8", fontSize: 13, fontWeight: 600, textDecoration: "none" } as const;
+  const navPill = { flex: "none", display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, border: "1px solid #243029", background: "#16201A", color: "#C7CFC8", fontSize: 13, fontWeight: 600, textDecoration: "none" } as const;
+
   return (
     <div style={{ minHeight: "100vh", background: "#0F1512", color: "#F3EEE6", fontFamily: "Inter, system-ui, sans-serif", padding: "32px 20px" }}>
       <meta httpEquiv="refresh" content="120" />
       <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0 }}>Growth dashboard</h1>
-        <p style={{ color: "#9DA89F", marginTop: 8, fontSize: 14 }}>In-app content inventory + readiness. Live traffic/affiliate/social numbers live in the external dashboards linked below — watch those for the metrics that actually matter.</p>
+        <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0 }}>Growth command center</h1>
+        <p style={{ color: "#9DA89F", marginTop: 6, fontSize: 13.5 }}>Everything you run to grow Got Cosy. Jump with the menu; every section tells you what to do.</p>
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 24 }}>Traffic &amp; funnel — last 30 days (in-app)</h2>
+        {/* Sticky jump menu — findability on desktop + phone (scrolls sideways on small screens). */}
+        <nav style={{ position: "sticky", top: 0, zIndex: 20, margin: "12px -20px 0", padding: "9px 20px", background: "rgba(15,21,18,0.94)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", borderBottom: "1px solid #243029", display: "flex", gap: 7, overflowX: "auto", whiteSpace: "nowrap" }}>
+          {NAV.map((n) => <a key={n.id} href={`#${n.id}`} style={navPill}>{n.icon} {n.label}</a>)}
+        </nav>
+
+        {/* Today — the only section that tells you what to do RIGHT NOW. */}
+        <h2 id="today" style={{ fontSize: 16, fontWeight: 700, marginTop: 22, scrollMarginTop: 62 }}>⚡ Today <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· do these first</span></h2>
+        {(redditNew + prToStart + scheduledPosts) === 0 ? (
+          <p style={{ color: "#7FB7A2", fontSize: 13.5, marginTop: 8 }}>All caught up ✨ Nothing queued right now. Refresh Reddit leads (see 👽 Reddit) or work down the PR list.</p>
+        ) : (
+          <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+            {redditNew > 0 && <a href="#reddit" style={todoChip}><b style={{ color: "#7FB4FF", fontSize: 18 }}>{redditNew}</b> new Reddit {redditNew === 1 ? "thread" : "threads"} to reply to →</a>}
+            {prToStart > 0 && <a href="#pr" style={todoChip}><b style={{ color: "#7FB7A2", fontSize: 18 }}>{prToStart}</b> ★ outreach {prToStart === 1 ? "target" : "targets"} to start →</a>}
+            {scheduledPosts > 0 && <a href="#journal" style={todoChip}><b style={{ color: "#D8B25A", fontSize: 18 }}>{scheduledPosts}</b> blog {scheduledPosts === 1 ? "post" : "posts"} scheduled →</a>}
+          </div>
+        )}
+
+        <SectionHead id="funnel" icon="📊" title="Traffic & funnel" aside="last 30 days, in-app" how="Which sources send visitors who click “Check availability”. Pour effort into the ones that convert." />
         {funnelError ? (
           <p style={{ color: "#E0654B", fontSize: 13, marginTop: 8 }}>events table not found — apply <code>supabase/2026_events.sql</code> in the Supabase SQL editor, then traffic populates here automatically.</p>
         ) : funnel && funnel.pageviews > 0 ? (
@@ -150,7 +205,7 @@ export default async function GrowthPage() {
           <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 8 }}>No events yet. Once <code>2026_events.sql</code> is applied and visitors arrive, traffic, unique visitors and source→click funnels appear here.</p>
         )}
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Search Console — last 28 days <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· the SEO signal</span></h2>
+        <SectionHead id="search" icon="🔍" title="Search Console" aside="last 28 days" how="Your Google visibility. Rising impressions mean the SEO work is landing; a strong position with low CTR means sharpen the page title." />
         {!gscOn ? (
           <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 8 }}>Not wired yet — add <code>GSC_SA_EMAIL</code> + <code>GSC_SA_PRIVATE_KEY</code> to Vercel (service account <code>gsc-reader@cosy-hotels.iam.gserviceaccount.com</code> must be a user on the gotcosy.com property). Then Google impressions/clicks/queries appear here.</p>
         ) : !gsc ? (
@@ -188,7 +243,7 @@ export default async function GrowthPage() {
           </>
         )}
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Content inventory</h2>
+        <SectionHead id="inventory" icon="📦" title="Content inventory" how="A health snapshot of what’s built and scored. Nothing to action here — just glance to confirm the catalogue looks right." />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginTop: 12 }}>
           <Stat label="Cities live" value={cities} />
           <Stat label="Hotels scored" value={scored.toLocaleString()} />
@@ -198,7 +253,7 @@ export default async function GrowthPage() {
           <Stat label="Names romanized" value={transliterated.toLocaleString()} />
         </div>
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Readiness</h2>
+        <SectionHead id="tools" icon="🧰" title="Tools" how="Your working pages. Tap in to post to Pinterest, DM hotels, pitch badges, or check what publishes." />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 12 }}>
           <Link href="/today" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>📌 /today</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Manual Pinterest warm-up queue (pin-worthy hotels).</div></Link>
           <Link href="/outreach" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>✉️ /outreach</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>{withInstagram.toLocaleString()} hotels with handles — DM their feature for backlinks + reposts.</div></Link>
@@ -207,8 +262,7 @@ export default async function GrowthPage() {
           <Link href="/badge-outreach" style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, padding: 14, textDecoration: "none", color: "#F3EEE6" }}><div style={{ fontWeight: 700 }}>🏅 /badge-outreach</div><div style={{ color: "#9DA89F", fontSize: 12, marginTop: 4 }}>Top-2.3% hotels — pitch their &quot;Rated Cosy&quot; badge for editorial backlinks.</div></Link>
         </div>
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Journal — release schedule <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {blogSchedule.filter((b) => b.visible).length}/{blogSchedule.length} live</span></h2>
-        <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 6 }}>Drip the posts out instead of all at once. <strong>live</strong> = public now; <strong>scheduled</strong> = goes public on its date (within the hour); <strong>draft</strong> = hidden. Saves straight to the database — reschedule from your phone.</p>
+        <SectionHead id="journal" icon="📝" title="Journal — release schedule" aside={`${blogSchedule.filter((b) => b.visible).length}/${blogSchedule.length} live`} how="Drip posts out over time. Per row: live = public now · scheduled = auto-publishes on its date · draft = hidden. The picker saves instantly." />
         <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
           {blogSchedule.map((b) => (
             <div key={b.slug} style={{ padding: "10px 14px", borderTop: "1px solid #243029", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -222,8 +276,7 @@ export default async function GrowthPage() {
           ))}
         </div>
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>PR &amp; backlink outreach <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {outreachRows.length} targets · {outreachRows.filter((o) => o.rec === "start-here").length} to start with</span></h2>
-        <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 6 }}>Journalist platforms, media, blogs, directories, data-citation sites &amp; podcasts. ★ = do first. Change a status below — it saves straight to the database, so you can update the pipeline from your phone.</p>
+        <SectionHead id="pr" icon="✉️" title="PR & backlink outreach" aside={`${outreachRows.length} targets · ${outreachRows.filter((o) => o.rec === "start-here").length} to start`} how="Work the ★ START HERE rows first. Per row: tap Draft in Gmail → personalise the pitch → send → set the status. It all saves to the database." />
         <div style={{ background: "#16201A", border: "1px solid #243029", borderRadius: 12, marginTop: 12, overflow: "hidden" }}>
           {[...outreachRows].sort((a, b) => recRank(a.rec) - recRank(b.rec)).map((o) => (
             <div key={o.id} style={{ padding: "9px 14px", borderTop: "1px solid #243029" }}>
@@ -238,6 +291,7 @@ export default async function GrowthPage() {
                 {o.region && <span style={{ fontSize: 10.5, color: "#6f7a72", border: "1px solid #243029", borderRadius: 5, padding: "1px 6px" }}>{o.region}</span>}
               </div>
               {o.notes && <div style={{ color: "#9DA89F", fontSize: 12.5, marginTop: 3 }}>{o.notes}</div>}
+              {fitAngle[o.fit] && <div style={{ color: "#7FB7A2", fontSize: 12, marginTop: 2 }}>→ {fitAngle[o.fit]}</div>}
               <div style={{ marginTop: 5, fontSize: 12, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 {o.email ? (
                   <>
@@ -250,8 +304,8 @@ export default async function GrowthPage() {
           ))}
         </div>
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>Reddit opportunities <span style={{ color: "#9DA89F", fontWeight: 400, fontSize: 13 }}>· {redditLeads.length} open{redditLeads.filter((r) => r.status === "new").length ? ` · ${redditLeads.filter((r) => r.status === "new").length} new` : ""}</span></h2>
-        <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 6 }}>Threads asking for cosy/boutique hotel recs in cities we cover. <strong style={{ color: "#D8B25A" }}>Reply manually + genuinely</strong> — never drop a bare link or the same message twice (that&apos;s how you get banned). One helpful reply that happens to mention our guide. Run <code>node --env-file=.env.local scripts/find-reddit-threads.mjs --execute</code> to refresh.</p>
+        <SectionHead id="reddit" icon="👽" title="Reddit opportunities" aside={`${redditLeads.length} open${redditLeads.filter((r) => r.status === "new").length ? ` · ${redditLeads.filter((r) => r.status === "new").length} new` : ""}`} how="Open a thread, reply like a human — never a bare link or the same message twice (that’s how you get banned) — then mark it replied. One genuinely helpful reply that mentions our guide." />
+        <p style={{ color: "#6f7a72", fontSize: 12, marginTop: 6 }}>Refresh leads: <code>node --env-file=.env.local scripts/find-reddit-threads.mjs --execute</code></p>
         {redditLeads.length === 0 ? (
           <p style={{ color: "#9DA89F", fontSize: 13, marginTop: 8 }}>No leads yet — run the finder script above.</p>
         ) : (
@@ -273,7 +327,7 @@ export default async function GrowthPage() {
           </div>
         )}
 
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 28 }}>External analytics — the numbers that matter</h2>
+        <SectionHead id="analytics" icon="📈" title="External analytics" how="The numbers that matter live off-site. Check these weekly — especially which cities convert." />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginTop: 12 }}>
           {link("https://vercel.com/perwinroths-projects/cosyhotels/analytics", "Vercel Analytics", "Traffic by page & source. Watch which CITIES get visits.")}
           {link("https://app.stay22.com", "Stay22 dashboard", "Affiliate clicks & bookings — the REVENUE metric. Per city.")}
