@@ -20,7 +20,10 @@ const OUT = args.includes("--out") ? args[args.indexOf("--out") + 1] : "seo-audi
 const CONCURRENCY = 12;
 
 const MALFORMED = /[{}$<>]|%[0-9a-f]{2}|search_term_string|\b(undefined|null|nan)\b/i;
-const OLD_SLUG = /\/hotels\/[0-9]{2,7}(-[0-9]{2,7})?-/; // postcode-led hotel slug
+// A leaked-postcode hotel slug leads with 3+ digits ("75005-paris-…", "118-00-praha-…"). This
+// deliberately does NOT match legit name-numbers ("71-nyhavn-hotel", "12-months-…") or the trailing
+// Google place-id suffix ("…-12537171074") — those are current, canonical, 200 slugs, not old ones.
+const OLD_SLUG = /\/hotels\/[0-9]{3,}/;
 const INTERNAL = /\/(api|admin|growth|outreach|badge-outreach|today|posts|go|follow|grade|rate|status|brand)(\/|$)/;
 
 // Fetch every URL at BASE's origin (so we can audit a local server whose sitemap still emits
