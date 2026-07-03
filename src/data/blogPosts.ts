@@ -68,7 +68,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         h2: "Three things to check before you book",
         paras: [
-          "Single-occupancy pricing: small independents often don't punish you for being one person the way big hotels do. Check whether the room rate is per room or per person.",
+          "Solo-friendly rates: check whether the rate is per room or per person — small independents are less likely to add a single-occupancy premium, but always confirm before booking.",
           "Location over everything: solo, you want to walk home after dinner without a taxi. A cosy place ten minutes from the centre beats a grander one in a business district.",
           "Breakfast culture: a shared breakfast table is the easiest, lowest-pressure way to meet other travellers. Listings and reviews usually mention it.",
         ],
@@ -263,7 +263,7 @@ export const BLOG_POSTS: BlogPost[] = [
     dek: "We scored 17,000+ hotels. Chains average 3.1/10 for cosiness; independents 4.6. But a few chains genuinely buck the trend — here's how to spot a cosy one.",
     eyebrow: "The data",
     h1: "Are hotel chains ever cosy?",
-    lead: "Mostly, no — and we have the numbers. Across the 17,000+ hotels we've scored, chain-branded hotels average 3.1 out of 10 for cosiness; independents average 4.6. Intimacy is the first thing a 9,000-room operation optimises away. But a handful of chains genuinely buck the trend, and if you know what you're looking for, you can find the cosy one.",
+    lead: "Mostly, no — and we have the numbers. Across the 17,000+ hotels we've scored, chain-branded hotels average 3.1 out of 10 for cosiness; independents average 4.6. Intimacy is the first thing a global chain optimises away. But a handful of chains buck the trend, and if you know what you're looking for, you can find the cosy one.",
     updated: "2026-06-30",
     intro: [
       {
@@ -316,7 +316,7 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     slug: "how-to-make-any-hotel-room-feel-cosy",
     title: "How to make any hotel room feel cosy — in ten minutes",
-    dek: "Even a bland hotel room can feel warm with a few small moves. The lighting trick most people miss, plus the rest of the ten-minute routine — from someone who's studied 17,000 cosy rooms.",
+    dek: "Even a bland hotel room can feel warm with a few small moves. The lighting trick most people miss, plus the rest of the ten-minute routine — from a team that's scored 17,000+ hotels for cosiness.",
     eyebrow: "How to",
     h1: "How to make any hotel room feel cosy",
     lead: "We've scored more than 17,000 hotels on how cosy they look, so we've seen what separates a warm room from a cold one. The good news: most of it you can recreate in a bland room in about ten minutes, and the biggest lever is the one almost everyone gets wrong — the lighting.",
