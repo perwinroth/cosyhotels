@@ -247,6 +247,18 @@ export const CONCEPT_BY_SLUG: Record<string, TravellerFitConcept> = Object.fromE
   CONCEPTS.map((c) => [c.slug, c]),
 );
 
+/** The 5 original facets (src/lib/facets.ts) — their indexed URLs keep the historic ≥2 gate. */
+export const LEGACY_FACET_SLUGS: ReadonlySet<string> = new Set(["fireplace", "romantic", "spa", "boutique", "views"]);
+
+/**
+ * Minimum matching hotels for a city collection page (/cosy-hotels/{slug}/{city}) to exist and be
+ * emitted in the sitemap. Legacy facets keep their live ≥2 gate (never de-index a working page);
+ * new concepts need ≥5 so we don't mint thin doorway pages.
+ */
+export function cityCollectionMin(c: TravellerFitConcept): number {
+  return LEGACY_FACET_SLUGS.has(c.slug) ? 2 : 5;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Matching helpers
 // ─────────────────────────────────────────────────────────────────────────────
