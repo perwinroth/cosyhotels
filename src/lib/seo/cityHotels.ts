@@ -174,7 +174,10 @@ export async function loadConceptAssignments(conceptSlugs: string[], hotelIds?: 
       .from("hotel_traveller_fit")
       .select("hotel_id, concept_id, confidence")
       .in("concept_id", conceptSlugs)
-      .order("confidence", { ascending: false })
+      // Order by the PK, not confidence: confidence is heavily tied (rule backfills sit exactly at
+      // minConfidence), and offset-paging over a non-unique order can skip boundary rows.
+      .order("hotel_id", { ascending: true })
+      .order("concept_id", { ascending: true })
       .range(from, from + pageSize - 1);
     if (error || !data || data.length === 0) break;
     add(data as Array<Record<string, unknown>>);

@@ -211,10 +211,14 @@ export default async function HotelDetail({ params }: Props) {
       const cityIds = [String(hotel.id), ...peerFitInput.map((p) => p.hotel_id)];
       const { data: memberRows } = await db
         .from("hotel_traveller_fit")
-        .select("concept_id,hotel_id")
+        .select("concept_id,hotel_id,confidence")
         .in("concept_id", collectionSlugs)
         .in("hotel_id", cityIds);
-      for (const r of (memberRows || []) as { concept_id: string; hotel_id: string }[]) {
+      for (const r of (memberRows || []) as { concept_id: string; hotel_id: string; confidence: number | null }[]) {
+        // Count only rows the collection pages themselves count (≥ the concept's minConfidence) —
+        // otherwise a sub-threshold peer could "verify" a city link whose page then 404s.
+        const c = CONCEPT_BY_SLUG[r.concept_id];
+        if (!c || Number(r.confidence ?? 0) < c.minConfidence) continue;
         (cityMembers.get(r.concept_id) ?? cityMembers.set(r.concept_id, new Set()).get(r.concept_id)!).add(String(r.hotel_id));
       }
       // Legacy facets also match via regex over signals+description (union, dedup by hotel) — keeps
