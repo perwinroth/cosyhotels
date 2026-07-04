@@ -131,8 +131,8 @@ export default async function Home({ params }: { params: { locale: string } }) {
         <section className="mt-4">
           <div className="grid md:grid-cols-3 gap-4">
             {[
-              { n: "1", t: "AI reads every hotel", d: "Photos, reviews, amenities, room count and setting — judged together, not in isolation." },
-              { n: "2", t: "Cosiness signals are weighted", d: "Fireplaces, warm light, soft textiles, intimate scale — scored on one 0–10 cosy scale." },
+              { n: "1", t: "AI reads every hotel", d: "Photos, reviews, amenities, room count and setting, all judged together, not in isolation." },
+              { n: "2", t: "Cosiness signals are weighted", d: "Fireplaces, warm light, soft textiles, intimate scale, scored on one 0–10 cosy scale." },
               { n: "3", t: "You book one with soul", d: "We surface the cosiest, explain why, and link you straight to availability." },
             ].map((s) => (
               <div key={s.n} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
