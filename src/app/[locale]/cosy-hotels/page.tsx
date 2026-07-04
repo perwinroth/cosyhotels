@@ -1,8 +1,8 @@
 // Cosy-hotels hub landing (WP3 + fixes the /cosy-hotels 404): the browse-by index linking every
 // theme hub (/cosy-hotels/{facet}) and country hub (/cosy-hotels/in/{country}). Indexable, evergreen.
 import type { Metadata } from "next";
-import { FACETS } from "@/lib/facets";
 import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
+import { listedThemeConcepts, conceptLabelPhrase } from "@/lib/seo/cityHotels";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 
 export const revalidate = 3600;
@@ -17,7 +17,8 @@ export function generateMetadata(): Metadata {
 
 export default async function CosyHotelsHub({ params }: { params: { locale: string } }) {
   const l = params.locale;
-  const countries = (await loadCountryCounts()).filter((c) => c.live >= HUB_MIN);
+  const [countriesAll, themes] = await Promise.all([loadCountryCounts(), listedThemeConcepts()]);
+  const countries = countriesAll.filter((c) => c.live >= HUB_MIN);
   const crumbs = breadcrumbSchema([
     { name: "Home", url: `/${l}` },
     { name: "Cosy hotels", url: `/${l}/cosy-hotels` },
@@ -32,9 +33,9 @@ export default async function CosyHotelsHub({ params }: { params: { locale: stri
       <section className="mt-8">
         <h2 className="text-lg font-medium">By theme</h2>
         <div className="mt-3 grid sm:grid-cols-2 gap-3">
-          {FACETS.map((f) => (
-            <a key={f.slug} href={`/${l}/cosy-hotels/${f.slug}`} className="block rounded-xl border p-4 hover:underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-              <span className="font-medium">Cosy hotels {f.label}</span>
+          {themes.map((c) => (
+            <a key={c.slug} href={`/${l}/cosy-hotels/${c.slug}`} className="block rounded-xl border p-4 hover:underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
+              <span className="font-medium">Cosy hotels {conceptLabelPhrase(c)}</span>
             </a>
           ))}
         </div>

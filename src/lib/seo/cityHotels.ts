@@ -7,7 +7,11 @@
 import { getServerSupabase } from "@/lib/supabase/server";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
-import { matchesFacet, type Facet } from "@/lib/facets";
+import { matchesFacet, facetBySlug, type Facet } from "@/lib/facets";
+import {
+  CONCEPTS, CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS,
+  type TravellerFitConcept,
+} from "@/lib/travellerFit";
 
 export type CityCosyHotel = {
   id: string; slug: string; name: string; city: string; country: string;
@@ -109,6 +113,148 @@ export async function loadCityCosyHotels(citySlug: string): Promise<{ cityName: 
 /** Hotels in a city that match a facet (same predicate the facet page renders with). */
 export function facetHotels(facet: Facet, hotels: CityCosyHotel[]): CityCosyHotel[] {
   return hotels.filter((h) => matchesFacet(facet, h.signals, h.description));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Traveller Fit — shared concept-membership contract (page ∪ hub ∪ sitemap agree)
+//
+// A live cosy hotel belongs to concept C iff EITHER
+//   • stored: a hotel_traveller_fit row (C, hotel) with confidence ≥ C.minConfidence, OR
+//   • legacy: C is one of the original 5 facets (LEGACY_FACET_SLUGS) and C's regex matches the
+//     hotel's signals+description (identical to matchesFacet — the concept `re` equals the facet `re`).
+// Union + dedup. This is a strict SUPERSET of today's facet membership, so the legacy 5 can only
+// GAIN hotels; with hotel_traveller_fit empty every surface degrades to exactly today's behavior.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Noindex threshold shared by the theme hub page and the hub index (a thinner hub is noindexed). */
+export const THEME_HUB_INDEX_MIN = 8;
+
+/** hotel_id → (concept_id → stored confidence). PK is (hotel_id, concept_id) so one value per pair. */
+export type AssignmentsByHotel = Map<string, Map<string, number>>;
+
+/**
+ * Fetch stored hotel_traveller_fit assignments for the given concept slugs. When `hotelIds` is
+ * given the query is restricted to those hotels (batched in .in() chunks — used by the city page);
+ * otherwise it pages through every row for the concepts (used by the hub + sitemap). The table is
+ * indexed on (concept_id, confidence desc). Returns an empty map when the DB is unavailable or the
+ * table is empty — so every caller degrades to legacy-only membership.
+ */
+export async function loadConceptAssignments(conceptSlugs: string[], hotelIds?: string[]): Promise<AssignmentsByHotel> {
+  const out: AssignmentsByHotel = new Map();
+  const db = getServerSupabase();
+  if (!db || conceptSlugs.length === 0) return out;
+  const add = (rows: Array<Record<string, unknown>>) => {
+    for (const r of rows) {
+      const hid = r.hotel_id == null ? "" : String(r.hotel_id);
+      const cid = r.concept_id == null ? "" : String(r.concept_id);
+      const conf = Number(r.confidence);
+      if (!hid || !cid || !Number.isFinite(conf)) continue;
+      let m = out.get(hid);
+      if (!m) { m = new Map(); out.set(hid, m); }
+      const prev = m.get(cid);
+      if (prev == null || conf > prev) m.set(cid, conf);
+    }
+  };
+  if (hotelIds) {
+    if (hotelIds.length === 0) return out;
+    for (let i = 0; i < hotelIds.length; i += 200) {
+      const { data, error } = await db
+        .from("hotel_traveller_fit")
+        .select("hotel_id, concept_id, confidence")
+        .in("concept_id", conceptSlugs)
+        .in("hotel_id", hotelIds.slice(i, i + 200));
+      if (error) break;
+      add((data || []) as Array<Record<string, unknown>>);
+    }
+    return out;
+  }
+  const pageSize = 1000;
+  for (let from = 0; from < 500000; from += pageSize) {
+    const { data, error } = await db
+      .from("hotel_traveller_fit")
+      .select("hotel_id, concept_id, confidence")
+      .in("concept_id", conceptSlugs)
+      .order("confidence", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error || !data || data.length === 0) break;
+    add(data as Array<Record<string, unknown>>);
+    if (data.length < pageSize) break;
+  }
+  return out;
+}
+
+/** A concept member carries the stored confidence (null when matched only by the legacy regex). */
+export type ConceptCosyHotel = CityCosyHotel & { fitConfidence: number | null };
+
+/**
+ * Members of a concept among an already-resolved set of city cosy hotels, per the membership
+ * contract above. `assignments` is the stored map (empty ⇒ legacy-only). Preserves the input order
+ * (callers re-order); use orderConceptMembers to sort stored-confidence-first.
+ */
+export function conceptMembers(
+  concept: TravellerFitConcept,
+  hotels: CityCosyHotel[],
+  assignments: AssignmentsByHotel,
+): ConceptCosyHotel[] {
+  const isLegacy = LEGACY_FACET_SLUGS.has(concept.slug);
+  const out: ConceptCosyHotel[] = [];
+  for (const h of hotels) {
+    const stored = assignments.get(h.id)?.get(concept.slug);
+    const storedOk = stored != null && stored >= concept.minConfidence;
+    // Legacy regex = matchesFacet semantics (concept.re === the facet re for the original 5).
+    const legacyOk = isLegacy && concept.re.test(`${(h.signals || []).join(" ")} ${h.description || ""}`);
+    if (storedOk || legacyOk) out.push({ ...h, fitConfidence: storedOk ? stored : null });
+  }
+  return out;
+}
+
+/**
+ * Order members stored-confidence desc then cosy-score desc. When NO member has a stored confidence
+ * (the empty-table / legacy-only case) the input order is returned untouched, so legacy pages render
+ * byte-identically to today (which relied on the RPC/scan order).
+ */
+export function orderConceptMembers(members: ConceptCosyHotel[]): ConceptCosyHotel[] {
+  if (!members.some((m) => m.fitConfidence != null)) return members;
+  return [...members].sort((a, b) => {
+    const ca = a.fitConfidence ?? -1, cb = b.fitConfidence ?? -1;
+    if (cb !== ca) return cb - ca;
+    return b.score - a.score;
+  });
+}
+
+/**
+ * The noun phrase used in "Cosy hotels {phrase} in {City}". For the legacy 5 it returns the exact
+ * facets.ts label (so those indexed titles/H1s stay byte-identical); for new concepts it uses the
+ * concept's own noun.
+ */
+export function conceptLabelPhrase(c: TravellerFitConcept): string {
+  return facetBySlug(c.slug)?.label ?? c.noun;
+}
+
+/** Collection-enabled concepts, legacy 5 first (their order matches the old FACETS array). */
+export function collectionConcepts(): TravellerFitConcept[] {
+  return CONCEPTS.filter((c) => c.collectionEnabled);
+}
+
+/**
+ * Theme hubs to list on the /cosy-hotels index: the legacy 5 always (as today), plus any new
+ * collection-enabled concept whose LIVE stored membership clears the noindex threshold — so the
+ * index never links a hub that would render thin/noindexed. Empty table ⇒ just the legacy 5.
+ */
+export async function listedThemeConcepts(): Promise<TravellerFitConcept[]> {
+  const legacy = CONCEPTS.filter((c) => c.collectionEnabled && LEGACY_FACET_SLUGS.has(c.slug));
+  const fresh = CONCEPTS.filter((c) => c.collectionEnabled && !LEGACY_FACET_SLUGS.has(c.slug));
+  if (fresh.length === 0) return legacy;
+  const assignments = await loadConceptAssignments(fresh.map((c) => c.slug));
+  const counts = new Map<string, number>();
+  for (const [, m] of assignments) {
+    for (const [cid, conf] of m) {
+      const c = CONCEPT_BY_SLUG[cid];
+      if (c && conf >= c.minConfidence) counts.set(cid, (counts.get(cid) || 0) + 1);
+    }
+  }
+  const shown = fresh.filter((c) => (counts.get(c.slug) || 0) >= THEME_HUB_INDEX_MIN);
+  return [...legacy, ...shown];
 }
 
 /**
