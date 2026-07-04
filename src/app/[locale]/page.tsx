@@ -136,7 +136,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
               { n: "3", t: "You book one with soul", d: "We surface the cosiest, explain why, and link you straight to availability." },
             ].map((s) => (
               <div key={s.n} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
-                <div className="flex items-center justify-center rounded-xl font-display font-semibold text-lg" style={{ background: "var(--sage)", color: "#16201C", width: 42, height: 42 }}>{s.n}</div>
+                <div className="flex items-center justify-center rounded-xl font-display font-semibold text-lg" style={{ background: "var(--sage)", color: "#fff", width: 42, height: 42 }}>{s.n}</div>
                 <h3 className="mt-3.5 font-display text-lg font-medium">{s.t}</h3>
                 <p className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>{s.d}</p>
               </div>
