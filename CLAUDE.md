@@ -1,3 +1,56 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+**Got Cosy?** (`gotcosy.com`) — a Next.js site that ranks hotels by *cosiness*: an AI reads real guest reviews and scores each hotel 0–10 for warmth, character and intimacy (not stars). ~6.7k live hotels across a `[locale]` city/hotel/guide structure, plus a growth engine (SEO, social auto-posting, PR outreach, blog drip). The scoring dataset is the moat.
+
+- **Stack:** Next.js 15 App Router + React 19 + TypeScript (strict) + Tailwind v4, all built with **Turbopack**. Data in **Supabase** (Postgres, project id `ccohnukmuzgvdrygtcsq`). Scoring/description via **Anthropic SDK** (Haiku). Hosted on **Vercel**.
+- **Deploys straight to prod:** pushing to `main` auto-deploys to Vercel production in ~60–80s. There is no staging branch — treat every push to `main` as shipping live. Prefer previewing before merging non-trivial UI.
+
+## Commands
+
+```bash
+npm run dev              # local dev (Turbopack), http://localhost:3000
+npm run build            # production build
+npm run lint             # eslint (eslint-config-next)
+npx playwright test      # E2E tests (tests/), some with axe a11y checks
+npx playwright test tests/foo.spec.ts   # single test file
+npm run ship --m="msg"   # add -A, commit, pull --rebase, push to main (→ prod)
+```
+
+**Running scripts** (the `scripts/` dir — 70+ one-off/pipeline `.mjs`/`.ts`):
+```bash
+node --env-file=.env.local scripts/X.mjs                 # plain
+node --env-file=.env.local --import tsx scripts/X.ts     # if it uses @/ imports
+```
+Reading `.env.local` directly is deny-blocked, but running a script that loads it is fine. `scripts/` is excluded from tsconfig.
+
+## Architecture
+
+**Routing / i18n.** `src/app/[locale]/…` where `locale ∈ en|fr|de|es|it|pt` (`src/i18n/locales.ts`). **Only `/en` is indexed** — every non-en page canonicals to its `/en` twin, and `/en` + `/` canonical to root. Unknown locales/malformed slugs `notFound()` (guards in `src/lib/seo/slugGuard.ts`); this matters for SEO — an unvalidated `[locale]` param was previously a canonical-confusion factory.
+
+**`src/middleware.ts`** does two critical jobs: (1) 308-redirects every non-canonical host to `gotcosy.com`; (2) **fail-closed auth** on `/api/cron/*` (needs `CRON_SECRET`, sent by Vercel Cron), `/api/admin/*` (CRON_SECRET or `gc_panel` cookie), and the internal `/growth` `/admin` `/badge-outreach` dashboards (unlock with `?key=<PANEL_KEY>`). These endpoints mutate the DB or spend money, so they must never be public.
+
+**Data access.** `src/lib/supabase/server.ts` → `getServerSupabase()` (service-role, server-only; returns `null` if env missing — callers must handle). `src/lib/` holds all the domain logic: `scoring/` (cosy score), `seo/` (`cityHotels.ts`, `sitemapData.ts`, `slugGuard.ts`), image resolution (`hotelImages.ts`, `hotelImageFree.ts`, `imageVision.ts`), `affiliates.ts`, `hotelIdentity.ts`/`dedupeKey.ts` (geo-based dedup), social/outreach. `src/data/` is static TS/JSON (cities, guides, collections, blog posts).
+
+**Scoring pipeline** (the core value loop): `scripts/scrape-reviews-google-apify.mjs` (reviews → `review-cache.json`, **not** the DB) → `scripts/score-and-describe.mjs` (Haiku scores + writes a review-grounded description) → `scripts/score-dashboard.mjs`. **INVARIANT:** every live hotel (score ≥ 5) MUST have both a review-grounded score and custom review-grounded copy; regenerate the description whenever the score changes; hotels that can't be verified are hidden. Scoring is dimensional (v4, `dims` jsonb).
+
+**Crons** (`vercel.json`): daily image backfill, `ensure-featured`, `populate`, `instagram-daily`; weekly `grow`. Pinterest cron is built (`/api/cron/pinterest-daily`) but **not scheduled** yet (blocked on a Blotato account-views gate — see memory).
+
+## Invariants & gotchas (read before touching these areas)
+
+- **Hotel URL structure is FINAL** — clean `country-city-name` slugs (no trailing Google Place IDs). `hotel_slug_redirects` (~19.7k rows) 301s every old form; the hotel page and `/go/[id]` affiliate redirect consult it on a miss. **Do not re-migrate hotel URLs.**
+- **`scripts/seo-audit.mjs` is the acceptance gate** — run it after any URL/sitemap/canonical/redirect change (`node scripts/seo-audit.mjs [--sample N]`; `BASE=http://localhost:PORT` audits local, default audits prod). Note: local `next start` ISR is stale-while-revalidate, so a single local reading can lag — prod after a fresh deploy is authoritative.
+- **City matching is accent/exonym-tolerant** via Postgres `unaccent` + the `cosy_city_hotels`/`cosy_city_count` RPCs; it's a strict **superset** match (never returns fewer results). Exonym aliases in `cityHotels.ts` (`CITY_DB_ALIAS`) must be verified against the DB before adding. Non-Latin scripts (CJK/Greek) are a separate unsolved class.
+- **Any script that writes to the prod DB must be reviewed by the `data-migration-guard` agent before running with `--execute`** — it enforces dry-run-default, backup-before-write, reversibility, batching. Backups land in `scripts/backups/`.
+- Sitemap = static `public/sitemap.xml` index → 5 DB-driven child routes; auto-updates, nothing to resubmit unless GSC shows a broken/old-domain entry.
+
+## Persistent memory
+
+There's a rich session memory at `~/.claude/projects/-Users-perwinroth-cosyhotels/memory/` — **read `MEMORY.md` (index) and the newest `session-handoff-*.md` first** for current project state, decisions, and what's open. Keep it updated as decisions are made.
+
 # Ruflo — Claude Code Configuration
 
 ## Rules
