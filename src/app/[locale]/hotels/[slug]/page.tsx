@@ -16,6 +16,8 @@ import { displayCity, displayCountry } from "@/lib/placeText";
 import { FACETS, matchesFacet } from "@/lib/facets";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/components/HotelGraph";
+import TravellerFit from "@/components/TravellerFit";
+import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, cityCollectionMin, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
 // window, never on every view. These are the top SEO landing pages, so cache them hard.
@@ -158,17 +160,21 @@ export default async function HotelDetail({ params }: Props) {
   const citySlugBase = cityName ? cityToSlug(cityName).replace(/-cosy-hotel$/, "") : "";
   let sameCity: MiniHotel[] = [];
   const collectionLinks: LinkItem[] = [];
+  // Same-city peers' regex inputs (id + signals + description), reused below to verify Traveller Fit
+  // city-collection membership without a second peers round-trip.
+  let peerFitInput: { hotel_id: string; signals: string[] | null; description: string | null }[] = [];
   if (cityRaw) {
     const { data: peers } = await db
       .from("cosy_scores")
-      .select("score,score_final,signals,description,hotel:hotel_id!inner(slug,name,name_en,city)")
+      .select("hotel_id,score,score_final,signals,description,hotel:hotel_id!inner(slug,name,name_en,city)")
       .gte("score", 5)
       .eq("hotel.city", cityRaw)
       .neq("hotel_id", hotel.id)
       .order("score", { ascending: false })
       .limit(40);
-    type Peer = { score: number | null; score_final: number | null; signals: string[] | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null } | null };
+    type Peer = { hotel_id: string; score: number | null; score_final: number | null; signals: string[] | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null } | null };
     const rows = (peers || []) as unknown as Peer[];
+    peerFitInput = rows.map((r) => ({ hotel_id: String(r.hotel_id), signals: r.signals, description: r.description }));
     sameCity = rows.slice(0, 6).map((r) => ({ slug: String(r.hotel?.slug), name: String(r.hotel?.name_en || r.hotel?.name || ""), score: Number((r.score_final ?? r.score) || 0) })).filter((h) => h.slug && h.name);
     // Safe collection links: a facet page needs ≥2 in-city matches, so only link facets where this
     // hotel + its peers give ≥2 — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
@@ -176,6 +182,63 @@ export default async function HotelDetail({ params }: Props) {
       const self = matchesFacet(f, (scoreRow?.signals as string[] | null) ?? null, cosyDescription) ? 1 : 0;
       const peerMatches = rows.filter((r) => matchesFacet(f, r.signals, r.description)).length;
       if (self + peerMatches >= 2 && citySlugBase) collectionLinks.push({ href: `/${params.locale}/cosy-hotels/${f.slug}/${citySlugBase}`, label: `Cosy hotels ${f.label} in ${cityName}` });
+    }
+  }
+
+  // ——— Traveller Fit: the "Best for" section (only for hotels with inferred concepts) ———
+  // Table can be empty (inference hasn't run) — then `displayed` is [] and <TravellerFit> renders
+  // nothing, so hotels without data get zero layout change.
+  const { data: fitData } = await db
+    .from("hotel_traveller_fit")
+    .select("concept_id,confidence,evidence_text")
+    .eq("hotel_id", hotel.id);
+  const fitAssignments: TravellerFitAssignment[] = ((fitData || []) as { concept_id: string; confidence: number | null; evidence_text: string | null }[])
+    .map((r) => ({ hotel_id: String(hotel.id), concept_id: r.concept_id, confidence: Number(r.confidence ?? 0), evidence_text: r.evidence_text || "", source: "llm" as const }));
+  const displayedFits = displayFits(fitAssignments, 6);
+
+  // Resolve each displayed concept's badge href (no-404 guarantee, mirrors Phase 3's gates):
+  //  • collectionEnabled=false → non-link chip (null href)
+  //  • city page only when ≥ cityCollectionMin verified in-city; else the always-on theme hub.
+  const hrefBySlug: Record<string, string | null> = {};
+  if (displayedFits.length) {
+    const collectionSlugs = displayedFits
+      .map((a) => CONCEPT_BY_SLUG[a.concept_id])
+      .filter((c) => c != null && c.collectionEnabled)
+      .map((c) => c!.slug);
+    // Member counts by concept for this city (current hotel + same-city peers), deduped by hotel.
+    const cityMembers = new Map<string, Set<string>>();
+    if (citySlugBase && collectionSlugs.length) {
+      const cityIds = [String(hotel.id), ...peerFitInput.map((p) => p.hotel_id)];
+      const { data: memberRows } = await db
+        .from("hotel_traveller_fit")
+        .select("concept_id,hotel_id,confidence")
+        .in("concept_id", collectionSlugs)
+        .in("hotel_id", cityIds);
+      for (const r of (memberRows || []) as { concept_id: string; hotel_id: string; confidence: number | null }[]) {
+        // Count only rows the collection pages themselves count (≥ the concept's minConfidence) —
+        // otherwise a sub-threshold peer could "verify" a city link whose page then 404s.
+        const c = CONCEPT_BY_SLUG[r.concept_id];
+        if (!c || Number(r.confidence ?? 0) < c.minConfidence) continue;
+        (cityMembers.get(r.concept_id) ?? cityMembers.set(r.concept_id, new Set()).get(r.concept_id)!).add(String(r.hotel_id));
+      }
+      // Legacy facets also match via regex over signals+description (union, dedup by hotel) — keeps
+      // this consistent with how the 5 carried-over facet pages count membership.
+      const selfHay = `${(scoreRow?.signals as string[] | null ?? []).join(" ")} ${cosyDescription || ""}`;
+      for (const slug of collectionSlugs) {
+        if (!LEGACY_FACET_SLUGS.has(slug)) continue;
+        const c = CONCEPT_BY_SLUG[slug];
+        const set = cityMembers.get(slug) ?? cityMembers.set(slug, new Set()).get(slug)!;
+        if (c.re.test(selfHay)) set.add(String(hotel.id));
+        for (const p of peerFitInput) if (c.re.test(`${(p.signals || []).join(" ")} ${p.description || ""}`)) set.add(p.hotel_id);
+      }
+    }
+    for (const a of displayedFits) {
+      const c = CONCEPT_BY_SLUG[a.concept_id];
+      if (!c || !c.collectionEnabled) { hrefBySlug[a.concept_id] = null; continue; }
+      const verified = citySlugBase != "" && (cityMembers.get(c.slug)?.size ?? 0) >= cityCollectionMin(c);
+      hrefBySlug[a.concept_id] = verified
+        ? `/${params.locale}/cosy-hotels/${c.slug}/${citySlugBase}`
+        : `/${params.locale}/cosy-hotels/${c.slug}`;
     }
   }
 
@@ -217,6 +280,15 @@ export default async function HotelDetail({ params }: Props) {
     lat: (hotel.lat as number | null) ?? null, lng: (hotel.lng as number | null) ?? null,
     campaign: `detail-${params.locale}`,
   });
+  // Factual, physical Traveller-Fit concepts → schema.org amenityFeature (SEO/AEO). Only HARD
+  // amenities that survived deterministic-evidence gating at inference time; never soft vibes.
+  const AMENITY_FEATURE_NAME: Record<string, string> = {
+    spa: "Spa", sauna: "Sauna", pool: "Swimming pool", garden: "Garden", rooftop: "Rooftop terrace",
+    bathtub: "Bathtub", fireplace: "Fireplace", "great-breakfast": "Breakfast highly rated", waterfront: "Waterfront location",
+  };
+  const amenityFeature = displayedFits
+    .filter((a) => AMENITY_FEATURE_NAME[a.concept_id])
+    .map((a) => ({ "@type": "LocationFeatureSpecification", name: AMENITY_FEATURE_NAME[a.concept_id], value: true }));
   const hotelJsonLd = {
     "@context": "https://schema.org",
     "@type": "Hotel",
@@ -225,6 +297,7 @@ export default async function HotelDetail({ params }: Props) {
     image: photo ?? undefined,
     address: { "@type": "PostalAddress", addressLocality: cityName, addressCountry: displayCountry(String(hotel.country || "")) },
     ...(rating5 != null ? { aggregateRating: { "@type": "AggregateRating", ratingValue: Number(rating5.toFixed(1)), bestRating: 5, worstRating: 1, ...(typeof hotel.reviews_count === 'number' && hotel.reviews_count > 0 ? { ratingCount: hotel.reviews_count } : {}) } } : {}),
+    ...(amenityFeature.length ? { amenityFeature } : {}),
     url: `${site.url}/${params.locale}/hotels/${hotel.slug}`,
   };
   const breadcrumbJsonLd = breadcrumbSchema([
@@ -283,6 +356,8 @@ export default async function HotelDetail({ params }: Props) {
             : cosyDisplay == null && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We haven&apos;t gathered enough guest evidence to score this hotel for cosiness yet. It will earn a score once we have real reviews or vetted photos.</p>}
         </div>
       </div>
+
+      <TravellerFit displayed={displayedFits} hrefBySlug={hrefBySlug} />
 
       <div className="mt-6 flex items-center gap-3">
         <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName ? cityGuideHref : `/${params.locale}/guides`}>← {cityName ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>

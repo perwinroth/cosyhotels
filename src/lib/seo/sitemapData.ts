@@ -6,10 +6,10 @@ import { guides } from "@/data/guides";
 import { cityGuides } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getVisibleBlogPosts } from "@/lib/blogSchedule";
-import { FACETS } from "@/lib/facets";
+import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, cityCollectionMin } from "@/lib/travellerFit";
 import { cityFromSlug } from "@/lib/citySlug";
 import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
-import { cityMembers, cityBaseSlug, resolveCity, facetHotels, liveCosyCountForCityName, CITY_HOTEL_SELECT, type ScoreHotelRow } from "@/lib/seo/cityHotels";
+import { cityMembers, cityBaseSlug, resolveCity, liveCosyCountForCityName, CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, collectionConcepts, conceptMembers, loadConceptAssignments, type ScoreHotelRow } from "@/lib/seo/cityHotels";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
 export type Url = { loc: string; lastmod?: string; changefreq?: string; priority?: number };
@@ -83,18 +83,21 @@ export async function hotelUrls(): Promise<Url[]> {
   return out;
 }
 
-// ——— Collection pages: /cosy-hotels/[facet]/[city] ———
-// The facet page 404s below 2 matches, so we emit ONLY (facet, city) pairs with ≥2 hotels whose real
-// cosy signals/description match the facet — and only for KNOWN cities (cityFromSlug round-trips
-// cleanly), so we never put a 404 in the sitemap.
+// ——— Collection pages: /cosy-hotels/[concept]/[city] + theme hubs ———
+// Membership follows the SAME Traveller Fit contract the pages render with (stored hotel_traveller_fit
+// ≥ minConfidence ∪, for the legacy 5, the real-signal regex). We emit ONLY (concept, city) pairs
+// clearing the concept's city min (legacy 5 → 2, new → 5) and only for KNOWN cities (cityFromSlug
+// round-trips cleanly) — so we never put a URL in the sitemap the page then 404s. With
+// hotel_traveller_fit empty this reduces to exactly the original facet emission for the legacy 5.
 export async function collectionUrls(): Promise<Url[]> {
   const db = getServerSupabase();
   if (!db) return [];
   // Step 1: ONE scan of all surfaced hotels (score ≥ 5). Kept in memory so we never issue a per-city
-  // query (that timed out over the ~hundreds of known cities). Also collect the set of KNOWN city
-  // slugs (those that round-trip via cityFromSlug).
+  // query (that timed out over the ~hundreds of known cities). Collect KNOWN city slugs (round-trip
+  // via cityFromSlug) + the set of live hotel ids (for the hub liveness gate).
   const rows: ScoreHotelRow[] = [];
   const citySlugs = new Set<string>();
+  const liveIds = new Set<string>();
   const pageSize = 1000;
   for (let from = 0; from < 60000; from += pageSize) {
     const { data, error } = await db
@@ -105,26 +108,45 @@ export async function collectionUrls(): Promise<Url[]> {
     if (error || !data || data.length === 0) break;
     for (const r of data as unknown as ScoreHotelRow[]) {
       rows.push(r);
+      if (r.hotel_id) liveIds.add(String(r.hotel_id));
       const city = (r.hotel?.city || "").trim();
       if (city && cityFromSlug(`${cityBaseSlug(city)}-cosy-hotel`)) citySlugs.add(cityBaseSlug(city));
     }
     if (data.length < pageSize) break;
   }
-  // Step 2: for each known city, compute its hotels IN MEMORY with the SAME predicate the facet page
-  // renders with (cityMembers: substring city match + dedup + isLatin), and emit a (facet, city) URL
-  // only where ≥2 hotels match — so the sitemap can never list a URL the page then 404s.
+  // Step 2: ONE bulk fetch of stored Traveller Fit assignments for the collection-enabled concepts
+  // (empty when the table is empty ⇒ legacy-only membership below).
+  const concepts = collectionConcepts();
+  const assignments = await loadConceptAssignments(concepts.map((c) => c.slug));
+
+  // Step 3: for each known city, compute members IN MEMORY via the shared contract (cityMembers →
+  // conceptMembers), and emit a (concept, city) URL only where members clear the concept's city min.
   const urls: Url[] = [];
   for (const citySlug of citySlugs) {
-    const hotels = cityMembers(resolveCity(citySlug), rows);
-    for (const f of FACETS) {
-      if (facetHotels(f, hotels).length >= 2) {
-        urls.push({ loc: `${SITE}/en/cosy-hotels/${f.slug}/${citySlug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
+    const cityHotels = cityMembers(resolveCity(citySlug), rows);
+    for (const c of concepts) {
+      if (conceptMembers(c, cityHotels, assignments).length >= cityCollectionMin(c)) {
+        urls.push({ loc: `${SITE}/en/cosy-hotels/${c.slug}/${citySlug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
       }
     }
   }
-  // Theme hubs (one per facet — each matches hundreds of hotels, comfortably above the index gate) +
-  // country hubs (only those clearing HUB_MIN, so the sitemap never lists a noindexed thin hub).
-  for (const f of FACETS) urls.push({ loc: `${SITE}/en/cosy-hotels/${f.slug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
+  // Theme hubs: the legacy 5 unconditionally (each matches hundreds of hotels — as before). New
+  // concepts only when their LIVE stored membership clears the noindex gate, so the sitemap never
+  // lists a noindexed thin hub (and emits nothing new while the table is empty).
+  const storedLive = new Map<string, number>();
+  for (const [hid, m] of assignments) {
+    if (!liveIds.has(hid)) continue;
+    for (const [cid, conf] of m) {
+      const cc = CONCEPT_BY_SLUG[cid];
+      if (cc && conf >= cc.minConfidence) storedLive.set(cid, (storedLive.get(cid) || 0) + 1);
+    }
+  }
+  for (const c of concepts) {
+    if (LEGACY_FACET_SLUGS.has(c.slug) || (storedLive.get(c.slug) || 0) >= THEME_HUB_INDEX_MIN) {
+      urls.push({ loc: `${SITE}/en/cosy-hotels/${c.slug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
+    }
+  }
+  // Country hubs (only those clearing HUB_MIN, so the sitemap never lists a noindexed thin hub).
   for (const c of await loadCountryCounts()) {
     if (c.live >= HUB_MIN) urls.push({ loc: `${SITE}/en/cosy-hotels/in/${c.country.slug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
   }

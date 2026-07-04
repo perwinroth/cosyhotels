@@ -7,30 +7,39 @@ import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityToSlug } from "@/lib/citySlug";
 import { stay22AllezUrl } from "@/lib/affiliates";
-import { facetBySlug } from "@/lib/facets";
+import { CONCEPT_BY_SLUG, cityCollectionMin, LEGACY_FACET_SLUGS } from "@/lib/travellerFit";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
-import { loadCityCosyHotels, facetHotels, resolveCity } from "@/lib/seo/cityHotels";
+import {
+  loadCityCosyHotels, resolveCity, loadConceptAssignments,
+  conceptMembers, orderConceptMembers, conceptLabelPhrase,
+} from "@/lib/seo/cityHotels";
 
 export const revalidate = 3600;
 
-// Hotels + city resolution come from the shared loadCityCosyHotels (see src/lib/seo/cityHotels.ts)
-// so the sitemap and this page apply IDENTICAL dedup/isLatin/city-match rules and never disagree
-// on the ≥2 threshold.
-async function load(facetSlug: string, citySlug: string) {
-  const facet = facetBySlug(facetSlug);
-  if (!facet) return null;
+// City rows come from the shared loadCityCosyHotels (src/lib/seo/cityHotels.ts) so page + sitemap
+// apply IDENTICAL dedup/isLatin/city-match rules; membership then follows the Traveller Fit contract
+// (stored hotel_traveller_fit ≥ minConfidence ∪ legacy regex). With the table empty the legacy 5
+// degrade to exactly today's facet membership + ≥2 gate.
+async function load(conceptSlug: string, citySlug: string) {
+  const concept = CONCEPT_BY_SLUG[conceptSlug];
+  if (!concept || !concept.collectionEnabled) return null;
   const res = await loadCityCosyHotels(citySlug);
   if (!res) return null;
-  return { facet, cityName: res.cityName, hotels: facetHotels(facet, res.hotels) };
+  const assignments = await loadConceptAssignments([concept.slug], res.hotels.map((h) => h.id));
+  const hotels = orderConceptMembers(conceptMembers(concept, res.hotels, assignments));
+  return { concept, cityName: res.cityName, hotels };
 }
 
 export async function generateMetadata({ params }: { params: { locale: string; facet: string; city: string } }): Promise<Metadata> {
-  const facet = facetBySlug(params.facet);
-  if (!facet) return {};
+  const concept = CONCEPT_BY_SLUG[params.facet];
+  if (!concept || !concept.collectionEnabled) return {};
   const cityName = resolveCity(params.city);
-  const title = `Cosy hotels ${facet.label} in ${cityName}`;
-  const description = `AI-ranked cosy hotels ${facet.label} in ${cityName} — scored 0–10 for warmth and character, with real photos and honest cosy scores.`;
+  const phrase = conceptLabelPhrase(concept);
+  const title = `Cosy hotels ${phrase} in ${cityName}`;
+  const description = LEGACY_FACET_SLUGS.has(concept.slug)
+    ? `AI-ranked cosy hotels ${phrase} in ${cityName} — scored 0–10 for warmth and character, with real photos and honest cosy scores.`
+    : `${concept.description} The cosiest hotels ${phrase} in ${cityName}, AI-scored 0–10 for warmth and character.`;
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/${params.facet}/${params.city}`;
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };
@@ -38,8 +47,10 @@ export async function generateMetadata({ params }: { params: { locale: string; f
 
 export default async function FacetPage({ params }: { params: { locale: string; facet: string; city: string } }) {
   const res = await load(params.facet, params.city);
-  if (!res || res.hotels.length < 2) notFound(); // no thin pages
-  const { facet, cityName, hotels } = res;
+  if (!res || res.hotels.length < cityCollectionMin(res.concept)) notFound(); // legacy → ≥2, new → ≥5
+  const { concept, cityName, hotels } = res;
+  const phrase = conceptLabelPhrase(concept);
+  const isLegacy = LEGACY_FACET_SLUGS.has(concept.slug);
 
   // Vetted photos.
   const db = getServerSupabase()!;
@@ -54,21 +65,22 @@ export default async function FacetPage({ params }: { params: { locale: string; 
   }
 
   const top = hotels[0];
-  const intro = `We've scored ${hotels.length} cosy ${hotels.length === 1 ? "hotel" : "hotels"} ${facet.label} in ${cityName} — ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score.`;
+  const lead = `We've scored ${hotels.length} cosy ${hotels.length === 1 ? "hotel" : "hotels"} ${phrase} in ${cityName} — ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score.`;
+  const intro = isLegacy ? lead : `${concept.description} ${lead}`;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
   const jsonLd = {
-    "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${facet.label} in ${cityName}`, numberOfItems: hotels.length,
+    "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${phrase} in ${cityName}`, numberOfItems: hotels.length,
     itemListElement: hotels.map((h, i) => ({ "@type": "ListItem", position: i + 1, item: { "@type": "Hotel", name: h.name, url: `${siteUrl}/${params.locale}/hotels/${h.slug}`, ...(photo.get(h.id) ? { image: photo.get(h.id) } : {}), review: { "@type": "Review", author: { "@type": "Organization", name: "Got Cosy" }, reviewRating: { "@type": "Rating", ratingValue: Number(h.score.toFixed(1)), bestRating: 10, worstRating: 0, name: "Cosy score" } } } })),
   };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <h1 className="text-2xl font-semibold">Cosy hotels {facet.label} in {cityName}</h1>
+      <h1 className="text-2xl font-semibold">Cosy hotels {phrase} in {cityName}</h1>
       <p className="mt-2" style={{ color: "var(--muted)" }}>{intro}</p>
       <ol className="mt-6 space-y-3">
         {hotels.map((h, idx) => {
-          const cta = stay22AllezUrl({ name: h.name, city: h.city, country: h.country, lat: h.lat, lng: h.lng, campaign: `facet-${facet.slug}` });
+          const cta = stay22AllezUrl({ name: h.name, city: h.city, country: h.country, lat: h.lat, lng: h.lng, campaign: `facet-${concept.slug}` });
           const ph = photo.get(h.id);
           return (
             <li key={h.id} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -86,7 +98,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
           );
         })}
       </ol>
-      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>See all <a href={`/${params.locale}/guides/${cityToSlug(cityName)}`} className="underline">cosy hotels in {cityName}</a>, or cosy hotels {facet.label} <a href={`/${params.locale}/cosy-hotels/${facet.slug}`} className="underline">worldwide</a>.</p>
+      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>See all <a href={`/${params.locale}/guides/${cityToSlug(cityName)}`} className="underline">cosy hotels in {cityName}</a>, or cosy hotels {phrase} <a href={`/${params.locale}/cosy-hotels/${concept.slug}`} className="underline">worldwide</a>.</p>
     </div>
   );
 }
