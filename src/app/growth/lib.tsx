@@ -3,6 +3,7 @@
 // through the brand CSS variables so both themes render correctly — no raw hex.
 import type { ReactNode } from "react";
 import { getGscSummary, gscConfigured } from "@/lib/gsc";
+import { getScheduleForPanel } from "@/lib/blogSchedule";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any;
 
@@ -26,13 +27,17 @@ export function mkCount(db: DB) {
 // by name or filter to contactable hotels the way /growth/badges does, so it slightly over-counts.
 export async function getBoardCounts(db: DB) {
   const c = mkCount(db);
-  const [pr, hi, worked, reddit, blog] = await Promise.all([
+  const [pr, hi, worked, reddit, schedule] = await Promise.all([
     c("outreach", (q) => q.eq("status", "queued")),
     c("cosy_scores", (q) => q.gte("score", 7)),
     c("hotel_outreach", (q) => q.neq("status", "queued")),
     c("reddit_leads", (q) => q.eq("status", "new")),
-    c("blog_schedule", (q) => q.in("status", ["draft", "scheduled"])),
+    // The Blog board renders ALL code-defined posts (getScheduleForPanel); untouched posts default
+    // to "draft" with no blog_schedule row, so a table-only count under-reports drafts. Count the
+    // same set the board shows: everything not yet live (draft + scheduled).
+    getScheduleForPanel().catch(() => []),
   ]);
+  const blog = schedule.filter((s) => s.status !== "live").length;
   return { pr, badges: Math.max(0, hi - worked), reddit, blog };
 }
 
