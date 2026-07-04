@@ -49,7 +49,7 @@ export function HotelGraph({ city, cityGuideHref, cityLabel, sameCity, collectio
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {sameCity.map((h) => (
               <li key={h.slug} className="rounded-xl border p-3 flex items-center gap-3" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-                <span className="flex-none flex items-center justify-center rounded-lg font-display font-bold text-white" style={{ width: 40, height: 40, background: cosyBadgeColor(h.score), color: "#16201C", fontSize: 15 }}>{h.score.toFixed(1)}</span>
+                <span className="flex-none flex items-center justify-center rounded-lg font-display font-bold text-white" style={{ width: 40, height: 40, background: cosyBadgeColor(h.score), fontSize: 15 }}>{h.score.toFixed(1)}</span>
                 <a href={`/en/hotels/${h.slug}`} className="text-sm font-medium no-underline hover:underline" style={{ color: "var(--foreground)" }}>{h.name}</a>
               </li>
             ))}

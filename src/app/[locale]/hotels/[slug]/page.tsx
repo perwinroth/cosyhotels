@@ -342,7 +342,7 @@ export default async function HotelDetail({ params }: Props) {
 
       <div className="mt-6 flex items-center gap-5 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
         {cosyDisplay != null ? (
-          <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 76, height: 76, background: badge, color: '#16201C', fontSize: 28 }} aria-label={`Cosy score ${cosyDisplay.toFixed(1)} out of 10`}>
+          <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 76, height: 76, background: badge, color: '#fff', fontSize: 28 }} aria-label={`Cosy score ${cosyDisplay.toFixed(1)} out of 10`}>
             {cosyDisplay.toFixed(1)}<span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', opacity: 0.8 }}>COSY</span>
           </div>
         ) : (
