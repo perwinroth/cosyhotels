@@ -61,6 +61,7 @@ export async function GET(req: Request) {
   const dry = sp.get("dry") === "1";
   const auto = sp.get("auto") === "1";          // pick the city automatically (daily rotation)
   const only = sp.get("only")?.trim() || "";    // "instagram" | "pinterest" | "" (both)
+  const limit = Math.max(0, parseInt(sp.get("limit") || "0", 10) || 0); // cap Pinterest pins/run (0 = whole city)
 
   const key = process.env.BLOTATO_API_KEY;
   if (!key) return NextResponse.json({ error: "BLOTATO_API_KEY not set" }, { status: 500 });
@@ -76,7 +77,8 @@ export async function GET(req: Request) {
   }
 
   const pinAccount = process.env.BLOTATO_PINTEREST_ACCOUNT_ID || "7575";
-  const pinBoard = process.env.BLOTATO_PINTEREST_BOARD_ID || "";
+  // Default board = "Cosy hotel stays" (gotcosy Pinterest). Override via BLOTATO_PINTEREST_BOARD_ID.
+  const pinBoard = process.env.BLOTATO_PINTEREST_BOARD_ID || "1102537621216957324";
   const igAccount = process.env.BLOTATO_INSTAGRAM_ACCOUNT_ID || "";
 
   const db = getServerSupabase();
@@ -135,7 +137,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       dry: true, city, hotels: vetted.length, droppedBlack: dropped,
       pinterest: pinBoard
-        ? { account: pinAccount, board: pinBoard, pins: vetted.map((s) => ({ title: `${s.name} · ${s.city}`, score: s.score, link: pin.link, media: hotelPinImageUrl(base, s) })) }
+        ? { account: pinAccount, board: pinBoard, limit: limit || null, pins: (limit > 0 ? vetted.slice(0, limit) : vetted).map((s) => ({ title: `${s.name} · ${s.city}`, score: s.score, link: pin.link, media: hotelPinImageUrl(base, s) })) }
         : "(BLOTATO_PINTEREST_BOARD_ID unset)",
       instagram: igAccount
         ? (vetted.length >= MIN_IG_SLIDES
@@ -157,7 +159,9 @@ export async function GET(req: Request) {
   // 1) Pinterest — ONE pin per hotel (single image), best Pinterest format + max discovery.
   if (pinBoard && only !== "instagram") {
     const pinResults: unknown[] = [];
-    for (const s of vetted) {
+    // Cap pins per run when ?limit= is set (conservative cadence just after account warm-up).
+    const pinSlides = limit > 0 ? vetted.slice(0, limit) : vetted;
+    for (const s of pinSlides) {
       const hosted = await upload(hotelPinImageUrl(base, s));
       if (!hosted) { pinResults.push({ hotel: s.name, error: "media upload failed" }); continue; }
       const r = await blotato("/v2/posts", {
