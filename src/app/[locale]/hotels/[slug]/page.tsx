@@ -17,7 +17,8 @@ import { FACETS, matchesFacet } from "@/lib/facets";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/components/HotelGraph";
 import TravellerFit from "@/components/TravellerFit";
-import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, cityCollectionMin, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
+import { CONCEPT_BY_SLUG, cityCollectionMin, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
+import { loadCityCosyHotels, loadConceptAssignments, conceptMembers } from "@/lib/seo/cityHotels";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
 // window, never on every view. These are the top SEO landing pages, so cache them hard.
@@ -160,9 +161,6 @@ export default async function HotelDetail({ params }: Props) {
   const citySlugBase = cityName ? cityToSlug(cityName).replace(/-cosy-hotel$/, "") : "";
   let sameCity: MiniHotel[] = [];
   const collectionLinks: LinkItem[] = [];
-  // Same-city peers' regex inputs (id + signals + description), reused below to verify Traveller Fit
-  // city-collection membership without a second peers round-trip.
-  let peerFitInput: { hotel_id: string; signals: string[] | null; description: string | null }[] = [];
   if (cityRaw) {
     const { data: peers } = await db
       .from("cosy_scores")
@@ -174,7 +172,6 @@ export default async function HotelDetail({ params }: Props) {
       .limit(40);
     type Peer = { hotel_id: string; score: number | null; score_final: number | null; signals: string[] | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null } | null };
     const rows = (peers || []) as unknown as Peer[];
-    peerFitInput = rows.map((r) => ({ hotel_id: String(r.hotel_id), signals: r.signals, description: r.description }));
     sameCity = rows.slice(0, 6).map((r) => ({ slug: String(r.hotel?.slug), name: String(r.hotel?.name_en || r.hotel?.name || ""), score: Number((r.score_final ?? r.score) || 0) })).filter((h) => h.slug && h.name);
     // Safe collection links: a facet page needs ≥2 in-city matches, so only link facets where this
     // hotel + its peers give ≥2 — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
@@ -205,37 +202,25 @@ export default async function HotelDetail({ params }: Props) {
       .map((a) => CONCEPT_BY_SLUG[a.concept_id])
       .filter((c) => c != null && c.collectionEnabled)
       .map((c) => c!.slug);
-    // Member counts by concept for this city (current hotel + same-city peers), deduped by hotel.
-    const cityMembers = new Map<string, Set<string>>();
+    // Member counts by concept, computed EXACTLY as the city page computes them (RPC top-80 window
+    // → cityMembers → stored ∪ legacy-regex via conceptMembers). Counting a different universe
+    // (e.g. the exact-city peers list) can "verify" a link whose page, fed by the LIMIT 80 RPC,
+    // then 404s. One RPC round-trip for the city, reused across all displayed concepts (ISR-cached).
+    const cityMemberCount = new Map<string, number>();
     if (citySlugBase && collectionSlugs.length) {
-      const cityIds = [String(hotel.id), ...peerFitInput.map((p) => p.hotel_id)];
-      const { data: memberRows } = await db
-        .from("hotel_traveller_fit")
-        .select("concept_id,hotel_id,confidence")
-        .in("concept_id", collectionSlugs)
-        .in("hotel_id", cityIds);
-      for (const r of (memberRows || []) as { concept_id: string; hotel_id: string; confidence: number | null }[]) {
-        // Count only rows the collection pages themselves count (≥ the concept's minConfidence) —
-        // otherwise a sub-threshold peer could "verify" a city link whose page then 404s.
-        const c = CONCEPT_BY_SLUG[r.concept_id];
-        if (!c || Number(r.confidence ?? 0) < c.minConfidence) continue;
-        (cityMembers.get(r.concept_id) ?? cityMembers.set(r.concept_id, new Set()).get(r.concept_id)!).add(String(r.hotel_id));
-      }
-      // Legacy facets also match via regex over signals+description (union, dedup by hotel) — keeps
-      // this consistent with how the 5 carried-over facet pages count membership.
-      const selfHay = `${(scoreRow?.signals as string[] | null ?? []).join(" ")} ${cosyDescription || ""}`;
-      for (const slug of collectionSlugs) {
-        if (!LEGACY_FACET_SLUGS.has(slug)) continue;
-        const c = CONCEPT_BY_SLUG[slug];
-        const set = cityMembers.get(slug) ?? cityMembers.set(slug, new Set()).get(slug)!;
-        if (c.re.test(selfHay)) set.add(String(hotel.id));
-        for (const p of peerFitInput) if (c.re.test(`${(p.signals || []).join(" ")} ${p.description || ""}`)) set.add(p.hotel_id);
+      const cityRes = await loadCityCosyHotels(citySlugBase);
+      if (cityRes) {
+        const cityAssignments = await loadConceptAssignments(collectionSlugs, cityRes.hotels.map((h) => h.id));
+        for (const slug of collectionSlugs) {
+          const c = CONCEPT_BY_SLUG[slug];
+          if (c) cityMemberCount.set(slug, conceptMembers(c, cityRes.hotels, cityAssignments).length);
+        }
       }
     }
     for (const a of displayedFits) {
       const c = CONCEPT_BY_SLUG[a.concept_id];
       if (!c || !c.collectionEnabled) { hrefBySlug[a.concept_id] = null; continue; }
-      const verified = citySlugBase != "" && (cityMembers.get(c.slug)?.size ?? 0) >= cityCollectionMin(c);
+      const verified = citySlugBase != "" && (cityMemberCount.get(c.slug) ?? 0) >= cityCollectionMin(c);
       hrefBySlug[a.concept_id] = verified
         ? `/${params.locale}/cosy-hotels/${c.slug}/${citySlugBase}`
         : `/${params.locale}/cosy-hotels/${c.slug}`;

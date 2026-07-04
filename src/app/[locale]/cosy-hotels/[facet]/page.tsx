@@ -18,7 +18,7 @@ import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import ShareButton from "@/components/ShareButton";
 import {
   CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, conceptLabelPhrase,
-  loadConceptAssignments, type ScoreHotelRow,
+  loadConceptAssignments, conceptCityMembersLive, type ScoreHotelRow,
 } from "@/lib/seo/cityHotels";
 
 export const revalidate = 3600;
@@ -105,7 +105,15 @@ const loadConcept = cache(async (conceptSlug: string): Promise<{ hotels: Match[]
   }
 
   // Per-city links need ≥ the concept's city-collection min (legacy 5 → 2, matching the old hub).
-  const cities = [...cityTally.values()].filter((c) => c.n >= cityCollectionMin(concept)).sort((a, b) => b.n - a.n).slice(0, 24);
+  // The tally is only a CANDIDATE list — it counts this hub's (unbounded) universe, while the city
+  // page renders from the top-80 RPC window. Verify each candidate through the page's own path
+  // (conceptCityMembersLive) so a hub link can never point at a city page that 404s.
+  const candidates = [...cityTally.values()].filter((c) => c.n >= cityCollectionMin(concept)).sort((a, b) => b.n - a.n).slice(0, 30);
+  const checks = await Promise.all(candidates.map(async (c) => {
+    const members = await conceptCityMembersLive(concept, c.slug);
+    return members != null && members.length >= cityCollectionMin(concept) ? c : null;
+  }));
+  const cities = checks.filter((c): c is NonNullable<typeof c> => c != null).slice(0, 24);
   return { hotels, cities };
 });
 

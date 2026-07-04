@@ -9,7 +9,7 @@ import { getVisibleBlogPosts } from "@/lib/blogSchedule";
 import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, cityCollectionMin } from "@/lib/travellerFit";
 import { cityFromSlug } from "@/lib/citySlug";
 import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
-import { cityMembers, cityBaseSlug, resolveCity, liveCosyCountForCityName, CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, collectionConcepts, conceptMembers, loadConceptAssignments, type ScoreHotelRow } from "@/lib/seo/cityHotels";
+import { cityMembers, cityBaseSlug, resolveCity, liveCosyCountForCityName, CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, collectionConcepts, conceptMembers, loadConceptAssignments, rpcCityUniverse, type ScoreHotelRow } from "@/lib/seo/cityHotels";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
 export type Url = { loc: string; lastmod?: string; changefreq?: string; priority?: number };
@@ -121,9 +121,12 @@ export async function collectionUrls(): Promise<Url[]> {
 
   // Step 3: for each known city, compute members IN MEMORY via the shared contract (cityMembers →
   // conceptMembers), and emit a (concept, city) URL only where members clear the concept's city min.
+  // CRITICAL: count over rpcCityUniverse (the page's top-80-by-score RPC window), not the full scan —
+  // counting the full table emitted URLs (bathtub/venice) whose page, fed by the LIMIT 80 RPC, 404'd.
   const urls: Url[] = [];
   for (const citySlug of citySlugs) {
-    const cityHotels = cityMembers(resolveCity(citySlug), rows);
+    const cityName = resolveCity(citySlug);
+    const cityHotels = cityMembers(cityName, rpcCityUniverse(cityName, rows));
     for (const c of concepts) {
       if (conceptMembers(c, cityHotels, assignments).length >= cityCollectionMin(c)) {
         urls.push({ loc: `${SITE}/en/cosy-hotels/${c.slug}/${citySlug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });

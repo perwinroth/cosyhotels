@@ -186,6 +186,36 @@ export async function loadConceptAssignments(conceptSlugs: string[], hotelIds?: 
   return out;
 }
 
+/**
+ * Mirror of the cosy_city_hotels RPC's row universe: raw score ≥ 5, accent-folded substring city
+ * match, top 80 by raw score. Any in-memory membership COUNT must run over this universe — the city
+ * page renders from the RPC, so counting over an unbounded scan can emit a link/sitemap URL whose
+ * page then 404s (bathtub/venice: 5 members city-wide, only 4 inside the page's top-80).
+ */
+export function rpcCityUniverse(cityName: string, rows: ScoreHotelRow[]): ScoreHotelRow[] {
+  const needle = foldCity(aliasCity(cityName));
+  return rows
+    .filter((r) => Number(r.score ?? 0) >= 5 && foldCity(r.hotel?.city || "").includes(needle))
+    .sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0))
+    .slice(0, 80);
+}
+
+/**
+ * A concept's city members exactly as the CITY PAGE computes them (RPC fetch → cityMembers →
+ * stored assignments → conceptMembers). Every surface that decides whether to LINK a city
+ * collection (hotel-page badges, theme-hub city links) must use this so it can never disagree
+ * with the page it links to. Null only when the DB is unavailable.
+ */
+export async function conceptCityMembersLive(
+  concept: TravellerFitConcept,
+  citySlug: string,
+): Promise<ConceptCosyHotel[] | null> {
+  const res = await loadCityCosyHotels(citySlug);
+  if (!res) return null;
+  const assignments = await loadConceptAssignments([concept.slug], res.hotels.map((h) => h.id));
+  return conceptMembers(concept, res.hotels, assignments);
+}
+
 /** A concept member carries the stored confidence (null when matched only by the legacy regex). */
 export type ConceptCosyHotel = CityCosyHotel & { fitConfidence: number | null };
 
