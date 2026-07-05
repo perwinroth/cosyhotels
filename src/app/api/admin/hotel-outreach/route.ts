@@ -6,7 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 // the row may not exist yet (the list is derived live; status is created on first change).
 export async function POST(req: Request) {
   const { hotel_id, status, channel } = await req.json().catch(() => ({}));
-  const allowed = ["queued", "contacted", "replied", "won", "declined"];
+  const allowed = ["queued", "contacted", "replied", "won", "won_confirmed", "declined"];
   if (!hotel_id || !allowed.includes(status)) return NextResponse.json({ error: "bad request" }, { status: 400 });
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "db not configured" }, { status: 500 });

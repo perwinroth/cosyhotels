@@ -15,7 +15,8 @@ const COLUMNS: KanbanColumn[] = [
   { id: "queued", title: "Queued", hint: "New targets land here.", advanceLabel: "Mark contacted" },
   { id: "contacted", title: "Contacted", hint: "Nothing waiting — drafts you've sent appear here.", advanceLabel: "Mark replied" },
   { id: "replied", title: "Replied", hint: "They wrote back — move here.", advanceLabel: "Mark won" },
-  { id: "won", title: "Won", hint: "Backlinks landed 🔥" },
+  { id: "won", title: "Won", hint: "Said yes — awaiting the live link.", advanceLabel: "Mark confirmed" },
+  { id: "won_confirmed", title: "Won confirmed", hint: "Backlink landed 🔥" },
   { id: "declined", title: "Declined", hint: "No thanks / no fit.", discard: true },
 ];
 const recRank = (r?: string) => (({ "start-here": 0, "if-budget": 2, skip: 3 }) as Record<string, number>)[r ?? ""] ?? 1;
