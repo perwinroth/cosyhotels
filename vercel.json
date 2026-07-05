@@ -5,7 +5,8 @@
     { "path": "/api/cron/ensure-featured", "schedule": "15 3 * * *" },
     { "path": "/api/cron/grow", "schedule": "0 6 * * 1" },
     { "path": "/api/cron/populate", "schedule": "0 4 * * *" },
-    { "path": "/api/cron/instagram-daily", "schedule": "0 13 * * *" }
+    { "path": "/api/cron/instagram-daily", "schedule": "0 13 * * *" },
+    { "path": "/api/cron/reddit-scan", "schedule": "30 5 * * 1" }
   ]
 }
 

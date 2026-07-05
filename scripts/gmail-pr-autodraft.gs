@@ -11,7 +11,7 @@
  *   Then run install once and authorize. (Editing the code later needs no re-install.)
  */
 
-var SENDERS = ['sourceofsources.com', 'helpareporter.com', 'helpareporter.net', 'sourcebottle.com', 'thesourcebottle.com', 'featured.com'];
+var SENDERS = ['sourceofsources.com', 'helpareporter.com', 'helpareporter.net', 'sourcebottle.com', 'thesourcebottle.com', 'featured.com', 'noreply@connectively.us'];
 var DONE_LABEL = 'cosy-pr-done';
 var MODEL = 'claude-haiku-4-5';
 
