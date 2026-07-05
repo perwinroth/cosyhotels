@@ -267,11 +267,15 @@ export default async function GuidePage({ params }: Props) {
     const exact = variants.includes(city) ? 2 : 0;
     const mention = variants.some((v) => addr.includes(v)) ? 1 : 0;
     const tie = typeof h.reviews_count === 'number' ? Math.min(1, Number(h.reviews_count) / 1000) : 0;
-    // Cosiness LEADS the ranking — a genuinely cosy hotel must never sit below a duller one just
-    // because the latter happens to carry an exact city field. (Bug: Istanbul crowned a 5.0 over a
-    // 7.3 because the 7.3 was geo-matched with no city field.) A small boost still favours a
-    // confirmed-city match, so a hotel in a neighbouring town can't hijack the top on score alone.
-    const rank = s + (exact === 2 ? 0.75 : 0) + (mention ? 0.25 : 0);
+    // Cosiness LEADS the ranking. City confirmation is a GATE, not a re-ordering signal: a hotel
+    // confirmed in this city (its city field matches, or its address names the city) sorts on PURE
+    // cosy score, so genuinely-cosier hotels always sit above duller ones. Only a geo/bbox match
+    // with NO textual confirmation is demoted, so a mis-geocoded hotel can't top the list on score
+    // alone (the Istanbul 5.0-over-7.3 case). Previously `s + 0.75·exact + 0.25·mention` folded
+    // those boosts into the sort, which flipped cosier same-city hotels below duller ones whenever
+    // one lacked an address string (Stockholm: Lydmar 6.7 sank below two 6.6s) — scores out of order.
+    const confirmed = exact === 2 || mention === 1;
+    const rank = confirmed ? s : s - 1.0;
     return { h, s, exact, mention, tie, rank, brand: brandOf(h.name) };
   });
   const sorted = scored
