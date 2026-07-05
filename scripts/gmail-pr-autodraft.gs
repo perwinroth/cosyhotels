@@ -11,7 +11,7 @@
  *   Then run install once and authorize. (Editing the code later needs no re-install.)
  */
 
-var SENDERS = ['sourceofsources.com', 'helpareporter.com', 'helpareporter.net', 'sourcebottle.com', 'featured.com'];
+var SENDERS = ['sourceofsources.com', 'helpareporter.com', 'helpareporter.net', 'sourcebottle.com', 'thesourcebottle.com', 'featured.com'];
 var DONE_LABEL = 'cosy-pr-done';
 var MODEL = 'claude-haiku-4-5';
 
@@ -41,10 +41,21 @@ function run() {
   var label = GmailApp.getUserLabelByName(DONE_LABEL) || GmailApp.createLabel(DONE_LABEL);
   var froms = SENDERS.map(function (s) { return 'from:' + s; }).join(' OR ');
   var threads = GmailApp.search('newer_than:2d -label:' + DONE_LABEL + ' (' + froms + ')', 0, 20);
+  var failures = 0;
   for (var i = 0; i < threads.length; i++) {
     var thread = threads[i];
     var msgs = thread.getMessages();
-    var items = askClaude(key, msgs[msgs.length - 1].getPlainBody().slice(0, 12000));
+    var items;
+    // One bad triage call must never stall the whole pipeline: before this try/catch, an Anthropic
+    // error on the FIRST digest aborted the run before any labeling, so every hourly run re-crashed
+    // on the same thread and nothing was ever processed. Now: skip the thread (no label -> retried
+    // next run), count it, and tell Per once at the end instead of dying silently.
+    try {
+      items = askClaude(key, msgs[msgs.length - 1].getPlainBody().slice(0, 12000));
+    } catch (e) {
+      failures++;
+      continue;
+    }
     thread.addLabel(label);
     if (!items || !items.length) continue;
     var summary = [];
@@ -63,6 +74,9 @@ function run() {
     GmailApp.sendEmail(Session.getActiveUser().getEmail(),
       'Cosy PR - ' + summary.length + ' query(ies): ' + thread.getFirstMessageSubject().slice(0, 50),
       summary.join('\n\n---\n\n') + '\n\nRewrite each draft in your own voice before sending - platforms detect AI pitches.');
+  }
+  if (failures > 0) {
+    try { notifyPhone('PR triage: ' + failures + ' digest(s) failed (Claude call error) - check ANTHROPIC_API_KEY in Script Properties and the Apps Script executions log.'); } catch (e) {}
   }
 }
 
