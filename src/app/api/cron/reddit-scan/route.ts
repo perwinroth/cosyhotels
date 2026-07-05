@@ -16,6 +16,25 @@ import { REDDIT_CITIES, queryFor, runActor, parseLeads, citiesForWeek, isoWeek }
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+// Best-effort Telegram ping so Per gets new Reddit leads on his phone (same channel as the PR-digest
+// triage). No-op when the env vars are unset; never throws — a Telegram hiccup must not fail the cron
+// or lose the DB write that already succeeded.
+async function pushTelegram(text: string): Promise<boolean> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!botToken || !chatId) return false;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -82,6 +101,7 @@ export async function GET(req: Request) {
 
   let inserted = 0;
   let known = 0;
+  let notified = false;
   if (found.length) {
     const { data: existing } = await db.from("reddit_leads").select("id").in("id", found.map((l) => l.id));
     const have = new Set((existing || []).map((r) => (r as { id: string }).id));
@@ -93,6 +113,13 @@ export async function GET(req: Request) {
         return NextResponse.json({ from: "reddit-scan", ok: false, error: error.message, inserted: 0 }, { status: 500 });
       }
       inserted = fresh.length;
+      // Ping Per with the fresh leads (up to 6 lines) + a link to reply. Best-effort — the DB write
+      // above already succeeded, so a Telegram failure just means no push, not a lost lead.
+      const lines = fresh.slice(0, 6).map((l) => `• r/${l.subreddit} — ${l.title}`);
+      const more = fresh.length > 6 ? `\n…and ${fresh.length - 6} more` : "";
+      notified = await pushTelegram(
+        `${fresh.length} new Reddit lead${fresh.length > 1 ? "s" : ""} to reply to:\n${lines.join("\n")}${more}\n\nReply → https://gotcosy.com/growth/reddit`,
+      );
     }
   }
 
@@ -106,5 +133,6 @@ export async function GET(req: Request) {
     candidates: found.length,
     inserted,
     alreadyKnown: known,
+    notified,
   });
 }
