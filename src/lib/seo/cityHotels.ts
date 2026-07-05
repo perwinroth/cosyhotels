@@ -248,16 +248,16 @@ export function conceptMembers(
 }
 
 /**
- * Order members stored-confidence desc then cosy-score desc. When NO member has a stored confidence
- * (the empty-table / legacy-only case) the input order is returned untouched, so legacy pages render
- * byte-identically to today (which relied on the RPC/scan order).
+ * Order members by the DISPLAYED cosy score (score_final ?? score) desc — the number the badge
+ * shows, so the visible "Cosy hotels …" list always descends by cosy score — with stored confidence
+ * as a secondary tiebreak (when present). Previously this led with confidence and fell back to input
+ * (RPC/scan) order, which left the cosy score out of the visible ranking.
  */
 export function orderConceptMembers(members: ConceptCosyHotel[]): ConceptCosyHotel[] {
-  if (!members.some((m) => m.fitConfidence != null)) return members;
   return [...members].sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
     const ca = a.fitConfidence ?? -1, cb = b.fitConfidence ?? -1;
-    if (cb !== ca) return cb - ca;
-    return b.score - a.score;
+    return cb - ca;
   });
 }
 

@@ -114,6 +114,10 @@ const loadConcept = cache(async (conceptSlug: string): Promise<{ hotels: Match[]
     return members != null && members.length >= cityCollectionMin(concept) ? c : null;
   }));
   const cities = checks.filter((c): c is NonNullable<typeof c> => c != null).slice(0, 24);
+  // Membership is gathered in raw-`score` scan order (legacy) then confidence order (stored); the
+  // badge shows `score_final ?? score` (h.score), so re-sort the capped set by the DISPLAYED score
+  // before render so the visible list — and the "leads at" intro — descend by cosy score.
+  hotels.sort((a, b) => b.score - a.score);
   return { hotels, cities };
 });
 

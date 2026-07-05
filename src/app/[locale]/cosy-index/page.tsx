@@ -65,6 +65,9 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
     seen.add(name);
     picked.push({ id: String(r.hotel_id), slug: h.slug, name, city: displayCity(h.city), country: displayCountry(h.country), score: Number((r.score_final ?? r.score) || 0) });
   }
+  // Fetch order is by raw `score`; the badge shows `score_final ?? score` (they differ by up to
+  // ±0.2), so re-sort by the DISPLAYED score before ranking so the visible list descends by it.
+  picked.sort((a, b) => b.score - a.score);
 
   // Real vetted photos for the picks.
   const photo = new Map<string, string>();

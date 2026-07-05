@@ -172,6 +172,9 @@ export default async function HotelDetail({ params }: Props) {
       .limit(40);
     type Peer = { hotel_id: string; score: number | null; score_final: number | null; signals: string[] | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null } | null };
     const rows = (peers || []) as unknown as Peer[];
+    // Fetched in raw-`score` order, but the peer card shows `score_final ?? score` (±0.2 apart), so
+    // sort by the DISPLAYED score before slicing so the 6 shown are the 6 cosiest, in order.
+    rows.sort((a, b) => Number((b.score_final ?? b.score) || 0) - Number((a.score_final ?? a.score) || 0));
     sameCity = rows.slice(0, 6).map((r) => ({ slug: String(r.hotel?.slug), name: String(r.hotel?.name_en || r.hotel?.name || ""), score: Number((r.score_final ?? r.score) || 0) })).filter((h) => h.slug && h.name);
     // Safe collection links: a facet page needs ≥2 in-city matches, so only link facets where this
     // hotel + its peers give ≥2 — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
