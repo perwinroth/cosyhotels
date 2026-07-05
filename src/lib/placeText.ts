@@ -1,5 +1,6 @@
 // Normalize hotel city/country for display on the (English) site. Source data carries local
 // names (e.g. "日本", "京都市") and postal codes in the city field — show English or drop.
+import { EXONYM_DISPLAY } from "@/lib/exonyms";
 
 const COUNTRY_EN: Record<string, string> = {
   "日本": "Japan", "にほん": "Japan", "ニッポン": "Japan",
@@ -18,13 +19,8 @@ const COUNTRY_EN: Record<string, string> = {
 
 // Native/local city names → the English exonym we display site-wide (consistency + matches our
 // city guides, e.g. so "Praha 1-Staré Město" resolves to the real Prague guide, not a junk slug).
-const CITY_EN: Record<string, string> = {
-  praha: "Prague", praga: "Prague", firenze: "Florence", venezia: "Venice", roma: "Rome",
-  milano: "Milan", torino: "Turin", napoli: "Naples", genova: "Genoa", "köln": "Cologne",
-  "münchen": "Munich", wien: "Vienna", sevilla: "Seville", bruxelles: "Brussels", brussel: "Brussels",
-  brugge: "Bruges", "københavn": "Copenhagen", lisboa: "Lisbon", "reykjavík": "Reykjavik",
-  "krung thep maha nakhon": "Bangkok", "athína": "Athens", "wien-innere stadt": "Vienna",
-};
+// Sourced from the shared exonym list (src/lib/exonyms.ts) so display and DB-matching never drift.
+const CITY_EN: Record<string, string> = EXONYM_DISPLAY;
 // Sub-national codes that leak into the city field after a postcode ("Sydney NSW 2000" → "Sydney").
 const REGION_CODE = new Set(["nsw", "vic", "qld", "wa", "sa", "tas", "act", "nt"]);
 

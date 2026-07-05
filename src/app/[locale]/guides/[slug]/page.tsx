@@ -18,6 +18,7 @@ import { notFound } from "next/navigation";
 import { translate } from "@/lib/i18n/translate";
 import { bboxFor } from "@/data/cityCoords";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
+import { cityExonymVariants } from "@/lib/exonyms";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 
@@ -121,7 +122,8 @@ export default async function GuidePage({ params }: Props) {
     );
   }
   let cg = getCityGuide(params.slug);
-  const fabricated = !cg; // not a curated city guide — we synthesize one below, but it must earn ≥3 live hotels or 404
+  // Not a curated city guide → we synthesize one below from the DB. It renders with ≥1 live hotel
+  // (stays noindex until ≥3 via the metadata thin-gate) and 404s only when the city is empty.
   if (!cg) {
     const slug = params.slug.toLowerCase();
     // Only allow lightweight fallback for city-style slugs ending with -cosy-hotel
@@ -185,6 +187,10 @@ export default async function GuidePage({ params }: Props) {
     'Tokyo': ['東京','Tōkyō'],
   };
   for (const alt of (localSynonyms[base] || [])) vset.add(alt);
+  // Merge the SHARED exonym spellings (src/lib/exonyms.ts) so an English/Swedish slug finds hotels
+  // stored under the local name — e.g. "goteborg" → "Gothenburg", "bruges" → "Brugge". One source of
+  // truth with placeText display + the cityHotels RPC alias, so the three never drift apart.
+  for (const v of cityExonymVariants(base)) vset.add(v);
   // Query by city or address containing any variant
   const orCity = Array.from(vset).map((v) => `city.ilike.%${v}%`).join(',');
   const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
@@ -296,10 +302,13 @@ export default async function GuidePage({ params }: Props) {
     if (picks.length >= 12) break;
   }
   const take = picks;
-  // A fabricated (non-curated) guide with fewer than 3 live hotels is junk — e.g. the old
-  // SearchAction "{search_term_string}" template, or a slug for a place we don't really cover.
-  // 404 it rather than render a thin/empty page that Google indexes as garbage.
-  if (fabricated && picks.length < 3) notFound();
+  // Render gate: a guide with at least ONE live cosy hotel is worth showing (1–2 stay noindex via the
+  // metadata thin-gate below). Only a genuinely EMPTY city 404s — into the friendly not-found.tsx —
+  // which also keeps the junk-URL space finite (e.g. the old SearchAction "{search_term_string}"
+  // template, or a slug for a place we don't cover). NB: a transient score-query failure also yields
+  // 0 picks; never 404 that (it would drop a real city on a DB blip) — render the "temporarily
+  // unavailable" state instead. Applies to curated + fabricated alike.
+  if (picks.length === 0 && !scoreQueryFailed) notFound();
   // Prefer cached images from Supabase to avoid slow/fragile lookups; fall back to Places-based helper
   const idsForImgs = take.map(({ h }) => String(h.id));
   const imgMap = new Map<string, string>();
@@ -417,23 +426,6 @@ export default async function GuidePage({ params }: Props) {
       {chosen.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(breadcrumbJsonLd)} />
-      {chosen.length === 0 && !scoreQueryFailed && (
-        <div className="mt-6 rounded-xl border p-6" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
-          <h2 className="text-lg font-semibold">No cosy listings in {cityName} yet</h2>
-          <p className="mt-2" style={{ color: 'var(--muted)' }}>
-            We only feature hotels scored from real guest reviews, and we don&apos;t have enough for {cityName} to rank yet. Run a hotel through our cosy score and it can appear here.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <a href={`/${params.locale}/for-hotels`} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>Rate your hotel</a>
-            <a href={`/${params.locale}`} className="inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium no-underline" style={{ borderColor: 'var(--line)' }}>Browse cosy hotels</a>
-          </div>
-          {otherCities.length > 0 && (
-            <p className="mt-4 text-sm" style={{ color: 'var(--muted)' }}>
-              Or explore {otherCities.slice(0, 6).map((c, i) => (<span key={c.city}>{i > 0 ? ', ' : ''}<a className="underline" href={`/${params.locale}/guides/${cityToSlug(c.city)}`}>{displayCity(String(c.city))}</a></span>))}.
-            </p>
-          )}
-        </div>
-      )}
       {chosen.length > 0 && (
         <ol className="mt-6 space-y-3">
           {chosen.map((h, idx) => (

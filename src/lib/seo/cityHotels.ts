@@ -6,6 +6,7 @@
 // scan — so their counts can never disagree, and neither needs a per-city round-trip.
 import { getServerSupabase } from "@/lib/supabase/server";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
+import { EXONYMS } from "@/lib/exonyms";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { matchesFacet, facetBySlug, type Facet } from "@/lib/facets";
 import {
@@ -46,13 +47,18 @@ export function foldCity(s: string): string {
     .toLowerCase().trim();
 }
 
-// EXONYM aliases: an English/guide city name → the primary form stored in the DB `city` column, for
-// cases accent-folding alone can't bridge (Lucerne≠Luzern). Accent-only variants (Málaga, Montréal)
-// are handled by unaccent/foldCity and need NO entry. Keyed by folded name. Add sparingly and ONLY
-// when verified against the DB — a wrong alias narrows matches and can break a working city.
-const CITY_DB_ALIAS: Record<string, string> = {
-  lucerne: "Luzern", // DB stores "Luzern" ×22 (+ "Lucerne" ×1)
-};
+// EXONYM aliases: an English/guide city name → the RPC needle that matches the form(s) stored in the
+// DB `city` column, for cases accent-folding alone can't bridge (Lucerne≠Luzern, Bruges/Brugge).
+// Accent-only variants (Málaga, Montréal) are handled by unaccent/foldCity and need NO entry.
+// Derived from the shared exonym list (src/lib/exonyms.ts) using THIS module's foldCity, so the key
+// matches exactly what aliasCity() folds an incoming name to. Every entry's spelling (english +
+// locals) maps to the union needle, so any entry point (bruges- or brugge-slug) resolves the same.
+// Each needle is DB-verified to only ADD matches (strict superset) — see exonyms.ts for the audit.
+const CITY_DB_ALIAS: Record<string, string> = {};
+for (const e of EXONYMS) {
+  if (!e.match) continue;
+  for (const spelling of [e.english, ...e.local]) CITY_DB_ALIAS[foldCity(spelling)] = e.match;
+}
 export function aliasCity(name: string): string {
   return CITY_DB_ALIAS[foldCity(name)] || name;
 }
