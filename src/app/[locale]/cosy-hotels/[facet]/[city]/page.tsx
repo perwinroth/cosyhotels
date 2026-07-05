@@ -8,6 +8,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { cityToSlug } from "@/lib/citySlug";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { CONCEPT_BY_SLUG, cityCollectionMin, LEGACY_FACET_SLUGS } from "@/lib/travellerFit";
+import { FACET_CITY_COPY } from "@/data/discoveryOverrides";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
 import {
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   if (!concept || !concept.collectionEnabled) return {};
   const cityName = resolveCity(params.city);
   const phrase = conceptLabelPhrase(concept);
-  const title = `Cosy hotels ${phrase} in ${cityName}`;
+  const title = FACET_CITY_COPY[`${params.facet}/${params.city}`]?.title ?? `Cosy hotels ${phrase} in ${cityName}`;
   const description = LEGACY_FACET_SLUGS.has(concept.slug)
     ? `AI-ranked cosy hotels ${phrase} in ${cityName} — scored 0–10 for warmth and character, with real photos and honest cosy scores.`
     : `${concept.description} The cosiest hotels ${phrase} in ${cityName}, AI-scored 0–10 for warmth and character.`;
@@ -66,7 +67,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
 
   const top = hotels[0];
   const lead = `We've scored ${hotels.length} cosy ${hotels.length === 1 ? "hotel" : "hotels"} ${phrase} in ${cityName} — ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score.`;
-  const intro = isLegacy ? lead : `${concept.description} ${lead}`;
+  const intro = FACET_CITY_COPY[`${params.facet}/${params.city}`]?.intro ?? (isLegacy ? lead : `${concept.description} ${lead}`);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
   const jsonLd = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${phrase} in ${cityName}`, numberOfItems: hotels.length,

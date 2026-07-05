@@ -223,6 +223,14 @@ export const CONCEPTS: TravellerFitConcept[] = [
 
   // ── location ──
   {
+    id: "christmas-market", slug: "christmas-market", label: "Hotels near the Christmas market", noun: "near the Christmas market",
+    category: "location", evidence: "hard", minConfidence: 0.75, collectionEnabled: false,
+    description: "Steps from the city's Christmas market — walk to the stalls and lights, then back to somewhere warm.",
+    seoQueryPatterns: ["hotels near the christmas market in {city}", "where to stay for the {city} christmas market"],
+    aiPromptPatterns: ["recommend a cosy hotel near the {city} christmas market"],
+    re: /christmas market|kerstmarkt|weihnachtsmarkt/i,
+  },
+  {
     id: "walkable", slug: "walkable", label: "Central, walkable hotels", noun: "in a walkable spot",
     category: "location", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
     description: "Central stays where the good stuff is a short walk away — no taxis needed.",

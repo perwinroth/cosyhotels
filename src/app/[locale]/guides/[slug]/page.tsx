@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
+import { CITY_TITLE, CITY_INTRO_LEAD, CITY_EXTRA_FAQS } from "@/data/discoveryOverrides";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
 import { sameHotel } from "@/lib/hotelIdentity";
@@ -68,7 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!g) {
     const cg = getCityGuide(params.slug);
     if (cg) {
-      const titleBase = `Cosy & Boutique Hotels in ${cg.city} – AI-Scored for Cosiness`;
+      const titleBase = CITY_TITLE[cg.city] ?? `Cosy & Boutique Hotels in ${cg.city} – AI-Scored for Cosiness`;
       const descBase = `The cosiest boutique hotels in ${cg.city}, each AI-scored 0–10 for warmth, character and intimacy — ranked best first. Cosy, romantic and independent stays, not corporate chains.`;
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
@@ -397,7 +398,9 @@ export default async function GuidePage({ params }: Props) {
   } else {
     intro = `${cityName} skews modern and large, and honestly none of its hotels reach our standout cosy marks yet — the best we've scored sits at ${topScore.toFixed(1)}/10. Here are its ${cosyCount} cosiest stays anyway, ranked best first, for when ${cityName} is where you need to be.`;
   }
-  const faqs = cityFaqs(cityName, { count: cosyCount, topName: topPick?.name, topScore: topPick?._cosy });
+  const introLead = CITY_INTRO_LEAD[cityName];
+  if (introLead) intro = `${introLead} ${intro}`;
+  const faqs = [...cityFaqs(cityName, { count: cosyCount, topName: topPick?.name, topScore: topPick?._cosy }), ...(CITY_EXTRA_FAQS[cityName] ?? [])];
   // Long-tail facet links — only facets actually backed by ≥2 of this city's hotels.
   const citySlugBase = cityToSlug(cityName).replace(/-cosy-hotel$/, '');
   const availableFacets = FACETS.filter((f) => chosen.filter((h) => matchesFacet(f, h._signals, h.snippet)).length >= 2);

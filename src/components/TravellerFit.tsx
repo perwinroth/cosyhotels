@@ -11,7 +11,7 @@ const CHIP_LABEL: Record<string, string> = {
   views: "Great views", quiet: "Peace & quiet", "family-friendly": "Families", "pet-friendly": "Dog-friendly",
   design: "Design lovers", "historic-charm": "Historic charm", "hidden-gem": "Hidden gem", "luxury-feel": "A treat",
   rustic: "Rustic escapes", "great-breakfast": "Great breakfast", sauna: "Sauna", bathtub: "A long soak",
-  rooftop: "Rooftop", garden: "Garden", pool: "Pool", walkable: "Central & walkable", waterfront: "Waterfront",
+  rooftop: "Rooftop", garden: "Garden", pool: "Pool", walkable: "Central & walkable", waterfront: "Waterfront", "christmas-market": "Christmas market",
 };
 
 // Running-copy phrase for the "A strong fit for …" lead sentence (reads naturally in a list).
@@ -23,6 +23,7 @@ const FIT_PHRASE: Record<string, string> = {
   "luxury-feel": "a treat", rustic: "a rustic escape", "great-breakfast": "the breakfast",
   sauna: "a sauna", bathtub: "a long soak", rooftop: "a rooftop", garden: "a garden",
   pool: "a pool", walkable: "walking everywhere", waterfront: "a waterside stay",
+  "christmas-market": "Christmas-market weekends",
 };
 
 function chipLabel(slug: string): string {
