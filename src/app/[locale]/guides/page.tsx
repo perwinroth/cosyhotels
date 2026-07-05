@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { guides } from "@/data/guides";
 import { cityGuides } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
 import { cityPin } from "@/lib/social";
 import { cityCopy } from "@/data/cityCopy";
 
@@ -35,8 +36,18 @@ export default async function GuidesIndex({ params }: { params: { locale: string
     }
   }
 
+  // Only list a city card when its guide actually renders (>= 1 live cosy pick) — a card linking a
+  // 0-cosy city dead-ends users on the guide's notFound(). Same predicate the guide uses to gate.
+  const renderableCities = new Set<string>();
+  await Promise.all(
+    cityGuides.map(async (c) => {
+      if ((await liveCosyCountForCityName(c.city)) >= 1) renderableCities.add(c.city);
+    })
+  );
+  const renderableGuides = cityGuides.filter((c) => renderableCities.has(c.city));
+
   const groups: Record<string, typeof cityGuides> = { Europe: [], "North America": [], "Asia-Pacific": [], Other: [] };
-  for (const c of cityGuides) (groups[c.region] ||= groups.Other).push(c);
+  for (const c of renderableGuides) (groups[c.region] ||= groups.Other).push(c);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">

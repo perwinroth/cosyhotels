@@ -7,6 +7,7 @@ import ShareButton from "@/components/ShareButton";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
 import { cityGuides } from "@/data/cityGuides";
+import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { SearchBar } from "@/components/HomeSections";
 import { placeLine, isLatin } from "@/lib/placeText";
@@ -27,18 +28,14 @@ export function generateMetadata(): Metadata {
 type TopHotel = { slug: string; name: string; name_en?: string | null; city: string; country: string; cosy: number; description: string; image?: string; lat?: number | null; lng?: number | null };
 type CityChip = { city: string; slug: string; count: number };
 
-// Live hotel count per curated city guide (matches the guide page's city/address matching).
-async function cityChips(db: NonNullable<ReturnType<typeof getServerSupabase>>): Promise<CityChip[]> {
+// Live COSY-scored count per curated city guide — same predicate the guide page uses to decide it
+// renders. A chip must only link cities whose guide actually renders (>= 1 pick); the old raw
+// city/address count could show a chip for a city with 0 cosy hotels → the guide 404s.
+async function cityChips(): Promise<CityChip[]> {
   const rows = await Promise.all(
-    cityGuides.map(async (g) => {
-      const { count } = await db
-        .from("hotels")
-        .select("id", { count: "exact", head: true })
-        .or(`city.ilike.%${g.city}%,address.ilike.%${g.city}%`);
-      return { city: g.city, slug: g.slug, count: count ?? 0 };
-    })
+    cityGuides.map(async (g) => ({ city: g.city, slug: g.slug, count: await liveCosyCountForCityName(g.city) }))
   );
-  return rows.filter((r) => r.count >= 3).sort((a, b) => b.count - a.count);
+  return rows.filter((r) => r.count >= 1).sort((a, b) => b.count - a.count);
 }
 
 async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>): Promise<TopHotel[]> {
@@ -96,7 +93,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
   let chips: CityChip[] = [];
   let top: TopHotel[] = [];
   if (db) {
-    [chips, top] = await Promise.all([cityChips(db), topHotels(db)]);
+    [chips, top] = await Promise.all([cityChips(), topHotels(db)]);
     top = top.filter((h) => isLatin(h.name_en || h.name)); // English site: skip non-Latin-named hotels
   }
   // Fallback chips from the curated list if the DB is unavailable.

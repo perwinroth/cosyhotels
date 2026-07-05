@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { cityToSlug } from "@/lib/citySlug";
 
-// Compact header search — routes to the canonical city guide page.
+// Compact header search — routes to the search results page, which never 404s (a raw
+// /guides/{slug} push 404'd for hotel names and cities with no live cosy guide).
 export default function HeaderSearch({ locale }: { locale: string }) {
   const [city, setCity] = useState("");
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function HeaderSearch({ locale }: { locale: string }) {
       onSubmit={(e) => {
         e.preventDefault();
         if (!city.trim()) return;
-        router.push(`/${locale}/guides/${cityToSlug(city)}`);
+        router.push(`/${locale}/search?q=${encodeURIComponent(city.trim())}`);
       }}
       className="ml-auto flex items-center gap-1.5 rounded-lg pr-1"
       style={{ border: "1px solid var(--line)", background: "var(--card)" }}

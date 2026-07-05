@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { getBlogPost, BLOG_POSTS, type BlogSection } from "@/data/blogPosts";
+import { getBlogPost, BLOG_POSTS, type BlogSection, type BlogRelated } from "@/data/blogPosts";
 import { isBlogPostVisible } from "@/lib/blogSchedule";
 import blogPicksData from "@/data/blogPicks.json";
 
@@ -96,6 +96,16 @@ export default async function BlogPostPage({ params }: Props) {
 
   const picks: BlogPick[] = post.pick ? (BLOG_PICKS[post.slug] || []) : [];
 
+  // A related link to a blog post that's still draft/scheduled would 404 — drop those. Non-blog
+  // related links (Cosy Index, city guides, the data study) always render, so keep them as-is.
+  const relatedVisible = (
+    await Promise.all(
+      post.related.map(async (r) =>
+        r.to.startsWith("blog/") && !(await isBlogPostVisible(r.to.slice("blog/".length))) ? null : r
+      )
+    )
+  ).filter((r): r is BlogRelated => r !== null);
+
   const articleLd = {
     "@context": "https://schema.org", "@type": "Article",
     headline: post.title, description: post.dek,
@@ -165,11 +175,11 @@ export default async function BlogPostPage({ params }: Props) {
         </dl>
       </section>
 
-      {post.related.length > 0 && (
+      {relatedVisible.length > 0 && (
         <section className="mt-12">
           <h2 className="text-xl font-semibold">Read next</h2>
           <div className="mt-4 flex flex-wrap gap-2">
-            {post.related.map((r) => (
+            {relatedVisible.map((r) => (
               <a key={r.to} href={`/${L}/${r.to}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: "var(--line)", color: "var(--foreground)" }}>{r.label}</a>
             ))}
           </div>

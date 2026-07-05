@@ -288,20 +288,29 @@ export default async function HotelDetail({ params }: Props) {
     ...(amenityFeature.length ? { amenityFeature } : {}),
     url: `${site.url}/${params.locale}/hotels/${hotel.slug}`,
   };
+  // The city guide 404s at 0 live cosy picks. This hotel may be unrated / in a thin city (or its
+  // only cosy peers may carry polluted city fields), so gate every city-guide link. loadCityCosyHotels
+  // mirrors the guide's isLatin + city-name filtering far better than a raw cosy_city_count (which
+  // over-counts non-Latin/aliased matches the guide then drops). When it wouldn't render, drop the
+  // city crumb/link and fall back to /cosy-hotels (always 200) for the non-optional HotelGraph prop.
+  const cityGuide = citySlugBase ? await loadCityCosyHotels(citySlugBase) : null;
+  const cityGuideRenders = !!cityGuide && cityGuide.hotels.length >= 1;
+  const cityGuideHref = cityGuideRenders
+    ? `/${params.locale}/guides/${cityToSlug(cityName)}`
+    : `/${params.locale}/cosy-hotels`;
   const breadcrumbJsonLd = breadcrumbSchema([
     { name: "Cosy hotel guides", url: `/${params.locale}/guides` },
-    ...(cityName ? [{ name: cityName, url: `/${params.locale}/guides/${cityToSlug(cityName)}` }] : []),
+    ...(cityName && cityGuideRenders ? [{ name: cityName, url: `/${params.locale}/guides/${cityToSlug(cityName)}` }] : []),
     { name: String(hotel.name), url: `/${params.locale}/hotels/${hotel.slug}` },
   ]);
-  const cityGuideHref = `/${params.locale}/guides/${cityToSlug(cityName || "")}`;
   const crumbItems: LinkItem[] = [
     { href: `/${params.locale}/guides`, label: "Guides" },
-    ...(cityName ? [{ href: cityGuideHref, label: cityName }] : []),
+    ...(cityName && cityGuideRenders ? [{ href: cityGuideHref, label: cityName }] : []),
     { href: `/${params.locale}/hotels/${hotel.slug}`, label: String(hotel.name) },
   ];
   const graphExtra: LinkItem[] = [
     { href: `/${params.locale}/cosy-index`, label: "The Cosy Index" },
-    ...(cityName ? [{ href: cityGuideHref, label: `Cosy hotels in ${cityName}` }] : []),
+    ...(cityName && cityGuideRenders ? [{ href: cityGuideHref, label: `Cosy hotels in ${cityName}` }] : []),
   ];
   // Bespoke, review-grounded FAQ when we have one for this hotel; else the data-tailored template.
   const bespoke = (hotelFaqData as Record<string, { q: string; a: string }[]>)[String(hotel.id)];
@@ -348,7 +357,7 @@ export default async function HotelDetail({ params }: Props) {
       <TravellerFit displayed={displayedFits} hrefBySlug={hrefBySlug} />
 
       <div className="mt-6 flex items-center gap-3">
-        <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName ? cityGuideHref : `/${params.locale}/guides`}>← {cityName ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
+        <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
         <a className="ml-auto rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={String(hotel.name)} data-city={cityName}>Check availability</a>
       </div>
 

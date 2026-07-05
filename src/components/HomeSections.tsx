@@ -1,45 +1,55 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { cities } from "@/data/cities";
-import { citiesLarge } from "@/data/cities_large";
-import { cityToSlug } from "@/lib/citySlug";
 
-// Combined, deduped city list for instant local autocomplete (replaces Amadeus).
-const ALL_CITIES: string[] = Array.from(new Set([...cities, ...citiesLarge])).sort();
+// Autocomplete data comes from /api/search (hotels by name + cities with a live guide). Every plain
+// submit goes to /search (200 for any string) — never slugified into a /guides URL that can 404.
+type HotelHit = { slug: string; name: string; city: string; country?: string };
+type CityHit = { name: string; slug: string };
 
 export function SearchBar({ locale = "en" }: { locale?: string }) {
-  const [city, setCity] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [q, setQ] = useState("");
+  const [hotels, setHotels] = useState<HotelHit[]>([]);
+  const [cities, setCities] = useState<CityHit[]>([]);
   const [showSuggest, setShowSuggest] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [submitting, setSubmitting] = useState(false);
-  // Reset submitting state whenever URL changes (search completes)
-  useEffect(() => {
-    setSubmitting(false);
-  }, [pathname, searchParams]);
+  const seq = useRef(0);
 
-  // Local city suggestions — free, instant, no external API (Amadeus removed).
+  // Reset submitting state whenever the URL changes (navigation completed).
+  useEffect(() => { setSubmitting(false); }, [pathname, searchParams]);
+
+  // Debounced hotel+city search. Out-of-order (stale) responses are ignored via a monotonic seq.
   useEffect(() => {
-    const q = city.trim().toLowerCase();
-    if (!q) { setSuggestions([]); return; }
-    const starts = ALL_CITIES.filter((c) => c.toLowerCase().startsWith(q));
-    const contains = ALL_CITIES.filter((c) => !c.toLowerCase().startsWith(q) && c.toLowerCase().includes(q));
-    setSuggestions([...starts, ...contains].slice(0, 8));
-    setShowSuggest(true);
-  }, [city]);
+    const query = q.trim();
+    if (query.length < 2) { setHotels([]); setCities([]); return; }
+    const mine = ++seq.current;
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        if (!res.ok || mine !== seq.current) return;
+        const data = await res.json();
+        if (mine !== seq.current) return;
+        setHotels(Array.isArray(data.hotels) ? data.hotels : []);
+        setCities(Array.isArray(data.cities) ? data.cities : []);
+        setShowSuggest(true);
+      } catch { /* ignore transient fetch errors */ }
+    }, 180);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  const go = (href: string) => { setSubmitting(true); setShowSuggest(false); router.push(href); };
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!city.trim()) return;
-        // Route to the canonical city page (one consistent destination).
-        const slug = cityToSlug(city);
-        setSubmitting(true);
-        router.push(`/${locale}/guides/${slug}`);
+        if (!q.trim()) return;
+        // Always land on /search — it renders 200 for any string (matches, or a friendly empty
+        // state). Never build a /guides slug from free text (that was the hotel-name 404 bug).
+        go(`/${locale}/search?q=${encodeURIComponent(q.trim())}`);
       }}
       className="relative grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-2 md:gap-2"
     >
@@ -47,24 +57,39 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
       <input
         className="w-full rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2"
         style={{ border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--foreground)' }}
-        placeholder="Paris, Rome, Lisbon…"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
+        placeholder="Search a hotel or city…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
         onFocus={() => setShowSuggest(true)}
         onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
       />
-      {showSuggest && suggestions.length > 0 && (
+      {showSuggest && (hotels.length > 0 || cities.length > 0) && (
         <div className="absolute mt-1 w-full z-20 rounded-md border border-line bg-card shadow">
-          <ul className="max-h-64 overflow-auto">
-            {suggestions.map((s, i) => (
-              <li key={`${s}-${i}`}>
+          <ul className="max-h-72 overflow-auto">
+            {hotels.map((h) => (
+              <li key={`h-${h.slug}`}>
                 <button
                   type="button"
                   className="w-full text-left px-3 py-2 hov"
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => { setCity(s); setShowSuggest(false); }}
+                  onClick={() => go(`/${locale}/hotels/${h.slug}`)}
                 >
-                  {s}
+                  {h.name}{h.city ? <span style={{ color: "var(--muted)" }}> — {h.city}</span> : null}
+                </button>
+              </li>
+            ))}
+            {hotels.length > 0 && cities.length > 0 && (
+              <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>Cities</li>
+            )}
+            {cities.map((c) => (
+              <li key={`c-${c.slug}`}>
+                <button
+                  type="button"
+                  className="w-full text-left px-3 py-2 hov"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => go(`/${locale}/guides/${c.slug}-cosy-hotel`)}
+                >
+                  {c.name}
                 </button>
               </li>
             ))}
