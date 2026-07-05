@@ -41,7 +41,7 @@ const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
 const TIMEOUT_MS = 10000;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-type Hotel = { id: string; name: string; website: string; email?: string | null; email_checked_at?: string | null };
+type Hotel = { id: string; name: string; website: string; email?: string | null; email_source?: string | null; email_checked_at?: string | null };
 
 // ---- URL + host helpers ------------------------------------------------------------------------
 function normalizeUrl(raw: string): string | null {
@@ -216,7 +216,7 @@ async function loadTargets(hasCols: boolean): Promise<Hotel[]> {
     if (data.length < 1000) break;
     off += 1000;
   }
-  const cols = hasCols ? "id,name,website,email,email_checked_at" : "id,name,website";
+  const cols = hasCols ? "id,name,website,email,email_source,email_checked_at" : "id,name,website";
   const hotels: Hotel[] = [];
   for (let i = 0; i < ids.length; i += 300) {
     const { data, error } = await db.from("hotels").select(cols).in("id", ids.slice(i, i + 300));
@@ -247,7 +247,7 @@ async function main() {
 
   async function writeRow(h: Hotel, email: string | null, source: string | null) {
     if (!EXECUTE) return;
-    appendFileSync(BACKUP, JSON.stringify({ id: h.id, prev: { email: h.email ?? null, email_source: null, email_checked_at: h.email_checked_at ?? null } }) + "\n");
+    appendFileSync(BACKUP, JSON.stringify({ id: h.id, prev: { email: h.email ?? null, email_source: h.email_source ?? null, email_checked_at: h.email_checked_at ?? null } }) + "\n");
     const { error } = await db.from("hotels").update({ email, email_source: source, email_checked_at: new Date().toISOString() }).eq("id", h.id);
     if (error) { failed++; console.log(`  db err ${h.id}: ${error.message.slice(0, 60)}`); }
   }
