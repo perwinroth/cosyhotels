@@ -5,7 +5,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 // cookie), so a logged-in /growth user can edit from their phone. Writes with the service-role key.
 export async function POST(req: Request) {
   const { id, status } = await req.json().catch(() => ({}));
-  const allowed = ["queued", "contacted", "replied", "won", "declined"];
+  const allowed = ["queued", "contacted", "replied", "won", "won_confirmed", "declined"];
   if (!id || !allowed.includes(status)) return NextResponse.json({ error: "bad request" }, { status: 400 });
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "db not configured" }, { status: 500 });

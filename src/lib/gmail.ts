@@ -57,3 +57,65 @@ export async function deleteGmailDraft(id: string): Promise<boolean> {
   const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/drafts/${id}`, { method: "DELETE", headers: { authorization: `Bearer ${token}` } });
   return r.ok;
 }
+
+// ── Mailbox READ helpers (badge-outreach auto-sync cron) ─────────────────────────────────────────
+// The draft helpers above only need gmail.compose. Reading Sent/Inbox needs the additional
+// gmail.readonly scope, so the refresh token must be re-minted via scripts/gmail-auth.mjs. A
+// compose-only token 403s on messages.list — surfaced as GmailScopeError so the cron can tell
+// "re-auth needed" apart from a transient failure and return its graceful "needs readonly scope" error.
+const MESSAGES_URL = "https://gmail.googleapis.com/gmail/v1/users/me/messages";
+
+/** Gmail 403 insufficient-scope (token lacks gmail.readonly). Distinct type so callers can catch it. */
+export class GmailScopeError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GmailScopeError";
+  }
+}
+
+interface TokenResponse { access_token?: string; error?: string; error_description?: string }
+interface MessagesListResponse { messages?: Array<{ id: string; threadId: string }> }
+
+/** Exchange the stored refresh token for a short-lived access token. Throws a clear error if any of
+ *  the three GMAIL_* env vars are missing, or if the token endpoint rejects the refresh token. */
+export async function getAccessToken(): Promise<string> {
+  const client_id = process.env.GMAIL_CLIENT_ID, client_secret = process.env.GMAIL_CLIENT_SECRET, refresh_token = process.env.GMAIL_REFRESH_TOKEN;
+  if (!client_id || !client_secret || !refresh_token) {
+    throw new Error("Gmail not configured — missing GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET / GMAIL_REFRESH_TOKEN.");
+  }
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "refresh_token", client_id, client_secret, refresh_token }),
+  });
+  const json = (await res.json().catch(() => ({}))) as TokenResponse;
+  if (!res.ok || !json.access_token) {
+    throw new Error(`Gmail token refresh failed: ${json.error_description || json.error || `HTTP ${res.status}`}`);
+  }
+  return json.access_token;
+}
+
+/** Newest message id matching a Gmail `q` search, or null. Throws GmailScopeError on 403. */
+async function firstMatch(q: string, accessToken: string): Promise<string | null> {
+  const res = await fetch(`${MESSAGES_URL}?q=${encodeURIComponent(q)}&maxResults=1`, {
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+  if (res.status === 403) {
+    throw new GmailScopeError("Gmail 403 (insufficient scope) — refresh token lacks gmail.readonly. Re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN.");
+  }
+  if (!res.ok) {
+    throw new Error(`Gmail messages.list failed (HTTP ${res.status}): ${(await res.text().catch(() => "")).slice(0, 200)}`);
+  }
+  const json = (await res.json().catch(() => ({}))) as MessagesListResponse;
+  return json.messages?.[0]?.id ?? null;
+}
+
+/** True if gotcosy@gmail.com has SENT a message to `email` (Send-As per@gotcosy.com lands here too). */
+export async function wasSentTo(email: string, accessToken: string): Promise<boolean> {
+  return (await firstMatch(`in:sent to:${email}`, accessToken)) !== null;
+}
+
+/** True if the Inbox has a message FROM `email` — a reply (assumes replies to per@gotcosy.com are
+ *  forwarded into gotcosy@gmail.com's Inbox). */
+export async function gotReplyFrom(email: string, accessToken: string): Promise<boolean> {
+  return (await firstMatch(`in:inbox from:${email}`, accessToken)) !== null;
+}

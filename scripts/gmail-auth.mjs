@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// One-time Gmail OAuth capture → prints a refresh_token for creating drafts as per@gotcosy.com.
+// One-time Gmail OAuth capture → prints a refresh_token for BOTH creating drafts as per@gotcosy.com
+// AND reading the mailbox (Sent/Inbox) for the outreach auto-sync cron.
 // gotcosy@gmail.com is a CONSUMER account (no Workspace domain-wide delegation), so we use an OAuth
 // "Desktop app" client + a stored refresh token. Run this ONCE, authorise as gotcosy@gmail.com.
 //
@@ -9,6 +10,11 @@
 //   2. node --env-file=.env.local scripts/gmail-auth.mjs
 //   3. A browser opens (or copy the printed URL). Log in as gotcosy@gmail.com, click Allow.
 //   4. It prints GMAIL_REFRESH_TOKEN — add all three to Vercel (+ .env.local).
+//
+// ⚠️ RE-RUN REQUIRED: the scope now includes gmail.readonly (was compose-only). A refresh token
+// minted before this change CANNOT read Sent/Inbox, so /api/cron/outreach-sync returns a graceful
+// "needs readonly scope" error until you re-run this script and REPLACE GMAIL_REFRESH_TOKEN in both
+// Vercel and .env.local with the value printed below. (prompt=consent re-issues a fresh token.)
 import http from "node:http";
 import { exec } from "node:child_process";
 
@@ -20,7 +26,8 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
 }
 const PORT = 53682;
 const REDIRECT = `http://localhost:${PORT}/oauth2callback`;
-const SCOPE = "https://www.googleapis.com/auth/gmail.compose"; // create/read/update/send drafts
+// compose = create/read/update/send drafts; readonly = read Sent/Inbox for the outreach auto-sync cron
+const SCOPE = "https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.readonly";
 const authUrl = "https://accounts.google.com/o/oauth2/v2/auth?" + new URLSearchParams({
   client_id: CLIENT_ID, redirect_uri: REDIRECT, response_type: "code", scope: SCOPE,
   access_type: "offline", prompt: "consent", // prompt=consent forces a refresh_token every time
