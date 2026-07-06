@@ -8,6 +8,7 @@ import { cityGuides } from "@/data/cityGuides";
 import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
 import { COUNTRIES } from "@/lib/country";
 import { loadCountryCounts, HUB_404_BELOW } from "@/lib/countryHub";
+import { REGIONS } from "@/data/regions";
 
 // ONE implementation of the site search, shared by the /api/search autocomplete route and the
 // /[locale]/search results page. Hotels are matched across the FULL live catalogue by name;
@@ -23,7 +24,8 @@ export type HotelHit = {
 };
 export type CityHit = { name: string; slug: string };
 export type CountryHit = { name: string; slug: string; count: number };
-export type SearchResults = { hotels: HotelHit[]; cities: CityHit[]; countries: CountryHit[] };
+export type RegionHit = { name: string; slug: string; the: boolean };
+export type SearchResults = { hotels: HotelHit[]; cities: CityHit[]; countries: CountryHit[]; regions: RegionHit[] };
 
 // Curated guide cities first (guaranteed to render), then the broad autocomplete list.
 const ALL_CITIES: string[] = Array.from(
@@ -120,17 +122,30 @@ export async function searchCountries(q: string, limit = 4): Promise<CountryHit[
     .slice(0, limit);
 }
 
+// Match curated regions ("Amalfi Coast", "Tuscany") by name. Synchronous + cheap — regions are a
+// small curated list and every seeded one resolves to a live hub, so no DB gate is needed.
+export function searchRegions(q: string, limit = 3): RegionHit[] {
+  const lower = q.toLowerCase();
+  return REGIONS.filter((r) => {
+    const n = r.name.toLowerCase();
+    return n.startsWith(lower) || (lower.length >= 3 && n.includes(lower));
+  })
+    .slice(0, limit)
+    .map((r) => ({ name: r.name, slug: r.slug, the: r.the }));
+}
+
 // Combined lookup used by both the API route and the results page.
 export async function searchSite(
   q: string,
-  opts?: { hotelLimit?: number; cityLimit?: number; countryLimit?: number },
+  opts?: { hotelLimit?: number; cityLimit?: number; countryLimit?: number; regionLimit?: number },
 ): Promise<SearchResults> {
   const query = q.trim();
-  if (query.length < 2) return { hotels: [], cities: [], countries: [] };
+  if (query.length < 2) return { hotels: [], cities: [], countries: [], regions: [] };
   const [hotels, cities, countries] = await Promise.all([
     searchHotels(query, opts?.hotelLimit ?? 6),
     searchCities(query, opts?.cityLimit ?? 5),
     searchCountries(query, opts?.countryLimit ?? 4),
   ]);
-  return { hotels, cities, countries };
+  const regions = searchRegions(query, opts?.regionLimit ?? 3);
+  return { hotels, cities, countries, regions };
 }

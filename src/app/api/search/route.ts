@@ -10,6 +10,6 @@ export const dynamic = "force-dynamic"; // per-query results, never cached
 
 export async function GET(request: Request) {
   const q = new URL(request.url).searchParams.get("q") || "";
-  const { hotels, cities, countries } = await searchSite(q);
-  return NextResponse.json({ hotels, cities, countries });
+  const { hotels, cities, countries, regions } = await searchSite(q);
+  return NextResponse.json({ hotels, cities, countries, regions });
 }

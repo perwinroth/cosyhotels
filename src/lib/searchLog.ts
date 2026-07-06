@@ -6,12 +6,12 @@ import { getServerSupabase } from "@/lib/supabase/server";
 // request path: any failure is swallowed. Writes to the RLS-locked `search_queries` table.
 export function logSearch(
   q: string,
-  counts: { hotels: number; cities: number; countries: number; locale?: string },
+  counts: { hotels: number; cities: number; countries: number; regions: number; locale?: string },
 ): void {
   try {
     const db = getServerSupabase();
     if (!db) return;
-    const hits = counts.hotels + counts.cities + counts.countries;
+    const hits = counts.hotels + counts.cities + counts.countries + counts.regions;
     void db
       .from("search_queries")
       .insert({
@@ -19,6 +19,7 @@ export function logSearch(
         hotels: counts.hotels,
         cities: counts.cities,
         countries: counts.countries,
+        regions: counts.regions,
         hits,
         locale: counts.locale ?? null,
       })

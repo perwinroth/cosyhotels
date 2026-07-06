@@ -29,10 +29,10 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const sp = await searchParams;
   const q = (sp.q || "").trim();
-  const { hotels, cities, countries } = q.length >= 2 ? await searchSite(q, { hotelLimit: 24 }) : { hotels: [], cities: [], countries: [] };
-  const hasResults = hotels.length > 0 || cities.length > 0 || countries.length > 0;
+  const { hotels, cities, countries, regions } = q.length >= 2 ? await searchSite(q, { hotelLimit: 24 }) : { hotels: [], cities: [], countries: [], regions: [] };
+  const hasResults = hotels.length > 0 || cities.length > 0 || countries.length > 0 || regions.length > 0;
   // Fire-and-forget: record real on-site demand (esp. zero-result queries). Never blocks this render.
-  if (q.length >= 2) logSearch(q, { hotels: hotels.length, cities: cities.length, countries: countries.length, locale });
+  if (q.length >= 2) logSearch(q, { hotels: hotels.length, cities: cities.length, countries: countries.length, regions: regions.length, locale });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -44,6 +44,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
         <p className="mt-2" style={{ color: "var(--muted)" }}>
           {[
             hotels.length > 0 && `${hotels.length} hotel${hotels.length === 1 ? "" : "s"}`,
+            regions.length > 0 && `${regions.length} area${regions.length === 1 ? "" : "s"}`,
             countries.length > 0 && `${countries.length} countr${countries.length === 1 ? "y" : "ies"}`,
             cities.length > 0 && `${cities.length} cit${cities.length === 1 ? "y" : "ies"}`,
           ].filter(Boolean).join(" · ")}
@@ -77,6 +78,19 @@ export default async function SearchPage({ params, searchParams }: Props) {
             </li>
           ))}
         </ol>
+      )}
+
+      {regions.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold">Cosy hotels by area</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {regions.map((r) => (
+              <a key={r.slug} href={`/${locale}/cosy-hotels/region/${r.slug}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: "var(--line)", color: "var(--foreground)" }}>
+                Cosy hotels in {r.the ? "the " : ""}{r.name}
+              </a>
+            ))}
+          </div>
+        </section>
       )}
 
       {countries.length > 0 && (

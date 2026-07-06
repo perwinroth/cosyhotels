@@ -7,12 +7,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 type HotelHit = { slug: string; name: string; city: string; country?: string };
 type CityHit = { name: string; slug: string };
 type CountryHit = { name: string; slug: string; count: number };
+type RegionHit = { name: string; slug: string; the: boolean };
 
 export function SearchBar({ locale = "en" }: { locale?: string }) {
   const [q, setQ] = useState("");
   const [hotels, setHotels] = useState<HotelHit[]>([]);
   const [cities, setCities] = useState<CityHit[]>([]);
   const [countries, setCountries] = useState<CountryHit[]>([]);
+  const [regions, setRegions] = useState<RegionHit[]>([]);
   const [showSuggest, setShowSuggest] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
@@ -26,7 +28,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
   // Debounced hotel+city search. Out-of-order (stale) responses are ignored via a monotonic seq.
   useEffect(() => {
     const query = q.trim();
-    if (query.length < 2) { setHotels([]); setCities([]); setCountries([]); return; }
+    if (query.length < 2) { setHotels([]); setCities([]); setCountries([]); setRegions([]); return; }
     const mine = ++seq.current;
     const t = setTimeout(async () => {
       try {
@@ -37,6 +39,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         setHotels(Array.isArray(data.hotels) ? data.hotels : []);
         setCities(Array.isArray(data.cities) ? data.cities : []);
         setCountries(Array.isArray(data.countries) ? data.countries : []);
+        setRegions(Array.isArray(data.regions) ? data.regions : []);
         setShowSuggest(true);
       } catch { /* ignore transient fetch errors */ }
     }, 180);
@@ -66,7 +69,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         onFocus={() => setShowSuggest(true)}
         onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
       />
-      {showSuggest && (hotels.length > 0 || cities.length > 0 || countries.length > 0) && (
+      {showSuggest && (hotels.length > 0 || cities.length > 0 || countries.length > 0 || regions.length > 0) && (
         <div className="absolute mt-1 w-full z-20 rounded-md border border-line bg-card shadow">
           <ul className="max-h-72 overflow-auto">
             {hotels.map((h) => (
@@ -81,7 +84,22 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
                 </button>
               </li>
             ))}
-            {countries.length > 0 && hotels.length > 0 && (
+            {regions.length > 0 && hotels.length > 0 && (
+              <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>Areas</li>
+            )}
+            {regions.map((r) => (
+              <li key={`r-${r.slug}`}>
+                <button
+                  type="button"
+                  className="w-full text-left px-3 py-2 hov"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => go(`/${locale}/cosy-hotels/region/${r.slug}`)}
+                >
+                  Cosy hotels in {r.the ? "the " : ""}{r.name}
+                </button>
+              </li>
+            ))}
+            {countries.length > 0 && (hotels.length > 0 || regions.length > 0) && (
               <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>Countries</li>
             )}
             {countries.map((c) => (
@@ -96,7 +114,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
                 </button>
               </li>
             ))}
-            {cities.length > 0 && (hotels.length > 0 || countries.length > 0) && (
+            {cities.length > 0 && (hotels.length > 0 || regions.length > 0 || countries.length > 0) && (
               <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>Cities</li>
             )}
             {cities.map((c) => (

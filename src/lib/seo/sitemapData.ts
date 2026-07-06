@@ -9,6 +9,7 @@ import { getVisibleBlogPosts } from "@/lib/blogSchedule";
 import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, cityCollectionMin } from "@/lib/travellerFit";
 import { cityFromSlug } from "@/lib/citySlug";
 import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
+import { REGIONS } from "@/data/regions";
 import { cityMembers, cityBaseSlug, resolveCity, liveCosyCountForCityName, CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, collectionConcepts, conceptMembers, loadConceptAssignments, rpcCityUniverse, type ScoreHotelRow } from "@/lib/seo/cityHotels";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
@@ -152,6 +153,10 @@ export async function collectionUrls(): Promise<Url[]> {
   // Country hubs (only those clearing HUB_MIN, so the sitemap never lists a noindexed thin hub).
   for (const c of await loadCountryCounts()) {
     if (c.live >= HUB_MIN) urls.push({ loc: `${SITE}/en/cosy-hotels/in/${c.country.slug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
+  }
+  // Region (area) hubs — curated, all substantive (each clears HUB_MIN at authoring time).
+  for (const r of REGIONS) {
+    urls.push({ loc: `${SITE}/en/cosy-hotels/region/${r.slug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
   }
   return urls;
 }

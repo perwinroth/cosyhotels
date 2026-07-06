@@ -2,6 +2,7 @@
 // theme hub (/cosy-hotels/{facet}) and country hub (/cosy-hotels/in/{country}). Indexable, evergreen.
 import type { Metadata } from "next";
 import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
+import { REGIONS } from "@/data/regions";
 import { listedThemeConcepts, conceptLabelPhrase } from "@/lib/seo/cityHotels";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 
@@ -36,6 +37,18 @@ export default async function CosyHotelsHub({ params }: { params: { locale: stri
           {themes.map((c) => (
             <a key={c.slug} href={`/${l}/cosy-hotels/${c.slug}`} className="block rounded-xl border p-4 hover:underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
               <span className="font-medium">Cosy hotels {conceptLabelPhrase(c)}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-medium">By area</h2>
+        <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Famous regions and coastlines, from the Amalfi Coast to the Cotswolds.</p>
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {REGIONS.map((r) => (
+            <a key={r.slug} href={`/${l}/cosy-hotels/region/${r.slug}`} className="rounded-lg border px-3 py-2 text-sm hover:underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
+              <span className="truncate">{r.name}</span>
             </a>
           ))}
         </div>
