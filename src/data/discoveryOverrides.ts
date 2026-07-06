@@ -5,12 +5,15 @@
 // R11 — per-city guide-page title (guides/[slug] generateMetadata).
 export const CITY_TITLE: Record<string, string> = {
   Bruges: "Cosy Boutique Hotels & B&Bs in Bruges — AI-ranked",
+  Charleston: "Cosy Boutique Hotels & Historic Inns in Charleston — AI-ranked",
 };
 
 // R9 — per-city lead sentence, prepended to the data-derived intro (which stays, for honesty).
 export const CITY_INTRO_LEAD: Record<string, string> = {
   Bruges:
     "Bruges does cosy its own way: 17th-century townhouses, canal-side B&Bs and small family-run guesthouses inside the old walls — not chain hotels.",
+  Charleston:
+    "Charleston does cosy as historic inns and B&Bs — 19th-century single houses, courtyard inns and harbor-view guesthouses in the walkable historic core, not chain hotels.",
 };
 
 // R4 + R6 — per-city extra FAQs, appended to the templated cityFaqs() (rendered + FAQPage JSON-LD).
@@ -27,6 +30,16 @@ export const CITY_EXTRA_FAQS: Record<string, Array<{ q: string; a: string }>> = 
     {
       q: "Is one night in Bruges enough?",
       a: "One night beats a day trip: the centre's highlights are walkable in a day, and the evening after the day-trippers leave is when Bruges is at its cosiest. Pick a small hotel inside the old centre and you'll see the best of it in 24 hours.",
+    },
+  ],
+  Charleston: [
+    {
+      q: "Historic District or Mount Pleasant — where should I stay in Charleston?",
+      a: "For a cosy, walkable stay, the Historic District (downtown) is the pick — King Street, the City Market, the French Quarter and the waterfront are all on foot, so you won't need a car in the city. Mount Pleasant is a quieter suburb across the Cooper River, better if you have a car and want more space. Our curated cosy hotels are in the walkable historic core.",
+    },
+    {
+      q: "Where should I stay in Charleston for a romantic weekend?",
+      a: "Charleston is built for it: courtyard inns and historic B&Bs on quiet cobbled streets, walkable to candlelit restaurants and the waterfront at Battery Park. Stay in the Historic District and the whole evening is on foot. See our ranked cosy hotels near the Historic District for the shortlist.",
     },
   ],
 };
