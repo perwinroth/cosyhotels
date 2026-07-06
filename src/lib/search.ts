@@ -32,19 +32,24 @@ const ALL_CITIES: string[] = Array.from(
   new Set([...cityGuides.map((g) => g.city), ...cities, ...citiesLarge]),
 );
 
-// Match all live hotels (score >= 5) by name / English name, ordered by displayed score. `limit`
+// Match live hotels (score >= 5) by name / English name / CITY, ordered by relevance. Matching city
+// too means a city-name query ("new york") surfaces the hotels IN that city — not just hotels whose
+// NAME happens to contain it (which returned e.g. a Budapest hotel named "New York Palace"). `limit`
 // caps the returned rows (autocomplete wants ~6, the results page wants ~24).
 export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
   const db = getServerSupabase();
   if (!db) return [];
   const escaped = q.replace(/[%_,]/g, (m) => `\\${m}`);
-  // Step 1: name match on hotels (name + English name). Pull a generous slice so the score
-  // filter/sort below still has enough candidates to fill `limit`.
+  const lower = q.toLowerCase();
+  // Step 1: match on hotel name, English name, OR city. A city can hold many hotels, so pull a
+  // generous slice for the score filter/sort below to fill `limit`.
   const { data: rows, error } = await db
     .from("hotels")
     .select("id,slug,name,name_en,city,country")
-    .or(`name.ilike.%${escaped}%,name_en.ilike.%${escaped}%`)
-    .limit(Math.max(40, limit * 4));
+    .or(`name.ilike.%${escaped}%,name_en.ilike.%${escaped}%,city.ilike.%${escaped}%`)
+    // Big cap: a city can hold hundreds of hotels, most NOT live — fetch enough that the live ones
+    // (filtered below) always fall inside the candidate window, so autocomplete ranks by true score.
+    .limit(500);
   if (error || !rows?.length) return [];
 
   // Step 2: keep only hotels with a live score (>=5); attach displayed score + description.
@@ -76,7 +81,14 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
     })
     // Site convention: only show Latin-script names on the English site.
     .filter((h) => isLatin(h.name))
-    .sort((a, b) => b.score - a.score)
+    // Hotels whose CITY matches the query rank above pure name-substring matches, then by score —
+    // so "new york" leads with real NYC hotels, not a Budapest hotel named "New York Palace".
+    .sort((a, b) => {
+      const ac = a.city.toLowerCase().includes(lower) ? 1 : 0;
+      const bc = b.city.toLowerCase().includes(lower) ? 1 : 0;
+      if (ac !== bc) return bc - ac;
+      return b.score - a.score;
+    })
     .slice(0, limit);
 }
 
