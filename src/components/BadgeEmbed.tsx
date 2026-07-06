@@ -1,15 +1,16 @@
 "use client";
-// "Add your cosy badge" embed block shown on a hotel page — the copy-paste backlink snippet.
-// When a hotel pastes it on their site, it links back to their Got Cosy ranking (utm=badge).
-// Hidden for normal visitors (not useful to them); only shown when the URL carries ?badge —
-// the appendix we add to outreach links so the hotel sees their copy-paste snippet.
+// "Add your cosy badge" embed block on a hotel page — the copy-paste backlink snippet. When a hotel
+// pastes it on their site it links back to their Got Cosy ranking (utm=badge).
+// Discoverable by ANY hotel: a subtle always-visible trigger reveals the embed (so a hotelier who
+// lands on the plain URL can still grab their badge), and outreach links carrying ?badge auto-open it.
 import { useState, useEffect } from "react";
 
 export default function BadgeEmbed({ slug, score, name }: { slug: string; score: number; name: string }) {
   const [copied, setCopied] = useState(false);
-  const [show, setShow] = useState(false);
+  const [open, setOpen] = useState(false);
   useEffect(() => {
-    try { setShow(new URLSearchParams(window.location.search).has("badge")); } catch { /* ignore */ }
+    // Outreach deep-links append ?badge → auto-expand so the emailed hotelier lands straight on it.
+    try { if (new URLSearchParams(window.location.search).has("badge")) setOpen(true); } catch { /* ignore */ }
   }, []);
   const base = "https://gotcosy.com";
   const badgeSrc = `${base}/api/badge?score=${score.toFixed(1)}&name=${encodeURIComponent(name)}`;
@@ -18,10 +19,19 @@ export default function BadgeEmbed({ slug, score, name }: { slug: string; score:
   const copy = async () => {
     try { await navigator.clipboard.writeText(snippet); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
   };
-  if (!show) return null;
+
+  if (!open) {
+    return (
+      <section style={{ marginTop: 28 }}>
+        <button onClick={() => setOpen(true)} className="hov" style={{ fontSize: 13.5, color: "var(--muted)", background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}>
+          Own this hotel? Grab your “Rated Cosy” badge →
+        </button>
+      </section>
+    );
+  }
   return (
     <section style={{ marginTop: 28, padding: 18, border: "1px solid var(--line)", borderRadius: 16, background: "var(--card)" }}>
-      <div style={{ fontFamily: "var(--font-serif, Georgia), serif", fontSize: 17, fontWeight: 600 }}>Featured here? Add your cosy badge</div>
+      <div style={{ fontFamily: "var(--font-serif, Georgia), serif", fontSize: 17, fontWeight: 600 }}>Add your cosy badge</div>
       <p style={{ fontSize: 13.5, color: "var(--muted)", margin: "6px 0 14px" }}>Show off your AI cosy score — paste this on your site and it links back to your ranking.</p>
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -61,7 +61,14 @@ export function buildWhyParagraph(displayed: TravellerFitAssignment[]): string |
   const seen: string[] = [];
   const evidence: string[] = [];
   for (const a of displayed) {
-    const raw = (a.evidence_text || "").trim().replace(/\s+/g, " ").replace(/\.+$/, "");
+    // Stored evidence is sometimes hard-truncated mid-word with an ellipsis ("…'boutique hotel' b…" —
+    // ~28% of rows). Strip the trailing ellipsis, drop the dangling partial word when it was cut
+    // mid-word, and tidy trailing punctuation so the clause always ends cleanly.
+    const raw0 = (a.evidence_text || "").trim().replace(/\s+/g, " ");
+    const midWordCut = /\S(?:…|\.\.\.)$/.test(raw0);
+    let raw = raw0.replace(/(?:…|\.+)$/, "").trim();
+    if (midWordCut) raw = raw.replace(/\s+\S+$/, "");
+    raw = raw.replace(/[\s,;:—-]+$/, "").trim();
     if (!raw) continue;
     const norm = raw.toLowerCase();
     if (seen.some((s) => s.includes(norm) || norm.includes(s))) continue;
