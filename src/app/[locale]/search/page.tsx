@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { searchSite } from "@/lib/search";
+import { logSearch } from "@/lib/searchLog";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { cityGuides } from "@/data/cityGuides";
 
@@ -28,8 +29,10 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const sp = await searchParams;
   const q = (sp.q || "").trim();
-  const { hotels, cities } = q.length >= 2 ? await searchSite(q, { hotelLimit: 24 }) : { hotels: [], cities: [] };
-  const hasResults = hotels.length > 0 || cities.length > 0;
+  const { hotels, cities, countries } = q.length >= 2 ? await searchSite(q, { hotelLimit: 24 }) : { hotels: [], cities: [], countries: [] };
+  const hasResults = hotels.length > 0 || cities.length > 0 || countries.length > 0;
+  // Fire-and-forget: record real on-site demand (esp. zero-result queries). Never blocks this render.
+  if (q.length >= 2) logSearch(q, { hotels: hotels.length, cities: cities.length, countries: countries.length, locale });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -39,9 +42,11 @@ export default async function SearchPage({ params, searchParams }: Props) {
 
       {hasResults && (
         <p className="mt-2" style={{ color: "var(--muted)" }}>
-          {hotels.length > 0 && `${hotels.length} hotel${hotels.length === 1 ? "" : "s"}`}
-          {hotels.length > 0 && cities.length > 0 && " · "}
-          {cities.length > 0 && `${cities.length} cit${cities.length === 1 ? "y" : "ies"}`}
+          {[
+            hotels.length > 0 && `${hotels.length} hotel${hotels.length === 1 ? "" : "s"}`,
+            countries.length > 0 && `${countries.length} countr${countries.length === 1 ? "y" : "ies"}`,
+            cities.length > 0 && `${cities.length} cit${cities.length === 1 ? "y" : "ies"}`,
+          ].filter(Boolean).join(" · ")}
         </p>
       )}
 
@@ -72,6 +77,19 @@ export default async function SearchPage({ params, searchParams }: Props) {
             </li>
           ))}
         </ol>
+      )}
+
+      {countries.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold">Cosy hotels by country</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {countries.map((c) => (
+              <a key={c.slug} href={`/${locale}/cosy-hotels/in/${c.slug}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: "var(--line)", color: "var(--foreground)" }}>
+                Cosy hotels in {c.name}
+              </a>
+            ))}
+          </div>
+        </section>
       )}
 
       {cities.length > 0 && (

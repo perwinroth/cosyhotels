@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isLatin } from "@/lib/placeText";
 import { cityToSlug } from "@/lib/citySlug";
@@ -5,10 +6,12 @@ import { cities } from "@/data/cities";
 import { citiesLarge } from "@/data/cities_large";
 import { cityGuides } from "@/data/cityGuides";
 import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
+import { COUNTRIES } from "@/lib/country";
+import { loadCountryCounts, HUB_404_BELOW } from "@/lib/countryHub";
 
 // ONE implementation of the site search, shared by the /api/search autocomplete route and the
 // /[locale]/search results page. Hotels are matched across the FULL live catalogue by name;
-// cities are only returned when they actually have a live guide (so links never 404).
+// cities/countries are only returned when they resolve to a live page (so links never 404).
 
 export type HotelHit = {
   slug: string;
@@ -19,7 +22,8 @@ export type HotelHit = {
   description?: string;
 };
 export type CityHit = { name: string; slug: string };
-export type SearchResults = { hotels: HotelHit[]; cities: CityHit[] };
+export type CountryHit = { name: string; slug: string; count: number };
+export type SearchResults = { hotels: HotelHit[]; cities: CityHit[]; countries: CountryHit[] };
 
 // Curated guide cities first (guaranteed to render), then the broad autocomplete list.
 const ALL_CITIES: string[] = Array.from(
@@ -92,16 +96,41 @@ export async function searchCities(q: string, limit = 5): Promise<CityHit[]> {
     .map((name) => ({ name, slug: cityToSlug(name).replace(/-cosy-hotel$/, "") }));
 }
 
+// Country live-counts change only when the scoring pipeline runs, but loadCountryCounts scans every
+// live score — too heavy for a per-keystroke autocomplete. Cache the result across requests.
+const cachedCountryCounts = unstable_cache(loadCountryCounts, ["search-country-counts"], { revalidate: 3600 });
+
+// Match countries against the curated canonical list (name + ASCII words like "uk"/"usa"), then keep
+// only those whose hub actually renders (>= HUB_404_BELOW live hotels) so a result never links to a 404.
+export async function searchCountries(q: string, limit = 4): Promise<CountryHit[]> {
+  const lower = q.toLowerCase();
+  const matched = COUNTRIES.filter((c) => {
+    const name = c.name.toLowerCase();
+    if (name.startsWith(lower) || c.words.some((w) => w.startsWith(lower))) return true;
+    if (lower.length >= 4 && (name.includes(lower) || c.words.some((w) => w.includes(lower)))) return true;
+    return false;
+  });
+  if (!matched.length) return [];
+  const counts = await cachedCountryCounts();
+  const liveBySlug = new Map(counts.map((r) => [r.country.slug, r.live]));
+  return matched
+    .map((c) => ({ name: c.name, slug: c.slug, count: liveBySlug.get(c.slug) ?? 0 }))
+    .filter((c) => c.count >= HUB_404_BELOW)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
 // Combined lookup used by both the API route and the results page.
 export async function searchSite(
   q: string,
-  opts?: { hotelLimit?: number; cityLimit?: number },
+  opts?: { hotelLimit?: number; cityLimit?: number; countryLimit?: number },
 ): Promise<SearchResults> {
   const query = q.trim();
-  if (query.length < 2) return { hotels: [], cities: [] };
-  const [hotels, cities] = await Promise.all([
+  if (query.length < 2) return { hotels: [], cities: [], countries: [] };
+  const [hotels, cities, countries] = await Promise.all([
     searchHotels(query, opts?.hotelLimit ?? 6),
     searchCities(query, opts?.cityLimit ?? 5),
+    searchCountries(query, opts?.countryLimit ?? 4),
   ]);
-  return { hotels, cities };
+  return { hotels, cities, countries };
 }
