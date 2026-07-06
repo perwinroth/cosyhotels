@@ -48,3 +48,6 @@ next-env.d.ts
 # transient in-session scoring batch (downloaded photos + results)
 scripts/_score_batch/
 local/
+
+# Playwright MCP browser-test artifacts
+.playwright-mcp/
