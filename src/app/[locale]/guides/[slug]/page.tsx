@@ -10,7 +10,7 @@ import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { populatedCities } from "@/lib/social";
 import { FACETS, matchesFacet } from "@/lib/facets";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
-import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
+import { liveCosyCountForCityName, aliasCity } from "@/lib/seo/cityHotels";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
@@ -217,6 +217,25 @@ export default async function GuidePage({ params }: Props) {
       hotels = [...hotels, ...geoHotels];
     }
   }
+  // Accent-insensitive top-up. The `city.ilike.%variant%` query above is accent-SENSITIVE (Postgres
+  // ilike doesn't fold diacritics), so guides for accented-name cities not in the cities data file
+  // (Cadaqués, Hà Nội, Mürren, …) matched nothing and 404'd despite having cosy hotels. The
+  // cosy_city_hotels RPC folds via Postgres unaccent, so it finds them. Merge its rows into the pool —
+  // purely ADDITIVE (a strict superset): the norm()-based city filter + dedup-by-id below keep only
+  // real matches and drop overlaps, so no guide that renders today can stop rendering.
+  try {
+    const { data: rpcRows } = await db.rpc('cosy_city_hotels', { q: aliasCity(cityName) });
+    for (const r of ((rpcRows || []) as Array<Record<string, unknown>>)) {
+      if (!r.hotel_id || !r.slug) continue;
+      hotels.push({
+        id: String(r.hotel_id), slug: String(r.slug), name: String(r.name || ''),
+        name_en: (r.name_en as string | null) ?? null, city: (r.city as string | null) ?? null,
+        country: (r.country as string | null) ?? null, rating: null, address: null,
+        reviews_count: null, source: null, source_id: null,
+        lat: (r.lat as number | null) ?? null, lng: (r.lng as number | null) ?? null,
+      });
+    }
+  } catch { /* RPC failure is non-fatal — the ilike/bbox pool still renders */ }
   const bad = await badLinkHotelIds(db);
   const ids = hotels.map((h) => String(h.id));
   const scoreMap = new Map<string, number>();
