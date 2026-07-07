@@ -4,8 +4,74 @@
 import type { ReactNode } from "react";
 import { getGscSummary, gscConfigured } from "@/lib/gsc";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
+import { buildBadgePitch, gmailComposeUrl, instagramDmUrl, BADGE_SUBJECT } from "@/lib/badgePitch";
+import { displayCity, isLatin } from "@/lib/placeText";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any;
+
+// The daily drip sizes — small enough to protect deliverability + get actually done every day.
+export const DAILY = { emails: 30, instagram: 10, reddit: 3 };
+
+export type TodayEmail = { name: string; city: string; score: number; email: string; gmailUrl: string };
+export type TodayInstagram = { name: string; city: string; score: number; handle: string; igUrl: string; pitch: string };
+export type TodayReddit = { id: string; subreddit: string; title: string; url: string; city: string | null };
+
+// The concrete "do exactly this today" queue: the top-scored queued hotels to email + DM, and the best
+// Reddit threads to reply to — capped to DAILY so Per just works the list, no judgement calls.
+export async function getTodayPlan(db: DB): Promise<{
+  emails: TodayEmail[]; instagram: TodayInstagram[]; reddit: TodayReddit[];
+  totalEmailQueued: number; totalIgQueued: number;
+}> {
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
+  const empty = { emails: [], instagram: [], reddit: [], totalEmailQueued: 0, totalIgQueued: 0 };
+  try {
+    const [{ data: queued }, { count: total }, { data: redditRows }] = await Promise.all([
+      db.from("hotel_outreach").select("hotel_id").eq("status", "queued"),
+      db.from("cosy_scores").select("*", { count: "exact", head: true }),
+      db.from("reddit_leads").select("id,subreddit,title,url,city").eq("status", "new").order("found_at", { ascending: false }).limit(DAILY.reddit),
+    ]);
+    const totalTxt = (total || 17000).toLocaleString();
+    const reddit = (redditRows || []) as TodayReddit[];
+    const ids = ((queued || []) as Array<{ hotel_id: string }>).map((r) => String(r.hotel_id));
+    if (!ids.length) return { ...empty, reddit };
+
+    // Pull the queued hotels' score + write-up + contact, best score first.
+    const { data } = await db
+      .from("cosy_scores")
+      .select("hotel_id, score, score_final, description, hotel:hotel_id!inner(slug, name, name_en, city, instagram, email)")
+      .in("hotel_id", ids)
+      .order("score", { ascending: false })
+      .limit(1000);
+
+    type CRow = { hotel_id: string; score: number | null; score_final: number | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null; city: string | null; instagram: string | null; email: string | null } | null };
+    const seen = new Set<string>();
+    const emails: TodayEmail[] = [];
+    const instagram: TodayInstagram[] = [];
+    for (const r of ((data || []) as unknown as CRow[])) {
+      const h = r.hotel;
+      if (!h) continue;
+      const name = String(h.name_en || h.name || "").trim();
+      if (!name || !isLatin(name) || seen.has(name)) continue;
+      seen.add(name);
+      const score = Number((r.score_final ?? r.score) || 0);
+      const city = displayCity(h.city);
+      const email = h.email && h.email.includes("@") ? h.email.trim() : null;
+      const handle = h.instagram ? String(h.instagram).replace(/^@/, "").trim() : null;
+      const pitch = buildBadgePitch({ name, score, slug: h.slug, city, description: r.description }, { totalTxt, base });
+      if (email) emails.push({ name, city, score, email, gmailUrl: gmailComposeUrl(email, BADGE_SUBJECT, pitch) });
+      else if (handle) instagram.push({ name, city, score, handle, igUrl: instagramDmUrl(handle), pitch });
+    }
+    return {
+      emails: emails.slice(0, DAILY.emails),
+      instagram: instagram.slice(0, DAILY.instagram),
+      reddit,
+      totalEmailQueued: emails.length,
+      totalIgQueued: instagram.length,
+    };
+  } catch {
+    return empty;
+  }
+}
 
 // A head-count that never throws (missing table / RLS → 0) so one bad count can't blank the shell.
 export function mkCount(db: DB) {
