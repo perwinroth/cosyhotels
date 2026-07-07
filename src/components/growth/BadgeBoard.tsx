@@ -10,6 +10,7 @@ import { cosyBadgeColor } from "@/lib/cosyColor";
 export type BadgeBoardRow = {
   hotelId: string; name: string; city: string; score: number;
   channel: string; status: string; hotelHref: string; pitch: string;
+  subject: string; variant: string;
   // Contact channels. The hotels table has no email column today, so `email` is null in practice —
   // the Gmail branch is future-proofing for when/if an address exists. Instagram/website do exist.
   email?: string | null; instagram?: string | null;
@@ -38,7 +39,7 @@ const EMAIL_CTA: CSSProperties = { border: "none", background: "var(--ember)", c
 // lib/outreachTemplates.ts, but inlined here because the badge pitch is a custom per-hotel body, not
 // one of the PR `fit` templates that helper hardcodes.
 const GMAIL_ACCOUNT = "gotcosy@gmail.com";
-const BADGE_SUBJECT = "You made the Cosy Index — here's your badge";
+
 function gmailUrl(to: string, subject: string, body: string): string {
   const p = new URLSearchParams({ authuser: GMAIL_ACCOUNT, view: "cm", fs: "1", to, su: subject, body });
   return `https://mail.google.com/mail/u/0/?` + p.toString();
@@ -90,7 +91,7 @@ export default function BadgeBoard({ rows, channelById }: { rows: BadgeBoardRow[
     const body = h.email ? (
       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>{badge}</div>
-        <a href={gmailUrl(h.email, BADGE_SUBJECT, h.pitch)} target="_blank" rel="noreferrer" style={EMAIL_CTA}>Email {h.name} ↗</a>
+        <a href={gmailUrl(h.email, h.subject, h.pitch)} target="_blank" rel="noreferrer" style={EMAIL_CTA}>Email {h.name} ({h.variant}) ↗</a>
       </div>
     ) : (
       <div style={{ display: "flex", alignItems: "center", gap: 9 }}>

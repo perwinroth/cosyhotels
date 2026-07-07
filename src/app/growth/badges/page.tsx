@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { displayCity, isLatin } from "@/lib/placeText";
 import BadgeBoard, { type BadgeBoardRow } from "@/components/growth/BadgeBoard";
-import { buildBadgePitch } from "@/lib/badgePitch";
+import { buildVariantPitch, variantFor } from "@/lib/badgePitch";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -47,12 +47,14 @@ export default async function GrowthBadgesPage() {
     for (const s of (st || []) as Array<{ hotel_id: string; status: string }>) statusById.set(String(s.hotel_id), s.status);
   }
 
-  const totalTxt = (totalScored || 17000).toLocaleString();
+  
   const built: BadgeBoardRow[] = hotels.map((h) => {
-    const pitch = buildBadgePitch({ name: h.name, score: h.score, slug: h.slug, city: h.city, description: h.description }, { totalTxt, base });
+    const variant = variantFor(h.id);
+    const vp = buildVariantPitch(variant, { name: h.name, score: h.score, slug: h.slug, city: h.city, description: h.description }, { base });
+    const pitch = vp.body; const subject = vp.subject;
     // Channel priority: email → Gmail; else instagram → DM + copy; else copy pitch (website-only).
     // `email` is populated by the enrichment scraper (score≥7 hotels); `instagram` is the bare handle.
-    return { hotelId: h.id, name: h.name, city: h.city, score: h.score, channel: h.channel, status: statusById.get(h.id) || "queued", hotelHref: `${base}/en/hotels/${h.slug}`, pitch, email: h.email ?? null, instagram: h.instagram };
+    return { hotelId: h.id, name: h.name, city: h.city, score: h.score, channel: h.channel, status: statusById.get(h.id) || "queued", hotelHref: `${base}/en/hotels/${h.slug}`, pitch, subject, variant, email: h.email ?? null, instagram: h.instagram };
   });
   const channelById = Object.fromEntries(built.map((b) => [b.hotelId, b.channel]));
 
@@ -60,7 +62,7 @@ export default async function GrowthBadgesPage() {
     <div>
       <header style={{ marginBottom: 18 }}>
         <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, margin: 0 }}>Badge outreach — the top 2.3%</h1>
-        <p style={{ color: "var(--muted)", fontSize: 13.5, marginTop: 5 }}>{built.length} Cosy Index hotels with a public contact. Open each in Gmail or Instagram (or copy the pitch), send it, then advance the card as they reply and embed the badge.</p>
+        <p style={{ color: "var(--muted)", fontSize: 13.5, marginTop: 5 }}>{built.length} Cosy Index hotels (of {(totalScored || 0).toLocaleString()} scored) with a public contact. Pitches are experiment arms v2/v3 (pre-registered). Open each in Gmail or Instagram (or copy the pitch), send it, then advance the card as they reply and embed the badge.</p>
       </header>
       <BadgeBoard rows={built} channelById={channelById} />
     </div>

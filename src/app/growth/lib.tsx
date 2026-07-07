@@ -4,7 +4,7 @@
 import type { ReactNode } from "react";
 import { getGscSummary, gscConfigured } from "@/lib/gsc";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
-import { buildBadgePitch, gmailComposeUrl, instagramDmUrl, BADGE_SUBJECT } from "@/lib/badgePitch";
+import { buildBadgePitch, buildVariantPitch, variantFor, gmailComposeUrl, instagramDmUrl } from "@/lib/badgePitch";
 import { displayCity, isLatin } from "@/lib/placeText";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any;
@@ -12,7 +12,7 @@ type DB = any;
 // The daily drip sizes — small enough to protect deliverability + get actually done every day.
 export const DAILY = { emails: 30, instagram: 10, reddit: 3 };
 
-export type TodayEmail = { hotelId: string; name: string; city: string; score: number; email: string; gmailUrl: string };
+export type TodayEmail = { hotelId: string; name: string; city: string; score: number; email: string; gmailUrl: string; variant: string };
 export type TodayInstagram = { hotelId: string; name: string; city: string; score: number; handle: string; igUrl: string; pitch: string };
 export type TodayReddit = { id: string; subreddit: string; title: string; url: string; city: string | null };
 
@@ -58,8 +58,11 @@ export async function getTodayPlan(db: DB): Promise<{
       const email = h.email && h.email.includes("@") ? h.email.trim() : null;
       const handle = h.instagram ? String(h.instagram).replace(/^@/, "").trim() : null;
       const pitch = buildBadgePitch({ name, score, slug: h.slug, city, description: r.description }, { totalTxt, base });
+      // Variant experiment (pre-registered 2026-07-07): queued emails get v2/v3 by hotel-id hash.
+      const variant = variantFor(r.hotel_id);
+      const vp = buildVariantPitch(variant, { name, score, slug: h.slug, city, description: r.description }, { base });
       const hotelId = String(r.hotel_id);
-      if (email) emails.push({ hotelId, name, city, score, email, gmailUrl: gmailComposeUrl(email, BADGE_SUBJECT, pitch) });
+      if (email) emails.push({ hotelId, name, city, score, email, variant, gmailUrl: gmailComposeUrl(email, vp.subject, vp.body) });
       else if (handle) instagram.push({ hotelId, name, city, score, handle, igUrl: instagramDmUrl(handle), pitch });
     }
     return {
