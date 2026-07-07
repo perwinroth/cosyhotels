@@ -26,7 +26,7 @@ If a different cut would be more useful for something you're writing — a regio
 Per
 gotcosy.com`,
   rules: [
-    "Send from per@gotcosy.com via Zoho (webmail or app). Never via Gmail 'send mail as' — it fails SPF.",
+    "Send from per@gotcosy.com. Gmail 'send mail as' is fine NOW THAT it relays via Zoho SMTP (fixed 2026-07-07) — verify a test mail shows signed-by gotcosy.com before the first real send.",
     "One send per target. Personalize the {PERSONAL} line further if you know their work. No follow-up chasing.",
     "If anyone asks for the underlying evidence lines: always label them “condensed by our scoring model from review text — not verbatim guest quotes.”",
     "Scoreboard: the weekly mention tracker — do not count replies as success; count citations/mentions.",

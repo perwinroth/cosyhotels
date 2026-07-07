@@ -1,8 +1,10 @@
 // Create Gmail drafts as per@gotcosy.com via the API — the reliable version of the outreach button
-// (compose URLs can't force a From). Auth: OAuth refresh token for gotcosy@gmail.com, where
-// per@gotcosy.com is a verified "Send As" alias. Env: GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET /
-// GMAIL_REFRESH_TOKEN. Server-only.
-const ACCOUNT = "gotcosy@gmail.com";
+// (compose URLs can't force a From). Auth: OAuth refresh token whose mailbox is per@gotcosy.com's
+// verified "Send As" account — the token IS the account, so whichever inbox GMAIL_REFRESH_TOKEN was
+// minted for is where drafts land and where the read helpers below search (currently being migrated
+// to perwinroth@gmail.com — update ACCOUNT below to match whenever the token changes). Env:
+// GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET / GMAIL_REFRESH_TOKEN. Server-only.
+const ACCOUNT = "perwinroth@gmail.com"; // must match the mailbox GMAIL_REFRESH_TOKEN belongs to — only used to build the Drafts deep-link
 const FROM = "Got Cosy <per@gotcosy.com>"; // per@gotcosy.com must be a verified Send-As on ACCOUNT
 
 export function gmailConfigured(): boolean {
@@ -36,7 +38,7 @@ function rawMessage({ to, subject, body }: { to: string; subject: string; body: 
   return Buffer.from(`${headers}\r\n\r\n${body}`, "utf8").toString("base64url");
 }
 
-// Create a draft in gotcosy@gmail.com from per@gotcosy.com. Returns the draft id + a link to Drafts.
+// Create a draft in the connected account (see ACCOUNT above) from per@gotcosy.com. Returns the draft id + a link to Drafts.
 export async function createGmailDraft(msg: { to: string; subject: string; body: string }): Promise<{ id: string; link: string } | null> {
   const token = await accessToken();
   if (!token) return null;
@@ -109,13 +111,13 @@ async function firstMatch(q: string, accessToken: string): Promise<string | null
   return json.messages?.[0]?.id ?? null;
 }
 
-/** True if gotcosy@gmail.com has SENT a message to `email` (Send-As per@gotcosy.com lands here too). */
+/** True if the connected account has SENT a message to `email` (Send-As per@gotcosy.com lands here too). */
 export async function wasSentTo(email: string, accessToken: string): Promise<boolean> {
   return (await firstMatch(`in:sent to:${email}`, accessToken)) !== null;
 }
 
-/** True if the Inbox has a message FROM `email` — a reply (assumes replies to per@gotcosy.com are
- *  forwarded into gotcosy@gmail.com's Inbox). */
+/** True if the Inbox has a message FROM `email` — a reply (assumes replies to per@gotcosy.com land
+ *  directly in the connected account's Inbox). */
 export async function gotReplyFrom(email: string, accessToken: string): Promise<boolean> {
   return (await firstMatch(`in:inbox from:${email}`, accessToken)) !== null;
 }
@@ -141,4 +143,98 @@ export async function wasDeliveredTo(email: string, accessToken: string): Promis
   if (sent === null) return false;
   const bounced = await newestDate(`from:mailer-daemon "${email}"`, accessToken);
   return bounced === null || sent > bounced;
+}
+
+// ── Journo-query digest reader (journo-queries cron) ─────────────────────────────────────────────
+// Needs the same gmail.readonly scope as the mailbox helpers above.
+
+/** Up to `max` message ids matching a Gmail `q` search (newest first), or [] if none. Throws
+ *  GmailScopeError on 403. */
+export async function searchMessageIds(q: string, accessToken: string, max = 10): Promise<string[]> {
+  const res = await fetch(`${MESSAGES_URL}?q=${encodeURIComponent(q)}&maxResults=${max}`, {
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+  if (res.status === 403) {
+    throw new GmailScopeError("Gmail 403 (insufficient scope) — refresh token lacks gmail.readonly. Re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN.");
+  }
+  if (!res.ok) {
+    throw new Error(`Gmail messages.list failed (HTTP ${res.status}): ${(await res.text().catch(() => "")).slice(0, 200)}`);
+  }
+  const json = (await res.json().catch(() => ({}))) as MessagesListResponse;
+  return (json.messages || []).map((m) => m.id);
+}
+
+interface GmailMessagePart {
+  mimeType?: string;
+  body?: { data?: string; size?: number };
+  parts?: GmailMessagePart[];
+}
+interface GmailMessageFull {
+  payload?: GmailMessagePart & { headers?: Array<{ name: string; value: string }> };
+}
+
+const b64urlDecode = (s: string) => Buffer.from(s, "base64url").toString("utf8");
+
+/** Depth-first search for the first part whose mimeType matches and has a body — handles nested
+ *  multipart/alternative + multipart/mixed structures used by digest senders. */
+function findPart(part: GmailMessagePart | undefined, mimeType: string): GmailMessagePart | null {
+  if (!part) return null;
+  if (part.mimeType === mimeType && part.body?.data) return part;
+  for (const p of part.parts || []) {
+    const found = findPart(p, mimeType);
+    if (found) return found;
+  }
+  return null;
+}
+
+// Minimal HTML→text fallback for digests that only send text/html (no text/plain part).
+const stripHtml = (html: string) =>
+  html
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|tr|li)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+/** Fetch one message's headers + plaintext body (prefers text/plain, falls back to text/html stripped
+ *  of tags, falls back to a non-multipart body on the top-level payload). Returns null if the message
+ *  can't be found/parsed. Throws GmailScopeError on 403 (readonly scope missing). */
+export async function getMessagePlainText(
+  id: string,
+  accessToken: string,
+): Promise<{ subject: string; from: string; date: string; text: string } | null> {
+  const res = await fetch(`${MESSAGES_URL}/${id}?format=full`, { headers: { authorization: `Bearer ${accessToken}` } });
+  if (res.status === 403) {
+    throw new GmailScopeError("Gmail 403 (insufficient scope) — refresh token lacks gmail.readonly. Re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN.");
+  }
+  if (!res.ok) return null;
+  const json = (await res.json().catch(() => null)) as GmailMessageFull | null;
+  if (!json?.payload) return null;
+
+  const headers = json.payload.headers || [];
+  const header = (name: string) => headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value || "";
+  const meta = { subject: header("Subject"), from: header("From"), date: header("Date") };
+
+  const plain = findPart(json.payload, "text/plain");
+  if (plain?.body?.data) return { ...meta, text: b64urlDecode(plain.body.data) };
+
+  const html = findPart(json.payload, "text/html");
+  if (html?.body?.data) return { ...meta, text: stripHtml(b64urlDecode(html.body.data)) };
+
+  // Single-part message (no `parts` array — body sits directly on the top-level payload).
+  if (json.payload.body?.data) {
+    const raw = b64urlDecode(json.payload.body.data);
+    return { ...meta, text: json.payload.mimeType === "text/html" ? stripHtml(raw) : raw };
+  }
+  return null;
 }

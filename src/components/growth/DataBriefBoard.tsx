@@ -2,8 +2,9 @@
 // /growth/data-brief board — each target: the personalized, ready-to-send email (copy buttons +
 // mailto where a verified address exists), the one-line "why them", contact route, and a local
 // send-status tracker (localStorage only; sends are manual by Per from Zoho — see CAMPAIGN.rules).
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { CAMPAIGN, TARGETS, type BriefTarget } from "@/data/dataBriefCampaign";
+import { createBriefDraft } from "@/app/growth/data-brief/actions";
 
 type Status = "queued" | "sent" | "replied" | "skip";
 const STATUSES: Status[] = ["queued", "sent", "replied", "skip"];
@@ -39,6 +40,21 @@ export default function DataBriefBoard() {
     try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch {}
   };
   const sent = Object.values(status).filter((s) => s === "sent" || s === "replied").length;
+
+  const [draftLinks, setDraftLinks] = useState<Record<number, string>>({});
+  const [draftErrors, setDraftErrors] = useState<Record<number, string>>({});
+  const [pending, startTransition] = useTransition();
+  const [pendingRank, setPendingRank] = useState<number | null>(null);
+  function makeDraft(rank: number) {
+    setPendingRank(rank);
+    setDraftErrors((e) => ({ ...e, [rank]: "" }));
+    startTransition(async () => {
+      const r = await createBriefDraft(rank);
+      setPendingRank(null);
+      if (r.link) setDraftLinks((d) => ({ ...d, [rank]: r.link! }));
+      else setDraftErrors((e) => ({ ...e, [rank]: r.error || "failed" }));
+    });
+  }
 
   return (
     <div>
@@ -89,6 +105,23 @@ export default function DataBriefBoard() {
               {mailto && (
                 <a className="rounded-lg px-2.5 py-1 text-xs no-underline" style={{ border: "1px solid var(--line)", background: "var(--ember)", color: "#16201C" }} href={mailto}>Open in mail app</a>
               )}
+              {t.email && !draftLinks[t.rank] && (
+                <button
+                  className="rounded-lg px-2.5 py-1 text-xs"
+                  disabled={pending && pendingRank === t.rank}
+                  onClick={() => makeDraft(t.rank)}
+                  title="Creates the draft in your connected Gmail account, From per@gotcosy.com (Send-As via Zoho SMTP relay — fixed 2026-07-07). Verify one test mail shows signed-by gotcosy.com, then use freely."
+                  style={{ border: "1px solid var(--line)", background: "var(--card)", color: "var(--foreground)" }}
+                >
+                  {pending && pendingRank === t.rank ? "Creating…" : "Create Gmail draft"}
+                </button>
+              )}
+              {draftLinks[t.rank] && (
+                <a className="rounded-lg px-2.5 py-1 text-xs no-underline" style={{ border: "1px solid var(--line)", background: "var(--sage)", color: "#fff" }} href={draftLinks[t.rank]} target="_blank" rel="noreferrer">
+                  ✉ Open Gmail draft ↗
+                </a>
+              )}
+              {draftErrors[t.rank] && <span className="text-xs" style={{ color: "var(--ember)" }}>{draftErrors[t.rank]}</span>}
             </div>
           </div>
         );
