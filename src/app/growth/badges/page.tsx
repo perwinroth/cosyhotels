@@ -16,7 +16,7 @@ type Row = { hotel_id: string; score: number | null; score_final: number | null;
 
 // A clean, unique excerpt of the hotel's own cosy write-up, to personalise each pitch (so no two
 // emails are identical — better deliverability AND response). Trims to a sentence boundary near `max`.
-function pitchExcerpt(desc: string | null | undefined, max = 300): string {
+function pitchExcerpt(desc: string | null | undefined, max = 450): string {
   const clean = String(desc || "").replace(/\s+/g, " ").trim();
   if (!clean) return "";
   if (clean.length <= max) return clean;
