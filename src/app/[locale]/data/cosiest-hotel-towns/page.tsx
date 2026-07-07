@@ -50,7 +50,7 @@ const cityMeans = CITIES.map((c) => c.mean);
 const meanSpreadLow = Math.min(...cityMeans).toFixed(2);
 const meanSpreadHigh = Math.max(...cityMeans).toFixed(2);
 
-// Four well-known capitals appended to the tier strip chart as de-emphasised context.
+// Four famous big cities appended to the tier strip chart as de-emphasised context.
 const CONTEXT_CAPITALS = ["Rome", "Paris", "Vienna", "Barcelona"]
   .map((name) => CITIES.find((c) => c.city === name))
   .filter((c): c is (typeof CITIES)[number] => Boolean(c))
@@ -131,7 +131,7 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
         The World&apos;s Cosiest Hotel Towns — a guest-review-language analysis of {roundedHotelTotal.toLocaleString("en-GB")} hotels
       </h1>
       <p className="mt-5 text-lg leading-relaxed" style={{ color: "var(--muted)" }}>
-        Small, old towns beat the capitals. Alberobello (6.75) and San Gimignano (6.72) both outscore Rome (6.05),
+        Small, old towns beat the big cities. Alberobello (6.75) and San Gimignano (6.72) both outscore Rome (6.05),
         Paris (6.00) and Vienna (6.10) — and Romania (6.67) and Morocco (6.63) are the two cosiest countries in the
         world, ahead of every country in Western Europe. Barcelona sits {barcelonaRankFromBottom ? `${barcelonaRankFromBottom}th from the bottom` : "near the bottom"} of
         all {CITIES.length} qualifying cities, with zero hotels scoring 7.0 or higher. The means span {meanSpreadLow}–{meanSpreadHigh}
@@ -142,23 +142,23 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
       <H2 id="mechanism">What makes a hotel cosy? The answer is a person.</H2>
       <p className="leading-relaxed">
         Across the 10 cosiest towns in this dataset, <strong>74% of hotels&apos; review evidence mentions a host,
-        owner, family member or named person</strong> — against <strong>26% in 8 large capitals</strong> (Barcelona,
+        owner, family member or named person</strong> — against <strong>26% in eight large, heavily-visited cities</strong> (Barcelona,
         Paris, Rome, London, Amsterdam, Vienna, Prague, Florence). That&apos;s 180 qualifying hotels in the towns
-        against 509 in the capitals, so the gap isn&apos;t a small-sample fluke — it&apos;s the largest, most
+        against 509 in the cities, so the gap isn&apos;t a small-sample fluke — it&apos;s the largest, most
         consistent signal in the whole dataset.
       </p>
       <p className="mt-4 leading-relaxed">
         The same pattern shows up in what these hotels are called: <strong>31% of town hotels carry a
         guesthouse/B&amp;B-type name</strong> (casa, guesthouse, inn, maison, pensione…) against <strong>10% in the
-        capitals</strong> — roughly three times the rate. The town cohort&apos;s supply is structurally dominated by
+        big cities</strong> — roughly three times the rate. The town cohort&apos;s supply is structurally dominated by
         small, personally run properties where the owner <em>is</em> the service, rather than staff-mediated luxury.
       </p>
       <p className="mt-4 leading-relaxed">
         One number runs the other way, and it&apos;s worth stating plainly rather than hiding: the word
-        &quot;boutique&quot; appears far more often in the capitals&apos; review evidence than in the towns&apos; (53
-        mentions vs 3). <strong>That&apos;s not a mark of failure</strong> — the capitals&apos; boutique-tagged
-        hotels average 6.30 against 6.01 for the rest of the capital cohort. It&apos;s a different route to the same
-        warmth: capitals earn a cosy score by shrinking scale and naming individual staff inside a big-city shell,
+        &quot;boutique&quot; appears far more often in the big cities&apos; review evidence than in the towns&apos; (53
+        mentions vs 3). <strong>That&apos;s not a mark of failure</strong> — the big cities&apos; boutique-tagged
+        hotels average 6.30 against 6.01 for the rest of the city cohort. It&apos;s a different route to the same
+        warmth: big-city hotels earn a cosy score by shrinking scale and naming individual staff inside a big-city shell,
         towns earn it by being small and family-run to start with.
       </p>
       <HostGapChart />
@@ -189,7 +189,7 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
         Download the full city table as CSV
       </a>
       <p className="mt-6 leading-relaxed">
-        The top tier against four well-known capitals, for scale — axis honestly starts at 5.0, not zero:
+        The top tier against four famous big cities, for scale — axis honestly starts at 5.0, not zero:
       </p>
       <TierStripChart towns={CITIES.slice(0, 12).map((c) => ({ city: c.city, mean: c.mean }))} capitals={CONTEXT_CAPITALS} />
       <div className="mt-6 overflow-x-auto rounded-2xl border" style={{ borderColor: "var(--line)" }}>

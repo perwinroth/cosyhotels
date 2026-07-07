@@ -40,10 +40,10 @@ export function HostGapChart() {
     <ChartFrame
       height={H}
       title="How often a hotel's review evidence names a host, owner, family or guesthouse-type name: 10 cosiest towns vs 8 large capitals"
-      ariaLabel="Bar chart: towns 74% vs capitals 26% mention a host, owner or family; towns 31% vs capitals 10% are named as a guesthouse or B&B. Full figures in the mechanism section text and evidence table below."
+      ariaLabel="Bar chart: towns 74% vs large cities 26% mention a host, owner or family; towns 31% vs large cities 10% are named as a guesthouse or B&B. Full figures in the mechanism section text and evidence table below."
     >
       <text x={PAD.l} y={20} fontSize={12} fontWeight={700} fill={TOWN}>■ 10 cosiest towns (n=180 qualified hotels)</text>
-      <text x={PAD.l} y={36} fontSize={12} fontWeight={700} fill={CAPITAL}>■ 8 large capitals (n=509 qualified hotels)</text>
+      <text x={PAD.l} y={36} fontSize={12} fontWeight={700} fill={CAPITAL}>■ 8 large cities (n=509 qualified hotels)</text>
       {HOST_GAP_ROWS.map((row, i) => {
         const gy = PAD.t + i * GROUP_H;
         return (
@@ -85,7 +85,7 @@ export function TierStripChart({
   return (
     <ChartFrame
       height={H}
-      title="Top-tier cosiest towns vs four well-known capitals, mean cosy score"
+      title="Top-tier cosiest towns vs four famous big cities, mean cosy score"
       ariaLabel="Bar chart of mean cosy score for the top-tier cosiest towns compared with Rome, Paris, Vienna and Barcelona, shown as de-emphasised context. Axis starts at 5.0, the qualification floor, not zero. Full ranked table below."
     >
       {rows.map((r, i) => {
