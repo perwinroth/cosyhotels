@@ -110,7 +110,7 @@ export default function DataBriefBoard() {
                   className="rounded-lg px-2.5 py-1 text-xs"
                   disabled={pending && pendingRank === t.rank}
                   onClick={() => makeDraft(t.rank)}
-                  title="Creates the draft in gotcosy@gmail.com (per@gotcosy.com Send-As) — this campaign's rule is to send from Zoho instead (SPF), so use this only if you're sending via Gmail deliberately."
+                  title="Creates the draft in your connected Gmail account (per@gotcosy.com Send-As) — this campaign's rule is to send from Zoho instead (SPF), so use this only if you're sending via Gmail deliberately."
                   style={{ border: "1px solid var(--line)", background: "var(--card)", color: "var(--foreground)" }}
                 >
                   {pending && pendingRank === t.rank ? "Creating…" : "Create Gmail draft"}

@@ -1,8 +1,10 @@
 // Create Gmail drafts as per@gotcosy.com via the API — the reliable version of the outreach button
-// (compose URLs can't force a From). Auth: OAuth refresh token for gotcosy@gmail.com, where
-// per@gotcosy.com is a verified "Send As" alias. Env: GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET /
-// GMAIL_REFRESH_TOKEN. Server-only.
-const ACCOUNT = "gotcosy@gmail.com";
+// (compose URLs can't force a From). Auth: OAuth refresh token whose mailbox is per@gotcosy.com's
+// verified "Send As" account — the token IS the account, so whichever inbox GMAIL_REFRESH_TOKEN was
+// minted for is where drafts land and where the read helpers below search (currently being migrated
+// to perwinroth@gmail.com — update ACCOUNT below to match whenever the token changes). Env:
+// GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET / GMAIL_REFRESH_TOKEN. Server-only.
+const ACCOUNT = "perwinroth@gmail.com"; // must match the mailbox GMAIL_REFRESH_TOKEN belongs to — only used to build the Drafts deep-link
 const FROM = "Got Cosy <per@gotcosy.com>"; // per@gotcosy.com must be a verified Send-As on ACCOUNT
 
 export function gmailConfigured(): boolean {
@@ -36,7 +38,7 @@ function rawMessage({ to, subject, body }: { to: string; subject: string; body: 
   return Buffer.from(`${headers}\r\n\r\n${body}`, "utf8").toString("base64url");
 }
 
-// Create a draft in gotcosy@gmail.com from per@gotcosy.com. Returns the draft id + a link to Drafts.
+// Create a draft in the connected account (see ACCOUNT above) from per@gotcosy.com. Returns the draft id + a link to Drafts.
 export async function createGmailDraft(msg: { to: string; subject: string; body: string }): Promise<{ id: string; link: string } | null> {
   const token = await accessToken();
   if (!token) return null;
@@ -109,13 +111,13 @@ async function firstMatch(q: string, accessToken: string): Promise<string | null
   return json.messages?.[0]?.id ?? null;
 }
 
-/** True if gotcosy@gmail.com has SENT a message to `email` (Send-As per@gotcosy.com lands here too). */
+/** True if the connected account has SENT a message to `email` (Send-As per@gotcosy.com lands here too). */
 export async function wasSentTo(email: string, accessToken: string): Promise<boolean> {
   return (await firstMatch(`in:sent to:${email}`, accessToken)) !== null;
 }
 
-/** True if the Inbox has a message FROM `email` — a reply (assumes replies to per@gotcosy.com are
- *  forwarded into gotcosy@gmail.com's Inbox). */
+/** True if the Inbox has a message FROM `email` — a reply (assumes replies to per@gotcosy.com land
+ *  directly in the connected account's Inbox). */
 export async function gotReplyFrom(email: string, accessToken: string): Promise<boolean> {
   return (await firstMatch(`in:inbox from:${email}`, accessToken)) !== null;
 }

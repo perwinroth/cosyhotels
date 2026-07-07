@@ -106,7 +106,7 @@ function Card({ row }: { row: JournoRow }) {
 
 export default function JornoBoard({ rows }: { rows: JournoRow[] }) {
   if (!rows.length) {
-    return <p style={{ color: "var(--muted)", fontSize: 13.5 }}>No queries yet — the cron runs 3x/day and needs Per subscribed to Source of Sources / Featured digests at gotcosy@gmail.com.</p>;
+    return <p style={{ color: "var(--muted)", fontSize: 13.5 }}>No queries yet — the cron runs 3x/day and needs Per subscribed to Source of Sources / Featured digests at the inbox GMAIL_REFRESH_TOKEN is authorized for.</p>;
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>

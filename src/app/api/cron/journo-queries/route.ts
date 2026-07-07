@@ -1,8 +1,10 @@
 // Inbound journalist-query triage (die/journo-queries). Runs 3x/day, reads Source of Sources /
-// HARO / Featured digests from gotcosy@gmail.com, parses each digest into individual queries,
-// triages GotCosy's fit with Haiku, and drafts a grounded reply with Sonnet for the good-fit ones
-// — landing in Gmail Drafts for Per to review, edit and send (never auto-sent). Surfaced in
-// /growth/journo.
+// HARO / Featured digests from the mailbox GMAIL_REFRESH_TOKEN is authorized for (see ACCOUNT in
+// lib/gmail.ts — Per sends from per@gotcosy.com Send-As on that account, so digests land there
+// directly, no forwarding needed), parses each digest into individual queries, triages GotCosy's
+// fit with Haiku, and drafts a grounded reply with Sonnet for the good-fit ones — landing in that
+// account's Gmail Drafts (From per@gotcosy.com) for Per to review, edit and send (never auto-sent).
+// Surfaced in /growth/journo.
 //
 // Vercel invokes this with the CRON_SECRET Bearer; middleware fail-closed-gates /api/cron/*, and we
 // re-check here too.
@@ -33,7 +35,12 @@ const MAX_MESSAGES = 15; // digest emails fetched per run
 const MAX_TRIAGE = 20;   // queries triaged (Haiku) per run
 const MAX_DRAFTS = 8;    // replies drafted (Sonnet + Gmail draft) per run
 
-const SEARCH_Q = '(from:sourceofsources.com OR from:helpareporter.com OR from:featured.com OR subject:"Source of Sources") newer_than:2d';
+// Sender-domain match first; subject fallbacks catch digests forwarded/relayed through a different
+// domain, or a sender name Gmail doesn't resolve to the domain we expect.
+const SEARCH_Q =
+  '(from:sourceofsources.com OR from:helpareporter.com OR from:featured.com ' +
+  'OR subject:"Source of Sources" OR subject:"SOS Daily" OR subject:"Featured question" OR subject:"Featured questions") ' +
+  "newer_than:2d";
 
 // The ONLY facts the draft model is allowed to cite. Hardcoded so a hallucinated stat can never
 // reach a journalist — if a claim isn't in here, it doesn't go in the email.
