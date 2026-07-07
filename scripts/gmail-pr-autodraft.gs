@@ -62,14 +62,18 @@ function run() {
     for (var k = 0; k < items.length; k++) {
       var it = items[k];
       var action = actionUrl(it);
-      if (it.channel === 'email' && it.replyTo) {
+      var hasEmail = it.channel === 'email' && it.replyTo;
+      if (hasEmail) {
         try { GmailApp.createDraft(it.replyTo, it.subject || 'Re: your query', it.draft || ''); } catch (e) {}
       }
+      // Honest label: only promise "Send" when there is an address; web-only queries get a "respond via
+      // their form" link so Per is never told to send when no email exists (the Substack/gated case).
+      var label = hasEmail ? 'Open, edit and Send (to ' + it.replyTo + '):' : 'No reply email in this digest - respond via their form/link:';
       notifyPhone('PR: ' + (it.outlet || 'Query') + (it.deadline ? ' deadline: ' + it.deadline : '') +
-        '\nQ: ' + (it.query || '') + '\n\n' + (it.draft || '') + '\n\nOpen, edit and Send:\n' + action);
+        '\nQ: ' + (it.query || '') + '\n\n' + (it.draft || '') + '\n\n' + label + '\n' + action);
       summary.push('### ' + (it.outlet || 'Query') + (it.deadline ? ' - deadline ' + it.deadline : '') +
-        '\nQUERY: ' + (it.query || '') + '\nOPEN AND SEND: ' + action +
-        (it.channel === 'email' ? ' (also in your Gmail Drafts)' : '') + '\n\n' + (it.draft || ''));
+        '\nQUERY: ' + (it.query || '') + '\n' + label + ' ' + action +
+        (hasEmail ? ' (also in your Gmail Drafts)' : '') + '\n\n' + (it.draft || ''));
     }
     GmailApp.sendEmail(Session.getActiveUser().getEmail(),
       'Cosy PR - ' + summary.length + ' query(ies): ' + thread.getFirstMessageSubject().slice(0, 50),
@@ -98,12 +102,21 @@ function notifyPhone(text) {
 }
 
 function askClaude(key, digest) {
-  var prompt = 'You triage journalist-request digests for Got Cosy.\n' + DATA + '\n\nRELEVANT LANE: ' + LANE +
-    '\n\nBelow is a digest email. Find ONLY queries genuinely in the lane. Return ONLY a JSON array (no prose, no code fences). Each object has these keys:\n' +
-    'outlet (string), deadline (string, empty if none), query (one line), channel ("email" or "web"), ' +
-    'replyTo (the exact email address to reply to; for Source of Sources use the reporter address printed in the digest, or the forwarding address if the query is anonymous; empty if channel is web), ' +
-    'link (the exact response URL, only if channel is web; empty otherwise), subject (short specific email subject), ' +
-    'draft (a 150-250 word publish-ready reply grounded ONLY in the findings above, leading with the single most relevant stat, ending with: Per Winroth, Got Cosy, gotcosy.com).\n' +
+  var prompt = 'You triage journalist-request digests for Got Cosy and draft a TAILORED reply to each relevant query.\n' + DATA + '\n\nRELEVANT LANE: ' + LANE +
+    '\n\nBelow is ONE digest email that usually lists several separate queries. Find ONLY the queries genuinely in the lane (skip anything you would have to stretch for). Return ONLY a JSON array (no prose, no code fences). Each object has these keys:\n' +
+    'outlet (the publication or reporter name), deadline (string, empty if none), query (the reporter actual question, one line), ' +
+    'channel ("email" whenever there is ANY address to reply to, otherwise "web"), ' +
+    'replyTo (the exact reply email - LOOK HARD for it in or beside THIS query block: a reporter address, a "respond to"/"email me at"/"contact" address, a masked forwarding address such as name@helpareporter.net or a @qwoted address, a mailto: link, or any email printed near the query. Set it to empty ONLY if there is genuinely no address anywhere for this query), ' +
+    'link (the exact response URL or web form, only when channel is web; empty otherwise), ' +
+    'subject (a specific subject that names the query topic - never a generic "Re: your query"), ' +
+    'draft (a 110-190 word reply following the DRAFT RULES below).\n\n' +
+    'DRAFT RULES - each reply must be clearly tailored to its own query, not a template:\n' +
+    '1. OPEN by directly addressing THIS reporter specific question in their own framing. Do NOT start two drafts the same way, and do NOT always lead with the independents-vs-chains stat.\n' +
+    '2. Use only the ONE or TWO findings above most relevant to THIS query; ignore the rest. Never list all the stats.\n' +
+    '3. Be concrete and useful: give a specific angle, or offer to share named example properties / the underlying data that fit their exact story.\n' +
+    '4. Sound like a real founder wrote it fast: plain, confident, specific. No "I hope this finds you well", no marketing adjectives, vary sentence length.\n' +
+    '5. Ground every claim ONLY in the findings above. Invent nothing - no numbers or hotel names not given.\n' +
+    '6. End with exactly this line: Per Winroth, Got Cosy, gotcosy.com\n' +
     'If NO query is relevant, return exactly: []\n\nDIGEST:\n' + digest;
   var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
     method: 'post', contentType: 'application/json', muteHttpExceptions: true,
