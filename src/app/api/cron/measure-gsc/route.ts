@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   const days = Math.min(180, Math.max(7, Number(new URL(req.url).searchParams.get("days")) || 28));
 
   // Service-account JWT → access token (webmasters.readonly).
-  const b64url = (b: crypto.BinaryLike) => Buffer.from(b as Buffer).toString("base64url");
+  const b64url = (b: string | Buffer) => Buffer.from(b).toString("base64url");
   const now = Math.floor(Date.now() / 1000);
   const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const claim = b64url(JSON.stringify({ iss: email, scope: "https://www.googleapis.com/auth/webmasters.readonly", aud: "https://oauth2.googleapis.com/token", iat: now, exp: now + 3600 }));
