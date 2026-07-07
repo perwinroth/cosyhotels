@@ -144,15 +144,32 @@ const bad = (s) => !s || String(s).trim().length < 40 || HEDGE.test(s); // HARD 
 const tic = (s) => /\bgenuine(ly)?\b/i.test(s); // SOFT: stylistic tic; prefer to avoid but acceptable (not "generic")
 
 // ---- load targets: all live hotels + metadata + vetted-photo map -------------------------------
+// --slugs <file>: rescore EXACTLY the hotels listed (JSON array of slugs, or {queue:[{slug}]}) —
+// ignores the --min floor and the done-notes filter (targeted reprocess, e.g. the GSC rescore
+// queue of sub-floor hotels earning impressions). Additive; absent flag = original behaviour.
+const SLUGS_FILE = flag("--slugs", null);
+let slugTargetIds = null;
+if (SLUGS_FILE) {
+  const raw = JSON.parse(readFileSync(SLUGS_FILE, "utf8"));
+  const slugs = (Array.isArray(raw) ? raw : (raw.queue || [])).map((s) => (typeof s === "string" ? s : s.slug)).filter(Boolean);
+  const { data: hs } = await db.from("hotels").select("id,slug").in("slug", slugs);
+  slugTargetIds = new Set((hs || []).map((h) => String(h.id)));
+  console.log(`--slugs: ${slugs.length} slugs → ${slugTargetIds.size} hotel ids resolved`);
+}
 console.log("loading live hotels…");
 const rows = []; let off = 0;
 // BUG1: load EVERY column we may overwrite so the backup snapshot is complete + reversible.
 const COLS = "hotel_id,score,score_final,score_100,review_sentiment,description,signals,confidence,score_model,notes,scored_at";
-for (;;) { const { data } = await db.from("cosy_scores").select(COLS).gte("score", MIN).range(off, off + 999); if (!data?.length) break; rows.push(...data); if (data.length < 1000) break; off += 1000; }
+if (slugTargetIds) {
+  const idArr = [...slugTargetIds];
+  for (let i = 0; i < idArr.length; i += 300) { const { data } = await db.from("cosy_scores").select(COLS).in("hotel_id", idArr.slice(i, i + 300)); rows.push(...(data || [])); }
+} else {
+  for (;;) { const { data } = await db.from("cosy_scores").select(COLS).gte("score", MIN).range(off, off + 999); if (!data?.length) break; rows.push(...data); if (data.length < 1000) break; off += 1000; }
+}
 const photo = new Map(); off = 0;
 for (;;) { const { data } = await db.from("hotel_images").select("hotel_id,url,vision_ok").range(off, off + 999); if (!data?.length) break; for (const im of data) { const u = im.url || ""; if (im.vision_ok === true && u && /^https:\/\/\S+\.(jpe?g|png|webp|gif)(\?|$)/i.test(u) && !photo.has(String(im.hotel_id))) photo.set(String(im.hotel_id), u); } if (data.length < 1000) break; off += 1000; }
 const done = new Set(["review-scored:v2", "vision-described:v2", "hidden:no-findings"]);
-let target = rows.filter((r) => FORCE || !done.has(r.notes || ""));
+let target = rows.filter((r) => (slugTargetIds ? true : FORCE || !done.has(r.notes || "")));
 if (LIMIT) target = target.sort((a, b) => (b.score_final || 0) - (a.score_final || 0)).slice(0, LIMIT);
 const ids = target.map((r) => String(r.hotel_id));
 const meta = new Map();
