@@ -7,7 +7,8 @@
     { "path": "/api/cron/populate", "schedule": "0 4 * * *" },
     { "path": "/api/cron/instagram-daily", "schedule": "0 13 * * *" },
     { "path": "/api/cron/reddit-scan", "schedule": "30 5 * * 1" },
-    { "path": "/api/cron/outreach-sync", "schedule": "0 */6 * * *" }
+    { "path": "/api/cron/outreach-sync", "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/measure-gsc", "schedule": "0 4 * * 1" }
   ]
 }
 
