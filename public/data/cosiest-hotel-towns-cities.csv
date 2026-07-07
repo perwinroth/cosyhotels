@@ -1,0 +1,165 @@
+city,country,n,mean,pct7plus
+Alberobello,Italy,11,6.75,27.3
+San Gimignano,Italy,14,6.72,28.6
+Sighișoara,Romania,15,6.66,20.0
+Matera,Italy,21,6.64,14.3
+Fez,Morocco,18,6.64,33.3
+Avignon,France,14,6.64,21.4
+Marrakech,Morocco,48,6.61,18.8
+Pitlochry,United Kingdom,18,6.59,11.1
+Como,Italy,15,6.57,20.0
+Antwerp,Belgium,23,6.55,13.0
+Siena,Italy,42,6.55,26.2
+Kinsale,Ireland,17,6.54,17.6
+Keswick,United Kingdom,17,6.54,17.6
+Sorrento,Italy,27,6.53,11.1
+Cork,Ireland,17,6.52,5.9
+Stowe,United States,10,6.52,30.0
+Hamburg,Germany,13,6.51,15.4
+Lucca,Italy,25,6.50,16.0
+Thira,Greece,10,6.50,10.0
+Bali,Indonesia,78,6.48,15.4
+Kyoto,Japan,17,6.48,5.9
+Inverness,United Kingdom,24,6.47,4.2
+Ravello,Italy,13,6.47,7.7
+Bruges,Belgium,87,6.47,17.2
+Cape Town,South Africa,36,6.46,8.3
+Ronda,Spain,24,6.46,12.5
+Sintra,Portugal,20,6.46,5.0
+Ghent,Belgium,25,6.45,12.0
+Galway,Ireland,30,6.45,13.3
+Perugia,Italy,27,6.45,18.5
+Évora,Portugal,13,6.44,7.7
+Hoi An,Vietnam,34,6.44,0.0
+Cologne,Germany,11,6.44,9.1
+Bacharach,Germany,18,6.44,5.6
+Carcassonne,France,11,6.44,9.1
+Füssen,Germany,14,6.43,0.0
+York,United Kingdom,43,6.43,7.0
+Montepulciano,Italy,10,6.43,10.0
+Imerovigli,Greece,14,6.43,0.0
+Portree,United Kingdom,15,6.43,0.0
+Positano,Italy,32,6.42,6.2
+Taormina,Italy,41,6.42,9.8
+Utrecht,Netherlands,11,6.42,0.0
+Santorini,Greece,44,6.41,6.8
+Tenby,United Kingdom,14,6.40,0.0
+Palermo,Italy,28,6.40,3.6
+Il-Belt Valletta,Malta,15,6.39,0.0
+Whitby,United Kingdom,14,6.39,0.0
+Takayama,Japan,15,6.38,13.3
+Rovinj,Croatia,10,6.37,0.0
+Stratford-upon-Avon,United Kingdom,24,6.37,0.0
+Chicago,United States,11,6.36,9.1
+Bath,United Kingdom,38,6.36,7.9
+Genoa,Italy,23,6.36,0.0
+Cardiff,United Kingdom,13,6.35,0.0
+Nafplio,Greece,15,6.35,0.0
+Charleston,United States,29,6.35,3.4
+Cadaqués,Spain,16,6.34,0.0
+New York,United States,23,6.33,13.0
+Vancouver,Canada,18,6.33,5.6
+Granada,Spain,31,6.33,3.2
+Banff,Canada,27,6.33,7.4
+Pokhara,Nepal,13,6.33,7.7
+Aix-en-Provence,France,15,6.33,20.0
+Assisi,Italy,15,6.32,0.0
+Mykonos,Greece,18,6.32,0.0
+Rothenburg ob der Tauber,Germany,19,6.31,0.0
+Verona,Italy,22,6.31,0.0
+Venice,Italy,137,6.30,8.0
+Dresden,Germany,20,6.30,0.0
+Honfleur,France,15,6.29,0.0
+Canterbury,United Kingdom,20,6.29,5.0
+St Andrews,United Kingdom,12,6.29,8.3
+Ubud,Indonesia,31,6.29,3.2
+New Orleans,United States,24,6.28,12.5
+Oban,United Kingdom,17,6.28,0.0
+Bangkok,Thailand,12,6.28,0.0
+Cordoba,Spain,18,6.28,5.6
+Edinburgh,United Kingdom,44,6.28,4.5
+Bled,Slovenia,24,6.27,4.2
+Garmisch-Partenkirchen,Germany,12,6.26,0.0
+Savannah,United States,14,6.26,7.1
+Óbidos,Portugal,11,6.26,0.0
+Austin,United States,10,6.26,0.0
+Asheville,United States,13,6.26,7.7
+Sydney,Australia,16,6.26,6.2
+Galle,Sri Lanka,14,6.25,0.0
+Stockholm,Sweden,29,6.24,3.4
+Montreal,Canada,13,6.24,0.0
+Cusco,Peru,27,6.23,3.7
+Freiburg im Breisgau,Germany,13,6.23,0.0
+St. Moritz,Switzerland,10,6.22,10.0
+Bellagio,Italy,13,6.22,0.0
+Queenstown,New Zealand,31,6.22,9.7
+Kilkenny,Ireland,13,6.22,0.0
+Crete,Greece,22,6.21,4.5
+Seattle,United States,18,6.20,5.6
+Budapest,Hungary,16,6.20,0.0
+Naples,Italy,52,6.19,1.9
+Salzburg,Austria,49,6.18,6.1
+Milan,Italy,13,6.18,0.0
+Porto,Portugal,78,6.17,2.6
+Český Krumlov,Czechia,12,6.17,0.0
+Munich,Germany,31,6.17,0.0
+Turin,Italy,18,6.16,5.6
+Krakow,Poland,37,6.16,8.1
+Zurich,Switzerland,38,6.16,7.9
+Strasbourg,France,28,6.16,0.0
+Interlaken,Switzerland,18,6.16,0.0
+Zagreb,Croatia,14,6.15,0.0
+Innsbruck,Austria,42,6.15,2.4
+Cambridge,United Kingdom,27,6.15,0.0
+Berlin,Germany,21,6.15,0.0
+Madeira,Portugal,14,6.14,0.0
+Lopud,Croatia,11,6.14,0.0
+Dublin,Ireland,60,6.14,3.3
+Bordeaux,France,19,6.14,0.0
+Florence,Italy,84,6.13,2.4
+Udaipur,India,12,6.13,8.3
+Chamonix,France,15,6.12,0.0
+Prague,Czechia,108,6.12,2.8
+Portland,United States,19,6.12,5.3
+Bologna,Italy,29,6.11,0.0
+Tofino,Canada,16,6.11,0.0
+Vienna,Austria,53,6.10,0.0
+Annecy,France,16,6.10,0.0
+London,United Kingdom,10,6.08,0.0
+Washington,United States,17,6.08,5.9
+Bamberg,Germany,15,6.07,0.0
+Copenhagen,Denmark,41,6.06,0.0
+Dubrovnik,Croatia,25,6.06,0.0
+Colmar,France,20,6.06,5.0
+Rome,Italy,90,6.05,2.2
+Amsterdam,Netherlands,46,6.05,4.3
+Tallinn,Estonia,26,6.05,3.8
+Ljubljana,Slovenia,14,6.05,0.0
+San Francisco,United States,28,6.03,3.6
+Luzern,Switzerland,22,6.03,4.5
+Brighton,United Kingdom,29,6.03,3.4
+Heidelberg,Germany,20,6.03,0.0
+Chiang Mai,Thailand,22,6.03,4.5
+Lisbon,Portugal,41,6.02,2.4
+Girona,Spain,10,6.01,20.0
+Split,Croatia,22,6.01,0.0
+Istanbul,Turkey,49,6.01,2.0
+Nice,France,33,6.01,0.0
+Madrid,Spain,13,6.01,7.7
+Paris,France,80,6.00,0.0
+Lyon,France,28,6.00,3.6
+Helsinki,Finland,21,5.99,0.0
+Oxford,United Kingdom,29,5.99,0.0
+Seville,Spain,28,5.99,3.6
+Zermatt,Switzerland,12,5.97,0.0
+Toronto,Canada,10,5.95,0.0
+Boston,United States,17,5.94,0.0
+San Sebastián,Spain,30,5.94,0.0
+Toledo,Spain,23,5.89,0.0
+Reykjavik,Iceland,22,5.88,0.0
+Hanoi,Vietnam,13,5.86,0.0
+Barcelona,Spain,24,5.85,0.0
+Cadiz,Spain,13,5.78,0.0
+Luang Prabang,Laos,12,5.76,0.0
+Melbourne,Australia,11,5.70,0.0
+Valencia,Spain,10,5.68,0.0

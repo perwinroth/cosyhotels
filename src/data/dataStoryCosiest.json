@@ -1,0 +1,5064 @@
+{
+  "methodology": {
+    "n_hotels_total": 17735,
+    "n_hotels_with_score_row": 17727,
+    "n_hotels_with_review_derived_signals": 12831,
+    "n_qualified_hotels_score_ge_5": 6345,
+    "overall_mean_score_qualified_hotels": 6.27,
+    "overall_mean_score_all_scored_hotels": 4.01,
+    "score_scale": "0-10, AI-generated cosy score grounded in guest reviews (score_final used, falls back to score)",
+    "qualification_threshold_for_league_tables": "score_final (or score) >= 5.0 (\"cosy\" operational floor)",
+    "city_min_n": 10,
+    "country_min_n": 25,
+    "cities_qualifying_n10": 164,
+    "countries_qualifying_n25": 38,
+    "traveller_fit_assignments_total": 25074,
+    "traveller_fit_concepts_tracked": [
+      "bathtub",
+      "boutique",
+      "design",
+      "family-friendly",
+      "fireplace",
+      "garden",
+      "great-breakfast",
+      "hidden-gem",
+      "historic-charm",
+      "luxury-feel",
+      "pet-friendly",
+      "pool",
+      "quiet",
+      "romantic",
+      "rooftop",
+      "rustic",
+      "sauna",
+      "spa",
+      "views",
+      "walkable",
+      "waterfront"
+    ],
+    "city_country_name_normalization": "City/country strings in source data include multiple locale spellings and geocoding artifacts (e.g. \"Rome\"/\"Roma\", \"Marrakech\"/\"Marrakesh\", \"Brugge\"/\"Bruges\", all \"Praha N-District\" variants/\"Prague\", \"\u00d6sterreich\"/\"Austria\"). A manual alias map merged known duplicates before aggregation; hotels with unusable country strings (postal codes/street addresses, 79 hotels, 0.4% of total) were excluded from country-level stats. Known residual issue: a small number of cities (e.g. Edinburgh, Quebec City) have long tails of postal-code-suffixed city variants (1-4 hotels each) that were not merged into the canonical city name; because each variant is far below the n=10 city threshold individually, this does not distort the published league table, but the true hotel count for those cities is understated versus what a fully deduplicated geocode would show."
+  },
+  "city_league_table_full": [
+    {
+      "city": "Alberobello",
+      "country": "Italy",
+      "n": 11,
+      "mean": 6.75,
+      "median": 6.7,
+      "share_ge7": 27.3
+    },
+    {
+      "city": "San Gimignano",
+      "country": "Italy",
+      "n": 14,
+      "mean": 6.72,
+      "median": 6.8,
+      "share_ge7": 28.6
+    },
+    {
+      "city": "Sighi\u0219oara",
+      "country": "Romania",
+      "n": 15,
+      "mean": 6.66,
+      "median": 6.6,
+      "share_ge7": 20.0
+    },
+    {
+      "city": "Matera",
+      "country": "Italy",
+      "n": 21,
+      "mean": 6.64,
+      "median": 6.7,
+      "share_ge7": 14.3
+    },
+    {
+      "city": "Fez",
+      "country": "Morocco",
+      "n": 18,
+      "mean": 6.64,
+      "median": 6.8,
+      "share_ge7": 33.3
+    },
+    {
+      "city": "Avignon",
+      "country": "France",
+      "n": 14,
+      "mean": 6.64,
+      "median": 6.6,
+      "share_ge7": 21.4
+    },
+    {
+      "city": "Marrakech",
+      "country": "Morocco",
+      "n": 48,
+      "mean": 6.61,
+      "median": 6.6,
+      "share_ge7": 18.8
+    },
+    {
+      "city": "Pitlochry",
+      "country": "United Kingdom",
+      "n": 18,
+      "mean": 6.59,
+      "median": 6.6,
+      "share_ge7": 11.1
+    },
+    {
+      "city": "Como",
+      "country": "Italy",
+      "n": 15,
+      "mean": 6.57,
+      "median": 6.4,
+      "share_ge7": 20.0
+    },
+    {
+      "city": "Antwerp",
+      "country": "Belgium",
+      "n": 23,
+      "mean": 6.55,
+      "median": 6.6,
+      "share_ge7": 13.0
+    },
+    {
+      "city": "Siena",
+      "country": "Italy",
+      "n": 42,
+      "mean": 6.55,
+      "median": 6.6,
+      "share_ge7": 26.2
+    },
+    {
+      "city": "Kinsale",
+      "country": "Ireland",
+      "n": 17,
+      "mean": 6.54,
+      "median": 6.6,
+      "share_ge7": 17.6
+    },
+    {
+      "city": "Keswick",
+      "country": "United Kingdom",
+      "n": 17,
+      "mean": 6.54,
+      "median": 6.7,
+      "share_ge7": 17.6
+    },
+    {
+      "city": "Sorrento",
+      "country": "Italy",
+      "n": 27,
+      "mean": 6.53,
+      "median": 6.6,
+      "share_ge7": 11.1
+    },
+    {
+      "city": "Cork",
+      "country": "Ireland",
+      "n": 17,
+      "mean": 6.52,
+      "median": 6.5,
+      "share_ge7": 5.9
+    },
+    {
+      "city": "Stowe",
+      "country": "United States",
+      "n": 10,
+      "mean": 6.52,
+      "median": 6.5,
+      "share_ge7": 30.0
+    },
+    {
+      "city": "Hamburg",
+      "country": "Germany",
+      "n": 13,
+      "mean": 6.51,
+      "median": 6.5,
+      "share_ge7": 15.4
+    },
+    {
+      "city": "Lucca",
+      "country": "Italy",
+      "n": 25,
+      "mean": 6.5,
+      "median": 6.6,
+      "share_ge7": 16.0
+    },
+    {
+      "city": "Thira",
+      "country": "Greece",
+      "n": 10,
+      "mean": 6.5,
+      "median": 6.4,
+      "share_ge7": 10.0
+    },
+    {
+      "city": "Bali",
+      "country": "Indonesia",
+      "n": 78,
+      "mean": 6.48,
+      "median": 6.6,
+      "share_ge7": 15.4
+    },
+    {
+      "city": "Kyoto",
+      "country": "Japan",
+      "n": 17,
+      "mean": 6.48,
+      "median": 6.5,
+      "share_ge7": 5.9
+    },
+    {
+      "city": "Inverness",
+      "country": "United Kingdom",
+      "n": 24,
+      "mean": 6.47,
+      "median": 6.6,
+      "share_ge7": 4.2
+    },
+    {
+      "city": "Ravello",
+      "country": "Italy",
+      "n": 13,
+      "mean": 6.47,
+      "median": 6.6,
+      "share_ge7": 7.7
+    },
+    {
+      "city": "Bruges",
+      "country": "Belgium",
+      "n": 87,
+      "mean": 6.47,
+      "median": 6.5,
+      "share_ge7": 17.2
+    },
+    {
+      "city": "Cape Town",
+      "country": "South Africa",
+      "n": 36,
+      "mean": 6.46,
+      "median": 6.6,
+      "share_ge7": 8.3
+    },
+    {
+      "city": "Ronda",
+      "country": "Spain",
+      "n": 24,
+      "mean": 6.46,
+      "median": 6.5,
+      "share_ge7": 12.5
+    },
+    {
+      "city": "Sintra",
+      "country": "Portugal",
+      "n": 20,
+      "mean": 6.46,
+      "median": 6.5,
+      "share_ge7": 5.0
+    },
+    {
+      "city": "Ghent",
+      "country": "Belgium",
+      "n": 25,
+      "mean": 6.45,
+      "median": 6.5,
+      "share_ge7": 12.0
+    },
+    {
+      "city": "Galway",
+      "country": "Ireland",
+      "n": 30,
+      "mean": 6.45,
+      "median": 6.5,
+      "share_ge7": 13.3
+    },
+    {
+      "city": "Perugia",
+      "country": "Italy",
+      "n": 27,
+      "mean": 6.45,
+      "median": 6.6,
+      "share_ge7": 18.5
+    },
+    {
+      "city": "\u00c9vora",
+      "country": "Portugal",
+      "n": 13,
+      "mean": 6.44,
+      "median": 6.4,
+      "share_ge7": 7.7
+    },
+    {
+      "city": "Hoi An",
+      "country": "Vietnam",
+      "n": 34,
+      "mean": 6.44,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Cologne",
+      "country": "Germany",
+      "n": 11,
+      "mean": 6.44,
+      "median": 6.6,
+      "share_ge7": 9.1
+    },
+    {
+      "city": "Bacharach",
+      "country": "Germany",
+      "n": 18,
+      "mean": 6.44,
+      "median": 6.6,
+      "share_ge7": 5.6
+    },
+    {
+      "city": "Carcassonne",
+      "country": "France",
+      "n": 11,
+      "mean": 6.44,
+      "median": 6.5,
+      "share_ge7": 9.1
+    },
+    {
+      "city": "F\u00fcssen",
+      "country": "Germany",
+      "n": 14,
+      "mean": 6.43,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "York",
+      "country": "United Kingdom",
+      "n": 43,
+      "mean": 6.43,
+      "median": 6.5,
+      "share_ge7": 7.0
+    },
+    {
+      "city": "Montepulciano",
+      "country": "Italy",
+      "n": 10,
+      "mean": 6.43,
+      "median": 6.5,
+      "share_ge7": 10.0
+    },
+    {
+      "city": "Imerovigli",
+      "country": "Greece",
+      "n": 14,
+      "mean": 6.43,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Portree",
+      "country": "United Kingdom",
+      "n": 15,
+      "mean": 6.43,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Positano",
+      "country": "Italy",
+      "n": 32,
+      "mean": 6.42,
+      "median": 6.4,
+      "share_ge7": 6.2
+    },
+    {
+      "city": "Taormina",
+      "country": "Italy",
+      "n": 41,
+      "mean": 6.42,
+      "median": 6.5,
+      "share_ge7": 9.8
+    },
+    {
+      "city": "Utrecht",
+      "country": "Netherlands",
+      "n": 11,
+      "mean": 6.42,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Santorini",
+      "country": "Greece",
+      "n": 44,
+      "mean": 6.41,
+      "median": 6.5,
+      "share_ge7": 6.8
+    },
+    {
+      "city": "Tenby",
+      "country": "United Kingdom",
+      "n": 14,
+      "mean": 6.4,
+      "median": 6.45,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Palermo",
+      "country": "Italy",
+      "n": 28,
+      "mean": 6.4,
+      "median": 6.45,
+      "share_ge7": 3.6
+    },
+    {
+      "city": "Il-Belt Valletta",
+      "country": "Malta",
+      "n": 15,
+      "mean": 6.39,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Whitby",
+      "country": "United Kingdom",
+      "n": 14,
+      "mean": 6.39,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Takayama",
+      "country": "Japan",
+      "n": 15,
+      "mean": 6.38,
+      "median": 6.5,
+      "share_ge7": 13.3
+    },
+    {
+      "city": "Rovinj",
+      "country": "Croatia",
+      "n": 10,
+      "mean": 6.37,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Stratford-upon-Avon",
+      "country": "United Kingdom",
+      "n": 24,
+      "mean": 6.37,
+      "median": 6.45,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Chicago",
+      "country": "United States",
+      "n": 11,
+      "mean": 6.36,
+      "median": 6.5,
+      "share_ge7": 9.1
+    },
+    {
+      "city": "Bath",
+      "country": "United Kingdom",
+      "n": 38,
+      "mean": 6.36,
+      "median": 6.5,
+      "share_ge7": 7.9
+    },
+    {
+      "city": "Genoa",
+      "country": "Italy",
+      "n": 23,
+      "mean": 6.36,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Cardiff",
+      "country": "United Kingdom",
+      "n": 13,
+      "mean": 6.35,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Nafplio",
+      "country": "Greece",
+      "n": 15,
+      "mean": 6.35,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Charleston",
+      "country": "United States",
+      "n": 29,
+      "mean": 6.35,
+      "median": 6.4,
+      "share_ge7": 3.4
+    },
+    {
+      "city": "Cadaqu\u00e9s",
+      "country": "Spain",
+      "n": 16,
+      "mean": 6.34,
+      "median": 6.35,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "New York",
+      "country": "United States",
+      "n": 23,
+      "mean": 6.33,
+      "median": 6.3,
+      "share_ge7": 13.0
+    },
+    {
+      "city": "Vancouver",
+      "country": "Canada",
+      "n": 18,
+      "mean": 6.33,
+      "median": 6.6,
+      "share_ge7": 5.6
+    },
+    {
+      "city": "Granada",
+      "country": "Spain",
+      "n": 31,
+      "mean": 6.33,
+      "median": 6.4,
+      "share_ge7": 3.2
+    },
+    {
+      "city": "Banff",
+      "country": "Canada",
+      "n": 27,
+      "mean": 6.33,
+      "median": 6.3,
+      "share_ge7": 7.4
+    },
+    {
+      "city": "Pokhara",
+      "country": "Nepal",
+      "n": 13,
+      "mean": 6.33,
+      "median": 6.4,
+      "share_ge7": 7.7
+    },
+    {
+      "city": "Aix-en-Provence",
+      "country": "France",
+      "n": 15,
+      "mean": 6.33,
+      "median": 6.5,
+      "share_ge7": 20.0
+    },
+    {
+      "city": "Assisi",
+      "country": "Italy",
+      "n": 15,
+      "mean": 6.32,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Mykonos",
+      "country": "Greece",
+      "n": 18,
+      "mean": 6.32,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Rothenburg ob der Tauber",
+      "country": "Germany",
+      "n": 19,
+      "mean": 6.31,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Verona",
+      "country": "Italy",
+      "n": 22,
+      "mean": 6.31,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Venice",
+      "country": "Italy",
+      "n": 137,
+      "mean": 6.3,
+      "median": 6.4,
+      "share_ge7": 8.0
+    },
+    {
+      "city": "Dresden",
+      "country": "Germany",
+      "n": 20,
+      "mean": 6.3,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Honfleur",
+      "country": "France",
+      "n": 15,
+      "mean": 6.29,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Canterbury",
+      "country": "United Kingdom",
+      "n": 20,
+      "mean": 6.29,
+      "median": 6.35,
+      "share_ge7": 5.0
+    },
+    {
+      "city": "St Andrews",
+      "country": "United Kingdom",
+      "n": 12,
+      "mean": 6.29,
+      "median": 6.35,
+      "share_ge7": 8.3
+    },
+    {
+      "city": "Ubud",
+      "country": "Indonesia",
+      "n": 31,
+      "mean": 6.29,
+      "median": 6.4,
+      "share_ge7": 3.2
+    },
+    {
+      "city": "New Orleans",
+      "country": "United States",
+      "n": 24,
+      "mean": 6.28,
+      "median": 6.4,
+      "share_ge7": 12.5
+    },
+    {
+      "city": "Oban",
+      "country": "United Kingdom",
+      "n": 17,
+      "mean": 6.28,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "n": 12,
+      "mean": 6.28,
+      "median": 6.35,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Cordoba",
+      "country": "Spain",
+      "n": 18,
+      "mean": 6.28,
+      "median": 6.4,
+      "share_ge7": 5.6
+    },
+    {
+      "city": "Edinburgh",
+      "country": "United Kingdom",
+      "n": 44,
+      "mean": 6.28,
+      "median": 6.3,
+      "share_ge7": 4.5
+    },
+    {
+      "city": "Bled",
+      "country": "Slovenia",
+      "n": 24,
+      "mean": 6.27,
+      "median": 6.3,
+      "share_ge7": 4.2
+    },
+    {
+      "city": "Garmisch-Partenkirchen",
+      "country": "Germany",
+      "n": 12,
+      "mean": 6.26,
+      "median": 6.45,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Savannah",
+      "country": "United States",
+      "n": 14,
+      "mean": 6.26,
+      "median": 6.55,
+      "share_ge7": 7.1
+    },
+    {
+      "city": "\u00d3bidos",
+      "country": "Portugal",
+      "n": 11,
+      "mean": 6.26,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Austin",
+      "country": "United States",
+      "n": 10,
+      "mean": 6.26,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Asheville",
+      "country": "United States",
+      "n": 13,
+      "mean": 6.26,
+      "median": 6.5,
+      "share_ge7": 7.7
+    },
+    {
+      "city": "Sydney",
+      "country": "Australia",
+      "n": 16,
+      "mean": 6.26,
+      "median": 6.5,
+      "share_ge7": 6.2
+    },
+    {
+      "city": "Galle",
+      "country": "Sri Lanka",
+      "n": 14,
+      "mean": 6.25,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Stockholm",
+      "country": "Sweden",
+      "n": 29,
+      "mean": 6.24,
+      "median": 6.3,
+      "share_ge7": 3.4
+    },
+    {
+      "city": "Montreal",
+      "country": "Canada",
+      "n": 13,
+      "mean": 6.24,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Cusco",
+      "country": "Peru",
+      "n": 27,
+      "mean": 6.23,
+      "median": 6.2,
+      "share_ge7": 3.7
+    },
+    {
+      "city": "Freiburg im Breisgau",
+      "country": "Germany",
+      "n": 13,
+      "mean": 6.23,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "St. Moritz",
+      "country": "Switzerland",
+      "n": 10,
+      "mean": 6.22,
+      "median": 6.2,
+      "share_ge7": 10.0
+    },
+    {
+      "city": "Bellagio",
+      "country": "Italy",
+      "n": 13,
+      "mean": 6.22,
+      "median": 6.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Queenstown",
+      "country": "New Zealand",
+      "n": 31,
+      "mean": 6.22,
+      "median": 6.4,
+      "share_ge7": 9.7
+    },
+    {
+      "city": "Kilkenny",
+      "country": "Ireland",
+      "n": 13,
+      "mean": 6.22,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Crete",
+      "country": "Greece",
+      "n": 22,
+      "mean": 6.21,
+      "median": 6.25,
+      "share_ge7": 4.5
+    },
+    {
+      "city": "Seattle",
+      "country": "United States",
+      "n": 18,
+      "mean": 6.2,
+      "median": 6.2,
+      "share_ge7": 5.6
+    },
+    {
+      "city": "Budapest",
+      "country": "Hungary",
+      "n": 16,
+      "mean": 6.2,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Naples",
+      "country": "Italy",
+      "n": 52,
+      "mean": 6.19,
+      "median": 6.4,
+      "share_ge7": 1.9
+    },
+    {
+      "city": "Salzburg",
+      "country": "Austria",
+      "n": 49,
+      "mean": 6.18,
+      "median": 6.4,
+      "share_ge7": 6.1
+    },
+    {
+      "city": "Milan",
+      "country": "Italy",
+      "n": 13,
+      "mean": 6.18,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Porto",
+      "country": "Portugal",
+      "n": 78,
+      "mean": 6.17,
+      "median": 6.3,
+      "share_ge7": 2.6
+    },
+    {
+      "city": "\u010cesk\u00fd Krumlov",
+      "country": "Czechia",
+      "n": 12,
+      "mean": 6.17,
+      "median": 6.2,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Munich",
+      "country": "Germany",
+      "n": 31,
+      "mean": 6.17,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Turin",
+      "country": "Italy",
+      "n": 18,
+      "mean": 6.16,
+      "median": 6.35,
+      "share_ge7": 5.6
+    },
+    {
+      "city": "Krakow",
+      "country": "Poland",
+      "n": 37,
+      "mean": 6.16,
+      "median": 6.2,
+      "share_ge7": 8.1
+    },
+    {
+      "city": "Zurich",
+      "country": "Switzerland",
+      "n": 38,
+      "mean": 6.16,
+      "median": 6.2,
+      "share_ge7": 7.9
+    },
+    {
+      "city": "Strasbourg",
+      "country": "France",
+      "n": 28,
+      "mean": 6.16,
+      "median": 6.25,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Interlaken",
+      "country": "Switzerland",
+      "n": 18,
+      "mean": 6.16,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Zagreb",
+      "country": "Croatia",
+      "n": 14,
+      "mean": 6.15,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Innsbruck",
+      "country": "Austria",
+      "n": 42,
+      "mean": 6.15,
+      "median": 6.3,
+      "share_ge7": 2.4
+    },
+    {
+      "city": "Cambridge",
+      "country": "United Kingdom",
+      "n": 27,
+      "mean": 6.15,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Berlin",
+      "country": "Germany",
+      "n": 21,
+      "mean": 6.15,
+      "median": 6.2,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Madeira",
+      "country": "Portugal",
+      "n": 14,
+      "mean": 6.14,
+      "median": 6.2,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Lopud",
+      "country": "Croatia",
+      "n": 11,
+      "mean": 6.14,
+      "median": 6.4,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Dublin",
+      "country": "Ireland",
+      "n": 60,
+      "mean": 6.14,
+      "median": 6.3,
+      "share_ge7": 3.3
+    },
+    {
+      "city": "Bordeaux",
+      "country": "France",
+      "n": 19,
+      "mean": 6.14,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Florence",
+      "country": "Italy",
+      "n": 84,
+      "mean": 6.13,
+      "median": 6.2,
+      "share_ge7": 2.4
+    },
+    {
+      "city": "Udaipur",
+      "country": "India",
+      "n": 12,
+      "mean": 6.13,
+      "median": 6.3,
+      "share_ge7": 8.3
+    },
+    {
+      "city": "Chamonix",
+      "country": "France",
+      "n": 15,
+      "mean": 6.12,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Prague",
+      "country": "Czechia",
+      "n": 108,
+      "mean": 6.12,
+      "median": 6.2,
+      "share_ge7": 2.8
+    },
+    {
+      "city": "Portland",
+      "country": "United States",
+      "n": 19,
+      "mean": 6.12,
+      "median": 6.2,
+      "share_ge7": 5.3
+    },
+    {
+      "city": "Bologna",
+      "country": "Italy",
+      "n": 29,
+      "mean": 6.11,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Tofino",
+      "country": "Canada",
+      "n": 16,
+      "mean": 6.11,
+      "median": 6.2,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Vienna",
+      "country": "Austria",
+      "n": 53,
+      "mean": 6.1,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Annecy",
+      "country": "France",
+      "n": 16,
+      "mean": 6.1,
+      "median": 6.2,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "London",
+      "country": "United Kingdom",
+      "n": 10,
+      "mean": 6.08,
+      "median": 6.0,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Washington",
+      "country": "United States",
+      "n": 17,
+      "mean": 6.08,
+      "median": 6,
+      "share_ge7": 5.9
+    },
+    {
+      "city": "Bamberg",
+      "country": "Germany",
+      "n": 15,
+      "mean": 6.07,
+      "median": 6,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Copenhagen",
+      "country": "Denmark",
+      "n": 41,
+      "mean": 6.06,
+      "median": 6.2,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Dubrovnik",
+      "country": "Croatia",
+      "n": 25,
+      "mean": 6.06,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Colmar",
+      "country": "France",
+      "n": 20,
+      "mean": 6.06,
+      "median": 6.1,
+      "share_ge7": 5.0
+    },
+    {
+      "city": "Rome",
+      "country": "Italy",
+      "n": 90,
+      "mean": 6.05,
+      "median": 6.2,
+      "share_ge7": 2.2
+    },
+    {
+      "city": "Amsterdam",
+      "country": "Netherlands",
+      "n": 46,
+      "mean": 6.05,
+      "median": 6.05,
+      "share_ge7": 4.3
+    },
+    {
+      "city": "Tallinn",
+      "country": "Estonia",
+      "n": 26,
+      "mean": 6.05,
+      "median": 5.9,
+      "share_ge7": 3.8
+    },
+    {
+      "city": "Ljubljana",
+      "country": "Slovenia",
+      "n": 14,
+      "mean": 6.05,
+      "median": 6.05,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "San Francisco",
+      "country": "United States",
+      "n": 28,
+      "mean": 6.03,
+      "median": 6.0,
+      "share_ge7": 3.6
+    },
+    {
+      "city": "Luzern",
+      "country": "Switzerland",
+      "n": 22,
+      "mean": 6.03,
+      "median": 6.0,
+      "share_ge7": 4.5
+    },
+    {
+      "city": "Brighton",
+      "country": "United Kingdom",
+      "n": 29,
+      "mean": 6.03,
+      "median": 6.1,
+      "share_ge7": 3.4
+    },
+    {
+      "city": "Heidelberg",
+      "country": "Germany",
+      "n": 20,
+      "mean": 6.03,
+      "median": 6.05,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Chiang Mai",
+      "country": "Thailand",
+      "n": 22,
+      "mean": 6.03,
+      "median": 6.15,
+      "share_ge7": 4.5
+    },
+    {
+      "city": "Lisbon",
+      "country": "Portugal",
+      "n": 41,
+      "mean": 6.02,
+      "median": 6,
+      "share_ge7": 2.4
+    },
+    {
+      "city": "Girona",
+      "country": "Spain",
+      "n": 10,
+      "mean": 6.01,
+      "median": 5.9,
+      "share_ge7": 20.0
+    },
+    {
+      "city": "Split",
+      "country": "Croatia",
+      "n": 22,
+      "mean": 6.01,
+      "median": 6.0,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Istanbul",
+      "country": "Turkey",
+      "n": 49,
+      "mean": 6.01,
+      "median": 6.1,
+      "share_ge7": 2.0
+    },
+    {
+      "city": "Nice",
+      "country": "France",
+      "n": 33,
+      "mean": 6.01,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Madrid",
+      "country": "Spain",
+      "n": 13,
+      "mean": 6.01,
+      "median": 6.1,
+      "share_ge7": 7.7
+    },
+    {
+      "city": "Paris",
+      "country": "France",
+      "n": 80,
+      "mean": 6.0,
+      "median": 6.05,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Lyon",
+      "country": "France",
+      "n": 28,
+      "mean": 6.0,
+      "median": 6.05,
+      "share_ge7": 3.6
+    },
+    {
+      "city": "Helsinki",
+      "country": "Finland",
+      "n": 21,
+      "mean": 5.99,
+      "median": 6,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Oxford",
+      "country": "United Kingdom",
+      "n": 29,
+      "mean": 5.99,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Seville",
+      "country": "Spain",
+      "n": 28,
+      "mean": 5.99,
+      "median": 6.1,
+      "share_ge7": 3.6
+    },
+    {
+      "city": "Zermatt",
+      "country": "Switzerland",
+      "n": 12,
+      "mean": 5.97,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Toronto",
+      "country": "Canada",
+      "n": 10,
+      "mean": 5.95,
+      "median": 6.05,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Boston",
+      "country": "United States",
+      "n": 17,
+      "mean": 5.94,
+      "median": 6.1,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "San Sebasti\u00e1n",
+      "country": "Spain",
+      "n": 30,
+      "mean": 5.94,
+      "median": 6.0,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Toledo",
+      "country": "Spain",
+      "n": 23,
+      "mean": 5.89,
+      "median": 5.9,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Reykjavik",
+      "country": "Iceland",
+      "n": 22,
+      "mean": 5.88,
+      "median": 5.9,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Hanoi",
+      "country": "Vietnam",
+      "n": 13,
+      "mean": 5.86,
+      "median": 5.8,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Barcelona",
+      "country": "Spain",
+      "n": 24,
+      "mean": 5.85,
+      "median": 5.8,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Cadiz",
+      "country": "Spain",
+      "n": 13,
+      "mean": 5.78,
+      "median": 5.6,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Luang Prabang",
+      "country": "Laos",
+      "n": 12,
+      "mean": 5.76,
+      "median": 5.6,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Melbourne",
+      "country": "Australia",
+      "n": 11,
+      "mean": 5.7,
+      "median": 5.5,
+      "share_ge7": 0.0
+    },
+    {
+      "city": "Valencia",
+      "country": "Spain",
+      "n": 10,
+      "mean": 5.68,
+      "median": 5.6,
+      "share_ge7": 0.0
+    }
+  ],
+  "country_league_table_full": [
+    {
+      "country": "Romania",
+      "n": 25,
+      "mean": 6.67,
+      "median": 6.6,
+      "share_ge7": 20.0
+    },
+    {
+      "country": "Morocco",
+      "n": 98,
+      "mean": 6.63,
+      "median": 6.7,
+      "share_ge7": 20.4
+    },
+    {
+      "country": "Belgium",
+      "n": 166,
+      "mean": 6.47,
+      "median": 6.5,
+      "share_ge7": 12.7
+    },
+    {
+      "country": "South Africa",
+      "n": 43,
+      "mean": 6.45,
+      "median": 6.6,
+      "share_ge7": 9.3
+    },
+    {
+      "country": "Greece",
+      "n": 215,
+      "mean": 6.39,
+      "median": 6.4,
+      "share_ge7": 5.6
+    },
+    {
+      "country": "Indonesia",
+      "n": 123,
+      "mean": 6.38,
+      "median": 6.5,
+      "share_ge7": 10.6
+    },
+    {
+      "country": "Italy",
+      "n": 1066,
+      "mean": 6.35,
+      "median": 6.4,
+      "share_ge7": 8.7
+    },
+    {
+      "country": "Japan",
+      "n": 137,
+      "mean": 6.34,
+      "median": 6.4,
+      "share_ge7": 10.2
+    },
+    {
+      "country": "United States",
+      "n": 453,
+      "mean": 6.31,
+      "median": 6.4,
+      "share_ge7": 7.9
+    },
+    {
+      "country": "Ireland",
+      "n": 145,
+      "mean": 6.31,
+      "median": 6.4,
+      "share_ge7": 6.9
+    },
+    {
+      "country": "Germany",
+      "n": 338,
+      "mean": 6.3,
+      "median": 6.4,
+      "share_ge7": 3.3
+    },
+    {
+      "country": "United Kingdom",
+      "n": 673,
+      "mean": 6.29,
+      "median": 6.4,
+      "share_ge7": 4.5
+    },
+    {
+      "country": "Thailand",
+      "n": 68,
+      "mean": 6.29,
+      "median": 6.3,
+      "share_ge7": 7.4
+    },
+    {
+      "country": "Denmark",
+      "n": 101,
+      "mean": 6.26,
+      "median": 6.4,
+      "share_ge7": 6.9
+    },
+    {
+      "country": "Vietnam",
+      "n": 77,
+      "mean": 6.26,
+      "median": 6.3,
+      "share_ge7": 0.0
+    },
+    {
+      "country": "New Zealand",
+      "n": 48,
+      "mean": 6.26,
+      "median": 6.4,
+      "share_ge7": 8.3
+    },
+    {
+      "country": "Netherlands",
+      "n": 95,
+      "mean": 6.25,
+      "median": 6.3,
+      "share_ge7": 4.2
+    },
+    {
+      "country": "Peru",
+      "n": 46,
+      "mean": 6.24,
+      "median": 6.3,
+      "share_ge7": 4.3
+    },
+    {
+      "country": "Canada",
+      "n": 157,
+      "mean": 6.24,
+      "median": 6.3,
+      "share_ge7": 6.4
+    },
+    {
+      "country": "Norway",
+      "n": 29,
+      "mean": 6.24,
+      "median": 6.2,
+      "share_ge7": 0.0
+    },
+    {
+      "country": "Sweden",
+      "n": 52,
+      "mean": 6.23,
+      "median": 6.35,
+      "share_ge7": 3.8
+    },
+    {
+      "country": "Austria",
+      "n": 179,
+      "mean": 6.22,
+      "median": 6.4,
+      "share_ge7": 6.1
+    },
+    {
+      "country": "France",
+      "n": 373,
+      "mean": 6.22,
+      "median": 6.3,
+      "share_ge7": 7.0
+    },
+    {
+      "country": "Portugal",
+      "n": 202,
+      "mean": 6.21,
+      "median": 6.3,
+      "share_ge7": 3.5
+    },
+    {
+      "country": "Hungary",
+      "n": 83,
+      "mean": 6.21,
+      "median": 6.3,
+      "share_ge7": 1.2
+    },
+    {
+      "country": "Slovenia",
+      "n": 52,
+      "mean": 6.17,
+      "median": 6.2,
+      "share_ge7": 1.9
+    },
+    {
+      "country": "Iceland",
+      "n": 78,
+      "mean": 6.17,
+      "median": 6.25,
+      "share_ge7": 3.8
+    },
+    {
+      "country": "Switzerland",
+      "n": 153,
+      "mean": 6.16,
+      "median": 6.2,
+      "share_ge7": 3.9
+    },
+    {
+      "country": "Croatia",
+      "n": 108,
+      "mean": 6.16,
+      "median": 6.3,
+      "share_ge7": 2.8
+    },
+    {
+      "country": "Poland",
+      "n": 58,
+      "mean": 6.14,
+      "median": 6.2,
+      "share_ge7": 5.2
+    },
+    {
+      "country": "Czechia",
+      "n": 121,
+      "mean": 6.13,
+      "median": 6.2,
+      "share_ge7": 2.5
+    },
+    {
+      "country": "Luxembourg",
+      "n": 62,
+      "mean": 6.12,
+      "median": 6.1,
+      "share_ge7": 4.8
+    },
+    {
+      "country": "Turkey",
+      "n": 57,
+      "mean": 6.11,
+      "median": 6.2,
+      "share_ge7": 7.0
+    },
+    {
+      "country": "Spain",
+      "n": 276,
+      "mean": 6.1,
+      "median": 6.15,
+      "share_ge7": 5.1
+    },
+    {
+      "country": "India",
+      "n": 42,
+      "mean": 6.1,
+      "median": 6.3,
+      "share_ge7": 2.4
+    },
+    {
+      "country": "Estonia",
+      "n": 27,
+      "mean": 6.05,
+      "median": 5.9,
+      "share_ge7": 3.7
+    },
+    {
+      "country": "Finland",
+      "n": 36,
+      "mean": 6.04,
+      "median": 6.1,
+      "share_ge7": 2.8
+    },
+    {
+      "country": "Australia",
+      "n": 68,
+      "mean": 5.91,
+      "median": 6.0,
+      "share_ge7": 2.9
+    }
+  ],
+  "signal_keyword_prevalence": {
+    "fireplace": {
+      "hotels_mentioning": 188,
+      "pct_of_hotels_with_signals": 1.06,
+      "total_mentions": 193
+    },
+    "host_by_name": {
+      "hotels_mentioning": 16,
+      "pct_of_hotels_with_signals": 0.09,
+      "total_mentions": 16
+    },
+    "courtyard": {
+      "hotels_mentioning": 361,
+      "pct_of_hotels_with_signals": 2.04,
+      "total_mentions": 384
+    },
+    "breakfast_homemade": {
+      "hotels_mentioning": 442,
+      "pct_of_hotels_with_signals": 2.49,
+      "total_mentions": 449
+    },
+    "welcome_treats": {
+      "hotels_mentioning": 96,
+      "pct_of_hotels_with_signals": 0.54,
+      "total_mentions": 99
+    },
+    "personal_touch": {
+      "hotels_mentioning": 503,
+      "pct_of_hotels_with_signals": 2.84,
+      "total_mentions": 504
+    },
+    "candles": {
+      "hotels_mentioning": 50,
+      "pct_of_hotels_with_signals": 0.28,
+      "total_mentions": 53
+    },
+    "exposed_beams": {
+      "hotels_mentioning": 18,
+      "pct_of_hotels_with_signals": 0.1,
+      "total_mentions": 18
+    },
+    "garden": {
+      "hotels_mentioning": 817,
+      "pct_of_hotels_with_signals": 4.61,
+      "total_mentions": 868
+    },
+    "quiet_street": {
+      "hotels_mentioning": 68,
+      "pct_of_hotels_with_signals": 0.38,
+      "total_mentions": 68
+    },
+    "family_run": {
+      "hotels_mentioning": 464,
+      "pct_of_hotels_with_signals": 2.62,
+      "total_mentions": 466
+    },
+    "antique_furniture": {
+      "hotels_mentioning": 118,
+      "pct_of_hotels_with_signals": 0.67,
+      "total_mentions": 119
+    },
+    "four_poster_bed": {
+      "hotels_mentioning": 22,
+      "pct_of_hotels_with_signals": 0.12,
+      "total_mentions": 22
+    },
+    "view": {
+      "hotels_mentioning": 1792,
+      "pct_of_hotels_with_signals": 10.11,
+      "total_mentions": 1852
+    },
+    "stone_walls": {
+      "hotels_mentioning": 15,
+      "pct_of_hotels_with_signals": 0.08,
+      "total_mentions": 15
+    },
+    "small_boutique": {
+      "hotels_mentioning": 369,
+      "pct_of_hotels_with_signals": 2.08,
+      "total_mentions": 372
+    }
+  },
+  "traveller_fit_global_concept_counts": {
+    "views": 1761,
+    "spa": 848,
+    "historic-charm": 1819,
+    "luxury-feel": 1099,
+    "quiet": 3470,
+    "rooftop": 458,
+    "walkable": 3597,
+    "boutique": 3444,
+    "design": 1562,
+    "fireplace": 208,
+    "garden": 1279,
+    "rustic": 296,
+    "romantic": 811,
+    "great-breakfast": 1075,
+    "sauna": 210,
+    "pool": 599,
+    "family-friendly": 1368,
+    "waterfront": 317,
+    "hidden-gem": 676,
+    "bathtub": 141,
+    "pet-friendly": 36
+  },
+  "city_concept_density": {
+    "views": [
+      {
+        "city": "Imerovigli",
+        "matched": 14,
+        "n": 14,
+        "pct": 100.0
+      },
+      {
+        "city": "Positano",
+        "matched": 31,
+        "n": 32,
+        "pct": 96.9
+      },
+      {
+        "city": "Ravello",
+        "matched": 12,
+        "n": 13,
+        "pct": 92.3
+      },
+      {
+        "city": "Oban",
+        "matched": 13,
+        "n": 16,
+        "pct": 81.2
+      },
+      {
+        "city": "Tofino",
+        "matched": 12,
+        "n": 15,
+        "pct": 80.0
+      },
+      {
+        "city": "Madeira",
+        "matched": 11,
+        "n": 14,
+        "pct": 78.6
+      },
+      {
+        "city": "Mykonos",
+        "matched": 14,
+        "n": 18,
+        "pct": 77.8
+      },
+      {
+        "city": "Queenstown",
+        "matched": 22,
+        "n": 29,
+        "pct": 75.9
+      },
+      {
+        "city": "Garmisch-Partenkirchen",
+        "matched": 9,
+        "n": 12,
+        "pct": 75.0
+      },
+      {
+        "city": "Zermatt",
+        "matched": 9,
+        "n": 12,
+        "pct": 75.0
+      },
+      {
+        "city": "Udaipur",
+        "matched": 9,
+        "n": 12,
+        "pct": 75.0
+      },
+      {
+        "city": "Taormina",
+        "matched": 29,
+        "n": 39,
+        "pct": 74.4
+      },
+      {
+        "city": "Dubrovnik",
+        "matched": 17,
+        "n": 24,
+        "pct": 70.8
+      },
+      {
+        "city": "Thira",
+        "matched": 7,
+        "n": 10,
+        "pct": 70.0
+      },
+      {
+        "city": "F\u00fcssen",
+        "matched": 9,
+        "n": 13,
+        "pct": 69.2
+      }
+    ],
+    "spa": [
+      {
+        "city": "Bali",
+        "matched": 50,
+        "n": 78,
+        "pct": 64.1
+      },
+      {
+        "city": "Imerovigli",
+        "matched": 7,
+        "n": 14,
+        "pct": 50.0
+      },
+      {
+        "city": "Thira",
+        "matched": 5,
+        "n": 10,
+        "pct": 50.0
+      },
+      {
+        "city": "Chamonix",
+        "matched": 7,
+        "n": 15,
+        "pct": 46.7
+      },
+      {
+        "city": "Takayama",
+        "matched": 6,
+        "n": 13,
+        "pct": 46.2
+      },
+      {
+        "city": "Tofino",
+        "matched": 6,
+        "n": 15,
+        "pct": 40.0
+      },
+      {
+        "city": "Helsinki",
+        "matched": 7,
+        "n": 21,
+        "pct": 33.3
+      },
+      {
+        "city": "Dubrovnik",
+        "matched": 8,
+        "n": 24,
+        "pct": 33.3
+      },
+      {
+        "city": "San Francisco",
+        "matched": 9,
+        "n": 28,
+        "pct": 32.1
+      },
+      {
+        "city": "St. Moritz",
+        "matched": 3,
+        "n": 10,
+        "pct": 30.0
+      },
+      {
+        "city": "Queenstown",
+        "matched": 8,
+        "n": 29,
+        "pct": 27.6
+      },
+      {
+        "city": "Luzern",
+        "matched": 6,
+        "n": 22,
+        "pct": 27.3
+      },
+      {
+        "city": "Prague",
+        "matched": 27,
+        "n": 103,
+        "pct": 26.2
+      },
+      {
+        "city": "Garmisch-Partenkirchen",
+        "matched": 3,
+        "n": 12,
+        "pct": 25.0
+      },
+      {
+        "city": "Reykjavik",
+        "matched": 5,
+        "n": 22,
+        "pct": 22.7
+      }
+    ],
+    "historic-charm": [
+      {
+        "city": "Fez",
+        "matched": 16,
+        "n": 17,
+        "pct": 94.1
+      },
+      {
+        "city": "Rothenburg ob der Tauber",
+        "matched": 15,
+        "n": 19,
+        "pct": 78.9
+      },
+      {
+        "city": "Bacharach",
+        "matched": 14,
+        "n": 18,
+        "pct": 77.8
+      },
+      {
+        "city": "New Orleans",
+        "matched": 17,
+        "n": 23,
+        "pct": 73.9
+      },
+      {
+        "city": "Alberobello",
+        "matched": 8,
+        "n": 11,
+        "pct": 72.7
+      },
+      {
+        "city": "Kyoto",
+        "matched": 12,
+        "n": 17,
+        "pct": 70.6
+      },
+      {
+        "city": "Carcassonne",
+        "matched": 7,
+        "n": 10,
+        "pct": 70.0
+      },
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 10,
+        "n": 15,
+        "pct": 66.7
+      },
+      {
+        "city": "Matera",
+        "matched": 13,
+        "n": 20,
+        "pct": 65.0
+      },
+      {
+        "city": "Heidelberg",
+        "matched": 13,
+        "n": 20,
+        "pct": 65.0
+      },
+      {
+        "city": "Savannah",
+        "matched": 9,
+        "n": 14,
+        "pct": 64.3
+      },
+      {
+        "city": "\u00d3bidos",
+        "matched": 7,
+        "n": 11,
+        "pct": 63.6
+      },
+      {
+        "city": "Tallinn",
+        "matched": 14,
+        "n": 22,
+        "pct": 63.6
+      },
+      {
+        "city": "Charleston",
+        "matched": 18,
+        "n": 29,
+        "pct": 62.1
+      },
+      {
+        "city": "Nafplio",
+        "matched": 9,
+        "n": 15,
+        "pct": 60.0
+      }
+    ],
+    "luxury-feel": [
+      {
+        "city": "Imerovigli",
+        "matched": 9,
+        "n": 14,
+        "pct": 64.3
+      },
+      {
+        "city": "St. Moritz",
+        "matched": 6,
+        "n": 10,
+        "pct": 60.0
+      },
+      {
+        "city": "Positano",
+        "matched": 18,
+        "n": 32,
+        "pct": 56.2
+      },
+      {
+        "city": "Charleston",
+        "matched": 16,
+        "n": 29,
+        "pct": 55.2
+      },
+      {
+        "city": "Queenstown",
+        "matched": 15,
+        "n": 29,
+        "pct": 51.7
+      },
+      {
+        "city": "Chicago",
+        "matched": 5,
+        "n": 10,
+        "pct": 50.0
+      },
+      {
+        "city": "Mykonos",
+        "matched": 9,
+        "n": 18,
+        "pct": 50.0
+      },
+      {
+        "city": "Thira",
+        "matched": 5,
+        "n": 10,
+        "pct": 50.0
+      },
+      {
+        "city": "New York",
+        "matched": 8,
+        "n": 23,
+        "pct": 34.8
+      },
+      {
+        "city": "Bali",
+        "matched": 26,
+        "n": 78,
+        "pct": 33.3
+      },
+      {
+        "city": "Honfleur",
+        "matched": 5,
+        "n": 15,
+        "pct": 33.3
+      },
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 5,
+        "n": 15,
+        "pct": 33.3
+      },
+      {
+        "city": "Dubrovnik",
+        "matched": 8,
+        "n": 24,
+        "pct": 33.3
+      },
+      {
+        "city": "Boston",
+        "matched": 5,
+        "n": 16,
+        "pct": 31.2
+      },
+      {
+        "city": "Asheville",
+        "matched": 4,
+        "n": 13,
+        "pct": 30.8
+      }
+    ],
+    "quiet": [
+      {
+        "city": "Assisi",
+        "matched": 13,
+        "n": 15,
+        "pct": 86.7
+      },
+      {
+        "city": "Sighi\u0219oara",
+        "matched": 13,
+        "n": 15,
+        "pct": 86.7
+      },
+      {
+        "city": "Avignon",
+        "matched": 12,
+        "n": 14,
+        "pct": 85.7
+      },
+      {
+        "city": "Ubud",
+        "matched": 25,
+        "n": 30,
+        "pct": 83.3
+      },
+      {
+        "city": "Kilkenny",
+        "matched": 10,
+        "n": 12,
+        "pct": 83.3
+      },
+      {
+        "city": "\u010cesk\u00fd Krumlov",
+        "matched": 9,
+        "n": 11,
+        "pct": 81.8
+      },
+      {
+        "city": "Montepulciano",
+        "matched": 8,
+        "n": 10,
+        "pct": 80.0
+      },
+      {
+        "city": "Siena",
+        "matched": 32,
+        "n": 40,
+        "pct": 80.0
+      },
+      {
+        "city": "Bled",
+        "matched": 19,
+        "n": 24,
+        "pct": 79.2
+      },
+      {
+        "city": "F\u00fcssen",
+        "matched": 10,
+        "n": 13,
+        "pct": 76.9
+      },
+      {
+        "city": "Keswick",
+        "matched": 13,
+        "n": 17,
+        "pct": 76.5
+      },
+      {
+        "city": "Bruges",
+        "matched": 65,
+        "n": 85,
+        "pct": 76.5
+      },
+      {
+        "city": "Oban",
+        "matched": 12,
+        "n": 16,
+        "pct": 75.0
+      },
+      {
+        "city": "Bali",
+        "matched": 58,
+        "n": 78,
+        "pct": 74.4
+      },
+      {
+        "city": "Palermo",
+        "matched": 20,
+        "n": 27,
+        "pct": 74.1
+      }
+    ],
+    "rooftop": [
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 9,
+        "n": 15,
+        "pct": 60.0
+      },
+      {
+        "city": "Marrakech",
+        "matched": 25,
+        "n": 48,
+        "pct": 52.1
+      },
+      {
+        "city": "Fez",
+        "matched": 8,
+        "n": 17,
+        "pct": 47.1
+      },
+      {
+        "city": "Seville",
+        "matched": 9,
+        "n": 27,
+        "pct": 33.3
+      },
+      {
+        "city": "Udaipur",
+        "matched": 4,
+        "n": 12,
+        "pct": 33.3
+      },
+      {
+        "city": "Ravello",
+        "matched": 4,
+        "n": 13,
+        "pct": 30.8
+      },
+      {
+        "city": "Chicago",
+        "matched": 3,
+        "n": 10,
+        "pct": 30.0
+      },
+      {
+        "city": "Rome",
+        "matched": 24,
+        "n": 88,
+        "pct": 27.3
+      },
+      {
+        "city": "Istanbul",
+        "matched": 12,
+        "n": 49,
+        "pct": 24.5
+      },
+      {
+        "city": "Charleston",
+        "matched": 7,
+        "n": 29,
+        "pct": 24.1
+      },
+      {
+        "city": "Split",
+        "matched": 5,
+        "n": 22,
+        "pct": 22.7
+      },
+      {
+        "city": "Cordoba",
+        "matched": 4,
+        "n": 18,
+        "pct": 22.2
+      },
+      {
+        "city": "New York",
+        "matched": 5,
+        "n": 23,
+        "pct": 21.7
+      },
+      {
+        "city": "Barcelona",
+        "matched": 4,
+        "n": 20,
+        "pct": 20.0
+      },
+      {
+        "city": "Girona",
+        "matched": 2,
+        "n": 10,
+        "pct": 20.0
+      }
+    ],
+    "walkable": [
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 15,
+        "n": 15,
+        "pct": 100.0
+      },
+      {
+        "city": "Interlaken",
+        "matched": 18,
+        "n": 18,
+        "pct": 100.0
+      },
+      {
+        "city": "Naples",
+        "matched": 50,
+        "n": 52,
+        "pct": 96.2
+      },
+      {
+        "city": "New Orleans",
+        "matched": 22,
+        "n": 23,
+        "pct": 95.7
+      },
+      {
+        "city": "Reykjavik",
+        "matched": 21,
+        "n": 22,
+        "pct": 95.5
+      },
+      {
+        "city": "Rothenburg ob der Tauber",
+        "matched": 18,
+        "n": 19,
+        "pct": 94.7
+      },
+      {
+        "city": "Seville",
+        "matched": 25,
+        "n": 27,
+        "pct": 92.6
+      },
+      {
+        "city": "Hanoi",
+        "matched": 12,
+        "n": 13,
+        "pct": 92.3
+      },
+      {
+        "city": "Madrid",
+        "matched": 12,
+        "n": 13,
+        "pct": 92.3
+      },
+      {
+        "city": "Amsterdam",
+        "matched": 40,
+        "n": 44,
+        "pct": 90.9
+      },
+      {
+        "city": "Rovinj",
+        "matched": 9,
+        "n": 10,
+        "pct": 90.0
+      },
+      {
+        "city": "London",
+        "matched": 9,
+        "n": 10,
+        "pct": 90.0
+      },
+      {
+        "city": "Banff",
+        "matched": 24,
+        "n": 27,
+        "pct": 88.9
+      },
+      {
+        "city": "Vienna",
+        "matched": 46,
+        "n": 52,
+        "pct": 88.5
+      },
+      {
+        "city": "Keswick",
+        "matched": 15,
+        "n": 17,
+        "pct": 88.2
+      }
+    ],
+    "boutique": [
+      {
+        "city": "Fez",
+        "matched": 15,
+        "n": 17,
+        "pct": 88.2
+      },
+      {
+        "city": "Cork",
+        "matched": 14,
+        "n": 16,
+        "pct": 87.5
+      },
+      {
+        "city": "Inverness",
+        "matched": 20,
+        "n": 23,
+        "pct": 87.0
+      },
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 13,
+        "n": 15,
+        "pct": 86.7
+      },
+      {
+        "city": "Nafplio",
+        "matched": 13,
+        "n": 15,
+        "pct": 86.7
+      },
+      {
+        "city": "York",
+        "matched": 37,
+        "n": 43,
+        "pct": 86.0
+      },
+      {
+        "city": "Marrakech",
+        "matched": 41,
+        "n": 48,
+        "pct": 85.4
+      },
+      {
+        "city": "Naples",
+        "matched": 44,
+        "n": 52,
+        "pct": 84.6
+      },
+      {
+        "city": "Bellagio",
+        "matched": 11,
+        "n": 13,
+        "pct": 84.6
+      },
+      {
+        "city": "F\u00fcssen",
+        "matched": 11,
+        "n": 13,
+        "pct": 84.6
+      },
+      {
+        "city": "\u00c9vora",
+        "matched": 11,
+        "n": 13,
+        "pct": 84.6
+      },
+      {
+        "city": "Pitlochry",
+        "matched": 15,
+        "n": 18,
+        "pct": 83.3
+      },
+      {
+        "city": "Antwerp",
+        "matched": 19,
+        "n": 23,
+        "pct": 82.6
+      },
+      {
+        "city": "Keswick",
+        "matched": 14,
+        "n": 17,
+        "pct": 82.4
+      },
+      {
+        "city": "Dresden",
+        "matched": 15,
+        "n": 19,
+        "pct": 78.9
+      }
+    ],
+    "design": [
+      {
+        "city": "Chicago",
+        "matched": 8,
+        "n": 10,
+        "pct": 80.0
+      },
+      {
+        "city": "Austin",
+        "matched": 8,
+        "n": 10,
+        "pct": 80.0
+      },
+      {
+        "city": "Bordeaux",
+        "matched": 11,
+        "n": 17,
+        "pct": 64.7
+      },
+      {
+        "city": "New York",
+        "matched": 13,
+        "n": 23,
+        "pct": 56.5
+      },
+      {
+        "city": "Copenhagen",
+        "matched": 22,
+        "n": 41,
+        "pct": 53.7
+      },
+      {
+        "city": "Antwerp",
+        "matched": 12,
+        "n": 23,
+        "pct": 52.2
+      },
+      {
+        "city": "Avignon",
+        "matched": 7,
+        "n": 14,
+        "pct": 50.0
+      },
+      {
+        "city": "Cologne",
+        "matched": 5,
+        "n": 11,
+        "pct": 45.5
+      },
+      {
+        "city": "Matera",
+        "matched": 9,
+        "n": 20,
+        "pct": 45.0
+      },
+      {
+        "city": "Bali",
+        "matched": 35,
+        "n": 78,
+        "pct": 44.9
+      },
+      {
+        "city": "Palermo",
+        "matched": 12,
+        "n": 27,
+        "pct": 44.4
+      },
+      {
+        "city": "Helsinki",
+        "matched": 9,
+        "n": 21,
+        "pct": 42.9
+      },
+      {
+        "city": "Zermatt",
+        "matched": 5,
+        "n": 12,
+        "pct": 41.7
+      },
+      {
+        "city": "Washington",
+        "matched": 7,
+        "n": 17,
+        "pct": 41.2
+      },
+      {
+        "city": "Reykjavik",
+        "matched": 9,
+        "n": 22,
+        "pct": 40.9
+      }
+    ],
+    "fireplace": [
+      {
+        "city": "Chicago",
+        "matched": 4,
+        "n": 10,
+        "pct": 40.0
+      },
+      {
+        "city": "Asheville",
+        "matched": 4,
+        "n": 13,
+        "pct": 30.8
+      },
+      {
+        "city": "Stowe",
+        "matched": 3,
+        "n": 10,
+        "pct": 30.0
+      },
+      {
+        "city": "Savannah",
+        "matched": 4,
+        "n": 14,
+        "pct": 28.6
+      },
+      {
+        "city": "Queenstown",
+        "matched": 7,
+        "n": 29,
+        "pct": 24.1
+      },
+      {
+        "city": "Vancouver",
+        "matched": 3,
+        "n": 18,
+        "pct": 16.7
+      },
+      {
+        "city": "Banff",
+        "matched": 4,
+        "n": 27,
+        "pct": 14.8
+      },
+      {
+        "city": "Tofino",
+        "matched": 2,
+        "n": 15,
+        "pct": 13.3
+      },
+      {
+        "city": "Keswick",
+        "matched": 2,
+        "n": 17,
+        "pct": 11.8
+      },
+      {
+        "city": "San Francisco",
+        "matched": 3,
+        "n": 28,
+        "pct": 10.7
+      },
+      {
+        "city": "Montepulciano",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Thira",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Cologne",
+        "matched": 1,
+        "n": 11,
+        "pct": 9.1
+      },
+      {
+        "city": "Utrecht",
+        "matched": 1,
+        "n": 11,
+        "pct": 9.1
+      },
+      {
+        "city": "Zermatt",
+        "matched": 1,
+        "n": 12,
+        "pct": 8.3
+      }
+    ],
+    "garden": [
+      {
+        "city": "Avignon",
+        "matched": 9,
+        "n": 14,
+        "pct": 64.3
+      },
+      {
+        "city": "Sintra",
+        "matched": 10,
+        "n": 20,
+        "pct": 50.0
+      },
+      {
+        "city": "Honfleur",
+        "matched": 7,
+        "n": 15,
+        "pct": 46.7
+      },
+      {
+        "city": "Sighi\u0219oara",
+        "matched": 7,
+        "n": 15,
+        "pct": 46.7
+      },
+      {
+        "city": "Aix-en-Provence",
+        "matched": 7,
+        "n": 15,
+        "pct": 46.7
+      },
+      {
+        "city": "Bali",
+        "matched": 34,
+        "n": 78,
+        "pct": 43.6
+      },
+      {
+        "city": "New Orleans",
+        "matched": 10,
+        "n": 23,
+        "pct": 43.5
+      },
+      {
+        "city": "Milan",
+        "matched": 5,
+        "n": 12,
+        "pct": 41.7
+      },
+      {
+        "city": "Sorrento",
+        "matched": 11,
+        "n": 27,
+        "pct": 40.7
+      },
+      {
+        "city": "Ubud",
+        "matched": 12,
+        "n": 30,
+        "pct": 40.0
+      },
+      {
+        "city": "Cape Town",
+        "matched": 13,
+        "n": 33,
+        "pct": 39.4
+      },
+      {
+        "city": "Ghent",
+        "matched": 9,
+        "n": 23,
+        "pct": 39.1
+      },
+      {
+        "city": "Bellagio",
+        "matched": 5,
+        "n": 13,
+        "pct": 38.5
+      },
+      {
+        "city": "Cadaqu\u00e9s",
+        "matched": 6,
+        "n": 16,
+        "pct": 37.5
+      },
+      {
+        "city": "Venice",
+        "matched": 49,
+        "n": 136,
+        "pct": 36.0
+      }
+    ],
+    "rustic": [
+      {
+        "city": "San Gimignano",
+        "matched": 8,
+        "n": 14,
+        "pct": 57.1
+      },
+      {
+        "city": "Montepulciano",
+        "matched": 5,
+        "n": 10,
+        "pct": 50.0
+      },
+      {
+        "city": "Siena",
+        "matched": 20,
+        "n": 40,
+        "pct": 50.0
+      },
+      {
+        "city": "Como",
+        "matched": 6,
+        "n": 15,
+        "pct": 40.0
+      },
+      {
+        "city": "F\u00fcssen",
+        "matched": 5,
+        "n": 13,
+        "pct": 38.5
+      },
+      {
+        "city": "Perugia",
+        "matched": 10,
+        "n": 26,
+        "pct": 38.5
+      },
+      {
+        "city": "Garmisch-Partenkirchen",
+        "matched": 3,
+        "n": 12,
+        "pct": 25.0
+      },
+      {
+        "city": "Hamburg",
+        "matched": 3,
+        "n": 13,
+        "pct": 23.1
+      },
+      {
+        "city": "Ronda",
+        "matched": 5,
+        "n": 24,
+        "pct": 20.8
+      },
+      {
+        "city": "Zermatt",
+        "matched": 2,
+        "n": 12,
+        "pct": 16.7
+      },
+      {
+        "city": "Lucca",
+        "matched": 4,
+        "n": 25,
+        "pct": 16.0
+      },
+      {
+        "city": "\u00c9vora",
+        "matched": 2,
+        "n": 13,
+        "pct": 15.4
+      },
+      {
+        "city": "Verona",
+        "matched": 3,
+        "n": 20,
+        "pct": 15.0
+      },
+      {
+        "city": "Heidelberg",
+        "matched": 3,
+        "n": 20,
+        "pct": 15.0
+      },
+      {
+        "city": "Banff",
+        "matched": 4,
+        "n": 27,
+        "pct": 14.8
+      }
+    ],
+    "romantic": [
+      {
+        "city": "Imerovigli",
+        "matched": 11,
+        "n": 14,
+        "pct": 78.6
+      },
+      {
+        "city": "Positano",
+        "matched": 18,
+        "n": 32,
+        "pct": 56.2
+      },
+      {
+        "city": "Stowe",
+        "matched": 4,
+        "n": 10,
+        "pct": 40.0
+      },
+      {
+        "city": "Thira",
+        "matched": 4,
+        "n": 10,
+        "pct": 40.0
+      },
+      {
+        "city": "Ravello",
+        "matched": 5,
+        "n": 13,
+        "pct": 38.5
+      },
+      {
+        "city": "Honfleur",
+        "matched": 5,
+        "n": 15,
+        "pct": 33.3
+      },
+      {
+        "city": "Queenstown",
+        "matched": 9,
+        "n": 29,
+        "pct": 31.0
+      },
+      {
+        "city": "Asheville",
+        "matched": 4,
+        "n": 13,
+        "pct": 30.8
+      },
+      {
+        "city": "Bali",
+        "matched": 23,
+        "n": 78,
+        "pct": 29.5
+      },
+      {
+        "city": "Savannah",
+        "matched": 4,
+        "n": 14,
+        "pct": 28.6
+      },
+      {
+        "city": "Santorini",
+        "matched": 12,
+        "n": 44,
+        "pct": 27.3
+      },
+      {
+        "city": "Bruges",
+        "matched": 23,
+        "n": 85,
+        "pct": 27.1
+      },
+      {
+        "city": "Aix-en-Provence",
+        "matched": 4,
+        "n": 15,
+        "pct": 26.7
+      },
+      {
+        "city": "Ghent",
+        "matched": 6,
+        "n": 23,
+        "pct": 26.1
+      },
+      {
+        "city": "Charleston",
+        "matched": 7,
+        "n": 29,
+        "pct": 24.1
+      }
+    ],
+    "great-breakfast": [
+      {
+        "city": "Fez",
+        "matched": 8,
+        "n": 17,
+        "pct": 47.1
+      },
+      {
+        "city": "F\u00fcssen",
+        "matched": 6,
+        "n": 13,
+        "pct": 46.2
+      },
+      {
+        "city": "Alberobello",
+        "matched": 5,
+        "n": 11,
+        "pct": 45.5
+      },
+      {
+        "city": "Colmar",
+        "matched": 8,
+        "n": 18,
+        "pct": 44.4
+      },
+      {
+        "city": "Bacharach",
+        "matched": 8,
+        "n": 18,
+        "pct": 44.4
+      },
+      {
+        "city": "Cork",
+        "matched": 7,
+        "n": 16,
+        "pct": 43.8
+      },
+      {
+        "city": "Avignon",
+        "matched": 6,
+        "n": 14,
+        "pct": 42.9
+      },
+      {
+        "city": "Rothenburg ob der Tauber",
+        "matched": 8,
+        "n": 19,
+        "pct": 42.1
+      },
+      {
+        "city": "Freiburg im Breisgau",
+        "matched": 5,
+        "n": 12,
+        "pct": 41.7
+      },
+      {
+        "city": "Galway",
+        "matched": 12,
+        "n": 29,
+        "pct": 41.4
+      },
+      {
+        "city": "Genoa",
+        "matched": 9,
+        "n": 22,
+        "pct": 40.9
+      },
+      {
+        "city": "Ljubljana",
+        "matched": 4,
+        "n": 10,
+        "pct": 40.0
+      },
+      {
+        "city": "Whitby",
+        "matched": 5,
+        "n": 13,
+        "pct": 38.5
+      },
+      {
+        "city": "Portree",
+        "matched": 5,
+        "n": 13,
+        "pct": 38.5
+      },
+      {
+        "city": "Helsinki",
+        "matched": 8,
+        "n": 21,
+        "pct": 38.1
+      }
+    ],
+    "sauna": [
+      {
+        "city": "Helsinki",
+        "matched": 6,
+        "n": 21,
+        "pct": 28.6
+      },
+      {
+        "city": "Chamonix",
+        "matched": 3,
+        "n": 15,
+        "pct": 20.0
+      },
+      {
+        "city": "Stowe",
+        "matched": 2,
+        "n": 10,
+        "pct": 20.0
+      },
+      {
+        "city": "Reykjavik",
+        "matched": 4,
+        "n": 22,
+        "pct": 18.2
+      },
+      {
+        "city": "Queenstown",
+        "matched": 4,
+        "n": 29,
+        "pct": 13.8
+      },
+      {
+        "city": "Tofino",
+        "matched": 2,
+        "n": 15,
+        "pct": 13.3
+      },
+      {
+        "city": "Innsbruck",
+        "matched": 5,
+        "n": 39,
+        "pct": 12.8
+      },
+      {
+        "city": "Colmar",
+        "matched": 2,
+        "n": 18,
+        "pct": 11.1
+      },
+      {
+        "city": "St. Moritz",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Sintra",
+        "matched": 2,
+        "n": 20,
+        "pct": 10.0
+      },
+      {
+        "city": "Thira",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Prague",
+        "matched": 10,
+        "n": 103,
+        "pct": 9.7
+      },
+      {
+        "city": "Luzern",
+        "matched": 2,
+        "n": 22,
+        "pct": 9.1
+      },
+      {
+        "city": "\u010cesk\u00fd Krumlov",
+        "matched": 1,
+        "n": 11,
+        "pct": 9.1
+      },
+      {
+        "city": "Garmisch-Partenkirchen",
+        "matched": 1,
+        "n": 12,
+        "pct": 8.3
+      }
+    ],
+    "pool": [
+      {
+        "city": "Santorini",
+        "matched": 24,
+        "n": 44,
+        "pct": 54.5
+      },
+      {
+        "city": "Bali",
+        "matched": 41,
+        "n": 78,
+        "pct": 52.6
+      },
+      {
+        "city": "San Gimignano",
+        "matched": 7,
+        "n": 14,
+        "pct": 50.0
+      },
+      {
+        "city": "Carcassonne",
+        "matched": 4,
+        "n": 10,
+        "pct": 40.0
+      },
+      {
+        "city": "Thira",
+        "matched": 4,
+        "n": 10,
+        "pct": 40.0
+      },
+      {
+        "city": "Hoi An",
+        "matched": 12,
+        "n": 34,
+        "pct": 35.3
+      },
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 5,
+        "n": 15,
+        "pct": 33.3
+      },
+      {
+        "city": "Ronda",
+        "matched": 8,
+        "n": 24,
+        "pct": 33.3
+      },
+      {
+        "city": "Mykonos",
+        "matched": 6,
+        "n": 18,
+        "pct": 33.3
+      },
+      {
+        "city": "Cadaqu\u00e9s",
+        "matched": 5,
+        "n": 16,
+        "pct": 31.2
+      },
+      {
+        "city": "\u00c9vora",
+        "matched": 4,
+        "n": 13,
+        "pct": 30.8
+      },
+      {
+        "city": "Cape Town",
+        "matched": 10,
+        "n": 33,
+        "pct": 30.3
+      },
+      {
+        "city": "Austin",
+        "matched": 3,
+        "n": 10,
+        "pct": 30.0
+      },
+      {
+        "city": "Sintra",
+        "matched": 6,
+        "n": 20,
+        "pct": 30.0
+      },
+      {
+        "city": "Ubud",
+        "matched": 9,
+        "n": 30,
+        "pct": 30.0
+      }
+    ],
+    "family-friendly": [
+      {
+        "city": "Hoi An",
+        "matched": 24,
+        "n": 34,
+        "pct": 70.6
+      },
+      {
+        "city": "F\u00fcssen",
+        "matched": 9,
+        "n": 13,
+        "pct": 69.2
+      },
+      {
+        "city": "Whitby",
+        "matched": 7,
+        "n": 13,
+        "pct": 53.8
+      },
+      {
+        "city": "Keswick",
+        "matched": 9,
+        "n": 17,
+        "pct": 52.9
+      },
+      {
+        "city": "Lucca",
+        "matched": 13,
+        "n": 25,
+        "pct": 52.0
+      },
+      {
+        "city": "Banff",
+        "matched": 14,
+        "n": 27,
+        "pct": 51.9
+      },
+      {
+        "city": "Pokhara",
+        "matched": 6,
+        "n": 12,
+        "pct": 50.0
+      },
+      {
+        "city": "Sighi\u0219oara",
+        "matched": 7,
+        "n": 15,
+        "pct": 46.7
+      },
+      {
+        "city": "Hamburg",
+        "matched": 6,
+        "n": 13,
+        "pct": 46.2
+      },
+      {
+        "city": "Galle",
+        "matched": 6,
+        "n": 13,
+        "pct": 46.2
+      },
+      {
+        "city": "Interlaken",
+        "matched": 8,
+        "n": 18,
+        "pct": 44.4
+      },
+      {
+        "city": "Zagreb",
+        "matched": 6,
+        "n": 14,
+        "pct": 42.9
+      },
+      {
+        "city": "Madeira",
+        "matched": 6,
+        "n": 14,
+        "pct": 42.9
+      },
+      {
+        "city": "San Gimignano",
+        "matched": 6,
+        "n": 14,
+        "pct": 42.9
+      },
+      {
+        "city": "Perugia",
+        "matched": 11,
+        "n": 26,
+        "pct": 42.3
+      }
+    ],
+    "waterfront": [
+      {
+        "city": "Tofino",
+        "matched": 6,
+        "n": 15,
+        "pct": 40.0
+      },
+      {
+        "city": "Mykonos",
+        "matched": 5,
+        "n": 18,
+        "pct": 27.8
+      },
+      {
+        "city": "Brighton",
+        "matched": 8,
+        "n": 29,
+        "pct": 27.6
+      },
+      {
+        "city": "Amsterdam",
+        "matched": 11,
+        "n": 44,
+        "pct": 25.0
+      },
+      {
+        "city": "Crete",
+        "matched": 5,
+        "n": 22,
+        "pct": 22.7
+      },
+      {
+        "city": "Oban",
+        "matched": 3,
+        "n": 16,
+        "pct": 18.8
+      },
+      {
+        "city": "Cadaqu\u00e9s",
+        "matched": 3,
+        "n": 16,
+        "pct": 18.8
+      },
+      {
+        "city": "Venice",
+        "matched": 24,
+        "n": 136,
+        "pct": 17.6
+      },
+      {
+        "city": "Bangkok",
+        "matched": 2,
+        "n": 12,
+        "pct": 16.7
+      },
+      {
+        "city": "Milan",
+        "matched": 2,
+        "n": 12,
+        "pct": 16.7
+      },
+      {
+        "city": "Luang Prabang",
+        "matched": 2,
+        "n": 12,
+        "pct": 16.7
+      },
+      {
+        "city": "Galle",
+        "matched": 2,
+        "n": 13,
+        "pct": 15.4
+      },
+      {
+        "city": "Takayama",
+        "matched": 2,
+        "n": 13,
+        "pct": 15.4
+      },
+      {
+        "city": "Tenby",
+        "matched": 2,
+        "n": 14,
+        "pct": 14.3
+      },
+      {
+        "city": "Luzern",
+        "matched": 3,
+        "n": 22,
+        "pct": 13.6
+      }
+    ],
+    "hidden-gem": [
+      {
+        "city": "Sighi\u0219oara",
+        "matched": 8,
+        "n": 15,
+        "pct": 53.3
+      },
+      {
+        "city": "Kyoto",
+        "matched": 7,
+        "n": 17,
+        "pct": 41.2
+      },
+      {
+        "city": "San Gimignano",
+        "matched": 5,
+        "n": 14,
+        "pct": 35.7
+      },
+      {
+        "city": "Como",
+        "matched": 5,
+        "n": 15,
+        "pct": 33.3
+      },
+      {
+        "city": "Sydney",
+        "matched": 5,
+        "n": 15,
+        "pct": 33.3
+      },
+      {
+        "city": "Ubud",
+        "matched": 10,
+        "n": 30,
+        "pct": 33.3
+      },
+      {
+        "city": "Crete",
+        "matched": 7,
+        "n": 22,
+        "pct": 31.8
+      },
+      {
+        "city": "Bellagio",
+        "matched": 4,
+        "n": 13,
+        "pct": 30.8
+      },
+      {
+        "city": "Chicago",
+        "matched": 3,
+        "n": 10,
+        "pct": 30.0
+      },
+      {
+        "city": "Siena",
+        "matched": 12,
+        "n": 40,
+        "pct": 30.0
+      },
+      {
+        "city": "Ronda",
+        "matched": 7,
+        "n": 24,
+        "pct": 29.2
+      },
+      {
+        "city": "Avignon",
+        "matched": 4,
+        "n": 14,
+        "pct": 28.6
+      },
+      {
+        "city": "\u00d3bidos",
+        "matched": 3,
+        "n": 11,
+        "pct": 27.3
+      },
+      {
+        "city": "Alberobello",
+        "matched": 3,
+        "n": 11,
+        "pct": 27.3
+      },
+      {
+        "city": "New York",
+        "matched": 6,
+        "n": 23,
+        "pct": 26.1
+      }
+    ],
+    "bathtub": [
+      {
+        "city": "San Francisco",
+        "matched": 3,
+        "n": 28,
+        "pct": 10.7
+      },
+      {
+        "city": "Charleston",
+        "matched": 3,
+        "n": 29,
+        "pct": 10.3
+      },
+      {
+        "city": "Chicago",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Ljubljana",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "\u00c9vora",
+        "matched": 1,
+        "n": 13,
+        "pct": 7.7
+      },
+      {
+        "city": "Asheville",
+        "matched": 1,
+        "n": 13,
+        "pct": 7.7
+      },
+      {
+        "city": "Zagreb",
+        "matched": 1,
+        "n": 14,
+        "pct": 7.1
+      },
+      {
+        "city": "Savannah",
+        "matched": 1,
+        "n": 14,
+        "pct": 7.1
+      },
+      {
+        "city": "Tofino",
+        "matched": 1,
+        "n": 15,
+        "pct": 6.7
+      },
+      {
+        "city": "Aix-en-Provence",
+        "matched": 1,
+        "n": 15,
+        "pct": 6.7
+      },
+      {
+        "city": "Oban",
+        "matched": 1,
+        "n": 16,
+        "pct": 6.2
+      },
+      {
+        "city": "Washington",
+        "matched": 1,
+        "n": 17,
+        "pct": 5.9
+      },
+      {
+        "city": "Vancouver",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      },
+      {
+        "city": "Interlaken",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      },
+      {
+        "city": "Portland",
+        "matched": 1,
+        "n": 19,
+        "pct": 5.3
+      }
+    ],
+    "pet-friendly": [
+      {
+        "city": "Montepulciano",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Cardiff",
+        "matched": 1,
+        "n": 13,
+        "pct": 7.7
+      },
+      {
+        "city": "Whitby",
+        "matched": 1,
+        "n": 13,
+        "pct": 7.7
+      },
+      {
+        "city": "Como",
+        "matched": 1,
+        "n": 15,
+        "pct": 6.7
+      },
+      {
+        "city": "Washington",
+        "matched": 1,
+        "n": 17,
+        "pct": 5.9
+      },
+      {
+        "city": "Seattle",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      },
+      {
+        "city": "Inverness",
+        "matched": 1,
+        "n": 23,
+        "pct": 4.3
+      },
+      {
+        "city": "Bled",
+        "matched": 1,
+        "n": 24,
+        "pct": 4.2
+      },
+      {
+        "city": "San Sebasti\u00e1n",
+        "matched": 1,
+        "n": 30,
+        "pct": 3.3
+      },
+      {
+        "city": "Innsbruck",
+        "matched": 1,
+        "n": 39,
+        "pct": 2.6
+      },
+      {
+        "city": "Taormina",
+        "matched": 1,
+        "n": 39,
+        "pct": 2.6
+      },
+      {
+        "city": "Bruges",
+        "matched": 2,
+        "n": 85,
+        "pct": 2.4
+      },
+      {
+        "city": "Salzburg",
+        "matched": 1,
+        "n": 49,
+        "pct": 2.0
+      },
+      {
+        "city": "Paris",
+        "matched": 1,
+        "n": 81,
+        "pct": 1.2
+      }
+    ]
+  },
+  "city_signal_keyword_density": {
+    "fireplace": [
+      {
+        "city": "Stowe",
+        "matched": 3,
+        "n": 15,
+        "pct": 20.0
+      },
+      {
+        "city": "Sedona",
+        "matched": 2,
+        "n": 15,
+        "pct": 13.3
+      },
+      {
+        "city": "Savannah",
+        "matched": 4,
+        "n": 31,
+        "pct": 12.9
+      },
+      {
+        "city": "Queenstown",
+        "matched": 7,
+        "n": 57,
+        "pct": 12.3
+      },
+      {
+        "city": "Keswick",
+        "matched": 3,
+        "n": 26,
+        "pct": 11.5
+      },
+      {
+        "city": "Montepulciano",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Tofino",
+        "matched": 2,
+        "n": 20,
+        "pct": 10.0
+      },
+      {
+        "city": "Telluride",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Thira",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Banff",
+        "matched": 4,
+        "n": 48,
+        "pct": 8.3
+      },
+      {
+        "city": "Chicago",
+        "matched": 4,
+        "n": 49,
+        "pct": 8.2
+      },
+      {
+        "city": "Vancouver",
+        "matched": 3,
+        "n": 50,
+        "pct": 6.0
+      },
+      {
+        "city": "Bath",
+        "matched": 4,
+        "n": 70,
+        "pct": 5.7
+      },
+      {
+        "city": "Whitby",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      },
+      {
+        "city": "San Gimignano",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      }
+    ],
+    "host_by_name": [
+      {
+        "city": "Assisi",
+        "matched": 1,
+        "n": 20,
+        "pct": 5.0
+      },
+      {
+        "city": "Pitlochry",
+        "matched": 1,
+        "n": 24,
+        "pct": 4.2
+      },
+      {
+        "city": "Montreal",
+        "matched": 1,
+        "n": 36,
+        "pct": 2.8
+      },
+      {
+        "city": "Salzburg",
+        "matched": 2,
+        "n": 76,
+        "pct": 2.6
+      },
+      {
+        "city": "Crete",
+        "matched": 1,
+        "n": 38,
+        "pct": 2.6
+      },
+      {
+        "city": "Sorrento",
+        "matched": 1,
+        "n": 39,
+        "pct": 2.6
+      },
+      {
+        "city": "Positano",
+        "matched": 1,
+        "n": 39,
+        "pct": 2.6
+      },
+      {
+        "city": "Canterbury",
+        "matched": 1,
+        "n": 42,
+        "pct": 2.4
+      },
+      {
+        "city": "Sintra",
+        "matched": 1,
+        "n": 44,
+        "pct": 2.3
+      },
+      {
+        "city": "Ghent",
+        "matched": 1,
+        "n": 46,
+        "pct": 2.2
+      },
+      {
+        "city": "Brighton",
+        "matched": 1,
+        "n": 64,
+        "pct": 1.6
+      },
+      {
+        "city": "Bordeaux",
+        "matched": 1,
+        "n": 71,
+        "pct": 1.4
+      },
+      {
+        "city": "Cambridge",
+        "matched": 1,
+        "n": 86,
+        "pct": 1.2
+      },
+      {
+        "city": "Barcelona",
+        "matched": 1,
+        "n": 145,
+        "pct": 0.7
+      }
+    ],
+    "courtyard": [
+      {
+        "city": "Fez",
+        "matched": 7,
+        "n": 21,
+        "pct": 33.3
+      },
+      {
+        "city": "New Orleans",
+        "matched": 13,
+        "n": 49,
+        "pct": 26.5
+      },
+      {
+        "city": "Marrakech",
+        "matched": 15,
+        "n": 66,
+        "pct": 22.7
+      },
+      {
+        "city": "Aix-en-Provence",
+        "matched": 4,
+        "n": 23,
+        "pct": 17.4
+      },
+      {
+        "city": "\u00c9vora",
+        "matched": 3,
+        "n": 20,
+        "pct": 15.0
+      },
+      {
+        "city": "Cusco",
+        "matched": 6,
+        "n": 47,
+        "pct": 12.8
+      },
+      {
+        "city": "Avignon",
+        "matched": 3,
+        "n": 24,
+        "pct": 12.5
+      },
+      {
+        "city": "Cordoba",
+        "matched": 6,
+        "n": 48,
+        "pct": 12.5
+      },
+      {
+        "city": "Luang Prabang",
+        "matched": 3,
+        "n": 25,
+        "pct": 12.0
+      },
+      {
+        "city": "Bamberg",
+        "matched": 3,
+        "n": 25,
+        "pct": 12.0
+      },
+      {
+        "city": "Granada",
+        "matched": 8,
+        "n": 74,
+        "pct": 10.8
+      },
+      {
+        "city": "Strasbourg",
+        "matched": 5,
+        "n": 48,
+        "pct": 10.4
+      },
+      {
+        "city": "Venice",
+        "matched": 19,
+        "n": 187,
+        "pct": 10.2
+      },
+      {
+        "city": "Harrogate",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 2,
+        "n": 21,
+        "pct": 9.5
+      }
+    ],
+    "breakfast_homemade": [
+      {
+        "city": "Grainau",
+        "matched": 3,
+        "n": 10,
+        "pct": 30.0
+      },
+      {
+        "city": "Galway",
+        "matched": 10,
+        "n": 48,
+        "pct": 20.8
+      },
+      {
+        "city": "Avignon",
+        "matched": 5,
+        "n": 24,
+        "pct": 20.8
+      },
+      {
+        "city": "Stowe",
+        "matched": 3,
+        "n": 15,
+        "pct": 20.0
+      },
+      {
+        "city": "F\u00fcssen",
+        "matched": 4,
+        "n": 20,
+        "pct": 20.0
+      },
+      {
+        "city": "Montepulciano",
+        "matched": 2,
+        "n": 10,
+        "pct": 20.0
+      },
+      {
+        "city": "Niagara-on-the-Lake",
+        "matched": 2,
+        "n": 12,
+        "pct": 16.7
+      },
+      {
+        "city": "Alberobello",
+        "matched": 3,
+        "n": 19,
+        "pct": 15.8
+      },
+      {
+        "city": "Llandudno",
+        "matched": 2,
+        "n": 13,
+        "pct": 15.4
+      },
+      {
+        "city": "Keswick",
+        "matched": 4,
+        "n": 26,
+        "pct": 15.4
+      },
+      {
+        "city": "Perugia",
+        "matched": 6,
+        "n": 39,
+        "pct": 15.4
+      },
+      {
+        "city": "Genoa",
+        "matched": 7,
+        "n": 46,
+        "pct": 15.2
+      },
+      {
+        "city": "Ravello",
+        "matched": 3,
+        "n": 21,
+        "pct": 14.3
+      },
+      {
+        "city": "Siena",
+        "matched": 8,
+        "n": 56,
+        "pct": 14.3
+      },
+      {
+        "city": "Kolo\u010dep",
+        "matched": 2,
+        "n": 15,
+        "pct": 13.3
+      }
+    ],
+    "welcome_treats": [
+      {
+        "city": "Thira",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Bali",
+        "matched": 6,
+        "n": 83,
+        "pct": 7.2
+      },
+      {
+        "city": "Dinant",
+        "matched": 1,
+        "n": 16,
+        "pct": 6.2
+      },
+      {
+        "city": "Ljubljana",
+        "matched": 2,
+        "n": 33,
+        "pct": 6.1
+      },
+      {
+        "city": "Chamonix",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      },
+      {
+        "city": "San Gimignano",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      },
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 1,
+        "n": 21,
+        "pct": 4.8
+      },
+      {
+        "city": "Ravello",
+        "matched": 1,
+        "n": 21,
+        "pct": 4.8
+      },
+      {
+        "city": "Hoi An",
+        "matched": 2,
+        "n": 45,
+        "pct": 4.4
+      },
+      {
+        "city": "Charleston",
+        "matched": 2,
+        "n": 46,
+        "pct": 4.3
+      },
+      {
+        "city": "Pitlochry",
+        "matched": 1,
+        "n": 24,
+        "pct": 4.2
+      },
+      {
+        "city": "Santorini",
+        "matched": 2,
+        "n": 52,
+        "pct": 3.8
+      },
+      {
+        "city": "Porto",
+        "matched": 6,
+        "n": 165,
+        "pct": 3.6
+      },
+      {
+        "city": "Queenstown",
+        "matched": 2,
+        "n": 57,
+        "pct": 3.5
+      },
+      {
+        "city": "Venice",
+        "matched": 5,
+        "n": 187,
+        "pct": 2.7
+      }
+    ],
+    "personal_touch": [
+      {
+        "city": "Thira",
+        "matched": 2,
+        "n": 10,
+        "pct": 20.0
+      },
+      {
+        "city": "Niagara-on-the-Lake",
+        "matched": 2,
+        "n": 12,
+        "pct": 16.7
+      },
+      {
+        "city": "Rothenburg ob der Tauber",
+        "matched": 3,
+        "n": 20,
+        "pct": 15.0
+      },
+      {
+        "city": "York",
+        "matched": 10,
+        "n": 75,
+        "pct": 13.3
+      },
+      {
+        "city": "Imerovigli",
+        "matched": 2,
+        "n": 15,
+        "pct": 13.3
+      },
+      {
+        "city": "Florence",
+        "matched": 19,
+        "n": 150,
+        "pct": 12.7
+      },
+      {
+        "city": "Pitlochry",
+        "matched": 3,
+        "n": 24,
+        "pct": 12.5
+      },
+      {
+        "city": "Bali",
+        "matched": 10,
+        "n": 83,
+        "pct": 12.0
+      },
+      {
+        "city": "Lisbon",
+        "matched": 16,
+        "n": 141,
+        "pct": 11.3
+      },
+      {
+        "city": "Brighton",
+        "matched": 7,
+        "n": 64,
+        "pct": 10.9
+      },
+      {
+        "city": "Charleston",
+        "matched": 5,
+        "n": 46,
+        "pct": 10.9
+      },
+      {
+        "city": "Assisi",
+        "matched": 2,
+        "n": 20,
+        "pct": 10.0
+      },
+      {
+        "city": "Honfleur",
+        "matched": 2,
+        "n": 22,
+        "pct": 9.1
+      },
+      {
+        "city": "\u53f0\u5317\u5e02",
+        "matched": 1,
+        "n": 11,
+        "pct": 9.1
+      },
+      {
+        "city": "Queenstown",
+        "matched": 5,
+        "n": 57,
+        "pct": 8.8
+      }
+    ],
+    "candles": [
+      {
+        "city": "Savonlinna",
+        "matched": 1,
+        "n": 16,
+        "pct": 6.2
+      },
+      {
+        "city": "Palermo",
+        "matched": 3,
+        "n": 51,
+        "pct": 5.9
+      },
+      {
+        "city": "\u00c9vora",
+        "matched": 1,
+        "n": 20,
+        "pct": 5.0
+      },
+      {
+        "city": "Fez",
+        "matched": 1,
+        "n": 21,
+        "pct": 4.8
+      },
+      {
+        "city": "Avignon",
+        "matched": 1,
+        "n": 24,
+        "pct": 4.2
+      },
+      {
+        "city": "Tenby",
+        "matched": 1,
+        "n": 25,
+        "pct": 4.0
+      },
+      {
+        "city": "Ljubljana",
+        "matched": 1,
+        "n": 33,
+        "pct": 3.0
+      },
+      {
+        "city": "Berlin",
+        "matched": 2,
+        "n": 73,
+        "pct": 2.7
+      },
+      {
+        "city": "Perugia",
+        "matched": 1,
+        "n": 39,
+        "pct": 2.6
+      },
+      {
+        "city": "Nashville",
+        "matched": 1,
+        "n": 43,
+        "pct": 2.3
+      },
+      {
+        "city": "Verona",
+        "matched": 1,
+        "n": 46,
+        "pct": 2.2
+      },
+      {
+        "city": "Ubud",
+        "matched": 1,
+        "n": 46,
+        "pct": 2.2
+      },
+      {
+        "city": "Stockholm",
+        "matched": 1,
+        "n": 61,
+        "pct": 1.6
+      },
+      {
+        "city": "Innsbruck",
+        "matched": 1,
+        "n": 68,
+        "pct": 1.5
+      },
+      {
+        "city": "Amsterdam",
+        "matched": 2,
+        "n": 138,
+        "pct": 1.4
+      }
+    ],
+    "exposed_beams": [
+      {
+        "city": "Harrogate",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Orvieto",
+        "matched": 1,
+        "n": 15,
+        "pct": 6.7
+      },
+      {
+        "city": "Avignon",
+        "matched": 1,
+        "n": 24,
+        "pct": 4.2
+      },
+      {
+        "city": "Perugia",
+        "matched": 1,
+        "n": 39,
+        "pct": 2.6
+      },
+      {
+        "city": "Canterbury",
+        "matched": 1,
+        "n": 42,
+        "pct": 2.4
+      },
+      {
+        "city": "Florence",
+        "matched": 2,
+        "n": 150,
+        "pct": 1.3
+      },
+      {
+        "city": "Oxford",
+        "matched": 1,
+        "n": 76,
+        "pct": 1.3
+      },
+      {
+        "city": "Milan",
+        "matched": 1,
+        "n": 78,
+        "pct": 1.3
+      },
+      {
+        "city": "Venice",
+        "matched": 2,
+        "n": 187,
+        "pct": 1.1
+      },
+      {
+        "city": "Amsterdam",
+        "matched": 1,
+        "n": 138,
+        "pct": 0.7
+      }
+    ],
+    "garden": [
+      {
+        "city": "Sedona",
+        "matched": 5,
+        "n": 15,
+        "pct": 33.3
+      },
+      {
+        "city": "Cadaqu\u00e9s",
+        "matched": 6,
+        "n": 20,
+        "pct": 30.0
+      },
+      {
+        "city": "Bellagio",
+        "matched": 4,
+        "n": 16,
+        "pct": 25.0
+      },
+      {
+        "city": "Sintra",
+        "matched": 10,
+        "n": 44,
+        "pct": 22.7
+      },
+      {
+        "city": "Honfleur",
+        "matched": 5,
+        "n": 22,
+        "pct": 22.7
+      },
+      {
+        "city": "Chiang Mai",
+        "matched": 10,
+        "n": 45,
+        "pct": 22.2
+      },
+      {
+        "city": "Freiburg",
+        "matched": 3,
+        "n": 14,
+        "pct": 21.4
+      },
+      {
+        "city": "Sorrento",
+        "matched": 8,
+        "n": 39,
+        "pct": 20.5
+      },
+      {
+        "city": "Kolo\u010dep",
+        "matched": 3,
+        "n": 15,
+        "pct": 20.0
+      },
+      {
+        "city": "Ubud",
+        "matched": 9,
+        "n": 46,
+        "pct": 19.6
+      },
+      {
+        "city": "Venice",
+        "matched": 35,
+        "n": 187,
+        "pct": 18.7
+      },
+      {
+        "city": "Cape Town",
+        "matched": 12,
+        "n": 65,
+        "pct": 18.5
+      },
+      {
+        "city": "Sarlat",
+        "matched": 2,
+        "n": 11,
+        "pct": 18.2
+      },
+      {
+        "city": "Aix-en-Provence",
+        "matched": 4,
+        "n": 23,
+        "pct": 17.4
+      },
+      {
+        "city": "Valletta",
+        "matched": 2,
+        "n": 12,
+        "pct": 16.7
+      }
+    ],
+    "quiet_street": [
+      {
+        "city": "Sarlat",
+        "matched": 1,
+        "n": 11,
+        "pct": 9.1
+      },
+      {
+        "city": "Aix-en-Provence",
+        "matched": 2,
+        "n": 23,
+        "pct": 8.7
+      },
+      {
+        "city": "Nafplio",
+        "matched": 1,
+        "n": 20,
+        "pct": 5.0
+      },
+      {
+        "city": "Rothenburg ob der Tauber",
+        "matched": 1,
+        "n": 20,
+        "pct": 5.0
+      },
+      {
+        "city": "Pokhara",
+        "matched": 1,
+        "n": 25,
+        "pct": 4.0
+      },
+      {
+        "city": "Venice",
+        "matched": 7,
+        "n": 187,
+        "pct": 3.7
+      },
+      {
+        "city": "Madeira",
+        "matched": 1,
+        "n": 29,
+        "pct": 3.4
+      },
+      {
+        "city": "Dubrovnik",
+        "matched": 1,
+        "n": 35,
+        "pct": 2.9
+      },
+      {
+        "city": "Barcelona",
+        "matched": 4,
+        "n": 145,
+        "pct": 2.8
+      },
+      {
+        "city": "York",
+        "matched": 2,
+        "n": 75,
+        "pct": 2.7
+      },
+      {
+        "city": "Oxford",
+        "matched": 2,
+        "n": 76,
+        "pct": 2.6
+      },
+      {
+        "city": "Nice",
+        "matched": 2,
+        "n": 77,
+        "pct": 2.6
+      },
+      {
+        "city": "Osaka",
+        "matched": 1,
+        "n": 41,
+        "pct": 2.4
+      },
+      {
+        "city": "Bruges",
+        "matched": 3,
+        "n": 129,
+        "pct": 2.3
+      },
+      {
+        "city": "Toronto",
+        "matched": 1,
+        "n": 44,
+        "pct": 2.3
+      }
+    ],
+    "family_run": [
+      {
+        "city": "Hvar",
+        "matched": 5,
+        "n": 19,
+        "pct": 26.3
+      },
+      {
+        "city": "Cinque Terre",
+        "matched": 3,
+        "n": 12,
+        "pct": 25.0
+      },
+      {
+        "city": "Bacharach",
+        "matched": 5,
+        "n": 21,
+        "pct": 23.8
+      },
+      {
+        "city": "Grainau",
+        "matched": 2,
+        "n": 10,
+        "pct": 20.0
+      },
+      {
+        "city": "Orvieto",
+        "matched": 3,
+        "n": 15,
+        "pct": 20.0
+      },
+      {
+        "city": "Rothenburg ob der Tauber",
+        "matched": 4,
+        "n": 20,
+        "pct": 20.0
+      },
+      {
+        "city": "Fez",
+        "matched": 4,
+        "n": 21,
+        "pct": 19.0
+      },
+      {
+        "city": "Sorrento",
+        "matched": 7,
+        "n": 39,
+        "pct": 17.9
+      },
+      {
+        "city": "Dresden",
+        "matched": 5,
+        "n": 28,
+        "pct": 17.9
+      },
+      {
+        "city": "Madrid",
+        "matched": 14,
+        "n": 80,
+        "pct": 17.5
+      },
+      {
+        "city": "Bled",
+        "matched": 6,
+        "n": 37,
+        "pct": 16.2
+      },
+      {
+        "city": "Crete",
+        "matched": 6,
+        "n": 38,
+        "pct": 15.8
+      },
+      {
+        "city": "Aviemore",
+        "matched": 2,
+        "n": 13,
+        "pct": 15.4
+      },
+      {
+        "city": "Ubud",
+        "matched": 7,
+        "n": 46,
+        "pct": 15.2
+      },
+      {
+        "city": "F\u00fcssen",
+        "matched": 3,
+        "n": 20,
+        "pct": 15.0
+      }
+    ],
+    "antique_furniture": [
+      {
+        "city": "Savannah",
+        "matched": 4,
+        "n": 31,
+        "pct": 12.9
+      },
+      {
+        "city": "Washington",
+        "matched": 2,
+        "n": 22,
+        "pct": 9.1
+      },
+      {
+        "city": "Palermo",
+        "matched": 4,
+        "n": 51,
+        "pct": 7.8
+      },
+      {
+        "city": "Bath",
+        "matched": 5,
+        "n": 70,
+        "pct": 7.1
+      },
+      {
+        "city": "Orvieto",
+        "matched": 1,
+        "n": 15,
+        "pct": 6.7
+      },
+      {
+        "city": "Charleston",
+        "matched": 3,
+        "n": 46,
+        "pct": 6.5
+      },
+      {
+        "city": "\u00d3bidos",
+        "matched": 1,
+        "n": 17,
+        "pct": 5.9
+      },
+      {
+        "city": "Lucca",
+        "matched": 2,
+        "n": 39,
+        "pct": 5.1
+      },
+      {
+        "city": "Nafplio",
+        "matched": 1,
+        "n": 20,
+        "pct": 5.0
+      },
+      {
+        "city": "Bacharach",
+        "matched": 1,
+        "n": 21,
+        "pct": 4.8
+      },
+      {
+        "city": "Heidelberg",
+        "matched": 2,
+        "n": 46,
+        "pct": 4.3
+      },
+      {
+        "city": "Lagos",
+        "matched": 1,
+        "n": 23,
+        "pct": 4.3
+      },
+      {
+        "city": "Strasbourg",
+        "matched": 2,
+        "n": 48,
+        "pct": 4.2
+      },
+      {
+        "city": "Avignon",
+        "matched": 1,
+        "n": 24,
+        "pct": 4.2
+      },
+      {
+        "city": "Cordoba",
+        "matched": 2,
+        "n": 48,
+        "pct": 4.2
+      }
+    ],
+    "four_poster_bed": [
+      {
+        "city": "Bath",
+        "matched": 4,
+        "n": 70,
+        "pct": 5.7
+      },
+      {
+        "city": "Whitby",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      },
+      {
+        "city": "Canterbury",
+        "matched": 2,
+        "n": 42,
+        "pct": 4.8
+      },
+      {
+        "city": "Pitlochry",
+        "matched": 1,
+        "n": 24,
+        "pct": 4.2
+      },
+      {
+        "city": "Kilkenny",
+        "matched": 1,
+        "n": 25,
+        "pct": 4.0
+      },
+      {
+        "city": "Galle",
+        "matched": 1,
+        "n": 25,
+        "pct": 4.0
+      },
+      {
+        "city": "Oban",
+        "matched": 1,
+        "n": 25,
+        "pct": 4.0
+      },
+      {
+        "city": "Keswick",
+        "matched": 1,
+        "n": 26,
+        "pct": 3.8
+      },
+      {
+        "city": "Perugia",
+        "matched": 1,
+        "n": 39,
+        "pct": 2.6
+      },
+      {
+        "city": "Charleston",
+        "matched": 1,
+        "n": 46,
+        "pct": 2.2
+      },
+      {
+        "city": "Bali",
+        "matched": 1,
+        "n": 83,
+        "pct": 1.2
+      },
+      {
+        "city": "Edinburgh",
+        "matched": 1,
+        "n": 124,
+        "pct": 0.8
+      },
+      {
+        "city": "Bruges",
+        "matched": 1,
+        "n": 129,
+        "pct": 0.8
+      },
+      {
+        "city": "Paris",
+        "matched": 1,
+        "n": 154,
+        "pct": 0.6
+      }
+    ],
+    "view": [
+      {
+        "city": "Grainau",
+        "matched": 6,
+        "n": 10,
+        "pct": 60.0
+      },
+      {
+        "city": "Positano",
+        "matched": 23,
+        "n": 39,
+        "pct": 59.0
+      },
+      {
+        "city": "Chamonix",
+        "matched": 10,
+        "n": 18,
+        "pct": 55.6
+      },
+      {
+        "city": "Ravello",
+        "matched": 11,
+        "n": 21,
+        "pct": 52.4
+      },
+      {
+        "city": "Udaipur",
+        "matched": 13,
+        "n": 25,
+        "pct": 52.0
+      },
+      {
+        "city": "Oban",
+        "matched": 13,
+        "n": 25,
+        "pct": 52.0
+      },
+      {
+        "city": "Dubrovnik",
+        "matched": 18,
+        "n": 35,
+        "pct": 51.4
+      },
+      {
+        "city": "Tofino",
+        "matched": 10,
+        "n": 20,
+        "pct": 50.0
+      },
+      {
+        "city": "Imerovigli",
+        "matched": 7,
+        "n": 15,
+        "pct": 46.7
+      },
+      {
+        "city": "Nafplio",
+        "matched": 9,
+        "n": 20,
+        "pct": 45.0
+      },
+      {
+        "city": "Bellagio",
+        "matched": 7,
+        "n": 16,
+        "pct": 43.8
+      },
+      {
+        "city": "Zermatt",
+        "matched": 11,
+        "n": 26,
+        "pct": 42.3
+      },
+      {
+        "city": "Taormina",
+        "matched": 19,
+        "n": 46,
+        "pct": 41.3
+      },
+      {
+        "city": "Innsbruck",
+        "matched": 28,
+        "n": 68,
+        "pct": 41.2
+      },
+      {
+        "city": "Assisi",
+        "matched": 8,
+        "n": 20,
+        "pct": 40.0
+      }
+    ],
+    "stone_walls": [
+      {
+        "city": "Quebec City",
+        "matched": 1,
+        "n": 18,
+        "pct": 5.6
+      },
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 1,
+        "n": 21,
+        "pct": 4.8
+      },
+      {
+        "city": "Girona",
+        "matched": 1,
+        "n": 24,
+        "pct": 4.2
+      },
+      {
+        "city": "Montreal",
+        "matched": 1,
+        "n": 36,
+        "pct": 2.8
+      },
+      {
+        "city": "Sintra",
+        "matched": 1,
+        "n": 44,
+        "pct": 2.3
+      },
+      {
+        "city": "Heidelberg",
+        "matched": 1,
+        "n": 46,
+        "pct": 2.2
+      },
+      {
+        "city": "Inverness",
+        "matched": 1,
+        "n": 50,
+        "pct": 2.0
+      },
+      {
+        "city": "Porto",
+        "matched": 2,
+        "n": 165,
+        "pct": 1.2
+      },
+      {
+        "city": "Florence",
+        "matched": 1,
+        "n": 150,
+        "pct": 0.7
+      },
+      {
+        "city": "Paris",
+        "matched": 1,
+        "n": 154,
+        "pct": 0.6
+      },
+      {
+        "city": "Prague",
+        "matched": 1,
+        "n": 210,
+        "pct": 0.5
+      }
+    ],
+    "small_boutique": [
+      {
+        "city": "Il-Belt Valletta",
+        "matched": 4,
+        "n": 21,
+        "pct": 19.0
+      },
+      {
+        "city": "Portree",
+        "matched": 4,
+        "n": 25,
+        "pct": 16.0
+      },
+      {
+        "city": "Dresden",
+        "matched": 4,
+        "n": 28,
+        "pct": 14.3
+      },
+      {
+        "city": "Taipei",
+        "matched": 2,
+        "n": 14,
+        "pct": 14.3
+      },
+      {
+        "city": "Visby",
+        "matched": 2,
+        "n": 16,
+        "pct": 12.5
+      },
+      {
+        "city": "Como",
+        "matched": 3,
+        "n": 26,
+        "pct": 11.5
+      },
+      {
+        "city": "Stockholm",
+        "matched": 7,
+        "n": 61,
+        "pct": 11.5
+      },
+      {
+        "city": "Seville",
+        "matched": 8,
+        "n": 78,
+        "pct": 10.3
+      },
+      {
+        "city": "Grainau",
+        "matched": 1,
+        "n": 10,
+        "pct": 10.0
+      },
+      {
+        "city": "Nafplio",
+        "matched": 2,
+        "n": 20,
+        "pct": 10.0
+      },
+      {
+        "city": "Granada",
+        "matched": 7,
+        "n": 74,
+        "pct": 9.5
+      },
+      {
+        "city": "Rotterdam",
+        "matched": 4,
+        "n": 43,
+        "pct": 9.3
+      },
+      {
+        "city": "San Sebasti\u00e1n",
+        "matched": 7,
+        "n": 77,
+        "pct": 9.1
+      },
+      {
+        "city": "Montr\u00e9al",
+        "matched": 1,
+        "n": 11,
+        "pct": 9.1
+      },
+      {
+        "city": "\u53f0\u5317\u5e02",
+        "matched": 1,
+        "n": 11,
+        "pct": 9.1
+      }
+    ]
+  }
+}

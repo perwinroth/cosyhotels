@@ -22,6 +22,7 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
             <FLink href={`/${locale}/guides`}>City guides</FLink>
             <FLink href={`/${locale}/blog`}>The journal</FLink>
             <FLink href={`/${locale}/cosy-index`}>The Cosy Index</FLink>
+            <FLink href={`/${locale}/data/cosiest-hotel-towns`}>Cosiest hotel towns (data)</FLink>
             <FLink href={`/${locale}/what-makes-a-hotel-cosy`}>What makes a hotel cosy</FLink>
             <FLink href={`/${locale}/cosy-score`}>{m.footer?.cosy_score || "How we score"}</FLink>
           </FooterCol>
