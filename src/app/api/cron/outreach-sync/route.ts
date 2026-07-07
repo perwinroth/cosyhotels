@@ -15,7 +15,7 @@
 //   ?dry=1   do everything EXCEPT DB writes; return what it WOULD change.
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { getAccessToken, wasSentTo, gotReplyFrom, GmailScopeError } from "@/lib/gmail";
+import { getAccessToken, wasDeliveredTo, gotReplyFrom, GmailScopeError } from "@/lib/gmail";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -115,7 +115,9 @@ export async function GET(req: Request) {
       checked++;
 
       if (row.status === "queued") {
-        if (await wasSentTo(email, accessToken)) {
+        // Advance only if the latest send actually DELIVERED — a blocked send still leaves a Sent copy,
+        // so a plain "was it sent" check would wrongly re-advance the 213 Zoho-blocked cards.
+        if (await wasDeliveredTo(email, accessToken)) {
           wouldChange.push({ hotel_id: row.hotel_id, from: "queued", to: "contacted" });
           if (!dry) {
             const now = new Date().toISOString();

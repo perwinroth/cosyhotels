@@ -119,3 +119,26 @@ export async function wasSentTo(email: string, accessToken: string): Promise<boo
 export async function gotReplyFrom(email: string, accessToken: string): Promise<boolean> {
   return (await firstMatch(`in:inbox from:${email}`, accessToken)) !== null;
 }
+
+/** internalDate (epoch ms) of the newest message matching `q`, or null if none. */
+async function newestDate(q: string, accessToken: string): Promise<number | null> {
+  const id = await firstMatch(q, accessToken);
+  if (!id) return null;
+  const res = await fetch(`${MESSAGES_URL}/${id}?format=minimal`, { headers: { authorization: `Bearer ${accessToken}` } });
+  if (res.status === 403) throw new GmailScopeError("Gmail 403 (insufficient scope) — refresh token lacks gmail.readonly.");
+  if (!res.ok) throw new Error(`Gmail messages.get failed (HTTP ${res.status})`);
+  const j = (await res.json().catch(() => ({}))) as { internalDate?: string };
+  return j.internalDate ? Number(j.internalDate) : null;
+}
+
+/** True if the NEWEST send to `email` is more recent than any mailer-daemon bounce for it — i.e. the
+ *  latest attempt actually delivered. A blocked send (e.g. Zoho's "unusual activity" block) leaves a
+ *  Sent copy AND a bounce dated just after it, so `wasSentTo` alone can't tell delivered from blocked;
+ *  this can. A later clean re-send (no new bounce) still reads as delivered even if an OLD bounce for
+ *  the address lingers in the mailbox. */
+export async function wasDeliveredTo(email: string, accessToken: string): Promise<boolean> {
+  const sent = await newestDate(`in:sent to:${email}`, accessToken);
+  if (sent === null) return false;
+  const bounced = await newestDate(`from:mailer-daemon "${email}"`, accessToken);
+  return bounced === null || sent > bounced;
+}
