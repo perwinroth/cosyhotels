@@ -49,6 +49,9 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
   }
   const tickHotel = (hotelId: string, channel: string) => move(hotelId, "/api/admin/hotel-outreach", { hotel_id: hotelId, status: "contacted", channel });
   const tickReddit = (id: string) => move(id, "/api/admin/reddit-status", { id, status: "replied" });
+  // Bulk "mark all sent" for the day's emails — ticks every un-done one at once.
+  const markAllEmails = () => Promise.all(emails.filter((e) => !done[e.hotelId] && !busy[e.hotelId]).map((e) => tickHotel(e.hotelId, "email")));
+  const allEmailsDone = emails.length > 0 && emails.every((e) => done[e.hotelId]);
 
   const countDone = (keys: string[]) => keys.filter((k) => done[k]).length;
   const sub = { fontWeight: 400, color: "var(--muted)" } as const;
@@ -57,11 +60,21 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
     <>
       {emails.length > 0 && (
         <>
-          <div style={planHead}>
-            📧 Email — send these {emails.length}
-            <span style={sub}> · {countDone(emails.map((e) => e.hotelId))}/{emails.length} done{totalEmailQueued > emails.length ? `, ${totalEmailQueued - emails.length} more queued` : ""}</span>
+          <div style={{ ...planHead, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <span>
+              📧 Email — send these {emails.length}
+              <span style={sub}> · {countDone(emails.map((e) => e.hotelId))}/{emails.length} done{totalEmailQueued > emails.length ? `, ${totalEmailQueued - emails.length} more queued` : ""}</span>
+            </span>
+            <button
+              type="button"
+              onClick={markAllEmails}
+              disabled={allEmailsDone}
+              style={{ flex: "none", border: "1px solid var(--line)", background: allEmailsDone ? "var(--sage)" : "var(--card)", color: allEmailsDone ? "#fff" : "var(--foreground)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: allEmailsDone ? "default" : "pointer" }}
+            >
+              {allEmailsDone ? "✓ All marked" : "Mark all sent"}
+            </button>
           </div>
-          <p style={{ ...metaStyle, margin: "0 0 8px" }}>Open Gmail (pitch pre-filled) → send → tick it. The tick moves the card to Contacted.</p>
+          <p style={{ ...metaStyle, margin: "0 0 8px" }}>Open Gmail (pitch pre-filled) → send → tick it. Or “Mark all sent” once you’ve blasted through them. Ticks move the cards to Contacted.</p>
           <div style={{ display: "grid", gap: 6 }}>
             {emails.map((e) => {
               const d = !!done[e.hotelId];

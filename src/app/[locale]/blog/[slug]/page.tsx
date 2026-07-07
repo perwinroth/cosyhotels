@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import Image from "next/image";
-import { getBlogPost, BLOG_POSTS, type BlogSection, type BlogRelated } from "@/data/blogPosts";
+import { getBlogPost, type BlogSection, type BlogRelated } from "@/data/blogPosts";
 import { isBlogPostVisible } from "@/lib/blogSchedule";
 import blogPicksData from "@/data/blogPicks.json";
 
@@ -14,13 +15,11 @@ import ShareButton from "@/components/ShareButton";
 import { site } from "@/config/site";
 import { jsonLd } from "@/lib/schema";
 
-export const revalidate = 3600;
+// Dynamic: the page reads the gc_panel cookie (for preview), which opts out of static caching — so a
+// preview can never leak publicly, and a scheduled post goes live the instant its publish time passes.
+export const dynamic = "force-dynamic";
 
 type Props = { params: { slug: string; locale: string } };
-
-export function generateStaticParams() {
-  return BLOG_POSTS.map((p) => ({ slug: p.slug }));
-}
 
 export function generateMetadata({ params }: Props): Metadata {
   const post = getBlogPost(params.slug);
@@ -89,8 +88,14 @@ function PickCard({ h, idx, locale }: { h: BlogPick; idx: number; locale: string
 export default async function BlogPostPage({ params }: Props) {
   const post = getBlogPost(params.slug);
   if (!post) notFound();
-  // Not yet released per the /growth schedule → 404 (re-evaluated each revalidate window).
-  if (!(await isBlogPostVisible(params.slug))) notFound();
+  // Not yet released per the /growth schedule → 404 for the public. But the internal panel (the
+  // gc_panel cookie set when Per unlocks /growth) can PREVIEW a scheduled/draft post to review it
+  // before it publishes. Reading the cookie makes this route dynamic, so a preview can never leak
+  // into a public cache — a visitor without the cookie still gets 404.
+  const visible = await isBlogPostVisible(params.slug);
+  const panelKey = process.env.PANEL_KEY || process.env.CRON_SECRET;
+  const isPreview = !visible && !!panelKey && (await cookies()).get("gc_panel")?.value === panelKey;
+  if (!visible && !isPreview) notFound();
   const L = params.locale;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || site.url;
 
@@ -137,6 +142,12 @@ export default async function BlogPostPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(articleLd)} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(faqLd)} />
       {listLd && <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(listLd)} />}
+
+      {isPreview && (
+        <div className="mb-6 rounded-lg border px-4 py-2.5 text-sm" style={{ borderColor: "var(--ember)", background: "color-mix(in srgb, var(--ember) 10%, var(--card))", color: "var(--foreground)" }}>
+          <strong>Preview</strong> — not published yet. Only you (panel) can see this; the public gets a 404 until it publishes.
+        </div>
+      )}
 
       <div className="flex items-start justify-between gap-4">
         <p className="text-sm font-medium tracking-wide uppercase" style={{ color: "var(--ember)", letterSpacing: "0.08em" }}>{post.eyebrow}</p>
