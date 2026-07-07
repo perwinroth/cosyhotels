@@ -12,8 +12,8 @@ type DB = any;
 // The daily drip sizes — small enough to protect deliverability + get actually done every day.
 export const DAILY = { emails: 30, instagram: 10, reddit: 3 };
 
-export type TodayEmail = { name: string; city: string; score: number; email: string; gmailUrl: string };
-export type TodayInstagram = { name: string; city: string; score: number; handle: string; igUrl: string; pitch: string };
+export type TodayEmail = { hotelId: string; name: string; city: string; score: number; email: string; gmailUrl: string };
+export type TodayInstagram = { hotelId: string; name: string; city: string; score: number; handle: string; igUrl: string; pitch: string };
 export type TodayReddit = { id: string; subreddit: string; title: string; url: string; city: string | null };
 
 // The concrete "do exactly this today" queue: the top-scored queued hotels to email + DM, and the best
@@ -58,8 +58,9 @@ export async function getTodayPlan(db: DB): Promise<{
       const email = h.email && h.email.includes("@") ? h.email.trim() : null;
       const handle = h.instagram ? String(h.instagram).replace(/^@/, "").trim() : null;
       const pitch = buildBadgePitch({ name, score, slug: h.slug, city, description: r.description }, { totalTxt, base });
-      if (email) emails.push({ name, city, score, email, gmailUrl: gmailComposeUrl(email, BADGE_SUBJECT, pitch) });
-      else if (handle) instagram.push({ name, city, score, handle, igUrl: instagramDmUrl(handle), pitch });
+      const hotelId = String(r.hotel_id);
+      if (email) emails.push({ hotelId, name, city, score, email, gmailUrl: gmailComposeUrl(email, BADGE_SUBJECT, pitch) });
+      else if (handle) instagram.push({ hotelId, name, city, score, handle, igUrl: instagramDmUrl(handle), pitch });
     }
     return {
       emails: emails.slice(0, DAILY.emails),

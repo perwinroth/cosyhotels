@@ -5,18 +5,9 @@
 import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getBoardCounts, getTodayStats, getTodayPlan, Stat } from "./lib";
-import CopyButton from "@/components/growth/CopyButton";
-import { cosyBadgeColor } from "@/lib/cosyColor";
+import TodayPlan from "@/components/growth/TodayPlan";
 
 export const dynamic = "force-dynamic";
-
-const CARD = { display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12 } as const;
-const scoreBadge = (score: number) => ({ flex: "none", width: 34, height: 34, borderRadius: 8, background: cosyBadgeColor(score), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Fraunces, serif", fontSize: 13.5, fontWeight: 700 } as const);
-const EMBER_BTN = { flex: "none", background: "var(--ember)", color: "#16201C", borderRadius: 8, padding: "7px 12px", fontSize: 12.5, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" } as const;
-const SAGE_BTN = { flex: "none", background: "var(--sage)", color: "#fff", borderRadius: 8, padding: "7px 12px", fontSize: 12.5, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" } as const;
-const nameStyle = { fontSize: 13.5, fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } as const;
-const metaStyle = { fontSize: 12, color: "var(--muted)" } as const;
-const planHead = { fontSize: 13.5, fontWeight: 700, color: "var(--foreground)", margin: "18px 0 8px" } as const;
 
 type Board = { href: string; title: string; count: number; blurb: string };
 
@@ -73,68 +64,8 @@ export default async function GrowthTodayPage() {
           : "Your exact plan for today — work it top to bottom, then stop. No decisions needed."}
       </p>
 
-      {/* ───────── Today's plan: the concrete daily to-do ───────── */}
-      {plan.emails.length > 0 && (
-        <>
-          <div style={planHead}>
-            📧 Email — send these {plan.emails.length}
-            {plan.totalEmailQueued > plan.emails.length && (
-              <span style={{ fontWeight: 400, color: "var(--muted)" }}> · {plan.totalEmailQueued - plan.emails.length} more queued for the coming days</span>
-            )}
-          </div>
-          <p style={{ ...metaStyle, margin: "0 0 8px" }}>One click opens Gmail with the personalized pitch pre-filled. Send all {plan.emails.length}, then stop — the pacing keeps you off spam lists.</p>
-          <div style={{ display: "grid", gap: 6 }}>
-            {plan.emails.map((e) => (
-              <div key={e.email} style={CARD}>
-                <span style={scoreBadge(e.score)}>{e.score.toFixed(1)}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={nameStyle}>{e.name}</div>
-                  <div style={metaStyle}>{e.city}</div>
-                </div>
-                <a href={e.gmailUrl} target="_blank" rel="noreferrer" className="hov" style={EMBER_BTN}>Email ↗</a>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {plan.instagram.length > 0 && (
-        <>
-          <div style={planHead}>📸 Instagram — DM these {plan.instagram.length}</div>
-          <p style={{ ...metaStyle, margin: "0 0 8px" }}>Tap “Copy pitch”, then “Open Instagram” opens the DM — paste and send.</p>
-          <div style={{ display: "grid", gap: 6 }}>
-            {plan.instagram.map((i) => (
-              <div key={i.handle} style={CARD}>
-                <span style={scoreBadge(i.score)}>{i.score.toFixed(1)}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={nameStyle}>{i.name}</div>
-                  <div style={metaStyle}>@{i.handle} · {i.city}</div>
-                </div>
-                <CopyButton text={i.pitch} />
-                <a href={i.igUrl} target="_blank" rel="noreferrer" className="hov" style={SAGE_BTN}>Open IG ↗</a>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {plan.reddit.length > 0 && (
-        <>
-          <div style={planHead}>💬 Reddit — reply to these {plan.reddit.length}</div>
-          <p style={{ ...metaStyle, margin: "0 0 8px" }}>Reply like a human — name 2–3 specific cosy hotels + one link, never a bare link. Then mark it replied on the Reddit board.</p>
-          <div style={{ display: "grid", gap: 6 }}>
-            {plan.reddit.map((r) => (
-              <div key={r.id} style={CARD}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={nameStyle}>{r.title}</div>
-                  <div style={metaStyle}>r/{r.subreddit}{r.city ? ` · ${r.city}` : ""}</div>
-                </div>
-                <a href={r.url} target="_blank" rel="noreferrer" className="hov" style={SAGE_BTN}>Open ↗</a>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+      {/* ───────── Today's plan: the concrete daily to-do, tick each off ───────── */}
+      <TodayPlan emails={plan.emails} instagram={plan.instagram} reddit={plan.reddit} totalEmailQueued={plan.totalEmailQueued} />
 
       {/* ───────── Boards (navigation / full pipeline) ───────── */}
       <h2 className="font-display" style={{ fontSize: 15, fontWeight: 600, marginTop: 30, color: "var(--foreground)" }}>Boards</h2>
