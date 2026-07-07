@@ -45,13 +45,14 @@ function run() {
   for (var i = 0; i < threads.length; i++) {
     var thread = threads[i];
     var msgs = thread.getMessages();
+    var body = msgs[msgs.length - 1].getPlainBody().slice(0, 12000);
     var items;
     // One bad triage call must never stall the whole pipeline: before this try/catch, an Anthropic
     // error on the FIRST digest aborted the run before any labeling, so every hourly run re-crashed
     // on the same thread and nothing was ever processed. Now: skip the thread (no label -> retried
     // next run), count it, and tell Per once at the end instead of dying silently.
     try {
-      items = askClaude(key, msgs[msgs.length - 1].getPlainBody().slice(0, 12000));
+      items = askClaude(key, body);
     } catch (e) {
       failures++;
       continue;
@@ -61,6 +62,9 @@ function run() {
     var summary = [];
     for (var k = 0; k < items.length; k++) {
       var it = items[k];
+      // Backstop the LLM: only surface queries Per can act on for FREE. Drop anything whose only path
+      // is a gated Substack/X/LinkedIn link with no real reply email (the model isn't reliable at this).
+      if (!isActionable(it, body)) continue;
       var action = actionUrl(it);
       var hasEmail = it.channel === 'email' && it.replyTo;
       if (hasEmail) {
@@ -84,6 +88,19 @@ function run() {
   }
 }
 
+var GATED = /substack\.com|(^|\/\/)(x|twitter)\.com|linkedin\.com/i;
+// True only if Per can respond for FREE: a real reply email, OR a first-party web form that is NOT a
+// gated Substack/X/LinkedIn link. Critically, the email/link must LITERALLY appear in the digest text -
+// this kills a model that hallucinates a plausible address (e.g. guessing name@gmail.com from a name).
+function isActionable(it, digest) {
+  if (!it) return false;
+  var email = (it.replyTo || '').trim();
+  var link = (it.link || '').trim();
+  if (email.indexOf('@') > 0 && !GATED.test(email) && digest.indexOf(email) >= 0) return true;
+  if (it.channel === 'web' && link && !GATED.test(link) && digest.indexOf(link) >= 0) return true;
+  return false;
+}
+
 function actionUrl(it) {
   if (it.channel === 'email' && it.replyTo) {
     return 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(it.replyTo) +
@@ -103,11 +120,13 @@ function notifyPhone(text) {
 
 function askClaude(key, digest) {
   var prompt = 'You triage journalist-request digests for Got Cosy and draft a TAILORED reply to each relevant query.\n' + DATA + '\n\nRELEVANT LANE: ' + LANE +
-    '\n\nBelow is ONE digest email that usually lists several separate queries. Find ONLY the queries genuinely in the lane (skip anything you would have to stretch for). Return ONLY a JSON array (no prose, no code fences). Each object has these keys:\n' +
+    '\n\nBelow is ONE digest email that usually lists several separate queries. Find ONLY the queries genuinely in the lane (skip anything you would have to stretch for).\n' +
+    'HARD SKIP (never return these): any query whose ONLY way to respond is a Substack post URL, an x.com / twitter.com link, or a LinkedIn link with NO reply email printed next to it. Those are external requests whose contact is gated/paid and cannot be answered for free. Only return a query if it has a real reply email OR a first-party FREE submission form (a HARO/Featured reply address, a Source of Sources reporter email, or a SourceBottle call-out form).\n' +
+    'Return ONLY a JSON array (no prose, no code fences). Each object has these keys:\n' +
     'outlet (the publication or reporter name), deadline (string, empty if none), query (the reporter actual question, one line), ' +
-    'channel ("email" whenever there is ANY address to reply to, otherwise "web"), ' +
-    'replyTo (the exact reply email - LOOK HARD for it in or beside THIS query block: a reporter address, a "respond to"/"email me at"/"contact" address, a masked forwarding address such as name@helpareporter.net or a @qwoted address, a mailto: link, or any email printed near the query. Set it to empty ONLY if there is genuinely no address anywhere for this query), ' +
-    'link (the exact response URL or web form, only when channel is web; empty otherwise), ' +
+    'channel (EXACTLY one of these two strings: "email" or "web" - never anything else), ' +
+    'replyTo (a valid reply EMAIL ADDRESS that contains an @ sign and APPEARS VERBATIM in the digest text - a reporter address, "respond to"/"email me at" address, a masked forwarding address such as name@helpareporter.net, or a mailto: target. NEVER guess, construct, or infer an email from a name or domain, and NEVER put a website/Substack/social URL here. Empty string if no email literally appears next to this query), ' +
+    'link (the exact first-party free response form URL, only when channel is "web"; empty otherwise. A Substack/x.com/LinkedIn post is NOT a valid form - if that is the only link, DROP the whole query per the HARD SKIP rule), ' +
     'subject (a specific subject that names the query topic - never a generic "Re: your query"), ' +
     'draft (a 110-190 word reply following the DRAFT RULES below).\n\n' +
     'DRAFT RULES - each reply must be clearly tailored to its own query, not a template:\n' +
