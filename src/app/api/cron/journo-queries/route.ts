@@ -38,7 +38,7 @@ const MAX_DRAFTS = 8;    // replies drafted (Sonnet + Gmail draft) per run
 // Sender-domain match first; subject fallbacks catch digests forwarded/relayed through a different
 // domain, or a sender name Gmail doesn't resolve to the domain we expect.
 const SEARCH_Q =
-  '(from:sourceofsources.com OR from:helpareporter.com OR from:featured.com ' +
+  '(from:sourceofsources.com OR from:helpareporter.com OR from:helpareporter.net OR from:sourcebottle.com OR from:thesourcebottle.com OR from:featured.com OR from:connectively.us ' +
   'OR subject:"Source of Sources" OR subject:"SOS Daily" OR subject:"Featured question" OR subject:"Featured questions") ' +
   "newer_than:2d";
 
