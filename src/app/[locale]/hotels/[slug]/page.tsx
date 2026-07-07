@@ -151,6 +151,15 @@ export default async function HotelDetail({ params }: Props) {
     .maybeSingle();
   const cosy = (scoreRow?.score_final as number | null) ?? (scoreRow?.score as number | null) ?? null;
   const cosyDescription = (scoreRow?.description as string | null) ?? null;
+  // D-0008/G13 (hyper-relevance): the review-derived score evidence — the "why" behind the number
+  // that neither the hotel's own site nor an OTA shows. Stored per hotel in cosy_scores.signals;
+  // rendered below for rated hotels (was fetched but never displayed — audit finding #6).
+  const cosySignals = Array.isArray(scoreRow?.signals)
+    ? (scoreRow!.signals as unknown[]).filter((s): s is string => typeof s === "string" && s.trim().length > 8).slice(0, 5)
+    : [];
+  // Honest two-state (audit finding #2): "scored but below our public bar" is NOT "insufficient
+  // data" — the hotel may have plenty of evidence and simply not be cosy. Never claim otherwise.
+  const scoredBelowBar = typeof cosy === "number" && cosy < 5;
 
   // ——— WP2: build the internal-linking graph (same-city hotels + safe collection links) ———
   // cityRaw = the messy stored value (used ONLY to match same-city peers, which share it);
@@ -343,16 +352,33 @@ export default async function HotelDetail({ params }: Props) {
             {cosyDisplay.toFixed(1)}<span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', opacity: 0.8 }}>COSY</span>
           </div>
         ) : (
-          <div className="flex-none rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }} aria-label="Not yet rated">
-            Not yet rated<br /><span className="text-xs font-normal">insufficient data</span>
+          <div className="flex-none rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }} aria-label={scoredBelowBar ? 'Reviewed — below our cosy bar' : 'Not yet rated'}>
+            {scoredBelowBar ? <>Reviewed<br /><span className="text-xs font-normal">below our cosy bar</span></> : <>Not yet rated<br /><span className="text-xs font-normal">awaiting evidence</span></>}
           </div>
         )}
         <div className="flex-1 min-w-0">
           {cosyDisplay != null && (cosyDescription ?? cosySnippet)
             ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{cosyDescription ?? cosySnippet}</p>
-            : cosyDisplay == null && <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We haven&apos;t gathered enough guest evidence to score this hotel for cosiness yet. It will earn a score once we have real reviews or vetted photos.</p>}
+            : cosyDisplay == null && (scoredBelowBar
+              ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We reviewed {String(hotel.name)} for cosiness — warmth, character, intimacy — and it didn&apos;t clear the bar for our shortlist. That&apos;s a verdict on cosiness, not on cleanliness or service{cityName && cityGuideRenders ? <>; the {cityName} hotels that did clear it are <a href={cityGuideHref}>ranked here</a></> : null}.</p>
+              : <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We haven&apos;t gathered enough guest evidence to score this hotel for cosiness yet. It will earn a score once we have real reviews or vetted photos.</p>)}
+          <a href={`/${params.locale}/about`} className="mt-2 inline-block text-xs no-underline" style={{ color: 'var(--muted)', borderBottom: '1px dotted var(--line)' }}>How the cosy score works →</a>
         </div>
       </div>
+
+      {cosyDisplay != null && cosySignals.length > 0 && (
+        <section className="mt-4 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+          <h2 className="text-sm font-semibold tracking-wide" style={{ color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Why it scores {cosyDisplay.toFixed(1)} — from guest reviews</h2>
+          <ul className="mt-3 space-y-2">
+            {cosySignals.map((s) => (
+              <li key={s.slice(0, 40)} className="flex gap-2.5 text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>
+                <span aria-hidden="true" style={{ color: 'var(--ember)', flex: 'none' }}>—</span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <TravellerFit displayed={displayedFits} hrefBySlug={hrefBySlug} />
 
@@ -360,6 +386,8 @@ export default async function HotelDetail({ params }: Props) {
         <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
         <a className="ml-auto rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={String(hotel.name)} data-city={cityName}>Check availability</a>
       </div>
+      {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not only in the footer. */}
+      <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>Booking via this link may earn us a commission — it never affects cosy scores.</p>
 
       <HotelGraph city={cityName} cityLabel={cityName} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinks} extra={graphExtra} />
 
