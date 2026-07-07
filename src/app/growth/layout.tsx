@@ -18,6 +18,7 @@ export default async function GrowthLayout({ children }: { children: React.React
     { href: "/growth", label: "Today" },
     { href: "/growth/pr", label: "PR outreach", count: counts.pr },
     { href: "/growth/data-brief", label: "Data brief" },
+    { href: "/growth/journo", label: "Journo queries" },
     { href: "/growth/badges", label: "Badge outreach", count: counts.badges },
     { href: "/growth/reddit", label: "Reddit", count: counts.reddit },
     { href: "/growth/blog", label: "Blog", count: counts.blog },
