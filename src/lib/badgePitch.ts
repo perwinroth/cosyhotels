@@ -3,7 +3,10 @@
 import { cityToSlug } from "@/lib/citySlug";
 
 export const BADGE_SUBJECT = "You made the Cosy Index: here's your badge";
-const GMAIL_ACCOUNT = "perwinroth@gmail.com"; // founder's real mailbox; From = per@gotcosy.com Send-As (Zoho relay, fixed 2026-07-07)
+// The ONLY account whose default send-as is per@gotcosy.com (Zoho SMTP relay). perwinroth@gmail.com
+// has no such default — pointing compose links there sent all badge outreach from the bare personal
+// address (incident 2026-07-09). Never change this without verifying the send-as in Gmail settings.
+const GMAIL_ACCOUNT = "gotcosy@gmail.com";
 
 // A clean, unique excerpt of the hotel's own cosy write-up (trims to a sentence boundary near `max`),
 // so every pitch quotes something different: better deliverability AND reply rate.
