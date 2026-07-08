@@ -14,7 +14,7 @@ export default function HeaderSearch({ locale }: { locale: string }) {
         if (!city.trim()) return;
         router.push(`/${locale}/search?q=${encodeURIComponent(city.trim())}`);
       }}
-      className="ml-auto flex items-center gap-1.5 rounded-lg pr-1"
+      className="ml-auto flex items-center gap-1.5 rounded-lg pr-1 min-w-0"
       style={{ border: "1px solid var(--line)", background: "var(--card)" }}
     >
       <input
@@ -22,7 +22,7 @@ export default function HeaderSearch({ locale }: { locale: string }) {
         onChange={(e) => setCity(e.target.value)}
         placeholder="Search a city…"
         aria-label="Search a city"
-        className="rounded-lg px-3 py-1.5 text-sm bg-transparent focus:outline-none w-32 sm:w-44"
+        className="rounded-lg px-3 py-1.5 text-sm bg-transparent focus:outline-none w-32 sm:w-44 min-w-0"
         style={{ color: "var(--foreground)" }}
       />
       <button

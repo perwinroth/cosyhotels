@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HeaderSearch from "@/components/HeaderSearch";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // Shared site header (logo + search). Used by BOTH the [locale] layout (inner pages) AND the
 // homepage route (src/app/page.tsx), which is served by the root page and so does NOT get the
@@ -17,7 +18,13 @@ export default function SiteHeader({ locale }: { locale: string }) {
           </span>
           <span className="font-display text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>Got Cosy?</span>
         </Link>
-        <HeaderSearch locale={locale} />
+        {/* Search + theme toggle grouped on the right, IN-FLOW — the toggle used to be a separate
+            position:fixed element in the root layout, which overlapped this Search button on any
+            viewport narrower than the container. In the flex row it can never overlap again. */}
+        <div className="flex items-center gap-2 min-w-0">
+          <HeaderSearch locale={locale} />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

@@ -4,7 +4,6 @@ import Footer from "@/components/Footer";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import Toaster from "@/components/Toaster";
-import ThemeToggle from "@/components/ThemeToggle";
 import { organizationSchema, websiteSchema, jsonLd } from "@/lib/schema";
 import { site } from "@/config/site";
 
@@ -45,7 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Sitewide entity graph — one Organization + WebSite so SEO/AEO/GEO resolve "Got Cosy" to one entity. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(organizationSchema())} />
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(websiteSchema())} />
-        <div style={{ position: "fixed", top: 14, right: 14, zIndex: 50 }}><ThemeToggle /></div>
+        {/* Theme toggle now lives IN the site header (SiteHeader), in-flow next to search, so it can
+            never overlap the Search button again. It was a position:fixed overlay here before. */}
         {children}
         <Toaster />
         <Footer locale="en" />
