@@ -18,13 +18,14 @@ const LIMIT = Number(flag("--limit", "0")) || 0;
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 const { data: scores } = await db.from("cosy_scores").select("hotel_id,score,score_final").gte("score", MIN).order("score", { ascending: false }).limit(500);
-const ids = (scores || []).map((r: any) => String(r.hotel_id));
+const ids = (scores || []).map((r: { hotel_id: unknown }) => String(r.hotel_id));
 const withTrue = new Set<string>();
-for (let i = 0; i < ids.length; i += 150) { const { data } = await db.from("hotel_images").select("hotel_id").in("hotel_id", ids.slice(i, i + 150)).eq("vision_ok", true); for (const r of data || []) withTrue.add(String((r as any).hotel_id)); }
+for (let i = 0; i < ids.length; i += 150) { const { data } = await db.from("hotel_images").select("hotel_id").in("hotel_id", ids.slice(i, i + 150)).eq("vision_ok", true); for (const r of data || []) withTrue.add(String((r as { hotel_id: unknown }).hotel_id)); }
 const need = ids.filter((id: string) => !withTrue.has(id));
 const work = LIMIT ? need.slice(0, LIMIT) : need;
-const det = new Map<string, any>();
-for (let i = 0; i < work.length; i += 150) { const { data } = await db.from("hotels").select("id,name,website,city,country,lat,lng").in("id", work.slice(i, i + 150)); for (const h of data || []) det.set(String((h as any).id), h); }
+type HotelDet = { id: string; name: string | null; website: string | null; city: string | null; country: string | null; lat: number | null; lng: number | null };
+const det = new Map<string, HotelDet>();
+for (let i = 0; i < work.length; i += 150) { const { data } = await db.from("hotels").select("id,name,website,city,country,lat,lng").in("id", work.slice(i, i + 150)); for (const h of (data as HotelDet[]) || []) det.set(String(h.id), h); }
 console.log(`${work.length} imageless hotels score>=${MIN} to backfill · ${EXECUTE ? "EXECUTE" : "DRY-RUN"}\n`);
 
 let recovered = 0, failed = 0, n = 0;
@@ -33,15 +34,15 @@ for (const id of work) {
   const h = det.get(id); if (!h) { failed++; continue; }
   const exclude: string[] = []; let saved = false;
   for (let a = 0; a < 3 && !saved; a++) {
-    let r: any; try { r = await resolveHotelImage({ name: h.name, website: h.website, lat: h.lat, lng: h.lng, city: h.city, exclude }); } catch { break; }
+    let r: Awaited<ReturnType<typeof resolveHotelImage>>; try { r = await resolveHotelImage({ name: h.name, website: h.website, lat: h.lat, lng: h.lng, city: h.city, exclude }); } catch { break; }
     if (!r || r.source === "placeholder" || !r.url) break;
     exclude.push(r.url);
-    let v: any; try { v = await classifyHotelImage(r.url); } catch { continue; }
+    let v: Awaited<ReturnType<typeof classifyHotelImage>>; try { v = await classifyHotelImage(r.url); } catch { continue; }
     if (v.ok) {
       if (EXECUTE) {
         const { data: ex } = await db.from("hotel_images").select("id").eq("hotel_id", id).eq("url", r.url).maybeSingle();
         const row = { vision_ok: true, vision_label: v.label, vision_checked_at: new Date().toISOString(), attributions: r.attribution ?? null };
-        if (ex) await db.from("hotel_images").update(row).eq("id", (ex as any).id);
+        if (ex) await db.from("hotel_images").update(row).eq("id", (ex as { id: string }).id);
         else await db.from("hotel_images").insert({ hotel_id: id, url: r.url, ...row });
       }
       recovered++; saved = true;
