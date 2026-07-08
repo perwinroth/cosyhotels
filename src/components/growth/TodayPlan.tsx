@@ -93,7 +93,7 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
         <>
           <div style={{ ...planHead, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <span>
-              📧 Email — send these {emails.length}
+              📧 Email: send these {emails.length}
               <span style={sub}> · {countDone(emails.map((e) => e.hotelId))}/{emails.length} done{totalEmailQueued > emails.length ? `, ${totalEmailQueued - emails.length} more queued` : ""}</span>
             </span>
             <button
@@ -131,7 +131,7 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
       {instagram.length > 0 && (
         <>
           <div style={planHead}>
-            📸 Instagram — DM these {instagram.length}
+            📸 Instagram: DM these {instagram.length}
             <span style={sub}> · {countDone(instagram.map((i) => i.hotelId))}/{instagram.length} done</span>
           </div>
           <p style={{ ...metaStyle, margin: "0 0 8px" }}>Copy the pitch → open the DM → paste & send → tick it (moves to Contacted).</p>
@@ -158,7 +158,7 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
       {redditToShow.length > 0 && (
         <>
           <div style={planHead}>
-            💬 Reddit — reply to these {redditToShow.length}
+            💬 Reddit: reply to these {redditToShow.length}
             <span style={sub}>
               {plannedReddit.length > 0
                 ? ` · ${plannedReddit.length - plannedPending.length}/${plannedReddit.length} planned answers done`
@@ -167,7 +167,7 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
           </div>
           <p style={{ ...metaStyle, margin: "0 0 8px" }}>
             {plannedPending.length > 0
-              ? "Founder-reviewed answers, ready to post — skim the thread first for anything new, copy the answer, post it from your own Reddit account → tick done."
+              ? "Founder-reviewed answers, ready to post: skim the thread first for anything new, copy the answer, post it from your own Reddit account → tick done."
               : "Reply like a human (2–3 specific hotels + one link, never a bare link) → tick it (moves to Replied)."}
           </p>
           <div style={{ display: "grid", gap: 6 }}>

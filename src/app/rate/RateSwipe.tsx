@@ -66,7 +66,7 @@ export default function RateSwipe({ cards, rater }: { cards: Card[]; rater?: str
         <div style={{ fontSize: 40 }}>🔥</div>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: "12px 0 6px" }}>Which hotels feel cosy?</h1>
         <p style={{ color: C.muted, fontSize: 14, lineHeight: 1.5, margin: "0 auto 22px", maxWidth: 320 }}>
-          {cards.length} hotels, ~2 minutes. Swipe right if it looks cosy, left if it doesn&apos;t. Go with your gut — there&apos;s no wrong answer.
+          {cards.length} hotels, ~2 minutes. Swipe right if it looks cosy, left if it doesn&apos;t. Go with your gut; there&apos;s no wrong answer.
         </p>
         <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} placeholder="Your name" autoFocus
           onKeyDown={(e) => { if (e.key === "Enter" && nameInput.trim()) { const n = nameInput.trim().toLowerCase(); localStorage.setItem("cosy_rater", n); setName(n); } }}
@@ -84,7 +84,7 @@ export default function RateSwipe({ cards, rater }: { cards: Card[]; rater?: str
     return (
       <div style={{ paddingTop: 80, textAlign: "center" }}>
         <div style={{ fontSize: 48 }}>🎉</div>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: "12px 0 6px" }}>All done — thank you!</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 700, margin: "12px 0 6px" }}>All done. Thank you!</h1>
         <p style={{ color: C.muted, fontSize: 14 }}>You rated all {cards.length}. That&apos;s a huge help. You can close this.</p>
       </div>
     );

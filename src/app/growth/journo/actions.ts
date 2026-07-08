@@ -39,10 +39,10 @@ export async function draftAndOpen(id: string): Promise<{ ok: boolean; link?: st
   if (!row.reply_to) return { ok: false, error: "no reply address found in the digest for this query" };
 
   const body = await draftReply(row);
-  if (!body) return { ok: false, error: "reply generation failed — check ANTHROPIC_API_KEY" };
+  if (!body) return { ok: false, error: "reply generation failed: check ANTHROPIC_API_KEY" };
 
   const created = await createGmailDraft({ to: row.reply_to, subject: subjectFor(row), body });
-  if (!created) return { ok: false, error: "Gmail draft failed — check GMAIL_* env / per@gotcosy.com Send-As" };
+  if (!created) return { ok: false, error: "Gmail draft failed: check GMAIL_* env / per@gotcosy.com Send-As" };
 
   const { error: updateErr } = await db
     .from("journo_queries")

@@ -23,7 +23,7 @@ export default async function GrowthRedditPage() {
     <div>
       <header style={{ marginBottom: 18 }}>
         <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, margin: 0 }}>Reddit opportunities</h1>
-        <p style={{ color: "var(--muted)", fontSize: 13.5, marginTop: 5 }}>Open a thread, reply like a human — never a bare link — then advance it to Replied. Refresh leads with <code>scripts/find-reddit-threads.mjs --execute</code>.</p>
+        <p style={{ color: "var(--muted)", fontSize: 13.5, marginTop: 5 }}>Open a thread, reply like a human (never a bare link), then advance it to Replied. Refresh leads with <code>scripts/find-reddit-threads.mjs --execute</code>.</p>
       </header>
       <RedditBoard rows={leads} />
     </div>

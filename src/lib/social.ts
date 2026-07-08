@@ -33,7 +33,7 @@ export type CityPin = {
 // becomes its own pin (real photo) linking to the city ranking page — max discovery surface.
 export function hotelPinDescription(name: string, city: string, score: number): string {
   const cityTag = city.toLowerCase().replace(/[^a-z0-9]/g, "");
-  return `${name} — ${score.toFixed(1)}/10 for cosiness. One of the cosiest hotels in ${city}, AI-ranked for warmth, character and intimacy. Tap for the full ranking and to check availability. #cosyhotels #${cityTag}hotels #boutiquehotels #${cityTag}travel #romanticgetaway`;
+  return `${name}: ${score.toFixed(1)}/10 for cosiness. One of the cosiest hotels in ${city}, AI-ranked for warmth, character and intimacy. Tap for the full ranking and to check availability. #cosyhotels #${cityTag}hotels #boutiquehotels #${cityTag}travel #romanticgetaway`;
 }
 
 // Badge-image URL for one hotel: its real photo + a baked-in "Cosy Score" badge (the actual
@@ -119,7 +119,7 @@ export async function cityPin(db: DB, city: string, base: string): Promise<CityP
     imageUrl: `${base}/api/social/pin?city=${encodeURIComponent(city)}${itemsParam}`,
     slides,
     title: `Cosy Hotels in ${city}: AI-Rated Boutique Stays`,
-    description: `The cosiest hotels in ${city}, ranked by AI for warmth, character and intimacy — not just stars. Tap for the full ranking with cosy scores and to check availability. #cosyhotels #${cityTag}hotels #boutiquehotels #${cityTag}travel #romanticgetaway`,
+    description: `The cosiest hotels in ${city}, ranked by AI for warmth, character and intimacy, not just stars. Tap for the full ranking with cosy scores and to check availability. #cosyhotels #${cityTag}hotels #boutiquehotels #${cityTag}travel #romanticgetaway`,
     link,
     board: "Cosy Hotels in Europe",
     tags: ["cosy hotels", `${city} hotels`, "boutique hotels", "romantic getaway", "travel"],

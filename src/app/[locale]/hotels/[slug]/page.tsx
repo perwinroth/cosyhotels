@@ -83,8 +83,8 @@ function hotelFaqs(o: { name: string; city: string; country: string; cosy: numbe
   faqs.push({
     q: `Is ${name} a cosy hotel?`,
     a: s != null
-      ? `${name} scores ${s.toFixed(1)}/10 on Got Cosy's cosiness scale — ${band}${city ? ` in ${city}` : ""}. The score weighs warmth, intimacy and character, not stars.`
-      : `Got Cosy rates hotels 0–10 for cosiness — warmth, intimacy and character${city ? `, including stays in ${city}` : ""}.`,
+      ? `${name} scores ${s.toFixed(1)}/10 on Got Cosy's cosiness scale: ${band}${city ? ` in ${city}` : ""}. The score weighs warmth, intimacy and character, not stars.`
+      : `Got Cosy rates hotels 0–10 for cosiness: warmth, intimacy and character${city ? `, including stays in ${city}` : ""}.`,
   });
   faqs.push({
     q: `What makes ${name} cosy?`,
@@ -107,18 +107,18 @@ function hotelFaqs(o: { name: string; city: string; country: string; cosy: numbe
     : hasAmen(/bar\b|lounge/) ? { what: "a bar", q: `Does ${name} have a bar?` }
     : hasAmen(/parking|garage/) ? { what: "parking", q: `Does ${name} offer parking?` }
     : null;
-  if (feature) faqs.push({ q: feature.q, a: `Yes — ${name} lists ${feature.what} among its facilities.` });
+  if (feature) faqs.push({ q: feature.q, a: `Yes. ${name} lists ${feature.what} among its facilities.` });
   if (place) faqs.push({
     q: `Where is ${name} located?`,
     a: `${name} is in ${place}.${city ? ` You can browse more cosy hotels in ${city} on Got Cosy.` : ""}`,
   });
   faqs.push({
     q: `How is ${name}'s cosy score calculated?`,
-    a: `Got Cosy's AI assesses a hotel's photos, guest reviews, amenities, room count and setting, scoring cosiness signals — fireplaces, warm lighting, soft textiles, intimate human scale — on one 0–10 scale. ${name} currently scores ${s != null ? s.toFixed(1) : "–"}.`,
+    a: `Got Cosy's AI assesses a hotel's photos, guest reviews, amenities, room count and setting, scoring cosiness signals (fireplaces, warm lighting, soft textiles, intimate human scale) on one 0–10 scale. ${name} currently scores ${s != null ? s.toFixed(1) : "–"}.`,
   });
   if (s != null && s >= 7) faqs.push({
     q: `Is ${name} good for a romantic getaway?`,
-    a: `With a cosy score of ${s.toFixed(1)}/10, ${name} leans warm and intimate — the kind of characterful stay that suits a couples or romantic trip${city ? ` in ${city}` : ""}.`,
+    a: `With a cosy score of ${s.toFixed(1)}/10, ${name} leans warm and intimate: the kind of characterful stay that suits a couples or romantic trip${city ? ` in ${city}` : ""}.`,
   });
   return faqs;
 }
@@ -337,12 +337,12 @@ export default async function HotelDetail({ params }: Props) {
           <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>
           <div className="mt-1.5 text-base" style={{ color: 'var(--muted)' }}>{[cityName, displayCountry(String(hotel.country || ''))].filter(Boolean).join(', ')}</div>
         </div>
-        <div className="flex-none pt-1"><ShareButton title={`${hotel.name} — cosy hotel${cityName ? ` in ${cityName}` : ''}`} /></div>
+        <div className="flex-none pt-1"><ShareButton title={`${hotel.name}, a cosy hotel${cityName ? ` in ${cityName}` : ''}`} /></div>
       </div>
 
       {photo && (
         <div className="relative mt-5 w-full overflow-hidden rounded-2xl" style={{ aspectRatio: "16/9", border: "1px solid var(--line)" }}>
-          <Image src={photo} alt={`${hotel.name}${cityName ? ` — ${cityName}` : ''}`} fill className="object-cover" sizes="(max-width:768px) 100vw, 768px" quality={70} unoptimized={/^https?:\/\//.test(photo)} />
+          <Image src={photo} alt={`${hotel.name}${cityName ? `, ${cityName}` : ''}`} fill className="object-cover" sizes="(max-width:768px) 100vw, 768px" quality={70} unoptimized={/^https?:\/\//.test(photo)} />
         </div>
       )}
 
@@ -352,7 +352,7 @@ export default async function HotelDetail({ params }: Props) {
             {cosyDisplay.toFixed(1)}<span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', opacity: 0.8 }}>COSY</span>
           </div>
         ) : (
-          <div className="flex-none rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }} aria-label={scoredBelowBar ? 'Reviewed — below our cosy bar' : 'Not yet rated'}>
+          <div className="flex-none rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }} aria-label={scoredBelowBar ? 'Reviewed: below our cosy bar' : 'Not yet rated'}>
             {scoredBelowBar ? <>Reviewed<br /><span className="text-xs font-normal">below our cosy bar</span></> : <>Not yet rated<br /><span className="text-xs font-normal">awaiting evidence</span></>}
           </div>
         )}
@@ -360,7 +360,7 @@ export default async function HotelDetail({ params }: Props) {
           {cosyDisplay != null && (cosyDescription ?? cosySnippet)
             ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{cosyDescription ?? cosySnippet}</p>
             : cosyDisplay == null && (scoredBelowBar
-              ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We reviewed {String(hotel.name)} for cosiness — warmth, character, intimacy — and it didn&apos;t clear the bar for our shortlist. That&apos;s a verdict on cosiness, not on cleanliness or service{cityName && cityGuideRenders ? <>; the {cityName} hotels that did clear it are <a href={cityGuideHref}>ranked here</a></> : null}.</p>
+              ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We reviewed {String(hotel.name)} for cosiness (warmth, character, intimacy) and it didn&apos;t clear the bar for our shortlist. That&apos;s a verdict on cosiness, not on cleanliness or service{cityName && cityGuideRenders ? <>; the {cityName} hotels that did clear it are <a href={cityGuideHref}>ranked here</a></> : null}.</p>
               : <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We haven&apos;t gathered enough guest evidence to score this hotel for cosiness yet. It will earn a score once we have real reviews or vetted photos.</p>)}
           <a href={`/${params.locale}/about`} className="mt-2 inline-block text-xs no-underline" style={{ color: 'var(--muted)', borderBottom: '1px dotted var(--line)' }}>How the cosy score works →</a>
         </div>
@@ -368,11 +368,11 @@ export default async function HotelDetail({ params }: Props) {
 
       {cosyDisplay != null && cosySignals.length > 0 && (
         <section className="mt-4 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
-          <h2 className="text-sm font-semibold tracking-wide" style={{ color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Why it scores {cosyDisplay.toFixed(1)} — from guest reviews</h2>
+          <h2 className="text-sm font-semibold tracking-wide" style={{ color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Why it scores {cosyDisplay.toFixed(1)}, from guest reviews</h2>
           <ul className="mt-3 space-y-2">
             {cosySignals.map((s) => (
               <li key={s.slice(0, 40)} className="flex gap-2.5 text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>
-                <span aria-hidden="true" style={{ color: 'var(--ember)', flex: 'none' }}>—</span>
+                <span aria-hidden="true" style={{ color: 'var(--ember)', flex: 'none' }}>·</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -387,7 +387,7 @@ export default async function HotelDetail({ params }: Props) {
         <a className="ml-auto rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={String(hotel.name)} data-city={cityName}>Check availability</a>
       </div>
       {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not only in the footer. */}
-      <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>Booking via this link may earn us a commission — it never affects cosy scores.</p>
+      <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>Booking via this link may earn us a commission; it never affects cosy scores.</p>
 
       <HotelGraph city={cityName} cityLabel={cityName} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinks} extra={graphExtra} />
 

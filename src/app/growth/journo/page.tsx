@@ -40,7 +40,7 @@ export default async function GrowthJournoPage() {
       <header style={{ marginBottom: 18 }}>
         <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, margin: 0 }}>Journo queries</h1>
         <p style={{ color: "var(--muted)", fontSize: 13.5, marginTop: 5 }}>
-          Parsed from PR digests, triaged for fit, and drafted in Gmail (From per@gotcosy.com) where GotCosy has something real to add. Drafts appear in your Gmail Drafts — every one is Per&apos;s to edit and send, nothing here sends itself.
+          Parsed from PR digests, triaged for fit, and drafted in Gmail (From per@gotcosy.com) where GotCosy has something real to add. Drafts appear in your Gmail Drafts; every one is Per&apos;s to edit and send, nothing here sends itself.
         </p>
       </header>
       <JornoBoard rows={rows} />

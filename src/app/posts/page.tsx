@@ -53,7 +53,7 @@ export default async function PostsPage() {
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Social posts → Blotato</h1>
         <p style={{ color: "#9DA89F", marginTop: 8, fontSize: 15 }}>
           {pins.length} ready carousel{pins.length === 1 ? "" : "s"} from {cities.length} populated cit{cities.length === 1 ? "y" : "ies"}.
-          Each is the exact <code style={{ color: "#E08A4B" }}>/api/social/next</code> payload — real photos of the top-5 cosy hotels
+          Each is the exact <code style={{ color: "#E08A4B" }}>/api/social/next</code> payload: real photos of the top-5 cosy hotels
           (score ≥ 5), one slide each. <code style={{ color: "#E08A4B" }}>@?</code> = hotel Instagram handle for n8n to enrich so the
           post can @mention them. Cycle with <code style={{ color: "#E08A4B" }}>?after=&lt;city&gt;</code>.
         </p>
@@ -66,7 +66,7 @@ export default async function PostsPage() {
             <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: "#C7CFC8", fontSize: 13, lineHeight: 1.7 }}>
               {failures.map((f) => (
                 <li key={f.city}>
-                  <strong>{f.city}</strong> — {f.reason}
+                  <strong>{f.city}</strong>: {f.reason}
                 </li>
               ))}
             </ul>
@@ -74,7 +74,7 @@ export default async function PostsPage() {
         )}
 
         {pins.length === 0 && (
-          <p style={{ color: "#9DA89F", marginTop: 40 }}>No pins ready yet — no populated city has hotels scored ≥ 5.</p>
+          <p style={{ color: "#9DA89F", marginTop: 40 }}>No pins ready yet: no populated city has hotels scored ≥ 5.</p>
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24, marginTop: 28 }}>

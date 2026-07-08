@@ -17,7 +17,7 @@ export async function GET() {
           <div style={{ fontSize: 84, fontWeight: 800, color: "#F3EEE6", letterSpacing: -1 }}>Got Cosy?</div>
         </div>
         <div style={{ display: "flex", fontSize: 56, color: "#F3EEE6", marginTop: 40, lineHeight: 1.15, maxWidth: 1150, fontFamily: "Inter, sans-serif", fontWeight: 600 }}>
-          The cosiest hotels, AI-ranked for warmth, character and intimacy — not just stars.
+          The cosiest hotels, AI-ranked for warmth, character and intimacy, not just stars.
         </div>
         <div style={{ fontSize: 34, color: "#9DA89F", marginTop: 28, letterSpacing: 4, fontFamily: "Inter, sans-serif" }}>REAL PHOTOS · HONEST COSY SCORES · gotcosy.com</div>
       </div>

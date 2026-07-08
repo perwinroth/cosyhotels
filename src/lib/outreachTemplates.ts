@@ -7,20 +7,20 @@ type Pitch = { subject: string; body: string };
 
 export const TEMPLATES: Record<string, (outlet: string) => Pitch> = {
   "data-study": (o) => ({
-    subject: 'Data: we scored 17,000 hotels on "cosiness" — stars barely matter',
-    body: `Hi,\n\nI run gotcosy.com — we used AI to score 17,000+ hotels on how cosy they are (warmth, intimacy, character), from their photos and guest reviews. A few findings that might suit ${o}:\n\n- Stars barely predict cosiness: a 4-star is on average ~0.2 of a point cosier than a 2-star\n- Independent hotels beat chains by ~45%\n- Only about 1 in 150 hotels is genuinely cosy\n\nFull study and method: ${SITE}/en/what-makes-a-hotel-cosy\nHappy to share the underlying data, charts or a quote.\n\nThanks,\nPer — Got Cosy`,
+    subject: 'Data: we scored 17,000 hotels on "cosiness", and stars barely matter',
+    body: `Hi,\n\nI run gotcosy.com; we used AI to score 17,000+ hotels on how cosy they are (warmth, intimacy, character), from their photos and guest reviews. A few findings that might suit ${o}:\n\n- Stars barely predict cosiness: a 4-star is on average ~0.2 of a point cosier than a 2-star\n- Independent hotels beat chains by ~45%\n- Only about 1 in 150 hotels is genuinely cosy\n\nFull study and method: ${SITE}/en/what-makes-a-hotel-cosy\nHappy to share the underlying data, charts or a quote.\n\nThanks,\nPer, Got Cosy`,
   }),
   "hotelier-asset": (o) => ({
-    subject: 'The photos that make a hotel look "cold" — data from 17,000 listings',
-    body: `Hi,\n\nI run gotcosy.com. From scoring 17,000+ hotel listings we found the exact photo types that make a hotel look cold — logos, landmarks, stock people, award badges — and what reads as genuinely cosy instead. Could make a useful, data-backed piece for ${o}.\n\nThe guide: ${SITE}/en/make-your-hotel-look-cosy\nHappy to share the reject data or real examples.\n\nThanks,\nPer — Got Cosy`,
+    subject: 'The photos that make a hotel look "cold": data from 17,000 listings',
+    body: `Hi,\n\nI run gotcosy.com. From scoring 17,000+ hotel listings we found the exact photo types that make a hotel look cold (logos, landmarks, stock people, award badges) and what reads as genuinely cosy instead. Could make a useful, data-backed piece for ${o}.\n\nThe guide: ${SITE}/en/make-your-hotel-look-cosy\nHappy to share the reject data or real examples.\n\nThanks,\nPer, Got Cosy`,
   }),
   listicle: (o) => ({
-    subject: `The cosiest hotels, ranked — happy to share data with ${o}`,
-    body: `Hi,\n\nI run gotcosy.com — AI cosiness rankings across 17,000+ hotels. Happy to put together a "cosiest hotels in [your city/region]" list for ${o}, or share the rankings / Cosy Index for you to reference.\n\nThe Index: ${SITE}/en/cosy-index\n\nThanks,\nPer — Got Cosy`,
+    subject: `The cosiest hotels, ranked: happy to share data with ${o}`,
+    body: `Hi,\n\nI run gotcosy.com: AI cosiness rankings across 17,000+ hotels. Happy to put together a "cosiest hotels in [your city/region]" list for ${o}, or share the rankings / Cosy Index for you to reference.\n\nThe Index: ${SITE}/en/cosy-index\n\nThanks,\nPer, Got Cosy`,
   }),
   "expert-source": (o) => ({
     subject: "Source on cosy hotels / hygge travel (data-backed)",
-    body: `Hi,\n\nI run gotcosy.com — I have scored 17,000+ hotels on cosiness and can speak, with data, on what actually makes a hotel cosy, where they cluster, cosy vs luxury, hygge travel and more. Happy to be a source for ${o}.\n\n${SITE}\n\nThanks,\nPer — Got Cosy`,
+    body: `Hi,\n\nI run gotcosy.com; I have scored 17,000+ hotels on cosiness and can speak, with data, on what actually makes a hotel cosy, where they cluster, cosy vs luxury, hygge travel and more. Happy to be a source for ${o}.\n\n${SITE}\n\nThanks,\nPer, Got Cosy`,
   }),
 };
 

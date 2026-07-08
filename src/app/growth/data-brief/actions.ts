@@ -16,6 +16,6 @@ export async function createBriefDraft(rank: number): Promise<{ link?: string; e
   if (!target.email) return { error: "no verified email for this target" };
   const body = buildBody(target.first, target.personal);
   const created = await createGmailDraft({ to: target.email, subject: CAMPAIGN.subject, body });
-  if (!created) return { error: "Gmail draft failed — check GMAIL_* env or per@gotcosy.com Send-As setup" };
+  if (!created) return { error: "Gmail draft failed: check GMAIL_* env or per@gotcosy.com Send-As setup" };
   return { link: created.link };
 }

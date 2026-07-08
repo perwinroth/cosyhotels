@@ -82,7 +82,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => go(`/${locale}/hotels/${h.slug}`)}
                 >
-                  {h.name}{h.city ? <span style={{ color: "var(--muted)" }}> — {h.city}</span> : null}
+                  {h.name}{h.city ? <span style={{ color: "var(--muted)" }}>, {h.city}</span> : null}
                 </button>
               </li>
             ))}

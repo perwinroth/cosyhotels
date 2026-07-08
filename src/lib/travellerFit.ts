@@ -55,7 +55,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "fireplace", slug: "fireplace", label: "Hotels with a fireplace", noun: "with a fireplace",
     category: "atmosphere", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
-    description: "Cosy stays with a real fire — a hearth, wood-burner or open fire to curl up beside.",
+    description: "Cosy stays with a real fire: a hearth, wood-burner or open fire to curl up beside.",
     seoQueryPatterns: ["cosy hotels with a fireplace in {city}", "hotels with a log fire in {city}"],
     aiPromptPatterns: ["find me a cosy hotel with a fireplace in {city}", "recommend a hotel in {city} with a real fire for a winter weekend"],
     re: /fireplace|hearth|log fire|wood[- ]?burn|open fire/i,
@@ -72,7 +72,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "spa", slug: "spa", label: "Hotels with a spa", noun: "with a spa",
     category: "amenity", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
-    description: "Stays with a spa or thermal wellness — somewhere to unwind after the day.",
+    description: "Stays with a spa or thermal wellness: somewhere to unwind after the day.",
     seoQueryPatterns: ["hotels with a spa in {city}", "cosy spa hotels in {city}"],
     aiPromptPatterns: ["find a cosy hotel with a spa in {city}", "recommend a wellness hotel in {city} for a relaxing break"],
     re: /\bspa\b|onsen|sauna|hot[- ]?spring|thermal|hammam|soaking tub|hot tub|wellness/i,
@@ -81,7 +81,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "boutique", slug: "boutique", label: "Boutique & independent hotels", noun: "boutique character",
     category: "style", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
-    description: "Small, independent and owner-run hotels with real personality — not chains.",
+    description: "Small, independent and owner-run hotels with real personality, not chains.",
     seoQueryPatterns: ["boutique hotels in {city}", "independent hotels in {city}"],
     aiPromptPatterns: ["recommend a boutique hotel in {city}", "find a small independent hotel in {city} with character"],
     re: /boutique|independent|design[- ]?led|design hotel|family[- ]?run|owner[- ]?run/i,
@@ -89,7 +89,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "views", slug: "views", label: "Hotels with a view", noun: "the view",
     category: "location", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
-    description: "Stays with a memorable outlook — over rooftops, mountains, a skyline or the water.",
+    description: "Stays with a memorable outlook: over rooftops, mountains, a skyline or the water.",
     seoQueryPatterns: ["hotels with a view in {city}", "hotels with the best views in {city}"],
     aiPromptPatterns: ["find a hotel in {city} with a great view", "recommend a hotel in {city} with a scenic outlook"],
     re: /\bview|panoram|overlook|rooftop|sea view|mountain|skyline/i,
@@ -99,7 +99,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "quiet", slug: "quiet", label: "Quiet hotels", noun: "for peace and quiet",
     category: "intent", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
-    description: "Calm, restful stays away from noise and crowds — good for a relaxing weekend.",
+    description: "Calm, restful stays away from noise and crowds, good for a relaxing weekend.",
     seoQueryPatterns: ["quiet hotels in {city}", "peaceful hotels in {city}"],
     aiPromptPatterns: ["recommend a quiet hotel in {city} for a relaxing weekend", "find a peaceful hotel in {city} away from the crowds"],
     re: /\bquiet\b|peaceful|tranquil|serene|secluded|restful|hushed|away from the (crowd|hustle|bustle)|off the beaten/i,
@@ -107,7 +107,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "family-friendly", slug: "family-friendly", label: "Family-friendly hotels", noun: "for families",
     category: "intent", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
-    description: "Welcoming stays that work for families — space, warmth and a relaxed feel with children.",
+    description: "Welcoming stays that work for families: space, warmth and a relaxed feel with children.",
     seoQueryPatterns: ["family-friendly hotels in {city}", "best hotels in {city} for families"],
     aiPromptPatterns: ["recommend a family-friendly hotel in {city}", "where should a family with kids stay in {city}"],
     re: /famil(y|ies)|kid[- ]?friendly|children welcome|family room|great with kids|connecting rooms?/i,
@@ -116,7 +116,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "pet-friendly", slug: "pet-friendly", label: "Pet-friendly hotels", noun: "for you and your dog",
     category: "intent", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
-    description: "Stays that genuinely welcome dogs and pets — not just tolerate them.",
+    description: "Stays that genuinely welcome dogs and pets, not just tolerate them.",
     seoQueryPatterns: ["pet-friendly hotels in {city}", "dog-friendly hotels in {city}"],
     aiPromptPatterns: ["find a dog-friendly hotel in {city}", "recommend a hotel in {city} where I can bring my dog"],
     re: /pet[- ]?friendly|dog[- ]?friendly|dogs? (are )?welcome|pets? (are )?welcome|bring your (dog|pet)/i,
@@ -127,7 +127,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "design", slug: "design", label: "Design hotels", noun: "for design lovers",
     category: "style", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
-    description: "Considered, design-forward interiors — architecture and styling you notice and enjoy.",
+    description: "Considered, design-forward interiors: architecture and styling you notice and enjoy.",
     seoQueryPatterns: ["design hotels in {city}", "stylish hotels in {city}"],
     aiPromptPatterns: ["recommend a design hotel in {city}", "find a beautifully designed hotel in {city}"],
     re: /design[- ]?(forward|hotel|led)|architectur|minimalist|interior design|mid[- ]?century|scandi(navian)?|beautifully designed|stylish interior/i,
@@ -135,7 +135,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "historic-charm", slug: "historic-charm", label: "Historic hotels", noun: "full of history",
     category: "style", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
-    description: "Buildings with a past — period features, heritage settings and old-world character.",
+    description: "Buildings with a past: period features, heritage settings and old-world character.",
     seoQueryPatterns: ["historic hotels in {city}", "old-world hotels in {city}"],
     aiPromptPatterns: ["recommend a historic hotel in {city} with character", "find a hotel in {city} in a heritage building"],
     re: /histori|centur(y|ies)|medieval|heritage|listed building|period (feature|propert)|antique|former (palace|monastery|convent|manor|coaching)/i,
@@ -151,7 +151,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "luxury-feel", slug: "luxury-feel", label: "Luxurious hotels", noun: "for a treat",
     category: "style", evidence: "soft", minConfidence: 0.8, collectionEnabled: false,
-    description: "Stays that feel indulgent — refined comfort and a sense of occasion.",
+    description: "Stays that feel indulgent: refined comfort and a sense of occasion.",
     seoQueryPatterns: ["luxury hotels in {city}", "most luxurious hotels in {city}"],
     aiPromptPatterns: ["recommend a luxurious hotel in {city} for a special occasion", "find an indulgent hotel in {city} for a treat"],
     re: /luxur|opulent|sumptuous|lavish|indulgent|refined elegance|five[- ]?star|high[- ]?end|plush/i,
@@ -159,7 +159,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "rustic", slug: "rustic", label: "Rustic retreats", noun: "for a rustic escape",
     category: "style", evidence: "soft", minConfidence: 0.78, collectionEnabled: false,
-    description: "Countryside warmth — farmhouses, exposed beams and reclaimed timber.",
+    description: "Countryside warmth: farmhouses, exposed beams and reclaimed timber.",
     seoQueryPatterns: ["rustic hotels in {city}", "countryside hotels near {city}"],
     aiPromptPatterns: ["find a rustic countryside hotel near {city}", "recommend a farmhouse-style stay near {city}"],
     re: /rustic|farmhouse|converted (barn|mill)|exposed (beam|stone)|reclaimed wood|country(side)? retreat|agriturismo/i,
@@ -169,7 +169,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "great-breakfast", slug: "great-breakfast", label: "Hotels with great breakfast", noun: "for the breakfast",
     category: "amenity", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
-    description: "Stays where guests single out the breakfast — generous, homemade, a highlight of the stay.",
+    description: "Stays where guests single out the breakfast: generous, homemade, a highlight of the stay.",
     seoQueryPatterns: ["hotels with the best breakfast in {city}", "hotels with great breakfast in {city}"],
     aiPromptPatterns: ["find a hotel in {city} with an excellent breakfast", "recommend a hotel in {city} known for its breakfast"],
     re: /(great|excellent|delicious|generous|hearty|fantastic|amazing|lovely|homemade|home[- ]?cooked|superb|wonderful) breakfast|breakfast (was|is)?\s*(great|excellent|delicious|amazing|fantastic|generous|superb|a highlight)|best breakfast/i,
@@ -187,7 +187,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "bathtub", slug: "bathtub", label: "Hotels with a bathtub", noun: "with a bathtub",
     category: "amenity", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
-    description: "Rooms with a proper bath — a soaking tub or freestanding bath to unwind in.",
+    description: "Rooms with a proper bath: a soaking tub or freestanding bath to unwind in.",
     seoQueryPatterns: ["hotels with a bathtub in {city}", "hotels with a freestanding bath in {city}"],
     aiPromptPatterns: ["find a hotel in {city} with a bathtub in the room", "recommend a hotel in {city} with a soaking tub"],
     re: /bath[- ]?tub|soaking tub|freestanding bath|roll[- ]?top bath|clawfoot|deep bath/i,
@@ -196,7 +196,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "rooftop", slug: "rooftop", label: "Hotels with a rooftop", noun: "with a rooftop",
     category: "amenity", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
-    description: "Stays with a rooftop terrace, bar or garden — a place to take in the view up top.",
+    description: "Stays with a rooftop terrace, bar or garden: a place to take in the view up top.",
     seoQueryPatterns: ["hotels with a rooftop in {city}", "hotels with a rooftop bar in {city}"],
     aiPromptPatterns: ["find a hotel in {city} with a rooftop terrace", "recommend a hotel in {city} with a rooftop bar"],
     re: /rooftop|roof terrace|roof[- ]?top bar|roof garden/i,
@@ -214,7 +214,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "pool", slug: "pool", label: "Hotels with a pool", noun: "with a pool",
     category: "amenity", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
-    description: "Stays with a swimming pool — indoor, plunge or infinity.",
+    description: "Stays with a swimming pool: indoor, plunge or infinity.",
     seoQueryPatterns: ["hotels with a pool in {city}", "hotels with a swimming pool in {city}"],
     aiPromptPatterns: ["find a hotel in {city} with a pool", "recommend a hotel in {city} with a swimming pool"],
     re: /\bpool\b|swimming pool|plunge pool|infinity pool|indoor pool/i,
@@ -225,7 +225,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "christmas-market", slug: "christmas-market", label: "Hotels near the Christmas market", noun: "near the Christmas market",
     category: "location", evidence: "hard", minConfidence: 0.75, collectionEnabled: false,
-    description: "Steps from the city's Christmas market — walk to the stalls and lights, then back to somewhere warm.",
+    description: "Steps from the city's Christmas market: walk to the stalls and lights, then back to somewhere warm.",
     seoQueryPatterns: ["hotels near the christmas market in {city}", "where to stay for the {city} christmas market"],
     aiPromptPatterns: ["recommend a cosy hotel near the {city} christmas market"],
     re: /christmas market|kerstmarkt|weihnachtsmarkt/i,
@@ -233,7 +233,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
   {
     id: "walkable", slug: "walkable", label: "Central, walkable hotels", noun: "in a walkable spot",
     category: "location", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
-    description: "Central stays where the good stuff is a short walk away — no taxis needed.",
+    description: "Central stays where the good stuff is a short walk away, no taxis needed.",
     seoQueryPatterns: ["central hotels in {city}", "walkable hotels in {city}"],
     aiPromptPatterns: ["find a central hotel in {city} within walking distance of the sights", "recommend a hotel in {city} where I can walk everywhere"],
     re: /steps from|walking distance|walkable|short walk|centrally located|central location|in the heart of|minutes'? walk|stroll to|everything within walk/i,
@@ -243,7 +243,7 @@ export const CONCEPTS: TravellerFitConcept[] = [
     category: "location", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
     // Differentiated from `views` (any scenic outlook): waterfront requires the hotel to actually
     // sit on the water — a factual claim, hence hard evidence.
-    description: "Stays right on the water — by the sea, a lake, a harbour or a river.",
+    description: "Stays right on the water: by the sea, a lake, a harbour or a river.",
     seoQueryPatterns: ["waterfront hotels in {city}", "hotels by the sea in {city}"],
     aiPromptPatterns: ["find a waterfront hotel in {city}", "recommend a hotel in {city} right on the water"],
     re: /waterfront|sea[- ]?front|lake[- ]?front|beach[- ]?front|harbour[- ]?side|harbor[- ]?side|canal[- ]?side|riverside|on the (sea|lake|water)|overlooking the (sea|ocean|lake|harbour|harbor)/i,

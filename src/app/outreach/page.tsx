@@ -53,14 +53,14 @@ export default async function OutreachPage() {
       <div style={{ maxWidth: 820, margin: "0 auto" }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0 }}>Hotel outreach</h1>
         <p style={{ color: "#9DA89F", marginTop: 8, fontSize: 14, lineHeight: 1.6 }}>
-          {hotels.length} featured hotels with a public Instagram. DM/email each one their feature — they repost (audience) and often link back (the best SEO backlink you can get). Best scores first.
+          {hotels.length} featured hotels with a public Instagram. DM/email each one their feature: they repost (audience) and often link back (the best SEO backlink you can get). Best scores first.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 22 }}>
           {hotels.map((h) => {
             const cityLink = `${base}/en/guides/${cityToSlug(h.city || "")}`;
             const ph = photo.get(h.id);
             const badge = ph ? hotelPinImageUrl(base, { name: h.name, city: h.city, score: h.score, photo: ph, instagram: h.instagram } as Slide) : "";
-            const msg = `Hi ${h.instagram}! 👋 Your hotel just landed on Got Cosy's AI-ranked list of the cosiest stays in ${h.city || "your city"} — a ${h.score.toFixed(1)}/10 Cosy Score for warmth & character.\n\n${badge ? `Shareable badge: ${badge}\n` : ""}You're featured here: ${cityLink}\n\nFeel free to repost — and a link back to your feature would mean a lot 🔥\n— Got Cosy (gotcosy.com)`;
+            const msg = `Hi ${h.instagram}! 👋 Your hotel just landed on Got Cosy's AI-ranked list of the cosiest stays in ${h.city || "your city"}, with a ${h.score.toFixed(1)}/10 Cosy Score for warmth & character.\n\n${badge ? `Shareable badge: ${badge}\n` : ""}You're featured here: ${cityLink}\n\nFeel free to repost, and a link back to your feature would mean a lot 🔥\nGot Cosy (gotcosy.com)`;
             return (
               <div key={h.id} style={card}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
@@ -74,7 +74,7 @@ export default async function OutreachPage() {
               </div>
             );
           })}
-          {hotels.length === 0 && <p style={{ color: "#9DA89F" }}>No hotels with handles yet — the social-handles sweep is still resolving them.</p>}
+          {hotels.length === 0 && <p style={{ color: "#9DA89F" }}>No hotels with handles yet; the social-handles sweep is still resolving them.</p>}
         </div>
       </div>
     </div>

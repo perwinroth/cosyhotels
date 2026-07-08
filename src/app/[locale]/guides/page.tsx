@@ -11,8 +11,8 @@ import { cityCopy } from "@/data/cityCopy";
 export const revalidate = 3600;
 
 export function generateMetadata(): Metadata {
-  const title = "Cosy hotel guides — find a cosy stay, city by city";
-  const description = "Hand-picked, AI-scored cosy hotels in the world's most characterful cities — boutique, independent and romantic stays, ranked 0–10 for warmth and character.";
+  const title = "Cosy hotel guides: find a cosy stay, city by city";
+  const description = "Hand-picked, AI-scored cosy hotels in the world's most characterful cities: boutique, independent and romantic stays, ranked 0–10 for warmth and character.";
   // Untranslated pages: only /en is indexed, so canonical points at the /en twin (no hreflang).
   return { alternates: { canonical: `/en/guides` }, title, description, openGraph: { title, description, type: "website" } };
 }
@@ -52,7 +52,7 @@ export default async function GuidesIndex({ params }: { params: { locale: string
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="font-display text-3xl font-semibold">Find a cosy stay</h1>
-      <p className="mt-2 text-muted">The world&apos;s most characterful cities — and the cosiest, most personal hotels in each, AI-scored 0–10 for warmth, character and intimacy.</p>
+      <p className="mt-2 text-muted">The world&apos;s most characterful cities, and the cosiest, most personal hotels in each, AI-scored 0–10 for warmth, character and intimacy.</p>
 
       {guides.length > 0 && (
         <div className="mt-6 grid md:grid-cols-2 gap-4">

@@ -87,7 +87,7 @@ export function StarsChart({ data }: { data: Array<{ stars: string; n: number; a
   const y = (v: number) => PAD.t + (H - PAD.t - PAD.b) * (1 - v / 10);
   return (
     <div ref={ref}>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Average cosy score by hotel star rating — nearly identical across all star levels">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Average cosy score by hotel star rating: nearly identical across all star levels">
         {[0, 2, 4, 6, 8, 10].map((v) => (
           <g key={v}>
             <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke={LINE} strokeDasharray="3 5" />

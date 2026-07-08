@@ -49,9 +49,9 @@ export default async function GrowthTodayPage() {
   const planTotal = plan.emails.length + plan.instagram.length + plan.reddit.length;
 
   const boards: Board[] = [
-    { href: "/growth/pr", title: "PR outreach", count: counts.pr, blurb: "Queued targets to pitch — draft, send, mark done." },
+    { href: "/growth/pr", title: "PR outreach", count: counts.pr, blurb: "Queued targets to pitch: draft, send, mark done." },
     { href: "/growth/badges", title: "Badge outreach", count: counts.badges, blurb: "Top-2.3% hotels to pitch their “Rated Cosy” badge (approx.)." },
-    { href: "/growth/reddit", title: "Reddit", count: counts.reddit, blurb: "New threads asking for cosy hotels — reply like a human." },
+    { href: "/growth/reddit", title: "Reddit", count: counts.reddit, blurb: "New threads asking for cosy hotels; reply like a human." },
     { href: "/growth/blog", title: "Blog", count: counts.blog, blurb: "Drafts + scheduled posts to review before they publish." },
   ];
 
@@ -60,8 +60,8 @@ export default async function GrowthTodayPage() {
       <h1 className="font-display" style={{ fontSize: 24, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>Today</h1>
       <p style={{ color: "var(--muted)", marginTop: 6, fontSize: 13.5 }}>
         {planTotal === 0
-          ? "Nothing to do right now — all queues are clear."
-          : "Your exact plan for today — work it top to bottom, then stop. No decisions needed."}
+          ? "Nothing to do right now; all queues are clear."
+          : "Your exact plan for today: work it top to bottom, then stop. No decisions needed."}
       </p>
 
       {/* ───────── Today's plan: the concrete daily to-do, tick each off ───────── */}
@@ -78,7 +78,7 @@ export default async function GrowthTodayPage() {
       </h2>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4" style={{ marginTop: 12 }}>
         <Stat label="Visitors" value={stats.visitors.toLocaleString()} sub="last 30 days" />
-        <Stat label="GSC impressions" value={stats.impressions === null ? "—" : stats.impressions.toLocaleString()} sub="last 28 days" />
+        <Stat label="GSC impressions" value={stats.impressions === null ? "–" : stats.impressions.toLocaleString()} sub="last 28 days" />
         <Stat label="Live hotels" value={stats.liveHotels.toLocaleString()} sub="score ≥ 5, public" />
         <Stat label="Scheduled posts" value={stats.scheduledPosts.toLocaleString()} sub="auto-publish queued" />
       </div>

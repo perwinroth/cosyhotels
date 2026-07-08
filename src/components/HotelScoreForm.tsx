@@ -64,7 +64,7 @@ export default function HotelScoreForm() {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Describe your hotel</label>
-          <textarea className="w-full rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2 min-h-[96px]" style={inputStyle} placeholder="What makes your hotel cosy — the rooms, character, setting, feel…" {...field("description")} />
+          <textarea className="w-full rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2 min-h-[96px]" style={inputStyle} placeholder="What makes your hotel cosy: the rooms, character, setting, feel…" {...field("description")} />
         </div>
         <button
           type="submit"
@@ -85,7 +85,7 @@ export default function HotelScoreForm() {
               {result.score100}<span className="text-2xl" style={{ color: "var(--muted)" }}>/100</span>
             </div>
             <div className="mt-2 text-sm font-medium" style={{ color: result.score100 >= 50 ? "var(--sage)" : "var(--ember)" }}>
-              {result.score100 >= 50 ? "✓ Cosy enough to be listed on Got Cosy?" : "Not cosy enough to be listed yet — 50+ needed."}
+              {result.score100 >= 50 ? "✓ Cosy enough to be listed on Got Cosy?" : "Not cosy enough to be listed yet (50+ needed)."}
             </div>
             {result.description && <p className="mt-3 text-sm" style={{ color: "var(--foreground)" }}>{result.description}</p>}
             {result.signals?.length > 0 && (

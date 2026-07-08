@@ -13,7 +13,7 @@ export default function NotFoundView({ locale = "en" }: { locale?: string }) {
         <p className="text-xs font-semibold uppercase" style={{ color: "var(--ember)", letterSpacing: "0.07em" }}>404</p>
         <h1 className="mt-2 font-display text-3xl font-semibold" style={{ color: "var(--foreground)" }}>This page wandered off.</h1>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
-          We couldn&apos;t find what you were looking for — it may have moved, or never existed. Let&apos;s get you somewhere cosy.
+          We couldn&apos;t find what you were looking for; it may have moved, or never existed. Let&apos;s get you somewhere cosy.
         </p>
         <div className="mt-6 flex flex-col items-center gap-3">
           <div className="flex flex-wrap items-center justify-center gap-2">

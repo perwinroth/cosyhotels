@@ -58,7 +58,7 @@ export default async function StatusPage() {
     <div style={{ minHeight: "100vh", background: "#0F1512", color: "#F3EEE6", fontFamily: "Inter, system-ui, sans-serif", padding: "32px 24px" }}>
       <meta httpEquiv="refresh" content="30" />
       <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-        <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 32, fontWeight: 600 }}>Got Cosy? — System Status</h1>
+        <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 32, fontWeight: 600 }}>Got Cosy? System Status</h1>
         <p style={{ color: "#9DA89F", marginTop: 4, fontSize: 14 }}>Live · auto-refreshes every 30s</p>
 
         {/* Health */}
@@ -77,7 +77,7 @@ export default async function StatusPage() {
         </Section>
 
         {/* Backfill */}
-        <Section title={`Backfill — ${done}/${targetTotal} cities done`}>
+        <Section title={`Backfill: ${done}/${targetTotal} cities done`}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 14 }}>
             {[1, 2, 3, 4].map((t) => (
               <Stat key={t} big={`${tierCounts[t].done}/${tierCounts[t].total}`} small={`Tier ${t} cities`} />
@@ -102,7 +102,7 @@ export default async function StatusPage() {
 
         {/* Images */}
         <Section title="Image coverage">
-          <Bar label={`Real photos — ${realImgs.toLocaleString()} of ${imgsTotal.toLocaleString()}`} value={realImgs} max={imgsTotal || 1} pct />
+          <Bar label={`Real photos: ${realImgs.toLocaleString()} of ${imgsTotal.toLocaleString()}`} value={realImgs} max={imgsTotal || 1} pct />
         </Section>
 
         {/* Recent cities */}

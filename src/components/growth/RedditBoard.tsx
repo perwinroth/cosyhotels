@@ -10,7 +10,7 @@ export type RedditRow = {
 };
 
 const COLUMNS: KanbanColumn[] = [
-  { id: "new", title: "New", hint: "Nothing waiting — new leads land here.", advanceLabel: "Mark replied" },
+  { id: "new", title: "New", hint: "Nothing waiting; new leads land here.", advanceLabel: "Mark replied" },
   { id: "replied", title: "Replied", hint: "Threads you've genuinely helped on." },
   { id: "dismissed", title: "Dismissed", hint: "Not a fit / too old.", discard: true },
 ];

@@ -170,7 +170,7 @@ export default function Kanban({ columns, cards, onMove }: KanbanProps) {
           </div>
         )}
         {errors[card.id] && (
-          <span className="gk-chip" style={{ color: "var(--ember)", borderColor: "var(--ember)" }}>couldn&apos;t save — tap a stage to retry</span>
+          <span className="gk-chip" style={{ color: "var(--ember)", borderColor: "var(--ember)" }}>couldn&apos;t save; tap a stage to retry</span>
         )}
       </div>
     );
@@ -212,7 +212,7 @@ export default function Kanban({ columns, cards, onMove }: KanbanProps) {
           <div style={{ marginTop: 12 }}>
             <button onClick={() => setShowDiscard((s) => !s)}
               style={{ background: "none", border: "1px solid var(--line)", borderRadius: 999, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: "var(--muted)", cursor: "pointer" }}>
-              {discard.map((d) => d.title).join(" / ")} ({discardCount}) — {showDiscard ? "hide" : "show"}
+              {discard.map((d) => d.title).join(" / ")} ({discardCount}) · {showDiscard ? "hide" : "show"}
             </button>
             {showDiscard && <div className="gk-board" style={{ marginTop: 10 }}>{discard.map(renderColumn)}</div>}
           </div>

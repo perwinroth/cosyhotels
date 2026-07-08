@@ -13,9 +13,9 @@ export type PrRow = {
 
 const COLUMNS: KanbanColumn[] = [
   { id: "queued", title: "Queued", hint: "New targets land here.", advanceLabel: "Mark contacted" },
-  { id: "contacted", title: "Contacted", hint: "Nothing waiting — drafts you've sent appear here.", advanceLabel: "Mark replied" },
-  { id: "replied", title: "Replied", hint: "They wrote back — move here.", advanceLabel: "Mark won" },
-  { id: "won", title: "Won", hint: "Said yes — awaiting the live link.", advanceLabel: "Mark confirmed" },
+  { id: "contacted", title: "Contacted", hint: "Nothing waiting; drafts you've sent appear here.", advanceLabel: "Mark replied" },
+  { id: "replied", title: "Replied", hint: "They wrote back; move here.", advanceLabel: "Mark won" },
+  { id: "won", title: "Won", hint: "Said yes; awaiting the live link.", advanceLabel: "Mark confirmed" },
   { id: "won_confirmed", title: "Won confirmed", hint: "Backlink landed 🔥" },
   { id: "declined", title: "Declined", hint: "No thanks / no fit.", discard: true },
 ];
@@ -26,7 +26,7 @@ const recChip = (r?: string) =>
   : r === "skip" ? { label: "skip", color: "var(--muted)" }
   : null;
 const fitAngle: Record<string, string> = {
-  "data-study": "Pitch the cosiness data study — citable stats they can quote.",
+  "data-study": "Pitch the cosiness data study: citable stats they can quote.",
   "hotelier-asset": "Offer the “make your hotel look cosy” guide for their audience.",
   "listicle": "Offer a “best cosy hotels for X” round-up angle.",
   "expert-source": "Offer yourself as an expert source on cosy / boutique travel.",

@@ -8,8 +8,8 @@ import { cityToSlug } from "@/lib/citySlug";
 
 export const revalidate = 3600;
 
-const TITLE = "The Cosy Index — The World's Cosiest Hotels, AI-Ranked";
-const DESC = "An AI-scored ranking of the world's cosiest hotels — rated 0–10 for warmth, character and intimacy, not stars. Updated continuously from real data.";
+const TITLE = "The Cosy Index: The World's Cosiest Hotels, AI-Ranked";
+const DESC = "An AI-scored ranking of the world's cosiest hotels, rated 0–10 for warmth, character and intimacy, not stars. Updated continuously from real data.";
 // The Index bar, aligned to the calibrated bell curve (scores top out at ~7.8, not 10) and to the
 // Cosiness Report's headline (≥7.0 ≈ the cosiest 2.3%). A constant so a future rescore can't silently
 // empty the page the way a hard-coded 8.0 did.
@@ -95,8 +95,8 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
   };
   const datasetLd = {
     "@context": "https://schema.org", "@type": "Dataset",
-    name: "The Cosy Index — AI cosiness scores for 17,000+ hotels",
-    description: `An AI-generated dataset scoring ${totalScored.toLocaleString()} hotels worldwide for cosiness — warmth, intimacy and character — on a 0–10 scale. ${clearBar.toLocaleString()} (${pctClear}%) clear the cosy bar (5+); ${inIndex.toLocaleString()} reach the Index (${INDEX_MIN.toFixed(1)}+).`,
+    name: "The Cosy Index: AI cosiness scores for 17,000+ hotels",
+    description: `An AI-generated dataset scoring ${totalScored.toLocaleString()} hotels worldwide for cosiness (warmth, intimacy and character) on a 0–10 scale. ${clearBar.toLocaleString()} (${pctClear}%) clear the cosy bar (5+); ${inIndex.toLocaleString()} reach the Index (${INDEX_MIN.toFixed(1)}+).`,
     creator: { "@type": "Organization", name: "Got Cosy", url: siteUrl },
     url: `${siteUrl}/${params.locale}/cosy-index`,
     keywords: ["cosy hotels", "boutique hotels", "hotel rankings", "cosiness score", "romantic hotels", "cosiest cities"],
@@ -110,7 +110,7 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetLd) }} />
       <h1 className="text-3xl font-semibold tracking-tight">The Cosy Index</h1>
-      <p className="mt-3 text-lg" style={{ color: "var(--muted)" }}>We&apos;ve AI-scored <strong style={{ color: "var(--foreground)" }}>{totalScored.toLocaleString()}</strong> hotels for cosiness — warmth, character and intimacy, not stars. {clearBar.toLocaleString()} ({pctClear}%) clear the cosy bar; only <strong style={{ color: "var(--foreground)" }}>{inIndex.toLocaleString()}</strong> ({pctIndex}%) make the Index.</p>
+      <p className="mt-3 text-lg" style={{ color: "var(--muted)" }}>We&apos;ve AI-scored <strong style={{ color: "var(--foreground)" }}>{totalScored.toLocaleString()}</strong> hotels for cosiness: warmth, character and intimacy, not stars. {clearBar.toLocaleString()} ({pctClear}%) clear the cosy bar; only <strong style={{ color: "var(--foreground)" }}>{inIndex.toLocaleString()}</strong> ({pctIndex}%) make the Index.</p>
 
       {/* Headline stats — answer-first, citable facts for press + AI answer engines. */}
       <div className="mt-6 grid grid-cols-3 gap-3">
@@ -166,7 +166,7 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
 
       <section className="mt-12">
         <h2 className="text-xl font-semibold">How the Cosy Index works</h2>
-        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>Every hotel is scored by AI on the signals that actually make a stay cosy — small room counts, fireplaces and soaking tubs, natural materials, intimate design, and reviews where guests feel genuinely welcomed rather than processed. Scores run 0–10, calibrated against hundreds of hand-graded hotels; the very cosiest top out around 7.8, and clearing {INDEX_MIN.toFixed(1)} puts a hotel in the Index. Browse the full rankings by city in our <a href={`/${params.locale}`} className="underline">cosy hotel guides</a>.</p>
+        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>Every hotel is scored by AI on the signals that actually make a stay cosy: small room counts, fireplaces and soaking tubs, natural materials, intimate design, and reviews where guests feel genuinely welcomed rather than processed. Scores run 0–10, calibrated against hundreds of hand-graded hotels; the very cosiest top out around 7.8, and clearing {INDEX_MIN.toFixed(1)} puts a hotel in the Index. Browse the full rankings by city in our <a href={`/${params.locale}`} className="underline">cosy hotel guides</a>.</p>
       </section>
     </div>
   );

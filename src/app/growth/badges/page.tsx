@@ -61,7 +61,7 @@ export default async function GrowthBadgesPage() {
   return (
     <div>
       <header style={{ marginBottom: 18 }}>
-        <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, margin: 0 }}>Badge outreach — the top 2.3%</h1>
+        <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, margin: 0 }}>Badge outreach: the top 2.3%</h1>
         <p style={{ color: "var(--muted)", fontSize: 13.5, marginTop: 5 }}>{built.length} Cosy Index hotels (of {(totalScored || 0).toLocaleString()} scored) with a public contact. Pitches are experiment arms v2/v3 (pre-registered). Open each in Gmail or Instagram (or copy the pitch), send it, then advance the card as they reply and embed the badge.</p>
       </header>
       <BadgeBoard rows={built} channelById={channelById} />

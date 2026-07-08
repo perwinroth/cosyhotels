@@ -2,11 +2,11 @@
 // /growth Today daily plan, so they always send the SAME personalized pitch and one-click Gmail link.
 import { cityToSlug } from "@/lib/citySlug";
 
-export const BADGE_SUBJECT = "You made the Cosy Index — here's your badge";
+export const BADGE_SUBJECT = "You made the Cosy Index: here's your badge";
 const GMAIL_ACCOUNT = "perwinroth@gmail.com"; // founder's real mailbox; From = per@gotcosy.com Send-As (Zoho relay, fixed 2026-07-07)
 
 // A clean, unique excerpt of the hotel's own cosy write-up (trims to a sentence boundary near `max`),
-// so every pitch quotes something different — better deliverability AND reply rate.
+// so every pitch quotes something different: better deliverability AND reply rate.
 export function pitchExcerpt(desc: string | null | undefined, max = 450): string {
   const clean = String(desc || "").replace(/\s+/g, " ").trim();
   if (!clean) return "";
@@ -18,7 +18,7 @@ export function pitchExcerpt(desc: string | null | undefined, max = 450): string
   return `${slice.slice(0, space > 0 ? space : max).trim()}…`;
 }
 
-// The personalized badge pitch — quotes THIS hotel's cosy write-up so no two emails are identical.
+// The personalized badge pitch: quotes THIS hotel's cosy write-up so no two emails are identical.
 export function buildBadgePitch(
   h: { name: string; score: number; slug: string; city: string; description?: string | null },
   opts: { totalTxt: string; base: string },
@@ -27,24 +27,24 @@ export function buildBadgePitch(
   const cityLink = `${opts.base}/en/guides/${cityToSlug(h.city || "")}`;
   const excerpt = pitchExcerpt(h.description);
   const personal = excerpt ? `Here's what earned it, in our own words:\n"${excerpt}"\n\n` : "";
-  return `Hi! 👋 ${h.name} just made our Cosy Index — the cosiest ~2.3% of the ${opts.totalTxt} hotels we've AI-scored, with a ${h.score.toFixed(1)}/10 Cosy Score for warmth & character.\n\n${personal}Grab your "Rated Cosy" badge to show it off — it links back to your ranking: ${badgeLink}\n\nYou're featured here: ${cityLink}\n\nA link back would mean a lot 🔥\n— Got Cosy (gotcosy.com)`;
+  return `Hi! 👋 ${h.name} just made our Cosy Index: the cosiest ~2.3% of the ${opts.totalTxt} hotels we've AI-scored, with a ${h.score.toFixed(1)}/10 Cosy Score for warmth & character.\n\n${personal}Grab your "Rated Cosy" badge to show it off; it links back to your ranking: ${badgeLink}\n\nYou're featured here: ${cityLink}\n\nA link back would mean a lot 🔥\nGot Cosy (gotcosy.com)`;
 }
 
-// One-click Gmail compose deep-link (opens gotcosy@gmail.com with a pre-filled, editable draft — nothing
+// One-click Gmail compose deep-link (opens gotcosy@gmail.com with a pre-filled, editable draft; nothing
 // auto-sends; the from-address is that account's default send-as, per@gotcosy.com).
 export function gmailComposeUrl(to: string, subject: string, body: string): string {
   const p = new URLSearchParams({ authuser: GMAIL_ACCOUNT, view: "cm", fs: "1", to, su: subject, body });
   return `https://mail.google.com/mail/u/0/?${p.toString()}`;
 }
 
-// Instagram DM deep-link (DMs can't be pre-filled — Per pastes the copied pitch).
+// Instagram DM deep-link (DMs can't be pre-filled; Per pastes the copied pitch).
 export function instagramDmUrl(handle: string): string {
   const h = handle.replace(/^@/, "").trim();
   return /^[A-Za-z0-9._]+$/.test(h) ? `https://ig.me/m/${h}` : `https://instagram.com/${encodeURIComponent(h)}`;
 }
 
-// ————— Variant experiment (pre-registered: die-validation outreach-experiment-preregistration-2026-07-07) —————
-// Deterministic arm assignment — MUST match die-validation/scripts/measure-outreach.mjs exactly.
+// ----- Variant experiment (pre-registered: die-validation outreach-experiment-preregistration-2026-07-07) -----
+// Deterministic arm assignment; MUST match die-validation/scripts/measure-outreach.mjs exactly.
 import { createHash } from "node:crypto";
 export type PitchVariant = "v2" | "v3";
 export function variantFor(hotelId: string): PitchVariant {
@@ -67,9 +67,9 @@ export function buildVariantPitch(
       subject: `Your guests made ${h.name} one of the cosiest hotels in ${h.city}`,
       body: `Hi,
 
-I run GotCosy, a small hotel-discovery site. We analyse the guest reviews of 17,727 hotels for warmth and character — and ${h.name} came out in the top 2.3% of them, with a cosy score of ${h.score.toFixed(1)}/10.
+I run GotCosy, a small hotel-discovery site. We analyse the guest reviews of 17,727 hotels for warmth and character, and ${h.name} came out in the top 2.3% of them, with a cosy score of ${h.score.toFixed(1)}/10.
 
-${excerpt ? `What earned it is what your own guests keep saying — this line is condensed from their reviews: "${excerpt}"
+${excerpt ? `What earned it is what your own guests keep saying; this line is condensed from their reviews: "${excerpt}"
 
 ` : ""}Your page, with the score and the reasons behind it: ${hotelPage}
 
@@ -85,9 +85,9 @@ gotcosy.com`,
     subject: `The data on ${h.name}: top 2.3% of 17,727 hotels for cosiness`,
     body: `Hi,
 
-We've just published a guest-review-language analysis of 17,727 hotels — how warmly guests actually write about where they stayed. The methodology and full tables are public: https://gotcosy.com/en/data/cosiest-hotel-towns?utm_source=outreach&utm_campaign=v3
+We've just published a guest-review-language analysis of 17,727 hotels: how warmly guests actually write about where they stayed. The methodology and full tables are public: https://gotcosy.com/en/data/cosiest-hotel-towns?utm_source=outreach&utm_campaign=v3
 
-${h.name} scored ${h.score.toFixed(1)}/10 — the top 2.3% of them.${excerpt ? ` The evidence — this line is condensed from your guests' reviews: "${excerpt}"` : ""}
+${h.name} scored ${h.score.toFixed(1)}/10: the top 2.3% of them.${excerpt ? ` The evidence (this line is condensed from your guests' reviews): "${excerpt}"` : ""}
 
 Your full evidence page: ${hotelPage}
 
@@ -95,6 +95,7 @@ A free "Rated Cosy" badge is available for your site if useful: ${badgeLink}. Ha
 
 ${optOut}
 
-Per — gotcosy.com`,
+Per
+gotcosy.com`,
   };
 }

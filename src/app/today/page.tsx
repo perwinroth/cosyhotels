@@ -33,7 +33,7 @@ export default async function TodayPage() {
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0 }}>Today&apos;s pins → Pinterest</h1>
         <p style={{ color: "#9DA89F", marginTop: 8, fontSize: 14, lineHeight: 1.6 }}>
-          {hotelPins.length} pin-worthy hotels. Pinterest needs a ~2-week manual warm-up before automated posting —
+          {hotelPins.length} pin-worthy hotels. Pinterest needs a ~2-week manual warm-up before automated posting;
           post <strong>1/day</strong> (ramp to 2–3): tap <strong>📌 Pin to Pinterest</strong>, it opens the creator
           pre-filled with the badge image, the city link, and the description. Pick the <strong>Cosy Hotels</strong> board
           and publish. Work down the list (best scores first); once warm, the cron takes over.

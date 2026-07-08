@@ -14,7 +14,7 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
               <span className="font-display text-lg font-semibold">{site.name}</span>
             </Link>
             <p className="mt-3.5 text-sm max-w-xs" style={{ color: "var(--muted)", lineHeight: 1.6 }}>
-              The web&apos;s cosiest hotels, scored by AI for warmth, character and intimacy — so you book a place with soul, not just stars.
+              The web&apos;s cosiest hotels, scored by AI for warmth, character and intimacy, so you book a place with soul, not just stars.
             </p>
           </div>
           <FooterCol title="Explore">
@@ -39,7 +39,7 @@ export default function Footer({ locale = "en" }: { locale?: string }) {
         </nav>
         <div className="mt-11 pt-5 flex flex-col sm:flex-row justify-between gap-2 text-[13px]" style={{ borderTop: "1px solid var(--line)", color: "var(--muted)" }}>
           <div>© {new Date().getFullYear()} {site.name}</div>
-          <div>Bookings via partner sites — we may earn a commission.</div>
+          <div>Bookings via partner sites; we may earn a commission.</div>
         </div>
       </div>
     </footer>

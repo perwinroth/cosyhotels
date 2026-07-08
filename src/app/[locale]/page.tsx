@@ -107,7 +107,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
           Got <span style={{ fontStyle: "italic", fontWeight: 500, color: "var(--ember)" }}>cosy?</span>
         </h1>
         <p className="mt-4 mx-auto text-lg" style={{ color: "var(--muted)", maxWidth: 560, lineHeight: 1.5 }}>
-          Sure we do — our AI ranks hotels on cosiness, not stars.
+          Sure we do: our AI ranks hotels on cosiness, not stars.
         </p>
         <div className="mt-7 mx-auto" style={{ maxWidth: 580 }}>
           <Suspense fallback={<div className="h-12 rounded-2xl border" style={{ borderColor: "var(--line)", background: "var(--card)" }} />}>
@@ -146,7 +146,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
           <section className="mt-14">
             <div className="flex items-baseline justify-between mb-5">
               <h2 className="font-display text-2xl font-semibold">Cosy stays we love</h2>
-              <span className="text-sm" style={{ color: "var(--muted)" }}>High cosy scores — with a real photo to match</span>
+              <span className="text-sm" style={{ color: "var(--muted)" }}>High cosy scores, with a real photo to match</span>
             </div>
             <ol className="space-y-3">
               {top.map((h, i) => {
@@ -165,13 +165,13 @@ export default async function Home({ params }: { params: { locale: string } }) {
                         {/* Button below the text so it never overlaps a long hotel name. */}
                         <div className="mt-3 flex items-center gap-2">
                           <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex rounded-xl px-5 py-2.5 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
-                          <ShareButton variant="icon" title={`${h.name_en || h.name} — cosy hotel in ${h.city}`} url={`/${locale}/hotels/${h.slug}`} />
+                          <ShareButton variant="icon" title={`${h.name_en || h.name}, a cosy hotel in ${h.city}`} url={`/${locale}/hotels/${h.slug}`} />
                         </div>
                       </div>
                       {h.image && (
                         <a href={`/${locale}/hotels/${h.slug}`} className="flex-none hidden sm:block no-underline">
                           <div className="relative rounded-xl overflow-hidden" style={{ width: 150, height: 112, border: "1px solid var(--line)" }}>
-                            <Image src={h.image} alt={`${h.name_en || h.name} — ${h.city}`} fill className="object-cover" sizes="150px" quality={65} unoptimized={/^https?:\/\//.test(h.image)} />
+                            <Image src={h.image} alt={`${h.name_en || h.name}, ${h.city}`} fill className="object-cover" sizes="150px" quality={65} unoptimized={/^https?:\/\//.test(h.image)} />
                           </div>
                         </a>
                       )}
