@@ -68,8 +68,9 @@ async function fetchHtml(url: string): Promise<{ finalUrl: string; html: string 
       if (!/text\/html|application\/xhtml/i.test(ct)) return null;
       const html = await res.text();
       return { finalUrl: res.url || url, html };
-    } catch (e: any) {
-      const net = e?.name === "AbortError" || e?.name === "TimeoutError" || /fetch failed|network|ENOTFOUND|ECONN|EAI_AGAIN/i.test(String(e?.message));
+    } catch (e) {
+      const err = e as { name?: string; message?: string } | null;
+      const net = err?.name === "AbortError" || err?.name === "TimeoutError" || /fetch failed|network|ENOTFOUND|ECONN|EAI_AGAIN/i.test(String(err?.message));
       if (net && attempt === 0) { await sleep(800); continue; }
       return null; // give up (bad cert, DNS, timeout twice, etc.)
     }
@@ -221,7 +222,7 @@ async function loadTargets(hasCols: boolean): Promise<Hotel[]> {
   for (let i = 0; i < ids.length; i += 300) {
     const { data, error } = await db.from("hotels").select(cols).in("id", ids.slice(i, i + 300));
     if (error) { console.error("✗ hotels read:", error.message); process.exit(1); }
-    for (const h of (data as any[]) || []) hotels.push(h as Hotel);
+    for (const h of (data as unknown[]) || []) hotels.push(h as Hotel);
   }
   // must have a website; if columns exist, skip already-checked (unless --force)
   let targets = hotels.filter((h) => h.website && String(h.website).trim());
@@ -261,7 +262,7 @@ async function main() {
         if (email) found++; else missed++;
         if (sample.length < 40) sample.push({ name: h.name, website: h.website, email, source });
         await writeRow(h, email, source);
-      } catch (e: any) { failed++; console.log(`  skip ${String(h.name).slice(0, 30)}: ${String(e?.message).slice(0, 50)}`); }
+      } catch (e) { failed++; console.log(`  skip ${String(h.name).slice(0, 30)}: ${String((e as { message?: string })?.message).slice(0, 50)}`); }
       processed++;
       if (processed % 5 === 0) { save(); console.log(`  ${processed}/${targets.length} · found ${found} miss ${missed} fail ${failed}`); }
     }
@@ -283,7 +284,7 @@ async function main() {
 
   if (EXECUTE && hasCols) {
     try { await db.from("job_runs").insert({ job: "scrape-hotel-emails", status: "done", finished_at: new Date().toISOString(), details: { total: targets.length, processed, found, missed, failed } }); console.log("job_runs audit record written"); }
-    catch (e: any) { console.log("job_runs write failed:", String(e?.message).slice(0, 60)); }
+    catch (e) { console.log("job_runs write failed:", String((e as { message?: string })?.message).slice(0, 60)); }
   }
 }
 
