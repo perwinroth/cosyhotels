@@ -6,6 +6,7 @@ import { getGscSummary, gscConfigured } from "@/lib/gsc";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
 import { buildBadgePitch, buildVariantPitch, variantFor, gmailComposeUrl, instagramDmUrl } from "@/lib/badgePitch";
 import { displayCity, isLatin } from "@/lib/placeText";
+import { isControlMarket } from "@/lib/controlMarkets";
 import { REDDIT_ANSWER_PLAN } from "@/data/redditAnswerPlan";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any;
@@ -33,16 +34,22 @@ function subredditFromUrl(url: string): string | null {
 // Reddit threads to reply to — capped to DAILY so Per just works the list, no judgement calls.
 export async function getTodayPlan(db: DB): Promise<{
   emails: TodayEmail[]; instagram: TodayInstagram[]; reddit: TodayReddit[];
-  totalEmailQueued: number; totalIgQueued: number;
+  totalEmailQueued: number; totalIgQueued: number; sentToday: { count: number };
 }> {
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
-  const empty = { emails: [], instagram: [], reddit: [], totalEmailQueued: 0, totalIgQueued: 0 };
+  const empty = { emails: [], instagram: [], reddit: [], totalEmailQueued: 0, totalIgQueued: 0, sentToday: { count: 0 } };
   try {
-    const [{ data: queued }, { count: total }, { data: redditRows }] = await Promise.all([
+    // Sent-today acknowledgment: hotels marked contacted since the start of UTC today. The queue
+    // refills after every tick, so without this count the founder's sent work looks lost.
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const [{ data: queued }, { count: total }, { data: redditRows }, { count: contactedToday }] = await Promise.all([
       db.from("hotel_outreach").select("hotel_id").eq("status", "queued"),
       db.from("cosy_scores").select("*", { count: "exact", head: true }),
       db.from("reddit_leads").select("id,subreddit,title,url,city").eq("status", "new").order("found_at", { ascending: false }).limit(DAILY.reddit),
+      db.from("hotel_outreach").select("*", { count: "exact", head: true }).eq("status", "contacted").gte("contacted_at", todayStart.toISOString()),
     ]);
+    const sentToday = { count: contactedToday ?? 0 };
     const totalTxt = (total || 17000).toLocaleString();
 
     // Today-reddit ordering: the founder-reviewed plan (worthiness >= 4) goes first — TodayPlan.tsx
@@ -62,10 +69,14 @@ export async function getTodayPlan(db: DB): Promise<{
       }));
     const leadReddit: TodayReddit[] = ((redditRows || []) as Array<{ id: string; subreddit: string | null; title: string | null; url: string; city: string | null }>)
       .map((r) => ({ ...r, source: "lead" as const }));
-    const reddit: TodayReddit[] = [...planned, ...leadReddit];
+    // Control-market exclusion (src/lib/controlMarkets.ts): Savannah/York leads must never be
+    // actioned or the GSC treated-vs-control measurement is contaminated. Rows stay in the DB;
+    // Today just never shows them.
+    const reddit: TodayReddit[] = [...planned, ...leadReddit]
+      .filter((r) => !isControlMarket(r.city) && !isControlMarket(r.subreddit));
 
     const ids = ((queued || []) as Array<{ hotel_id: string }>).map((r) => String(r.hotel_id));
-    if (!ids.length) return { ...empty, reddit };
+    if (!ids.length) return { ...empty, reddit, sentToday };
 
     // Pull the queued hotels' score + write-up + contact, best score first.
     const { data } = await db
@@ -103,6 +114,7 @@ export async function getTodayPlan(db: DB): Promise<{
       reddit,
       totalEmailQueued: emails.length,
       totalIgQueued: instagram.length,
+      sentToday,
     };
   } catch {
     return empty;

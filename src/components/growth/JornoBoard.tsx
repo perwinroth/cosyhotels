@@ -25,13 +25,30 @@ export type JournoRow = {
   created_at: string;
 };
 
-const GROUPS: Array<{ id: string; label: string; hint: string }> = [
-  { id: "drafted", label: "Drafted: review & send", hint: "A reply is waiting in Gmail Drafts." },
-  { id: "new", label: "New: no draft yet", hint: "Low fit, or no reply address found in the digest." },
+// The founder-facing contract: the top card is always the next action. Actionable rows (drafted +
+// new) form ONE section sorted best fit first (earliest deadline breaks ties); done states follow;
+// low-fit auto-skipped rows collapse into a details block so triage errors stay recoverable.
+const LOW_FIT = 0.35; // must match the cron's MIN_FIT (api/cron/journo-queries)
+
+const DONE_GROUPS: Array<{ id: string; label: string; hint: string }> = [
   { id: "sent", label: "Sent", hint: "You've replied." },
   { id: "skipped", label: "Skipped", hint: "Not worth a reply." },
   { id: "expired", label: "Expired", hint: "Deadline passed." },
 ];
+
+// Deadlines are free text from the digests; unparseable ones sort last within a fit tie.
+function deadlineTime(s: string | null): number {
+  if (!s) return Infinity;
+  const t = new Date(s).getTime();
+  return Number.isNaN(t) ? Infinity : t;
+}
+
+function byFitThenDeadline(a: JournoRow, b: JournoRow): number {
+  const fa = a.fit_score ?? -1;
+  const fb = b.fit_score ?? -1;
+  if (fb !== fa) return fb - fa;
+  return deadlineTime(a.deadline) - deadlineTime(b.deadline);
+}
 
 function fmtDate(s: string | null) {
   if (!s) return null;
@@ -144,10 +161,30 @@ export default function JornoBoard({ rows }: { rows: JournoRow[] }) {
   if (!rows.length) {
     return <p style={{ color: "var(--muted)", fontSize: 13.5 }}>No queries yet; the cron runs 3x/day and needs Per subscribed to Source of Sources / Featured digests at the inbox GMAIL_REFRESH_TOKEN is authorized for.</p>;
   }
+  const actionable = rows.filter((r) => r.status === "drafted" || r.status === "new").sort(byFitThenDeadline);
+  // Auto-skipped = skipped with a confidently-low (or missing) fit; the founder's own skips of
+  // decent-fit queries keep their normal Skipped section.
+  const autoSkipped = rows.filter((r) => r.status === "skipped" && (r.fit_score == null || r.fit_score < LOW_FIT));
+  const autoSkippedIds = new Set(autoSkipped.map((r) => r.id));
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-      {GROUPS.map((g) => {
-        const inGroup = rows.filter((r) => r.status === g.id);
+      {actionable.length > 0 && (
+        <section>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>Up next: best fit first</h2>
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>({actionable.length})</span>
+          </div>
+          <p style={{ fontSize: 11.5, color: "var(--muted)", margin: "0 0 8px" }}>
+            Work top to bottom; the top card is always the next action. Cards with an open-draft button have a reply waiting in Gmail Drafts, the rest need a manual reply.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {actionable.map((r) => <Card key={r.id} row={r} />)}
+          </div>
+        </section>
+      )}
+      {DONE_GROUPS.map((g) => {
+        const inGroup = rows.filter((r) => r.status === g.id && !autoSkippedIds.has(r.id));
         if (!inGroup.length) return null;
         return (
           <section key={g.id}>
@@ -162,6 +199,19 @@ export default function JornoBoard({ rows }: { rows: JournoRow[] }) {
           </section>
         );
       })}
+      {autoSkipped.length > 0 && (
+        <details>
+          <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+            Auto-skipped ({autoSkipped.length}): low fit or off-topic
+          </summary>
+          <p style={{ fontSize: 11.5, color: "var(--muted)", margin: "8px 0" }}>
+            Skipped automatically at triage so they never clutter the board. If one is actually worth answering, its buttons work as normal.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {autoSkipped.map((r) => <Card key={r.id} row={r} />)}
+          </div>
+        </details>
+      )}
     </div>
   );
 }

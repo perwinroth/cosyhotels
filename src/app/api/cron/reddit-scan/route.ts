@@ -12,6 +12,7 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { REDDIT_CITIES, queryFor, runActor, parseLeads, citiesForWeek, isoWeek } from "@/lib/redditScan";
+import { isControlMarket } from "@/lib/controlMarkets";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -58,7 +59,10 @@ export async function GET(req: Request) {
   }
 
   // Rotate through the city list by ISO week; ?limit trims the batch further for testing.
-  let cities = citiesForWeek(isoWeek(), REDDIT_CITIES);
+  // Control markets (Savannah/York, src/lib/controlMarkets.ts) are excluded from the search
+  // entirely: replying to their threads would contaminate the GSC treated-vs-control measurement,
+  // and searching them would only spend Apify budget on leads we must never action.
+  let cities = citiesForWeek(isoWeek(), REDDIT_CITIES).filter((c) => !isControlMarket(c));
   if (Number.isFinite(limitParam) && limitParam > 0) cities = cities.slice(0, limitParam);
 
   let items: Array<Record<string, unknown>> = [];
@@ -79,7 +83,9 @@ export async function GET(req: Request) {
     }, { status: 502 });
   }
 
-  const found = parseLeads(items, cities);
+  // Belt and braces: even with control cities never searched, a stray result attributed to a
+  // control market must not become an actionable lead.
+  const found = parseLeads(items, cities).filter((l) => !isControlMarket(l.city) && !isControlMarket(l.subreddit));
 
   if (dry) {
     return NextResponse.json({
