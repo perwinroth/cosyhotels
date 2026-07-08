@@ -41,7 +41,7 @@ function Tick({ done, busy, onTick }: { done: boolean; busy: boolean; onTick: ()
   );
 }
 
-export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued }: { emails: PlanEmail[]; instagram: PlanInstagram[]; reddit: PlanReddit[]; totalEmailQueued: number }) {
+export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued, sentToday }: { emails: PlanEmail[]; instagram: PlanInstagram[]; reddit: PlanReddit[]; totalEmailQueued: number; sentToday: { count: number } }) {
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
@@ -89,23 +89,43 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
 
   return (
     <>
-      {emails.length > 0 && (
+      {(emails.length > 0 || sentToday.count > 0) && (
         <>
           <div style={{ ...planHead, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <span>
-              📧 Email: send these {emails.length}
-              <span style={sub}> · {countDone(emails.map((e) => e.hotelId))}/{emails.length} done{totalEmailQueued > emails.length ? `, ${totalEmailQueued - emails.length} more queued` : ""}</span>
+              {emails.length > 0 ? <>📧 Email: send these {emails.length}</> : <>📧 Email</>}
+              {/* Server-derived sent-today acknowledgment: survives navigation/reload, unlike the
+                  in-memory tick state. The queue refills after every tick, so without this the
+                  founder's sent emails look like they vanished. */}
+              {sentToday.count > 0 && (
+                <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 700, color: "var(--sage)", border: "1px solid var(--line)", borderRadius: 999, padding: "1px 8px" }}>
+                  {sentToday.count} sent today ✓
+                </span>
+              )}
+              {emails.length > 0 && (
+                <span style={sub}> · {countDone(emails.map((e) => e.hotelId))}/{emails.length} done{totalEmailQueued > emails.length ? `, ${totalEmailQueued - emails.length} more queued` : ""}</span>
+              )}
             </span>
-            <button
-              type="button"
-              onClick={markAllEmails}
-              disabled={allEmailsDone}
-              style={{ flex: "none", border: "1px solid var(--line)", background: allEmailsDone ? "var(--sage)" : "var(--card)", color: allEmailsDone ? "#fff" : "var(--foreground)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: allEmailsDone ? "default" : "pointer" }}
-            >
-              {allEmailsDone ? "✓ All marked" : "Mark all sent"}
-            </button>
+            {emails.length > 0 && (
+              <button
+                type="button"
+                onClick={markAllEmails}
+                disabled={allEmailsDone}
+                style={{ flex: "none", border: "1px solid var(--line)", background: allEmailsDone ? "var(--sage)" : "var(--card)", color: allEmailsDone ? "#fff" : "var(--foreground)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, cursor: allEmailsDone ? "default" : "pointer" }}
+              >
+                {allEmailsDone ? "✓ All marked" : "Mark all sent"}
+              </button>
+            )}
           </div>
-          <p style={{ ...metaStyle, margin: "0 0 8px" }}>Open Gmail (pitch pre-filled) → send → tick it. Or “Mark all sent” once you’ve blasted through them. Ticks move the cards to Contacted.</p>
+          {emails.length > 0 && (
+            <p style={{ ...metaStyle, margin: "0 0 8px" }}>Open Gmail (pitch pre-filled) → send → tick it. Or “Mark all sent” once you’ve blasted through them. Ticks move the cards to Contacted.</p>
+          )}
+          {sentToday.count > 0 && emails.length > 0 && (
+            <p style={{ ...metaStyle, margin: "0 0 8px" }}>These are the next {emails.length} in the queue, not the ones you already sent.</p>
+          )}
+          {sentToday.count > 0 && emails.length === 0 && (
+            <p style={{ ...metaStyle, margin: "0 0 8px" }}>Nothing more queued right now; today&apos;s sends are safely recorded.</p>
+          )}
           <div style={{ display: "grid", gap: 6 }}>
             {emails.map((e) => {
               const d = !!done[e.hotelId];

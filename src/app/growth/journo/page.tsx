@@ -33,6 +33,17 @@ export default async function GrowthJournoPage() {
       const staleIds = new Set(stale.map((r) => r.id));
       rows = rows.map((r) => (staleIds.has(r.id) ? { ...r, status: "skipped" } : r));
     }
+
+    // One-time cleanup (same pattern as the index-block sweep above): low-fit rows that landed as
+    // "new" before the cron started auto-skipping fit < 0.35 at triage time. Guarded to
+    // status="new" (in the query AND the UPDATE filter) so nothing a human already triaged is
+    // touched; auto-skipped rows stay recoverable in the board's Auto-skipped section.
+    const lowFit = rows.filter((r) => r.status === "new" && r.fit_score != null && r.fit_score < 0.35);
+    if (lowFit.length) {
+      await db.from("journo_queries").update({ status: "skipped" }).in("id", lowFit.map((r) => r.id)).eq("status", "new");
+      const lowFitIds = new Set(lowFit.map((r) => r.id));
+      rows = rows.map((r) => (lowFitIds.has(r.id) ? { ...r, status: "skipped" } : r));
+    }
   }
 
   return (

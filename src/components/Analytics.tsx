@@ -45,6 +45,27 @@ export default function Analytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Outreach-visit counter (pre-registered v3 outcome): a landing with utm_source=outreach is
+  // logged ONCE per session to /api/track/outreach → outreach_visits, because GSC can't see
+  // email-driven visits and Vercel log retention is 1h. Guard set before the POST so a StrictMode
+  // double-mount can't double-count. Fire-and-forget; must never break the page.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("outreach-tracked")) return;
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get("utm_source") !== "outreach") return;
+      sessionStorage.setItem("outreach-tracked", "1");
+      const body = JSON.stringify({
+        path: window.location.pathname,
+        utm_source: "outreach",
+        utm_campaign: sp.get("utm_campaign"),
+        referrer: document.referrer || null,
+      });
+      if (navigator.sendBeacon) navigator.sendBeacon("/api/track/outreach", new Blob([body], { type: "application/json" }));
+      else fetch("/api/track/outreach", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true });
+    } catch { /* analytics must never break the page */ }
+  }, []);
+
   // Pageview → GA (existing) + first-party log.
   useEffect(() => {
     const gaId = (typeof window !== "undefined" && window.GA_MEASUREMENT_ID) || process.env.NEXT_PUBLIC_GA_ID;

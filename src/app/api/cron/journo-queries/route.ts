@@ -35,6 +35,12 @@ const MAX_MESSAGES = 15; // digest emails fetched per run
 const MAX_TRIAGE = 20;   // queries triaged (Haiku) per run
 const MAX_DRAFTS = 8;    // replies drafted (Sonnet + Gmail draft) per run
 
+// Below this triage fit the query lands as status "skipped" (not "new") so junk never reaches the
+// founder's actionable board section. Only applied when triage actually succeeded: a triage
+// failure keeps status "new" so a real query is never buried by an LLM hiccup. Auto-skipped rows
+// stay recoverable in the board's collapsed Auto-skipped section.
+const MIN_FIT = 0.35;
+
 // Sender-domain match first; subject fallbacks catch digests forwarded/relayed through a different
 // domain, or a sender name Gmail doesn't resolve to the domain we expect.
 const SEARCH_Q =
@@ -181,7 +187,11 @@ export async function GET(req: Request) {
   const dryPreview: Array<{ outlet: string | null; deadline: string | null; category: string; fit_score: number; would_draft: boolean; query: string }> = [];
   let drafted = 0;
   let notified = false;
+  let notifiedManual = false;
   const notifyLines: string[] = [];
+  // Good-fit queries with NO reply address: nothing can be auto-drafted, so the founder must act
+  // manually; these get their own Telegram ping below.
+  const manualLines: string[] = [];
 
   for (const q of batch) {
     const t = await triage(q);
@@ -198,8 +208,14 @@ export async function GET(req: Request) {
       continue;
     }
 
-    let status = "new";
+    // Triage-gated landing status: confidently-low-fit queries go straight to "skipped" so they
+    // never appear in the founder's actionable section (recoverable via the board's Auto-skipped
+    // details). Triage failures (t == null) stay "new"; never bury a query on an LLM error.
+    let status = t && fitScore < MIN_FIT ? "skipped" : "new";
     const reasonOut = noAiPitch && fitScore >= 0.6 ? `${fitReason}; NO-AI-PITCH flag: answer personally` : fitReason;
+    if (fitScore >= 0.6 && !q.reply_to) {
+      manualLines.push(`• ${q.outlet || category}: ${q.deadline ? `deadline ${q.deadline} · ` : ""}${q.query_text.slice(0, 80)}`);
+    }
     let draftId: string | null = null;
     let draftLink: string | null = null;
     if (wouldDraft && drafted < MAX_DRAFTS) {
@@ -242,9 +258,17 @@ export async function GET(req: Request) {
     );
   }
 
+  // Good fit but no reply address in the digest: no Gmail draft could be created, so the founder
+  // must act manually. Separate ping so these never hide behind the drafted ones.
+  if (manualLines.length) {
+    notifiedManual = await pushTelegram(
+      `${manualLines.length} good-fit journo quer${manualLines.length > 1 ? "ies" : "y"} need${manualLines.length > 1 ? "" : "s"} you (no reply address found):\n${manualLines.join("\n")}\n\nDraft ready on the board → https://gotcosy.com/growth/journo`,
+    );
+  }
+
   return NextResponse.json({
     from: "journo-queries", ok: true, dry: false,
     messagesFound: messageIds.length, blocksParsed: parsed.length, newQueries: fresh.length, capped,
-    triaged: batch.length, drafted, notified,
+    triaged: batch.length, drafted, notified, notifiedManual,
   });
 }
