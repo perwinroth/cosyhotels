@@ -26,8 +26,8 @@ export type JournoRow = {
 };
 
 const GROUPS: Array<{ id: string; label: string; hint: string }> = [
-  { id: "drafted", label: "Drafted — review & send", hint: "A reply is waiting in Gmail Drafts." },
-  { id: "new", label: "New — no draft yet", hint: "Low fit, or no reply address found in the digest." },
+  { id: "drafted", label: "Drafted: review & send", hint: "A reply is waiting in Gmail Drafts." },
+  { id: "new", label: "New: no draft yet", hint: "Low fit, or no reply address found in the digest." },
   { id: "sent", label: "Sent", hint: "You've replied." },
   { id: "skipped", label: "Skipped", hint: "Not worth a reply." },
   { id: "expired", label: "Expired", hint: "Deadline passed." },
@@ -82,7 +82,7 @@ function Card({ row }: { row: JournoRow }) {
         setDraftLink(r.link);
         setStatus("drafted");
       } else {
-        setDraftErr(r.error || "draft failed — try again");
+        setDraftErr(r.error || "draft failed; try again");
       }
     });
   }
@@ -133,7 +133,7 @@ function Card({ row }: { row: JournoRow }) {
             Skip
           </button>
         )}
-        {err && <span style={{ color: "var(--ember)", fontSize: 11.5 }}>couldn&apos;t save — try again</span>}
+        {err && <span style={{ color: "var(--ember)", fontSize: 11.5 }}>couldn&apos;t save; try again</span>}
         {draftErr && <span style={{ color: "var(--ember)", fontSize: 11.5 }}>{draftErr}</span>}
       </div>
     </div>
@@ -142,7 +142,7 @@ function Card({ row }: { row: JournoRow }) {
 
 export default function JornoBoard({ rows }: { rows: JournoRow[] }) {
   if (!rows.length) {
-    return <p style={{ color: "var(--muted)", fontSize: 13.5 }}>No queries yet — the cron runs 3x/day and needs Per subscribed to Source of Sources / Featured digests at the inbox GMAIL_REFRESH_TOKEN is authorized for.</p>;
+    return <p style={{ color: "var(--muted)", fontSize: 13.5 }}>No queries yet; the cron runs 3x/day and needs Per subscribed to Source of Sources / Featured digests at the inbox GMAIL_REFRESH_TOKEN is authorized for.</p>;
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>

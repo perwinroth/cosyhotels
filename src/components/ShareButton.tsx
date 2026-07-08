@@ -66,7 +66,7 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
   };
 
   const e = encodeURIComponent;
-  const emailBody = `Thought you'd like this cosy hotel:\n\n${t}\n${url}\n\n— shared from Got Cosy`;
+  const emailBody = `Thought you'd like this cosy hotel:\n\n${t}\n${url}\n\nShared from Got Cosy`;
   // Messenger: Facebook's send dialog needs an app id (set NEXT_PUBLIC_FB_APP_ID to enable desktop
   // prefill). Without one, fall back to the Messenger app deep link, which works on mobile.
   const fbAppId = process.env.NEXT_PUBLIC_FB_APP_ID;
@@ -113,7 +113,7 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
           {/* Instagram has no web share — copy the link so it can be pasted into a story/DM. */}
           <button className="hov" style={row} onClick={() => { try { navigator.clipboard.writeText(url); } catch { /* ignore */ } setIgCopied(true); setTimeout(() => setIgCopied(false), 2000); }}>
             <span style={ico} aria-hidden>{ICON.instagram}</span>
-            <span style={{ flex: 1 }}>{igCopied ? "Copied — paste in Instagram" : "Instagram"}</span>
+            <span style={{ flex: 1 }}>{igCopied ? "Copied. Paste in Instagram" : "Instagram"}</span>
             {igCopied && <span style={{ color: "var(--sage)", fontSize: 12 }}>✓</span>}
           </button>
         </div>,

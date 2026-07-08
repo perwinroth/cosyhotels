@@ -13,7 +13,7 @@ export type BlogRow = {
 };
 
 const COLUMNS: KanbanColumn[] = [
-  { id: "draft", title: "Draft", hint: "Hidden — not published.", advanceLabel: "Schedule" },
+  { id: "draft", title: "Draft", hint: "Hidden, not published.", advanceLabel: "Schedule" },
   { id: "scheduled", title: "Scheduled", hint: "Auto-publishes on its date.", advanceLabel: "Publish now" },
   { id: "live", title: "Live", hint: "Public on the site now." },
 ];

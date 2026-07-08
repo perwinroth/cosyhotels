@@ -41,9 +41,9 @@ export default async function FollowPage() {
       <div style={{ maxWidth: 820, margin: "0 auto" }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0 }}>Follow the hotels</h1>
         <p style={{ color: "#9DA89F", marginTop: 8, fontSize: 14, lineHeight: 1.6 }}>
-          {hotels.length} featured hotels on Instagram. Follow them yourself — pair it with an @mention in a post and a DM
+          {hotels.length} featured hotels on Instagram. Follow them yourself; pair it with an @mention in a post and a DM
           (see <Link href="/outreach" style={{ color: "#7FB4FF" }}>/outreach</Link>) and they tend to follow back &amp; repost.
-          <strong style={{ color: "#E08A4B" }}> Go slow</strong> — a new account should stay well under ~50 follows/day, or Instagram flags it. Never automate this (it&apos;s against IG&apos;s ToS and gets accounts banned).
+          <strong style={{ color: "#E08A4B" }}> Go slow</strong>: a new account should stay well under ~50 follows/day, or Instagram flags it. Never automate this (it&apos;s against IG&apos;s ToS and gets accounts banned).
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8, marginTop: 22 }}>
           {hotels.map((h) => (
@@ -56,7 +56,7 @@ export default async function FollowPage() {
               <span style={{ flexShrink: 0, color: "#E60023", fontWeight: 700, fontSize: 12 }}>Follow ↗</span>
             </a>
           ))}
-          {hotels.length === 0 && <p style={{ color: "#9DA89F" }}>No handles yet — the resolver is still running.</p>}
+          {hotels.length === 0 && <p style={{ color: "#9DA89F" }}>No handles yet; the resolver is still running.</p>}
         </div>
       </div>
     </div>

@@ -18,10 +18,10 @@ export type BadgeBoardRow = {
 
 const COLUMNS: KanbanColumn[] = [
   { id: "queued", title: "Queued", hint: "Top-tier hotels waiting to be pitched.", advanceLabel: "Mark contacted" },
-  { id: "contacted", title: "Contacted", hint: "Pitched — awaiting a reply.", advanceLabel: "Mark replied" },
-  { id: "replied", title: "Replied", hint: "They responded — move here.", advanceLabel: "Mark won" },
-  { id: "won", title: "Won", hint: "Said yes — badge on the way.", advanceLabel: "Mark confirmed" },
-  { id: "won_confirmed", title: "Won confirmed", hint: "Badge embedded — backlink verified live." },
+  { id: "contacted", title: "Contacted", hint: "Pitched; awaiting a reply.", advanceLabel: "Mark replied" },
+  { id: "replied", title: "Replied", hint: "They responded; move here.", advanceLabel: "Mark won" },
+  { id: "won", title: "Won", hint: "Said yes; badge on the way.", advanceLabel: "Mark confirmed" },
+  { id: "won_confirmed", title: "Won confirmed", hint: "Badge embedded; backlink verified live." },
   { id: "declined", title: "Declined", hint: "Not interested.", discard: true },
 ];
 
@@ -69,7 +69,7 @@ function InstagramPitch({ pitch, handle }: { pitch: string; handle: string }) {
   }
   return (
     <a href={url} target="_blank" rel="noreferrer" onClick={copy} style={BTN}>
-      {copied ? "✓ Pitch copied — paste in DM" : "Open Instagram"}
+      {copied ? "✓ Pitch copied. Paste in DM" : "Open Instagram"}
     </a>
   );
 }

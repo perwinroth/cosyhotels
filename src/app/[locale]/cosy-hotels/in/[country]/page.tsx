@@ -31,8 +31,8 @@ export async function generateMetadata({ params }: { params: { locale: string; c
   if (!country) return {};
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/in/${country.slug}`;
-  const title = `Cosy hotels in ${country.name} — AI-ranked for cosiness`;
-  const description = `The cosiest boutique and independent hotels in ${country.name}, each AI-scored 0–10 for warmth, character and intimacy — ranked best first, not by stars.`;
+  const title = `Cosy hotels in ${country.name}, AI-ranked for cosiness`;
+  const description = `The cosiest boutique and independent hotels in ${country.name}, each AI-scored 0–10 for warmth, character and intimacy; ranked best first, not by stars.`;
   const thin = (await liveCount(country.slug)) < HUB_MIN;
   return {
     title, description,
@@ -63,7 +63,7 @@ export default async function CountryHub({ params }: { params: { locale: string;
 
   const top = hotels[0];
   const shownCities = [...new Set(hotels.map((h) => h.city).filter(Boolean))].slice(0, 6);
-  const intro = `We've scored ${total.toLocaleString()} cosy ${total === 1 ? "hotel" : "hotels"} in ${country.name} that clear our cosiness bar — ${top.name} leads at ${top.score.toFixed(1)}/10. Here are the ${hotels.length} cosiest, ranked by cosy score.`;
+  const intro = `We've scored ${total.toLocaleString()} cosy ${total === 1 ? "hotel" : "hotels"} in ${country.name} that clear our cosiness bar; ${top.name} leads at ${top.score.toFixed(1)}/10. Here are the ${hotels.length} cosiest, ranked by cosy score.`;
 
   const itemList = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels in ${country.name}`, numberOfItems: hotels.length,
@@ -102,7 +102,7 @@ export default async function CountryHub({ params }: { params: { locale: string;
                   <div className="flex items-baseline gap-2"><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
                   <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, country.name].filter(Boolean).join(", ")}</div>
                   {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.snippet}</p>}
-                  <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><ShareButton variant="icon" title={`${h.name} — cosy hotel in ${country.name}`} url={`/${params.locale}/hotels/${h.slug}`} /></div>
+                  <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${country.name}`} url={`/${params.locale}/hotels/${h.slug}`} /></div>
                 </div>
                 {ph && <a href={`/${params.locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
               </div>

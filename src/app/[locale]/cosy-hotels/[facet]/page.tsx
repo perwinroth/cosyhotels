@@ -129,8 +129,8 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   const phrase = conceptLabelPhrase(concept);
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/${concept.slug}`;
-  const title = `Cosy hotels ${phrase} — AI-ranked worldwide`;
-  const description = `The cosiest hotels ${phrase}, from around the world — each AI-scored 0–10 for warmth and character, ranked best first.`;
+  const title = `Cosy hotels ${phrase}, AI-ranked worldwide`;
+  const description = `The cosiest hotels ${phrase}, from around the world, each AI-scored 0–10 for warmth and character, ranked best first.`;
   return {
     title, description,
     alternates: { canonical: url },
@@ -160,7 +160,7 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
   }
 
   const top = hotels[0];
-  const intro = `The cosiest hotels ${phrase} we've scored worldwide — ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score, backed by real signals and guest reviews.`;
+  const intro = `The cosiest hotels ${phrase} we've scored worldwide; ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score, backed by real signals and guest reviews.`;
   const itemList = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${phrase}`, numberOfItems: hotels.length,
     itemListElement: hotels.map((h, i) => ({
@@ -208,7 +208,7 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
                   <div className="flex items-baseline gap-2"><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
                   {h.city && <div className="text-sm" style={{ color: "var(--muted)" }}>{h.city}</div>}
                   {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.snippet}</p>}
-                  <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><ShareButton variant="icon" title={`${h.name} — cosy hotel ${phrase}`} url={`/${params.locale}/hotels/${h.slug}`} /></div>
+                  <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><ShareButton variant="icon" title={`${h.name}, a cosy hotel ${phrase}`} url={`/${params.locale}/hotels/${h.slug}`} /></div>
                 </div>
                 {ph && <a href={`/${params.locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
               </div>

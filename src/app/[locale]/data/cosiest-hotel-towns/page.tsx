@@ -65,7 +65,7 @@ const QUIET_ATMOSPHERE_N = 9437;
 const roundedHotelTotal = Math.round(data.methodology.n_hotels_total / 100) * 100;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const title = `The World's Cosiest Hotel Towns — a guest-review-language analysis of ${roundedHotelTotal.toLocaleString("en-GB")} hotels`;
+  const title = `The World's Cosiest Hotel Towns: a guest-review-language analysis of ${roundedHotelTotal.toLocaleString("en-GB")} hotels`;
   const description = `Alberobello and San Gimignano outscore Rome, Paris and Vienna. Full tiers, league tables and limitations for ${data.methodology.cities_qualifying_n10} cities and ${data.methodology.countries_qualifying_n25} countries, from a guest-review-language analysis of ${data.methodology.n_hotels_total.toLocaleString("en-GB")} hotels. Free CSV download, no link required. ${SNAPSHOT} data report.`;
   // Untranslated pages: only /en is indexed, so canonical points at the /en twin (no hreflang).
   const url = `/en/data/cosiest-hotel-towns`;
@@ -104,8 +104,8 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    name: "Got Cosy — Cosiest Hotel Towns dataset",
-    description: `League tables of ${data.methodology.cities_qualifying_n10} cities and ${data.methodology.countries_qualifying_n25} countries from a guest-review-language analysis of ${data.methodology.n_hotels_total.toLocaleString("en-GB")} hotels (AI used as the reading tool against a fixed rubric — see methodology). Qualifying rows require a score ≥5.0, min ${data.methodology.city_min_n}/city and ${data.methodology.country_min_n}/country. Raw tables downloadable as CSV.`,
+    name: "Got Cosy: Cosiest Hotel Towns dataset",
+    description: `League tables of ${data.methodology.cities_qualifying_n10} cities and ${data.methodology.countries_qualifying_n25} countries from a guest-review-language analysis of ${data.methodology.n_hotels_total.toLocaleString("en-GB")} hotels (AI used as the reading tool against a fixed rubric; see methodology). Qualifying rows require a score ≥5.0, min ${data.methodology.city_min_n}/city and ${data.methodology.country_min_n}/country. Raw tables downloadable as CSV.`,
     url: pageUrl,
     creator: { "@type": "Organization", name: "Got Cosy", url: siteUrl },
     temporalCoverage: "2026-07",
@@ -128,42 +128,42 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
 
       <p className="text-sm uppercase tracking-widest" style={{ color: "var(--ember)" }}>Data report · {SNAPSHOT}</p>
       <h1 className="mt-3 text-4xl sm:text-5xl font-semibold leading-tight" style={{ fontFamily: "Fraunces, serif" }}>
-        The World&apos;s Cosiest Hotel Towns — a guest-review-language analysis of {roundedHotelTotal.toLocaleString("en-GB")} hotels
+        The World&apos;s Cosiest Hotel Towns: a guest-review-language analysis of {roundedHotelTotal.toLocaleString("en-GB")} hotels
       </h1>
       <p className="mt-5 text-lg leading-relaxed" style={{ color: "var(--muted)" }}>
         Small, old towns beat the big cities. Alberobello (6.75) and San Gimignano (6.72) both outscore Rome (6.05),
-        Paris (6.00) and Vienna (6.10) — and Romania (6.67) and Morocco (6.63) are the two cosiest countries in the
+        Paris (6.00) and Vienna (6.10), and Romania (6.67) and Morocco (6.63) are the two cosiest countries in the
         world, ahead of every country in Western Europe. Barcelona sits {barcelonaRankFromBottom ? `${barcelonaRankFromBottom}th from the bottom` : "near the bottom"} of
         all {CITIES.length} qualifying cities, with zero hotels scoring 7.0 or higher. The means span {meanSpreadLow}–{meanSpreadHigh}
-        across those {CITIES.length} cities — a real but narrow spread, which is why the tables below group cities into
+        across those {CITIES.length} cities, a real but narrow spread, which is why the tables below group cities into
         tiers rather than presenting a false-precision rank order.
       </p>
 
       <H2 id="mechanism">What makes a hotel cosy? The answer is a person.</H2>
       <p className="leading-relaxed">
         Across the 10 cosiest towns in this dataset, <strong>74% of hotels&apos; review evidence mentions a host,
-        owner, family member or named person</strong> — against <strong>26% in eight large, heavily-visited cities</strong> (Barcelona,
+        owner, family member or named person</strong>, against <strong>26% in eight large, heavily-visited cities</strong> (Barcelona,
         Paris, Rome, London, Amsterdam, Vienna, Prague, Florence). That&apos;s 180 qualifying hotels in the towns
-        against 509 in the cities, so the gap isn&apos;t a small-sample fluke — it&apos;s the largest, most
+        against 509 in the cities, so the gap isn&apos;t a small-sample fluke; it&apos;s the largest, most
         consistent signal in the whole dataset.
       </p>
       <p className="mt-4 leading-relaxed">
         The same pattern shows up in what these hotels are called: <strong>31% of town hotels carry a
         guesthouse/B&amp;B-type name</strong> (casa, guesthouse, inn, maison, pensione…) against <strong>10% in the
-        big cities</strong> — roughly three times the rate. The town cohort&apos;s supply is structurally dominated by
+        big cities</strong>, roughly three times the rate. The town cohort&apos;s supply is structurally dominated by
         small, personally run properties where the owner <em>is</em> the service, rather than staff-mediated luxury.
       </p>
       <p className="mt-4 leading-relaxed">
         One number runs the other way, and it&apos;s worth stating plainly rather than hiding: the word
         &quot;boutique&quot; appears far more often in the big cities&apos; review evidence than in the towns&apos; (53
-        mentions vs 3). <strong>That&apos;s not a mark of failure</strong> — the big cities&apos; boutique-tagged
+        mentions vs 3). <strong>That&apos;s not a mark of failure</strong>: the big cities&apos; boutique-tagged
         hotels average 6.30 against 6.01 for the rest of the city cohort. It&apos;s a different route to the same
         warmth: big-city hotels earn a cosy score by shrinking scale and naming individual staff inside a big-city shell,
         towns earn it by being small and family-run to start with.
       </p>
       <HostGapChart />
       <p className="mt-6 leading-relaxed" style={{ color: "var(--muted)" }}>
-        <strong style={{ color: "var(--foreground)" }}>Review-derived evidence from the analysis</strong> —
+        <strong style={{ color: "var(--foreground)" }}>Review-derived evidence from the analysis</strong>,
         condensed by the scoring model from guest-review text, not verbatim guest quotes:
       </p>
       <ul className="mt-3 space-y-2 leading-relaxed" style={{ color: "var(--muted)" }}>
@@ -176,7 +176,7 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
       <p className="leading-relaxed">
         All {CITIES.length} cities with at least {data.methodology.city_min_n} qualifying hotels (score ≥5.0),
         grouped into tiers by mean cosy score. The means span {meanSpreadLow}–{meanSpreadHigh} across these{" "}
-        {CITIES.length} cities, and many small towns qualify with n&apos;s of only 10–15 hotels — so treat adjacent
+        {CITIES.length} cities, and many small towns qualify with n&apos;s of only 10–15 hotels, so treat adjacent
         ranks as ties within a tier rather than a strict ladder. Individual rank numbers are shown for reference;
         the tier is the more honest read. Where we have a full city guide, the city name links to it.
       </p>
@@ -189,7 +189,7 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
         Download the full city table as CSV
       </a>
       <p className="mt-6 leading-relaxed">
-        The top tier against four famous big cities, for scale — axis honestly starts at 5.0, not zero:
+        The top tier against four famous big cities, for scale; axis honestly starts at 5.0, not zero:
       </p>
       <TierStripChart towns={CITIES.slice(0, 12).map((c) => ({ city: c.city, mean: c.mean }))} capitals={CONTEXT_CAPITALS} />
       <div className="mt-6 overflow-x-auto rounded-2xl border" style={{ borderColor: "var(--line)" }}>
@@ -212,7 +212,7 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
                 <Fragment key={band.key}>
                   <tr style={{ background: "var(--card)" }}>
                     <td colSpan={6} className="px-3 py-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--ember)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}>
-                      {band.label} ({band.range}) — {rows.length} {rows.length === 1 ? "city" : "cities"}
+                      {band.label} ({band.range}): {rows.length} {rows.length === 1 ? "city" : "cities"}
                     </td>
                   </tr>
                   {rows.map((row) => (
@@ -276,25 +276,25 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
       </p>
       <ul className="mt-4 space-y-3 leading-relaxed">
         <li>
-          <strong>A view is the single most common cosy cue</strong> — guests mention one at {viewGlobalPct.toFixed(1)}%
+          <strong>A view is the single most common cosy cue</strong>: guests mention one at {viewGlobalPct.toFixed(1)}%
           of hotels with review-derived signals, more than any other signal we track.
         </li>
         <li>
-          <strong>Fireplaces are the rarest</strong> — just {fireplaceGlobalPct.toFixed(2)}% of hotels globally,
+          <strong>Fireplaces are the rarest</strong>: just {fireplaceGlobalPct.toFixed(2)}% of hotels globally,
           clustering hard in a handful of towns: {fireplaceCities.join(", ")}.
         </li>
         <li>
-          <strong>Fez is the courtyard capital of the dataset</strong> — {courtyardTop.pct.toFixed(1)}% of its
+          <strong>Fez is the courtyard capital of the dataset</strong>: {courtyardTop.pct.toFixed(1)}% of its
           hotels have a guest-mentioned courtyard, against a {courtyardGlobalPct.toFixed(1)}% global rate.
         </li>
         <li>
           <strong>{walkable100.map((c) => c.city).join(" and ")} are the only cities where every qualifying hotel is
-          described as walkable</strong> — 100% of guest mentions.
+          described as walkable</strong>: 100% of guest mentions.
         </li>
         <li>
-          <strong>Quiet is the single most common theme in atmosphere-mentioning reviews</strong> — it appears in{" "}
+          <strong>Quiet is the single most common theme in atmosphere-mentioning reviews</strong>: it appears in{" "}
           {QUIET_ATMOSPHERE_PCT.toFixed(1)}% of the {QUIET_ATMOSPHERE_N.toLocaleString("en-GB")} reviews across our
-          wider corpus that mention atmosphere at all. We don&apos;t rank cities by &quot;quietest&quot; — a review
+          wider corpus that mention atmosphere at all. We don&apos;t rank cities by &quot;quietest&quot;; a review
           mentioning quiet isn&apos;t an acoustic measurement (see Limitations, below).
         </li>
       </ul>
@@ -305,15 +305,15 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
         {data.methodology.n_hotels_with_score_row.toLocaleString("en-GB")} were AI-scored 0–10 from guest-review
         text, and {data.methodology.n_hotels_with_review_derived_signals.toLocaleString("en-GB")} of those had
         enough review-derived evidence to support the signal breakdowns above. The league tables above use only
-        hotels scoring {data.methodology.qualification_threshold_for_league_tables} — our operational floor for
-        &quot;cosy&quot; — which leaves {data.methodology.n_qualified_hotels_score_ge_5.toLocaleString("en-GB")} qualifying
+        hotels scoring {data.methodology.qualification_threshold_for_league_tables} (our operational floor for
+        &quot;cosy&quot;), which leaves {data.methodology.n_qualified_hotels_score_ge_5.toLocaleString("en-GB")} qualifying
         hotels. A city needed at least {data.methodology.city_min_n} qualifying hotels to appear (
         {data.methodology.cities_qualifying_n10} cities cleared that bar); a country needed at least{" "}
         {data.methodology.country_min_n} ({data.methodology.countries_qualifying_n25} countries cleared it).
         City and country name strings were normalised against a manual alias map first (e.g. &quot;Rome&quot;/&quot;Roma&quot;,
         &quot;Marrakech&quot;/&quot;Marrakesh&quot;, &quot;Brugge&quot;/&quot;Bruges&quot;, all &quot;Praha&quot; district variants merged to &quot;Prague&quot;) so
         duplicate spellings didn&apos;t split a city&apos;s hotel count. These are AI scores grounded in what guests wrote
-        in reviews — not guest star-ratings, and not a claim of ground truth. Snapshot: {SNAPSHOT}.
+        in reviews: not guest star-ratings, and not a claim of ground truth. Snapshot: {SNAPSHOT}.
       </p>
 
       <H2 id="limitations">Limitations</H2>
@@ -321,7 +321,7 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
         <li>
           <strong>Sample sizes are small at the city level.</strong> The city-qualification floor is{" "}
           {data.methodology.city_min_n} hotels, and a large share of qualifying towns cleared it with n&apos;s of
-          only 10–15 — enough for a directional read, not enough for precise rank order. That&apos;s the reason for
+          only 10–15: enough for a directional read, not enough for precise rank order. That&apos;s the reason for
           tiers rather than a strict ladder above.
         </li>
         <li>
@@ -343,7 +343,7 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
         </li>
         <li>
           <strong>These are AI review analysis, not guest star-ratings.</strong> Every score is the output of a
-          model reading review text against a fixed rubric — an analysis product, not a guest-submitted rating, and
+          model reading review text against a fixed rubric: an analysis product, not a guest-submitted rating, and
           not a claim of ground truth about any individual hotel.
         </li>
       </ul>

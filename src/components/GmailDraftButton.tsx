@@ -17,7 +17,7 @@ export default function GmailDraftButton({ outlet, fit, email }: { outlet: strin
   }
 
   if (state === "done") {
-    return <a href={link} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: "#0F1512", background: "#D8B25A", borderRadius: 6, padding: "4px 10px", textDecoration: "none" }}>✓ Draft ready — open in Gmail ↗</a>;
+    return <a href={link} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: "#0F1512", background: "#D8B25A", borderRadius: 6, padding: "4px 10px", textDecoration: "none" }}>✓ Draft ready · open in Gmail ↗</a>;
   }
   return (
     <button onClick={create} disabled={state === "creating"} style={{ fontWeight: 700, color: "#0F1512", background: state === "err" ? "#E0654B" : "#7FB7A2", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer" }}>

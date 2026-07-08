@@ -5,8 +5,8 @@ import HotelScoreForm from "@/components/HotelScoreForm";
 export function generateMetadata(): Metadata {
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/for-hotels`;
-  const title = `For hotels — get your cosy score | ${site.name}`;
-  const description = "Hoteliers: submit your hotel and our AI scores it for cosiness — warmth, character, intimacy — with the signals it found.";
+  const title = `For hotels: get your cosy score | ${site.name}`;
+  const description = "Hoteliers: submit your hotel and our AI scores it for cosiness (warmth, character, intimacy), with the signals it found.";
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };
 }
 
@@ -18,7 +18,7 @@ export default function ForHotelsPage() {
       </span>
       <h1 className="mt-4 font-display text-3xl md:text-4xl font-semibold tracking-tight">Get your hotel’s cosy score</h1>
       <p className="mt-3 max-w-2xl" style={{ color: "var(--muted)" }}>
-        Submit your hotel and our AI runs it through the same cosiness scoring we use across the site —
+        Submit your hotel and our AI runs it through the same cosiness scoring we use across the site,
         weighing property type and scale, amenities, the language of reviews, and setting. You’ll get a
         0–10 cosy score and the specific signals we detected.
       </p>

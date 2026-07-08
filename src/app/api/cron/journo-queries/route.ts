@@ -186,7 +186,7 @@ export async function GET(req: Request) {
   for (const q of batch) {
     const t = await triage(q);
     const fitScore = t?.fit_score ?? 0;
-    const fitReason = t?.fit_reason ?? "triage failed — reviewed manually";
+    const fitReason = t?.fit_reason ?? "triage failed: reviewed manually";
     const category = t?.category ?? q.category ?? "uncategorized";
     // Respect journalists' explicit "No AI Pitches" flags: never auto-draft those — the query still
     // lands on the /growth/journo board for Per to answer personally (integrity + pitch survival).
@@ -199,7 +199,7 @@ export async function GET(req: Request) {
     }
 
     let status = "new";
-    const reasonOut = noAiPitch && fitScore >= 0.6 ? `${fitReason} — NO-AI-PITCH flag: answer personally` : fitReason;
+    const reasonOut = noAiPitch && fitScore >= 0.6 ? `${fitReason}; NO-AI-PITCH flag: answer personally` : fitReason;
     let draftId: string | null = null;
     let draftLink: string | null = null;
     if (wouldDraft && drafted < MAX_DRAFTS) {
@@ -211,7 +211,7 @@ export async function GET(req: Request) {
           draftId = created.id;
           draftLink = created.link;
           drafted++;
-          notifyLines.push(`• ${q.outlet || category} — ${q.deadline ? `deadline ${q.deadline} — ` : ""}${q.query_text.slice(0, 80)}\n  ${created.link}`);
+          notifyLines.push(`• ${q.outlet || category}: ${q.deadline ? `deadline ${q.deadline} · ` : ""}${q.query_text.slice(0, 80)}\n  ${created.link}`);
         }
       }
     }

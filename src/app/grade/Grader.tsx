@@ -123,7 +123,7 @@ export default function Grader({ queue: initialQueue, stats }: { queue: Candidat
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Grade cosiness</h1>
         <div style={{ fontSize: 12, color: C.muted }}>
-          {liveTotal} graded · ±{moe ?? "—"}%{stats.agreement != null && <> · {stats.agreement}% agree</>}
+          {liveTotal} graded · ±{moe ?? "–"}%{stats.agreement != null && <> · {stats.agreement}% agree</>}
           {stats.mae != null && <> · {stats.mae} avg miss</>}{stats.linkAccuracy != null && <> · {stats.linkAccuracy}% links ok</>}
           {failed > 0 && <span style={{ color: C.bad }}> · {failed} failed</span>}
         </div>
@@ -133,7 +133,7 @@ export default function Grader({ queue: initialQueue, stats }: { queue: Candidat
 
       {!cur ? (
         <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 14, padding: 28, textAlign: "center" }}>
-          <p style={{ margin: 0, fontSize: 16 }}>Queue complete — {liveTotal} graded. 🎉</p>
+          <p style={{ margin: 0, fontSize: 16 }}>Queue complete: {liveTotal} graded. 🎉</p>
           <p style={{ color: C.muted, fontSize: 13 }}>Refresh for the next batch.</p>
         </div>
       ) : (
@@ -142,7 +142,7 @@ export default function Grader({ queue: initialQueue, stats }: { queue: Candidat
             // eslint-disable-next-line @next/next/no-img-element
             <img src={cur.photo} alt={cur.name} style={{ width: "100%", height: 280, objectFit: "cover", display: "block" }} />
           ) : (
-            <div style={{ height: 100, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 13, background: "#0d120f" }}>no vetted photo — judge on data only</div>
+            <div style={{ height: 100, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 13, background: "#0d120f" }}>no vetted photo; judge on data only</div>
           )}
           <div style={{ padding: "16px 18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
@@ -173,7 +173,7 @@ export default function Grader({ queue: initialQueue, stats }: { queue: Candidat
             {/* STEP 2 — rating (disabled if link wrong) */}
             <Step n="2" label="Is the cosy score right?" done={ratingDone} disabled={link === "wrong"}>
               {link === "wrong" ? (
-                <span style={{ fontSize: 13, color: C.muted }}>Skipped — can&apos;t rate a mislinked hotel.</span>
+                <span style={{ fontSize: 13, color: C.muted }}>Skipped: can&apos;t rate a mislinked hotel.</span>
               ) : (
                 <>
                   <Choice active={cosy === "good"} color={C.good} onClick={() => applyCosy("good")}>Right (1)</Choice>

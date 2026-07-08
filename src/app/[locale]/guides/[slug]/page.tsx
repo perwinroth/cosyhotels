@@ -43,12 +43,12 @@ function cityFaqs(city: string, opts?: { count?: number; topName?: string; topSc
     {
       q: `How many cosy hotels in ${city} have you scored?`,
       a: n > 0
-        ? `We've AI-scored ${n} cosy ${n === 1 ? 'hotel' : 'hotels'} in ${city} that clear our cosiness bar (5+/10). Each gets a 0–10 score weighing property type and scale, amenities, the language guests use in reviews, and the setting — independent and boutique stays tend to score highest.`
-        : `We're still scoring cosy hotels in ${city} — check back shortly. Each gets a 0–10 score weighing scale, amenities, guest-review language and setting.`,
+        ? `We've AI-scored ${n} cosy ${n === 1 ? 'hotel' : 'hotels'} in ${city} that clear our cosiness bar (5+/10). Each gets a 0–10 score weighing property type and scale, amenities, the language guests use in reviews, and the setting; independent and boutique stays tend to score highest.`
+        : `We're still scoring cosy hotels in ${city}; check back shortly. Each gets a 0–10 score weighing scale, amenities, guest-review language and setting.`,
     },
     {
       q: `Are cosy hotels in ${city} more expensive than chain hotels?`,
-      a: `Not necessarily. Cosiness comes from character and scale, not price — many of the cosiest stays are small independents that cost less than a big-brand business hotel.`,
+      a: `Not necessarily. Cosiness comes from character and scale, not price; many of the cosiest stays are small independents that cost less than a big-brand business hotel.`,
     },
     {
       q: `Can I book these ${city} hotels directly?`,
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const cg = getCityGuide(params.slug);
     if (cg) {
       const titleBase = CITY_TITLE[cg.city] ?? `Cosy & Boutique Hotels in ${cg.city} – AI-Scored for Cosiness`;
-      const descBase = `The cosiest boutique hotels in ${cg.city}, each AI-scored 0–10 for warmth, character and intimacy — ranked best first. Cosy, romantic and independent stays, not corporate chains.`;
+      const descBase = `The cosiest boutique hotels in ${cg.city}, each AI-scored 0–10 for warmth, character and intimacy, ranked best first. Cosy, romantic and independent stays, not corporate chains.`;
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
       // Only /en is indexed (body is English hotel data; title/excerpt are machine-translated).
@@ -408,14 +408,14 @@ export default async function GuidePage({ params }: Props) {
   let intro: string;
   if (!chosen.length) {
     intro = scoreQueryFailed
-      ? `Cosy scores for ${cityName} are temporarily unavailable — please try again shortly.`
-      : `We haven't found any cosy hotels in ${cityName} yet — we only list places we've actually scored from real guest reviews.`;
+      ? `Cosy scores for ${cityName} are temporarily unavailable; please try again shortly.`
+      : `We haven't found any cosy hotels in ${cityName} yet; we only list places we've actually scored from real guest reviews.`;
   } else if (topScore >= STANDOUT) {
-    intro = `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy — led by ${topPick.name} at ${topScore.toFixed(1)}/10. Here are the cosiest, ranked best first.`;
+    intro = `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName} for warmth, character and intimacy, led by ${topPick.name} at ${topScore.toFixed(1)}/10. Here are the cosiest, ranked best first.`;
   } else if (topScore >= WARM) {
-    intro = `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName}. ${cityName} leans towards larger, modern hotels, so even our top picks here are pleasantly cosy rather than standouts — ${topPick.name} leads at ${topScore.toFixed(1)}/10. These are the warmest we've found, ranked best first.`;
+    intro = `We've AI-scored ${cosyCount} cosy ${cosyCount === 1 ? 'hotel' : 'hotels'} in ${cityName}. ${cityName} leans towards larger, modern hotels, so even our top picks here are pleasantly cosy rather than standouts; ${topPick.name} leads at ${topScore.toFixed(1)}/10. These are the warmest we've found, ranked best first.`;
   } else {
-    intro = `${cityName} skews modern and large, and honestly none of its hotels reach our standout cosy marks yet — the best we've scored sits at ${topScore.toFixed(1)}/10. Here are its ${cosyCount} cosiest stays anyway, ranked best first, for when ${cityName} is where you need to be.`;
+    intro = `${cityName} skews modern and large, and honestly none of its hotels reach our standout cosy marks yet; the best we've scored sits at ${topScore.toFixed(1)}/10. Here are its ${cosyCount} cosiest stays anyway, ranked best first, for when ${cityName} is where you need to be.`;
   }
   const introLead = CITY_INTRO_LEAD[cityName];
   if (introLead) intro = `${introLead} ${intro}`;
@@ -478,7 +478,7 @@ export default async function GuidePage({ params }: Props) {
                     <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
                       Check availability
                     </a>
-                    <ShareButton variant="icon" title={`${h.name} — cosy hotel in ${h.city}`} url={detailsHref(h.slug)} />
+                    <ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${h.city}`} url={detailsHref(h.slug)} />
                   </div>
                 </div>
                 {h._img && (

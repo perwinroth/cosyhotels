@@ -12,7 +12,7 @@ export default function GrowthDataBriefPage() {
       <h1 className="text-2xl font-semibold" style={{ fontFamily: "Fraunces, serif" }}>Data-brief outreach</h1>
       <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
         The host-gap finding (74% vs 26%) to 15 verified slow-travel / independent-hotel writers.
-        Text is Challenger-approved — send as-is, personalize only the opener further if you know their work.
+        Text is Challenger-approved: send as-is, personalize only the opener further if you know their work.
       </p>
       <div className="mt-5">
         <DataBriefBoard />

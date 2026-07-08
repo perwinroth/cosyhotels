@@ -121,20 +121,20 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
       </h1>
       <p className="mt-5 text-lg leading-relaxed" style={{ color: "var(--muted)" }}>
         We analysed {REVIEWS.toLocaleString("en-GB")} guest reviews to score hotels on one quality nobody rates:
-        cosiness. It turns out to be genuinely rare — {COSY_PCT}% of hotels — and the things that predict it are
+        cosiness. It turns out to be genuinely rare ({COSY_PCT}% of hotels), and the things that predict it are
         not the things hotels advertise.
       </p>
 
       <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6 rounded-2xl border p-6" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
         <Stat big={TOTAL.toLocaleString("en-GB")} label="hotels scored, worldwide" />
         <Stat big={REVIEWS.toLocaleString("en-GB")} label="guest reviews analysed" />
-        <Stat big={`${COSY_PCT}%`} label="score 7.0+ — genuinely cosy" />
+        <Stat big={`${COSY_PCT}%`} label="score 7.0+: genuinely cosy" />
         <Stat big="8.5×" label="a fireplace's cosiness lift" />
       </div>
 
       <H2>Cosiness is rarer than a five-star rating</H2>
       <p className="leading-relaxed">
-        Of {TOTAL.toLocaleString("en-GB")} hotels we scored, just <strong>{COSY_N} ({COSY_PCT}%) reach 7.0 or higher</strong> —
+        Of {TOTAL.toLocaleString("en-GB")} hotels we scored, just <strong>{COSY_N} ({COSY_PCT}%) reach 7.0 or higher</strong>,
         our bar for genuinely cosy. {BELOW_FLOOR.toLocaleString("en-GB")} ({Math.round((BELOW_FLOOR / TOTAL) * 100)}%)
         fall below 5.0, which means we don&apos;t list them at all. Put differently: our bar for genuinely cosy
         admits <strong>one hotel in forty-four</strong>.
@@ -147,7 +147,7 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
       <p className="leading-relaxed">
         Across the listed hotels with a known star rating, the average cosy score barely moves:
         {" "}<strong>6.13 for one-star, 6.29 for five-star</strong>. A two-star guesthouse (6.14) is statistically
-        indistinguishable from a four-star hotel (6.15). Stars measure facilities — pools, porters, room service.
+        indistinguishable from a four-star hotel (6.15). Stars measure facilities: pools, porters, room service.
         None of that makes a place feel like somewhere you want to stay in on a rainy evening.
       </p>
       <div className="mt-6 rounded-2xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -158,7 +158,7 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
       <p className="leading-relaxed">
         We compared what guests describe at genuinely cosy hotels (7.0+) against the rest (below 6.0).
         The rarest signal has the biggest effect: <strong>a fireplace or wood stove is 8.5× more common in cosy
-        hotels</strong>. But the most universal ingredient is a person, not a feature —
+        hotels</strong>. But the most universal ingredient is a person, not a feature:
         <strong> 96% of the cosiest hotels have a hands-on host or family running the place</strong>, and guests
         name them in reviews. Warmth, it turns out, is mostly labour.
       </p>
@@ -166,13 +166,13 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
         <LiftChart data={SIGNALS} />
       </div>
       <blockquote className="my-10 border-l-4 pl-6 text-2xl leading-snug" style={{ borderColor: "var(--ember)", fontFamily: "Fraunces, serif" }}>
-        96% of the world&apos;s cosiest hotels have one thing in common — and it isn&apos;t a feature. It&apos;s a host guests know by name.
+        96% of the world&apos;s cosiest hotels have one thing in common, and it isn&apos;t a feature. It&apos;s a host guests know by name.
       </blockquote>
 
       <H2>Which towns have the cosiest hotels?</H2>
       <p className="leading-relaxed">
         Cosiness clusters in small, old towns: Sighișoara&apos;s citadel, the medinas of Fez and Marrakech, the cave
-        town of Matera, canal-ringed Bruges. Every town in our top ten was <strong>built before the car</strong> —
+        town of Matera, canal-ringed Bruges. Every town in our top ten was <strong>built before the car</strong>:
         narrow streets, small plots, buildings that force hotels to stay little and characterful. The big capitals
         don&apos;t make the list; their averages drown in large modern builds.
       </p>
@@ -185,8 +185,8 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
 
       <H2>What the top 2.3% looks like</H2>
       <p className="leading-relaxed">
-        Six of the highest-scoring hotels in the dataset — every photo below is the hotel&apos;s own, vetted by our
-        image pipeline. Notice what they have in common: small rooms, wood, stone, lamplight — and not a lobby
+        Six of the highest-scoring hotels in the dataset. Every photo below is the hotel&apos;s own, vetted by our
+        image pipeline. Notice what they have in common: small rooms, wood, stone, lamplight, and not a lobby
         in sight.
       </p>
       <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -206,7 +206,7 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
       <H2>The cosiest hotel we found has six rooms</H2>
       <p className="leading-relaxed">
         The top of our index isn&apos;t a grand hotel. It&apos;s <a href={`/${l}/hotels/follonico-6099822548`} className="underline">Follonico</a>,
-        a six-room agriturismo in the hills between Montepulciano and Montefollonico, at <strong>7.8/10</strong> —
+        a six-room agriturismo in the hills between Montepulciano and Montefollonico, at <strong>7.8/10</strong>;
         guests describe sun-dried linen, a wood-burning fireplace in the bedroom, and candlelit dinners the owner
         cooks from his kitchen garden. The entire top twelve is B&amp;Bs, guesthouses and small inns. Not one
         international chain appears.
@@ -216,18 +216,18 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
       <p className="leading-relaxed" style={{ color: "var(--muted)" }}>
         Each listed hotel&apos;s score is grounded in evidence: {REVIEWS.toLocaleString("en-GB")} guest reviews across
         {" "}{REVIEW_HOTELS.toLocaleString("en-GB")} hotels, scored by an AI model judging concrete things guests
-        describe — lighting, materials, scale, hosting — then calibrated against {`150+`} human-graded hotels.
+        describe (lighting, materials, scale, hosting), then calibrated against {`150+`} human-graded hotels.
         Hotels without enough evidence aren&apos;t scored and aren&apos;t listed. The limits: cosiness is subjective, and our
         calibration study shows the score agrees with human raters roughly as well as two humans agree with each
-        other — that&apos;s the ceiling for any measure of a feeling. Scores are a {SNAPSHOT} snapshot and move as new
+        other; that&apos;s the ceiling for any measure of a feeling. Scores are a {SNAPSHOT} snapshot and move as new
         reviews arrive. Full method on <a href={`/${l}/cosy-score`} className="underline">the Cosy Score page</a>.
       </p>
 
       <div className="mt-14 rounded-2xl border p-6" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
         <p className="font-semibold" style={{ fontFamily: "Fraunces, serif", fontSize: 20 }}>Explore the data yourself</p>
         <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>
-          Browse the <a href={`/${l}/cosy-index`} className="underline">Cosy Index</a> — every genuinely cosy hotel we&apos;ve
-          found, ranked — or start with a city guide like <a href={`/${l}/guides/bruges-cosy-hotel`} className="underline">Bruges</a> or{" "}
+          Browse the <a href={`/${l}/cosy-index`} className="underline">Cosy Index</a> (every genuinely cosy hotel we&apos;ve
+          found, ranked) or start with a city guide like <a href={`/${l}/guides/bruges-cosy-hotel`} className="underline">Bruges</a> or{" "}
           <a href={`/${l}/guides/edinburgh-cosy-hotel`} className="underline">Edinburgh</a>.
         </p>
         <p className="mt-3 text-sm" style={{ color: "var(--muted)" }}>

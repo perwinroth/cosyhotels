@@ -227,13 +227,13 @@ export async function getTodayStats(db: DB) {
 
 // Where the growth build stands (static). status: done | ready (can start now) | blocked (needs Per).
 export const ROADMAP: Array<{ wp: string; label: string; status: "done" | "ready" | "blocked"; note?: string }> = [
-  { wp: "WP1–4", label: "SEO foundation — split sitemaps, internal links, theme/country hubs, thin-page noindex", status: "done" },
+  { wp: "WP1–4", label: "SEO foundation: split sitemaps, internal links, theme/country hubs, thin-page noindex", status: "done" },
   { wp: "WP5", label: "Reddit lead finder · badge-outreach engine · Today action queue", status: "done" },
   { wp: "WP6", label: "Search Console KPI panel", status: "done" },
-  { wp: "WP8", label: "Competitor backlinks — 16 pitchable targets added to the PR list", status: "done" },
+  { wp: "WP8", label: "Competitor backlinks: 16 pitchable targets added to the PR list", status: "done" },
   { wp: "WP5", label: "Real Gmail drafts from per@gotcosy.com (the outreach draft buttons)", status: "done" },
-  { wp: "WP6", label: "Daily 08:30 + Friday calendar reminders → open /growth Today", status: "ready", note: "Not blocked — say go and pick calendar events vs phone push." },
-  { wp: "WP7", label: "Blog audit + rewrite + 40-listicle drip", status: "ready", note: "Audit-first — you read everything before it publishes." },
+  { wp: "WP6", label: "Daily 08:30 + Friday calendar reminders → open /growth Today", status: "ready", note: "Not blocked: say go and pick calendar events vs phone push." },
+  { wp: "WP7", label: "Blog audit + rewrite + 40-listicle drip", status: "ready", note: "Audit-first: you read everything before it publishes." },
 ];
 
 // Palette-only status chips (tinted via color-mix of brand vars — theme-aware, no raw hex).
@@ -246,7 +246,7 @@ export const roadmapChip: Record<string, { bg: string; fg: string; label: string
 // External analytics — the numbers that live off-site (used by the rail + the reporting page).
 export const EXTERNAL_LINKS: Array<{ href: string; label: string; watch: string }> = [
   { href: "https://vercel.com/perwinroths-projects/cosyhotels/analytics", label: "Vercel Analytics", watch: "Traffic by page & source. Watch which cities get visits." },
-  { href: "https://app.stay22.com", label: "Stay22 dashboard", watch: "Affiliate clicks & bookings — the revenue metric. Per city." },
+  { href: "https://app.stay22.com", label: "Stay22 dashboard", watch: "Affiliate clicks & bookings: the revenue metric. Per city." },
   { href: "https://www.pinterest.com/business/hub/", label: "Pinterest analytics", watch: "Impressions & outbound clicks (pin → site). The traffic metric." },
   { href: "https://business.instagram.com", label: "Instagram insights", watch: "Reach, saves, profile visits, follower growth." },
   { href: "https://search.google.com/search-console", label: "Search Console", watch: "Impressions/clicks for 'cosy hotels {city}'. The SEO signal." },

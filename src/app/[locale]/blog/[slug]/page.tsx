@@ -70,7 +70,7 @@ function PickCard({ h, idx, locale }: { h: BlogPick; idx: number; locale: string
           )}
           <div className="mt-3 flex items-center gap-2">
             <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a>
-            <ShareButton variant="icon" title={`${h.name} — cosy hotel in ${h.city}`} url={detailsHref} />
+            <ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${h.city}`} url={detailsHref} />
           </div>
         </div>
         {h.img && (
@@ -145,7 +145,7 @@ export default async function BlogPostPage({ params }: Props) {
 
       {isPreview && (
         <div className="mb-6 rounded-lg border px-4 py-2.5 text-sm" style={{ borderColor: "var(--ember)", background: "color-mix(in srgb, var(--ember) 10%, var(--card))", color: "var(--foreground)" }}>
-          <strong>Preview</strong> — not published yet. Only you (panel) can see this; the public gets a 404 until it publishes.
+          <strong>Preview</strong>: not published yet. Only you (panel) can see this; the public gets a 404 until it publishes.
         </div>
       )}
 
@@ -167,7 +167,7 @@ export default async function BlogPostPage({ params }: Props) {
               {picks.map((h, i) => <PickCard key={h.slug} h={h} idx={i} locale={L} />)}
             </ol>
           ) : (
-            <p className="mt-5 text-sm" style={{ color: "var(--muted)" }}>We&apos;re refreshing this list — check back shortly, or browse <a href={`/${L}/cosy-index`} className="underline">the Cosy Index</a>.</p>
+            <p className="mt-5 text-sm" style={{ color: "var(--muted)" }}>We&apos;re refreshing this list; check back shortly, or browse <a href={`/${L}/cosy-index`} className="underline">the Cosy Index</a>.</p>
           )}
         </section>
       )}

@@ -100,7 +100,7 @@ export function TierStripChart({
         );
       })}
       <text x={PAD.l} y={H - 10} fontSize={11.5} fill="currentColor" opacity={0.6}>
-        mean cosy score · axis starts at 5.0 — the qualification floor, not zero · grey = de-emphasised capital context, not part of the top tier
+        mean cosy score · axis starts at 5.0, the qualification floor, not zero · grey = de-emphasised capital context, not part of the top tier
       </text>
     </ChartFrame>
   );

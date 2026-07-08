@@ -24,7 +24,7 @@ export default async function ReportingPage() {
       {/* Traffic & funnel */}
       <SectionHead id="funnel" title="Traffic & funnel" aside="last 30 days, in-app" how="Which sources send visitors who click “Check availability”. Pour effort into the ones that convert." />
       {funnelError ? (
-        <p style={{ color: "var(--ember-ink)", fontSize: 13, marginTop: 8 }}>events table not found — apply <code>supabase/2026_events.sql</code>, then traffic populates here automatically.</p>
+        <p style={{ color: "var(--ember-ink)", fontSize: 13, marginTop: 8 }}>events table not found: apply <code>supabase/2026_events.sql</code>, then traffic populates here automatically.</p>
       ) : funnel && funnel.pageviews > 0 ? (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4" style={{ marginTop: 12 }}>
@@ -43,7 +43,7 @@ export default async function ReportingPage() {
               </div>
             ))}
           </div>
-          <p style={{ color: "var(--muted)", fontSize: 11, marginTop: 8, opacity: 0.85 }}>Funnel per source: <strong>visit → CTA click</strong> — the part we control. Stay22 has no public reporting API, so booking + revenue stay in their dashboard. The CTA click is our best in-app proxy for intent-to-book.</p>
+          <p style={{ color: "var(--muted)", fontSize: 11, marginTop: 8, opacity: 0.85 }}>Funnel per source: <strong>visit → CTA click</strong>, the part we control. Stay22 has no public reporting API, so booking + revenue stay in their dashboard. The CTA click is our best in-app proxy for intent-to-book.</p>
         </>
       ) : (
         <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 8 }}>No events yet. Once <code>2026_events.sql</code> is applied and visitors arrive, traffic and source→click funnels appear here.</p>
@@ -52,16 +52,16 @@ export default async function ReportingPage() {
       {/* Search Console */}
       <SectionHead id="search" title="Search Console" aside="last 28 days" how="Your Google visibility. Rising impressions mean the SEO work is landing; strong position with low CTR means sharpen the page title." />
       {!gscOn ? (
-        <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 8 }}>Not wired yet — add <code>GSC_SA_EMAIL</code> + <code>GSC_SA_PRIVATE_KEY</code> to Vercel (service account must be a user on the gotcosy.com property). Then Google impressions/clicks/queries appear here.</p>
+        <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 8 }}>Not wired yet: add <code>GSC_SA_EMAIL</code> + <code>GSC_SA_PRIVATE_KEY</code> to Vercel (service account must be a user on the gotcosy.com property). Then Google impressions/clicks/queries appear here.</p>
       ) : !gsc ? (
-        <p style={{ color: "var(--ember-ink)", fontSize: 13, marginTop: 8 }}>Credentials set but the API returned nothing — the SA may not have access yet, or <code>GSC_PROPERTY</code> is the wrong form. Run <code>node --env-file=.env.local scripts/gsc-test.mjs</code> to diagnose.</p>
+        <p style={{ color: "var(--ember-ink)", fontSize: 13, marginTop: 8 }}>Credentials set but the API returned nothing: the SA may not have access yet, or <code>GSC_PROPERTY</code> is the wrong form. Run <code>node --env-file=.env.local scripts/gsc-test.mjs</code> to diagnose.</p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4" style={{ marginTop: 12 }}>
             <Stat label="Impressions" value={Math.round(gsc.totals.impressions).toLocaleString()} sub="in Google search" />
             <Stat label="Clicks" value={Math.round(gsc.totals.clicks).toLocaleString()} sub="to the site" />
             <Stat label="Avg CTR" value={`${(gsc.totals.ctr * 100).toFixed(1)}%`} />
-            <Stat label="Avg position" value={gsc.totals.position ? gsc.totals.position.toFixed(1) : "—"} />
+            <Stat label="Avg position" value={gsc.totals.position ? gsc.totals.position.toFixed(1) : "–"} />
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2" style={{ marginTop: 12 }}>
             <div style={cardStyle}>
@@ -89,7 +89,7 @@ export default async function ReportingPage() {
       )}
 
       {/* Content inventory */}
-      <SectionHead id="inventory" title="Content inventory" how="A health snapshot of what’s built and scored — glance to confirm the catalogue looks right." />
+      <SectionHead id="inventory" title="Content inventory" how="A health snapshot of what’s built and scored; glance to confirm the catalogue looks right." />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3" style={{ marginTop: 12 }}>
         <Stat label="Cities live" value={inv.cities} />
         <Stat label="Hotels scored" value={inv.scored.toLocaleString()} />
@@ -118,7 +118,7 @@ export default async function ReportingPage() {
       </div>
 
       {/* External analytics */}
-      <SectionHead id="analytics" title="External analytics" how="The numbers that matter live off-site. Check these weekly — especially which cities convert." />
+      <SectionHead id="analytics" title="External analytics" how="The numbers that matter live off-site. Check these weekly, especially which cities convert." />
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2" style={{ marginTop: 12 }}>
         {EXTERNAL_LINKS.map((l) => (
           <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="growth-navlink hov" style={{ display: "block", ...cardStyle, padding: 14, textDecoration: "none" }}>

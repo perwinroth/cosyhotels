@@ -16,7 +16,7 @@ export default function ContactPage() {
       <h1 className="font-display text-4xl font-semibold tracking-tight">Contact</h1>
       <div className="longform mt-6">
         <p>
-          We’d love to hear from you — suggestions for new cosy stays, corrections, or partnership enquiries.
+          We’d love to hear from you: suggestions for new cosy stays, corrections, or partnership enquiries.
         </p>
         <p>
           Email us at <a href={`mailto:${email}`}>{email}</a> and we’ll get back to you.

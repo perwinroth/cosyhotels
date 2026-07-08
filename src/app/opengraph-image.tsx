@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Got Cosy? — AI-rated cosy hotels";
+export const alt = "Got Cosy? AI-rated cosy hotels";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -39,7 +39,7 @@ export default function OG() {
           <span style={{ color: "#E08A4B", fontStyle: "italic" }}>cosy?</span>
         </div>
         <div style={{ fontSize: 40, color: "#9DA89F", marginTop: 24, fontFamily: "sans-serif" }}>
-          Hotels ranked by cosiness — not stars.
+          Hotels ranked by cosiness, not stars.
         </div>
         <div style={{ fontSize: 28, color: "#D8B25A", marginTop: 48, fontFamily: "sans-serif", letterSpacing: 1 }}>
           gotcosy.com

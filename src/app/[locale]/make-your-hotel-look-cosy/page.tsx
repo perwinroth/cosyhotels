@@ -8,8 +8,8 @@ import { jsonLd } from "@/lib/schema";
 
 export const revalidate = 86400;
 
-const TITLE = "How to make your hotel look cosy online — what 17,000 hotels taught us";
-const DESC = "We analysed photos from 17,000+ hotels. Here's exactly which images make a hotel look cosy — and which quietly make it look cold — with real before/after examples. A practical guide for hoteliers.";
+const TITLE = "How to make your hotel look cosy online: what 17,000 hotels taught us";
+const DESC = "We analysed photos from 17,000+ hotels. Here's exactly which images make a hotel look cosy (and which quietly make it look cold), with real before/after examples. A practical guide for hoteliers.";
 
 export function generateMetadata(): Metadata {
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
@@ -23,7 +23,7 @@ const DONT = [
   { src: "dont-landmark2.png", label: "A landmark that isn't your building", count: 737, why: "The famous view down the road is not your hotel. People want to see where they'll actually sleep." },
   { src: "dont-text.png", label: "A text or offer graphic", count: 422, why: "“A family of holiday accommodations” reads as an advert, not an invitation. Let a real room talk." },
   { src: "dont-person.jpg", label: "A stock photo of a person", count: 338, why: "A model at a spa could belong to any business on earth. A guest is picturing the space, not a stranger." },
-  { src: "dont-detail.jpg", label: "A dark detail crop", count: 295, why: "A business card, a sleeve, a doorknob. Atmospheric maybe — but it shows nothing a traveller can book." },
+  { src: "dont-detail.jpg", label: "A dark detail crop", count: 295, why: "A business card, a sleeve, a doorknob. Atmospheric, maybe, but it shows nothing a traveller can book." },
   { src: "dont-badge.png", label: "An award badge", count: 172, why: "A Travellers' Choice sticker is a trust mark, not a photo. It belongs in the footer, never the first frame." },
 ];
 
@@ -31,7 +31,7 @@ const DO = [
   { src: "do-room.png", label: "A warm, characterful room", why: "A wrought-iron bed, warm wood, patterned tiles, soft lamplight. The exact thing people are booking." },
   { src: "do-lounge.jpg", label: "A lounge with real character", why: "Exposed beams, velvet armchairs, a chandelier, leaded windows. One look and you'd happily lose an evening here." },
   { src: "do-interior2.jpeg", label: "A snug corner to yourself", why: "A reading nook, a lit lamp, a wall of books. You can feel exactly what a quiet hour in it is like." },
-  { src: "do-garden.jpg", label: "An intimate outdoor nook", why: "Fairy lights, a hanging chair, soft drapes after dark — cosiness carries outside too, not just indoors." },
+  { src: "do-garden.jpg", label: "An intimate outdoor nook", why: "Fairy lights, a hanging chair, soft drapes after dark: cosiness carries outside too, not just indoors." },
 ];
 
 const BASE = "/guide-examples/";
@@ -73,42 +73,42 @@ export default function HotelGuidePage({ params }: { params: { locale: string } 
       <p className="text-sm font-medium tracking-wide uppercase" style={{ color: "var(--ember)", letterSpacing: "0.08em" }}>For hoteliers</p>
       <h1 className="mt-2 font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">Your hotel&apos;s first photo is quietly costing you bookings</h1>
       <p className="mt-5 text-xl leading-relaxed" style={{ color: "var(--muted)" }}>
-        A traveller — or an AI travel assistant — decides whether your hotel looks cosy in about half a second, from a single photo. We analysed images from <strong style={{ color: "var(--foreground)" }}>17,000+ hotels</strong> and rejected <strong style={{ color: "var(--foreground)" }}>21,951</strong> of them as &ldquo;not cosy&rdquo; or &ldquo;not even the hotel.&rdquo; The ones that come across cold almost always make the same handful of mistakes. They&apos;re free to fix. Most hotels never do.
+        A traveller (or an AI travel assistant) decides whether your hotel looks cosy in about half a second, from a single photo. We analysed images from <strong style={{ color: "var(--foreground)" }}>17,000+ hotels</strong> and rejected <strong style={{ color: "var(--foreground)" }}>21,951</strong> of them as &ldquo;not cosy&rdquo; or &ldquo;not even the hotel.&rdquo; The ones that come across cold almost always make the same handful of mistakes. They&apos;re free to fix. Most hotels never do.
       </p>
 
       {/* The split-second test — one real reject vs one real cosy shot, side by side */}
       <h2 className="mt-12 font-display text-2xl font-semibold">The half-second test</h2>
-      <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Both of these come from real hotel listings. Glance once — which one would you book?</p>
+      <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Both of these come from real hotel listings. Glance once: which one would you book?</p>
       <div className="not-prose mt-4 grid grid-cols-2 gap-3">
-        <ExampleCard src="dont-landmark.jpeg" label="What many hotels lead with" why="A beautiful city — but you can't book a bridge. A guest learns nothing about the room." kind="dont" />
-        <ExampleCard src="do-manor.jpg" label="What they could lead with" why="The actual room — a fireplace, a chandelier, lamplight on panelled walls. You already know how a night here feels." kind="do" />
+        <ExampleCard src="dont-landmark.jpeg" label="What many hotels lead with" why="A beautiful city, but you can't book a bridge. A guest learns nothing about the room." kind="dont" />
+        <ExampleCard src="do-manor.jpg" label="What they could lead with" why="The actual room: a fireplace, a chandelier, lamplight on panelled walls. You already know how a night here feels." kind="do" />
       </div>
       <p className="not-prose my-8 font-display text-2xl sm:text-3xl font-medium leading-snug" style={{ color: "var(--ember)" }}>Same half-second. One is a hotel you can picture sleeping in. The other is a postcard.</p>
 
       <div className="longform mt-2">
-        <p>Cosiness is warmth you can <em>see</em>: light, texture, intimacy, character. Our AI scores it on every hotel&apos;s real photos — and before a single image counts, it has to pass a test for whether it even shows the hotel, warmly. Most don&apos;t. Here&apos;s what we throw out, in order of how often we see it, straight from the data.</p>
+        <p>Cosiness is warmth you can <em>see</em>: light, texture, intimacy, character. Our AI scores it on every hotel&apos;s real photos, and before a single image counts, it has to pass a test for whether it even shows the hotel, warmly. Most don&apos;t. Here&apos;s what we throw out, in order of how often we see it, straight from the data.</p>
       </div>
 
       <h2 className="mt-10 font-display text-2xl font-semibold">Stop leading with these</h2>
-      <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>The six image types we reject most. Real examples — anonymised, because the lesson is the <em>type</em> of photo, not the hotel.</p>
+      <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>The six image types we reject most. Real examples, anonymised, because the lesson is the <em>type</em> of photo, not the hotel.</p>
       <div className="not-prose mt-5 grid gap-4 sm:grid-cols-2">
         {DONT.map((x) => <ExampleCard key={x.src} {...x} kind="dont" />)}
       </div>
 
       <h2 className="mt-12 font-display text-2xl font-semibold">Lead with these instead</h2>
-      <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>The images that consistently read as cosy — warm, intimate, characterful. Every one is a real hotel that scores well with us.</p>
+      <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>The images that consistently read as cosy: warm, intimate, characterful. Every one is a real hotel that scores well with us.</p>
       <div className="not-prose mt-5 grid gap-4 sm:grid-cols-2">
         {DO.map((x) => <ExampleCard key={x.src} {...x} kind="do" />)}
       </div>
 
       <div className="longform mt-12">
         <h2>One rule above all</h2>
-        <p>If a photo could belong to any hotel in any city — a logo, a lobby that gleams, a landmark, a stock smile — it isn&apos;t selling yours. The warmest, most <em>specific</em> image you have should always come first: the room, the fire, the nook, the glow. That single frame is your whole pitch. Make it the one a tired traveller wants to fall into.</p>
+        <p>If a photo could belong to any hotel in any city (a logo, a lobby that gleams, a landmark, a stock smile), it isn&apos;t selling yours. The warmest, most <em>specific</em> image you have should always come first: the room, the fire, the nook, the glow. That single frame is your whole pitch. Make it the one a tired traveller wants to fall into.</p>
       </div>
 
       <div className="mt-10 rounded-2xl border p-6 text-center" style={{ borderColor: "color-mix(in srgb, var(--ember) 35%, transparent)", background: "color-mix(in srgb, var(--ember) 6%, var(--card))" }}>
         <p className="font-display text-xl font-semibold">Want to know how cosy your hotel looks?</p>
-        <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Get your hotel&apos;s Cosy Score — and see exactly which of your photos work, and which we&apos;d reject.</p>
+        <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Get your hotel&apos;s Cosy Score, and see exactly which of your photos work, and which we&apos;d reject.</p>
         <div className="mt-4 flex flex-wrap gap-3 justify-center">
           <a href={`/${L}/for-hotels`} className="rounded-xl px-5 py-2.5 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Get your Cosy Score →</a>
           <a href={`/${L}/what-makes-a-hotel-cosy`} className="rounded-xl px-5 py-2.5 font-medium no-underline text-sm" style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}>The full data study</a>

@@ -16,7 +16,7 @@ export default function BadgeEmbed({ slug, score, name }: { slug: string; score:
   return (
     <section style={{ marginTop: 28, padding: 18, border: "1px solid var(--line)", borderRadius: 16, background: "var(--card)" }}>
       <div style={{ fontFamily: "var(--font-serif, Georgia), serif", fontSize: 17, fontWeight: 600 }}>Own this hotel? Add your cosy badge</div>
-      <p style={{ fontSize: 13.5, color: "var(--muted)", margin: "6px 0 14px" }}>Show off your AI cosy score — paste this on your site and it links back to your ranking.</p>
+      <p style={{ fontSize: 13.5, color: "var(--muted)", margin: "6px 0 14px" }}>Show off your AI cosy score: paste this on your site and it links back to your ranking.</p>
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={badgeSrc} alt={`Rated ${score.toFixed(1)} out of 10 for cosiness by Got Cosy`} width={240} height={92} style={{ flexShrink: 0 }} />

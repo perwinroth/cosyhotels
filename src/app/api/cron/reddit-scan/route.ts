@@ -115,7 +115,7 @@ export async function GET(req: Request) {
       inserted = fresh.length;
       // Ping Per with the fresh leads (up to 6 lines) + a link to reply. Best-effort — the DB write
       // above already succeeded, so a Telegram failure just means no push, not a lost lead.
-      const lines = fresh.slice(0, 6).map((l) => `• r/${l.subreddit} — ${l.title}`);
+      const lines = fresh.slice(0, 6).map((l) => `• r/${l.subreddit}: ${l.title}`);
       const more = fresh.length > 6 ? `\n…and ${fresh.length - 6} more` : "";
       notified = await pushTelegram(
         `${fresh.length} new Reddit lead${fresh.length > 1 ? "s" : ""} to reply to:\n${lines.join("\n")}${more}\n\nReply → https://gotcosy.com/growth/reddit`,
