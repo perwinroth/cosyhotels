@@ -70,7 +70,9 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
       />
       {showSuggest && (hotels.length > 0 || cities.length > 0 || countries.length > 0 || regions.length > 0) && (
-        <div className="absolute mt-1 w-full z-20 rounded-md border border-line bg-card shadow">
+        <div className="absolute mt-1 w-full z-20 rounded-md border shadow" style={{ background: "var(--card)", borderColor: "var(--line)", color: "var(--foreground)" }}>
+          {/* Inline vars (NOT bg-card/border-line): the bg-card class -> var(--color-card) -> var(--card)
+              double-indirection rendered stale/light for this dynamically-inserted dropdown in dark mode. */}
           <ul className="max-h-72 overflow-auto">
             {hotels.map((h) => (
               <li key={`h-${h.slug}`}>
