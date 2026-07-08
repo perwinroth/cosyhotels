@@ -249,7 +249,10 @@ export async function GET(req: Request) {
     const fitScore = t?.fit_score ?? 0;
     const fitReason = t?.fit_reason ?? "triage failed — reviewed manually";
     const category = t?.category ?? q.category ?? "uncategorized";
-    const wouldDraft = fitScore >= 0.6 && Boolean(q.reply_to);
+    // Respect journalists' explicit "No AI Pitches" flags: never auto-draft those — the query still
+    // lands on the /growth/journo board for Per to answer personally (integrity + pitch survival).
+    const noAiPitch = /no\s+ai[\s-]*(pitch|generated|written|content)/i.test(q.query_text) || /no\s+ai\s+pitch/i.test(q.deadline || "");
+    const wouldDraft = fitScore >= 0.6 && Boolean(q.reply_to) && !noAiPitch;
 
     if (dry) {
       dryPreview.push({ outlet: q.outlet, deadline: q.deadline, category, fit_score: fitScore, would_draft: wouldDraft, query: q.query_text.slice(0, 200) });
@@ -257,6 +260,7 @@ export async function GET(req: Request) {
     }
 
     let status = "new";
+    const reasonOut = noAiPitch && fitScore >= 0.6 ? `${fitReason} — NO-AI-PITCH flag: answer personally` : fitReason;
     let draftId: string | null = null;
     let draftLink: string | null = null;
     if (wouldDraft && drafted < MAX_DRAFTS) {
@@ -275,7 +279,7 @@ export async function GET(req: Request) {
 
     rows.push({
       id: q.id, source: q.source, received_at: q.receivedAt, outlet: q.outlet, journalist: q.journalist,
-      deadline: q.deadline, category, query_text: q.query_text, fit_score: fitScore, fit_reason: fitReason,
+      deadline: q.deadline, category, query_text: q.query_text, fit_score: fitScore, fit_reason: reasonOut,
       status, draft_id: draftId, draft_link: draftLink, reply_to: q.reply_to,
     });
   }
