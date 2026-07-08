@@ -46,7 +46,7 @@ export const BLOG_POSTS: BlogPost[] = [
           "Small wins. A guesthouse with eight rooms means the person at the desk recognises you by the second morning; a 300-room hotel never will. Independent ownership matters for the same reason — a place run by the people who live there has a warmth a brand can't standardise.",
           "And you want one good shared space: a snug lounge, a bar with a fire, a breakfast table where solo guests aren't seated by the kitchen. Somewhere you can be around people without having to perform being social.",
         ],
-        tip: "Read the reviews specifically for the word \"staff\" or the owner's name. On the cosiest small hotels, guests name the person who looked after them. That's the signal.",
+        tip: "Read the reviews specifically for the word \"staff\" or the owner's name. On the cosiest small hotels, guests name the person who looked after them. That's the signal — in our data, 74% of hotels' review evidence in the ten cosiest towns mentions a host, an owner or someone by name, against 26% in big cities.",
       },
       {
         h2: "Why cosy beats grand when it's just you",
@@ -224,7 +224,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         h2: "The signals that predict calm",
         paras: [
-          "In our data, the hotels guests describe as peaceful cluster around a few words: countryside, garden, spa or sauna, fireplace, retreat, and small. A spa or thermal bath gives you somewhere to decompress; a garden gives you outdoors without effort; a fireplace gives an evening a centre of gravity — hotels with a real fireplace are roughly 8.5 times more likely to reach our top cosiness tier.",
+          "In our data, the hotels guests describe as peaceful cluster around a few words: countryside, garden, spa or sauna, fireplace, retreat, and small. A spa or thermal bath gives you somewhere to decompress; a garden gives you outdoors without effort; a fireplace gives an evening a centre of gravity — a real fireplace or wood stove is about 8.5 times more common in the hotels that reach our top cosiness tier than in the rest.",
           "Rural and small-town settings help too — the cosiest, calmest stays are disproportionately in old, small places built long before the car, where quiet is simply the default.",
         ],
       },
