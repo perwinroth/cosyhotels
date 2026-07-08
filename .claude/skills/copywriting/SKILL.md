@@ -72,6 +72,8 @@ Everything above is page logic (lead with the stat, answer-first). **An email is
 
 **Send discipline:** Mon–Wed. Replies come in hours or never; a pitch unread after 48h is dead. Founder's rule stands: one send per target, no follow-up chasing. Silence is the norm — ~3% cold reply is the base rate; 25–35% only when the personalization is real.
 
+**Referencing a writer's own work (one-shot pitches):** read their actual recent pieces first; hook the line to what they published lately, in their own vocabulary — never their About page. Any quoted phrase or claimed detail MUST be verified against the raw page text, not a summarised fetch — summarising fetches have invented details that aren't in the piece (caught 2026-07-08), and the writer always knows their own work. If a citation can't be verified raw, the line drops the specific reference.
+
 ## Before you ship
 Cut one adjective per sentence. Read the first paragraph alone — does it make someone keep reading? Check every number is real and sourced. Remove the throat-clear. If it could have been written by any hotel-affiliate blog, rewrite it.
 For an email: read it aloud as Per. If any sentence sounds like a company, cut it. If the first line could go to anyone else on the list, rewrite it.
