@@ -68,9 +68,7 @@ r/travel and r/solotravel: NO link posts; answer questions genuinely, weekly pro
 Quora: links only inside genuinely helpful answers; disclose affiliation.
 Sequencing: r/SideProject, then Indie Hackers, then Show HN (rehearse the story where the stakes are low, then spend the HN shot).`;
 
-export const DIRECTORY_PLAYBOOK = `Name: Got Cosy. One-liner: "Find genuinely cosy hotels: 17,727 hotels scored by reading what guests actually wrote in reviews." Category: Travel / AI tool. URL: https://gotcosy.com.
-Longer description: reuse the Lane-6 framing (fixed rubric, nothing scores an 8, methodology and limitations published).
-Screenshots: the towns table plus a hotel page. Batch these in one afternoon.`;
+export const DIRECTORY_PLAYBOOK = `THIS SECTION HAS MOVED: work directory submissions from /growth/listings (fuller target list, a copy button per form field, its own status pills). When you finish one there that also has a card here, mark this card done too so the boards agree.`;
 
 // ── All 105 classified rows ──────────────────────────────────────────────────────────────────────
 

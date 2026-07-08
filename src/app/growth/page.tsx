@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getBoardCounts, getTodayStats, getTodayPlan, Stat } from "./lib";
+import { LISTING_TARGETS } from "@/data/listingTargets";
 import TodayPlan from "@/components/growth/TodayPlan";
 
 export const dynamic = "force-dynamic";
@@ -48,11 +49,20 @@ export default async function GrowthTodayPage() {
   const [counts, stats, plan] = await Promise.all([getBoardCounts(db), getTodayStats(db), getTodayPlan(db)]);
   const planTotal = plan.emails.length + plan.instagram.length + plan.reddit.length;
 
+  // Listing targets live in code; only their statuses are in the DB (table may not exist yet).
+  let listingsDone = 0;
+  try {
+    const { data } = await db.from("listing_status").select("status").in("status", ["submitted", "live", "skip"]);
+    listingsDone = data?.length ?? 0;
+  } catch { /* table not created yet */ }
+  const listingsCount = Math.max(0, LISTING_TARGETS.length - listingsDone);
+
   const boards: Board[] = [
     { href: "/growth/pr", title: "PR outreach", count: counts.pr, blurb: "Queued targets to pitch: draft, send, mark done." },
     { href: "/growth/badges", title: "Badge outreach", count: counts.badges, blurb: "Top-2.3% hotels to pitch their “Rated Cosy” badge (approx.)." },
     { href: "/growth/reddit", title: "Reddit", count: counts.reddit, blurb: "New threads asking for cosy hotels; reply like a human." },
     { href: "/growth/blog", title: "Blog", count: counts.blog, blurb: "Drafts + scheduled posts to review before they publish." },
+    { href: "/growth/listings", title: "Listings & directories", count: listingsCount, blurb: "Entity profiles + directory submissions; copy kit included, chip away." },
   ];
 
   return (
