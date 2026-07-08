@@ -8,28 +8,32 @@ export const CAMPAIGN = {
   id: "character-brief-2026-07",
   landing: "https://gotcosy.com/en/data/cosiest-hotel-towns",
   from: "per@gotcosy.com (send from Zoho directly — Gmail send-as will bounce/spam-flag: SPF authorizes Zoho only)",
-  subject:
-    "In the cosiest small towns, 74% of hotels' reviews mention a host or owner. In big cities: 26%.",
-  // {PERSONAL} is replaced per target; the rest is the Challenger-approved body, verbatim.
+  // Rewritten 2026-07-08 to the email rules in .claude/skills/copywriting (pitch section): ≤7-word
+  // stat-free subject, one number translated to a human scale, offer = a cut shaped for THEM,
+  // one-word ask, ~110 words. Evidence: die-validation research-*-2026-07-08.md.
+  subject: "Why guests remember the owner",
+  // {PERSONAL} is replaced per target: an observation about THEIR work and what it connects to —
+  // never a compliment ("I loved your post" reads as AI spam now).
   bodyTemplate: `Hi {FIRST},
 
 {PERSONAL}
 
-I run GotCosy, a small hotel-discovery site that scores hotels for cosiness by reading guest reviews (17,700 hotels so far). One finding from our latest analysis seemed worth sending you directly:
+I run GotCosy. I score hotels for cosiness by reading what guests write about them afterwards, and one pattern won't go away: in the ten cosiest towns in my data, three out of every four hotels have guests writing about a person. The owner. A host they name. In the eight big cities I compared, one in four.
 
-In the ten cosiest towns in our data, 74% of hotels' review evidence mentions a host, an owner, a family member or someone by name. In eight large cities: 26%. Nearly a third of those town hotels are guesthouses or B&Bs by name (big cities: one in ten). And the big cities' cosy survivors take a different route — "boutique" appears 53 times in their review evidence against 3 in the towns', and they score well doing it — design instead of a person, both real.
+If that's useful for something you're writing, I'll cut the data whichever way serves the piece — one region, guesthouses only, the raw file. Free, credit optional. The full thing lives at https://gotcosy.com/en/data/cosiest-hotel-towns.
 
-Full tiers, methodology, limitations and free CSVs are here (cite anything with attribution to GotCosy; a link is appreciated but not required): https://gotcosy.com/en/data/cosiest-hotel-towns
-
-If a different cut would be more useful for something you're writing — a region, guesthouses only, the underlying evidence lines — I'm happy to run it. No strings.
+Worth a look?
 
 Per
-gotcosy.com`,
+gotcosy.com
+
+PS - if this isn't for you, ignoring it is a perfectly good answer. No follow-up coming.`,
   rules: [
     "Send from per@gotcosy.com. Gmail 'send mail as' is fine NOW THAT it relays via Zoho SMTP (fixed 2026-07-07) — verify a test mail shows signed-by gotcosy.com before the first real send.",
-    "One send per target. Personalize the {PERSONAL} line further if you know their work. No follow-up chasing.",
+    "One send per target. Mon–Wed sends only (replies come in hours or never). No follow-up chasing — the PS promises that.",
+    "Read it aloud as yourself before sending. If a sentence sounds like a company, cut it.",
     "If anyone asks for the underlying evidence lines: always label them “condensed by our scoring model from review text — not verbatim guest quotes.”",
-    "Scoreboard: the weekly mention tracker — do not count replies as success; count citations/mentions.",
+    "Scoreboard: the weekly mention tracker — do not count replies as success; count citations/mentions. ~3% cold reply is the base rate; silence is normal.",
   ],
 } as const;
 
@@ -54,7 +58,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://thetravelfolk.substack.com",
     what: "Paris-based Europe travel guides; family-run boutique hotels and guesthouses by stated preference.",
     personal:
-      "You've written that your ideal trip means staying at a family-run boutique hotel or guesthouse — this finding is that philosophy, quantified.",
+      "You've said your ideal trip ends at a family-run place. It turns out the guests of places like that keep proving your point, in writing.",
     email: "jenoa@thetravelfolk.com",
     route: "email (verified on site)",
     activity: "ongoing monthly pipeline",
@@ -66,7 +70,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://idyllmag.substack.com",
     what: "Curates soulful, design-led hotels with compelling backstories — not mass-market chains.",
     personal:
-      "Idyll's whole premise — soulful hotels with backstories over chains — turns out to be what this data ended up measuring; the boutique-in-big-cities counter-finding is squarely your design beat.",
+      "Idyll picks hotels for the story behind them. Here's an odd thing I can now show: small towns get cosy through a person, big cities get there through design. You cover that exact fault line.",
     email: "helloidyllmag@gmail.com",
     route: "email (verified on About page)",
     activity: "post Jun 30, 2026",
@@ -78,7 +82,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://marissaklurstein.substack.com",
     what: "Hotels 'with soul, a story, a sensibility'; heavy Italy focus, country-by-country guides.",
     personal:
-      "Your June essay argued personal connection beats amenities — this is that argument, in numbers (and Italy dominates the top tier).",
+      "Your June essay argued personal connection beats amenities. I can put a number on that now — and Italy sits all over the top of the table.",
     email: null,
     route: "Substack DM / reply-to",
     activity: "post Jul 5, 2026",
@@ -90,7 +94,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://ginasjournal.substack.com",
     what: "Author of two UK boutique-hotel guidebooks (Hoxton Mini Press); independents over chains, fortnightly.",
     personal:
-      "Your guidebooks curate independent character hotels by eye — this data gives that eye a mechanism: the person running the place.",
+      "Your guidebooks pick independent hotels by eye. I think I can show what that eye is detecting: the person running the building.",
     email: null,
     route: "Instagram DM @ginagoesto",
     activity: "fortnightly, active 2026",
@@ -102,7 +106,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://fromthepoolside.com",
     what: "A personal edit of boutique hotels 'saved, reviewed, and shared with restraint' — small independents and B&Bs.",
     personal:
-      "You share boutique finds 'with restraint' — here's a dataset that agrees with your taste and says why it works.",
+      "You share finds with restraint, so I'll be brief: the thing your kind of hotel has in common turns out to be measurable.",
     email: null,
     route: "contact form on site",
     activity: "Jan 2026",
@@ -114,7 +118,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://wander-lush.org",
     what: "Guesthouse-heavy Balkans/Caucasus coverage with a small-local-business ethos.",
     personal:
-      "Your guesthouse-first Balkans and Caucasus coverage is exactly the territory where this pattern runs strongest — family-run places whose reviews name the host.",
+      "Romania came out the single cosiest country in my data, and its evidence lines are all hosts by name. Your exact territory.",
     email: "emily@wander-lush.org",
     route: "email (published obfuscated on site) + contact form",
     activity: "10-year-anniversary post, active",
@@ -126,7 +130,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://travlinmad.com",
     what: "'Eat Local, Travel Slow™' — dedicated Local Stays category.",
     personal:
-      "'Eat local, travel slow' — the data says the same instinct applies to who runs your hotel: the places guests warm to are the ones where reviews name the owner.",
+      "'Eat local, travel slow' seems to extend to who runs your hotel. The stays guests warm to are the ones where they learn the owner's name.",
     email: "Lori@Travlinmad.com",
     route: "email (verified) + /contact page",
     activity: "ongoing",
@@ -138,7 +142,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://postcardsfromwherever.substack.com",
     what: "Slow, design-led hotels and hideaways.",
     personal:
-      "Your slow, design-led hideaways beat sits on both halves of this finding — the host-run towns and the design route the big cities take instead.",
+      "Your hideaways beat sits on both sides of something odd I found: small towns get cosy through a host, cities through design. Two routes, same warmth.",
     email: null,
     route: "Instagram DM @emmajaynelavelle",
     activity: "active 2026",
@@ -150,7 +154,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://surcollective.substack.com",
     what: "'Checking In' reviews of independent, design-led stays.",
     personal:
-      "Your Checking In reviews of independent stays are the qualitative twin of this data — it measures at scale what those reviews notice one hotel at a time.",
+      "Checking In notices one hotel at a time what I've been measuring across thousands — and the scale version has a twist I didn't expect.",
     email: null,
     route: "Substack DM / reply-to",
     activity: "post Jun 28, 2026",
@@ -162,7 +166,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://hedwigtravel.substack.com",
     what: "'Accommodation Wishlist' series on small, characterful stays.",
     personal:
-      "Your Accommodation Wishlist series is the demand side of this exact pattern — small places with someone's name attached.",
+      "The places on your Accommodation Wishlist share a trait I can finally name with data: someone's name attached to the building.",
     email: null,
     route: "Substack DM / reply-to",
     activity: "active 2025–26",
@@ -174,7 +178,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://sotheresthisplace.substack.com",
     what: "Off-the-beaten-path guides + a Wishlist Hotels series.",
     personal:
-      "Your off-path guides and Wishlist Hotels series map almost exactly onto where this signal concentrates — small towns, host-run places.",
+      "The hotels you wishlist are small, off the path, with someone's name over the door: exactly where this signal concentrates.",
     email: null,
     route: "Instagram DM @monicamendal; Substack Chat (paid)",
     activity: "Apr 2026",
@@ -186,7 +190,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://liviahengel.substack.com",
     what: "Essays on what makes a place feel meaningful; Italy focus.",
     personal:
-      "You write about what makes a place feel meaningful — this is one measurable answer: a person. And Italy owns the top of the table.",
+      "You ask what makes a place feel meaningful. One measurable answer showed up in my data: a person. And Italy owns the top of the table.",
     email: null,
     route: "Instagram DM @liviahengel or Substack",
     activity: "Feb 2026 (sparse)",
@@ -199,7 +203,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://italysegreta.com",
     what: "'Only small, family-run boutique hotels in Italy.'",
     personal:
-      "You cover only small, family-run boutique hotels in Italy — Italy dominates our top tier, and this data explains why your niche keeps winning.",
+      "The only hotels you'll feature are small and family-run — and Italian towns hold the top of my cosiest-towns table, which I don't think is a coincidence.",
     email: null,
     route: "contact via italysegreta.com/newsletter",
     activity: "active",
@@ -212,7 +216,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://henahvelez.substack.com",
     what: "Slow-travel and small-business-adjacent newsletter (~4k subs); hotels not the core beat.",
     personal:
-      "Your slow-travel lens fits the quieter half of this dataset — the towns where the person running the place is the experience.",
+      "Your slow-travel lens fits the quiet half of what I found: towns where the person running the place is the experience.",
     email: null,
     route: "Substack reply-to",
     activity: "active",
@@ -225,7 +229,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://timetobeitalian.substack.com",
     what: "Le Marche hidden gems; not hotel-specific.",
     personal:
-      "Le Marche's hidden guesthouses are exactly the kind of places this data keeps surfacing — host-run, small, remembered by name.",
+      "Le Marche's guesthouses are the kind of places my data keeps surfacing: host-run, small, remembered by name.",
     email: null,
     route: "Substack subscribe/DM",
     activity: "UNCONFIRMED",

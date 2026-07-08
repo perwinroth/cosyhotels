@@ -57,5 +57,21 @@ Writing this good deserves a layout to match. Apply [[frontend-design]] and:
 - **Visual rhythm:** short paragraphs, descriptive H2s that are themselves findings, a visual or callout per section, lots of air. Never a wall of text.
 - **Lead with a visual** where you can. Consider a light scroll-reveal for the data beats (don't overdo motion).
 
+## Pitch & outreach emails — DIFFERENT RULES THAN PAGES
+Everything above is page logic (lead with the stat, answer-first). **An email is not a page.** A writer gives a stranger two seconds and one question — *why are you writing to me?* — before archiving. Evidence base: die-validation memory/findings/research-{pitch-evidence,indie-writer-outreach,humanized-email-craft}-2026-07-08.md. Measured facts: ~3% of cold pitches get any reply; emails under 300 words get 2x+ the replies of longer ones (measured sweet spot 50–200); stat/ROI language cuts replies ~15%; pitching cuts replies up to 57% and a tell-them-about-us tone cuts ~26%; 86%+ of writers delete off-beat pitches instantly; 43–53% react negatively to AI-sounding email.
+
+**The shape, in order:**
+1. **Subject: ≤7 words, concrete, no stats, no clickbait.** It should read like a colleague's email, not a headline. "Why guests remember the owner" beats any sentence with a percentage in it.
+2. **First line: their work → an implication.** Never a compliment ("I loved your post…" is read as AI spam — writers get 10–20 a day). Instead: an observation about something specific they wrote or do, and what it connects to. The test: could this line be sent to anyone else? If yes, rewrite.
+3. **One finding, maximum, translated to a human scale, person before number.** "Three out of four of those hotels have guests writing about a person — the owner, someone by name" beats "74% of hotels' review evidence mentions a host." A single two-sided comparison counts as one finding; never a second, unrelated stat. The rest of the data is something they can ask for, not something you recite.
+4. **The offer is a formed story idea or an exclusive cut, not a dataset.** Solo writers respond to ideas shaped for THEIR readers; "here's our research + link" is a press release. Offer the custom cut, the exclusive angle, the raw file on request.
+5. **One direct, low-effort ask.** "Worth a look?" / "Want the file?" — answerable in one word.
+6. **Total 90–150 words, short uneven paragraphs, contractions, write like Per talks.** Reading level ~5th grade. Sign "Per". A short human P.S. is allowed and measurably helps.
+
+**Strip list (AI tells — clusters get you marked as a bot):** more than one em dash, triads ("X, Y, and Z" rhythm everywhere), symmetric "not just X but Y" clauses, uniform paragraph lengths, "I hope this finds you well", "delve/pivotal/underscore/testament", stock summary endings, compliment openers. (This document's own prose is documentation cadence, not email cadence — do NOT imitate its rhythm in an email; obey the strip list, not the style you're reading.)
+
+**Send discipline:** Mon–Wed. Replies come in hours or never; a pitch unread after 48h is dead. Founder's rule stands: one send per target, no follow-up chasing. Silence is the norm — ~3% cold reply is the base rate; 25–35% only when the personalization is real.
+
 ## Before you ship
 Cut one adjective per sentence. Read the first paragraph alone — does it make someone keep reading? Check every number is real and sourced. Remove the throat-clear. If it could have been written by any hotel-affiliate blog, rewrite it.
+For an email: read it aloud as Per. If any sentence sounds like a company, cut it. If the first line could go to anyone else on the list, rewrite it.
