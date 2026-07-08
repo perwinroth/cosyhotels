@@ -793,6 +793,95 @@ export const BLOG_POSTS: BlogPost[] = [
       { label: "The Cosy Index", to: "cosy-index" },
     ],
   },
+  // ── 13. TRAIN JOURNEY (founder-directed, advice-only, slow-travel/Byway lane) ───────────────
+  {
+    slug: "cosy-hotels-you-can-reach-by-train",
+    title: "Cosy hotels by train: a slow journey through Europe's cosiest towns",
+    dek: "Almost every town on our cosiness index is reachable without an aeroplane. Here's one continuous rail route from London to Transylvania where every stop is a town our data says is genuinely cosy, with the connections, the caveats and the two stops that honestly need a bus.",
+    eyebrow: "Slow travel",
+    h1: "Cosy hotels you can reach by train — a slow journey through Europe",
+    lead: "You don't need to fly to reach the cosiest hotels in Europe. Most of the towns that top our cosiness index sit on or near a railway line, and they chain into one continuous route: London → Bruges → Antwerp → Como → Siena → Matera → Sighișoara. Six legs, two weeks if you take it slowly, and every stop is a town where the small, personally run places our scoring keeps finding actually cluster. Below is the route leg by leg, with honest connection details, including the one famous cave city whose railway isn't on the national network and the two beloved towns that need a bus at the end. That honesty is the point: this is a route you can actually book.",
+    updated: "2026-07-08",
+    intro: [
+      {
+        h2: "Why arrive by train at all",
+        paras: [
+          "There's a practical case and a romantic one, and for cosy towns they're the same case. Practically: railway stations were built into town centres, so the train delivers you a short walk from the old town where the guesthouses are, with no forty-minute transfer from an airport built where land was cheap. Romantically: a cosy stay is about arrival as much as the room, and stepping off a train into a small town at dusk, bag in hand, five minutes from a lit doorway, is the arrival these places were built for.",
+          "The route below is a spine with detours. You can ride the whole thing, or lift any single leg as a holiday of its own; each stop links to our guide to that town's cosiest-scoring hotels. Where a connection is fiddly or a timetable changes seasonally, we say so and tell you to check current times rather than inventing a number. Rail planning rewards the person who checks the timetable the week they book.",
+        ],
+        tip: "Book each leg as a point-to-point ticket when your dates are fixed: advance fares on the fast trains are far cheaper than walk-up. Keep one flexible day in the middle of the trip; it turns every missed connection from a crisis into a lunch.",
+      },
+      {
+        h2: "Legs one and two: London to Bruges, then Antwerp",
+        paras: [
+          "The route opens with its easiest day. Eurostar runs from London St Pancras to Brussels in around two hours, and from Brussels frequent Belgian domestic trains continue to Bruges in about another hour, no seat reservation needed. Bruges station is roughly a twenty-minute walk from the Markt, which means you can leave London after breakfast and be crossing the Markt by mid-afternoon. Bruges is the busiest town on our index and the one with the deepest bench of small, host-run places; our Bruges guide picks the cosiest-scoring of them.",
+          "Leg two is a short Belgian hop: regular trains link Bruges and Antwerp by way of Ghent, and the pattern is simple and frequent. Antwerp earns its place twice over. It's on our cosiness tier list in its own right, and its central station is one of the most beautiful railway buildings in Europe — a cathedral of iron and gilt in the middle of the city. Most stations are for passing through. Give this one ten minutes.",
+        ],
+      },
+      {
+        h2: "Leg three: south through the Alps to Como",
+        paras: [
+          "This is the route's first proper travel day, and its most scenic. From Antwerp you work south through Brussels and then via Germany and Switzerland towards Milan; several routings exist, so let the booking sites offer you the day's best chain rather than forcing one. The prize is the final stretch: most of the trains running from Zurich down to Milan cross the Alps and call at Como San Giovanni, which means the lake arrives in your window before the town arrives at your feet.",
+          "It's a long day, and there's no shame in breaking it: Basel and Zurich are both natural overnight pauses that turn one hard day into two easy ones. From Como San Giovanni it's a walk down towards the lakefront and the old town, where Como's small hotels and villas sit. Somewhere on the descent, without announcing itself, the journey becomes the holiday.",
+        ],
+        tip: "On the Alpine stretch, sit on the left-hand side heading south for the water — Lake Zug after Zurich, then Lake Lugano; Lake Como itself only appears as you arrive. And book this leg early: the through Alpine trains carry compulsory reservations and fill in summer.",
+      },
+      {
+        h2: "Legs four and five: Siena, then the cave city",
+        paras: [
+          "From Como, frequent trains run back into Milan, high-speed trains cover Milan to Florence in about two hours, and a regional line continues from Florence to Siena. Allow roughly an hour and a half for that last stretch, usually via Empoli, and check times because it's a regional service. One honest note: Siena's station sits below the hilltop town, so the last leg of the journey is upward. There are escalators and local buses, but with luggage it's a small expedition. Arriving at the top, into a city where cars barely fit the streets, you'll understand why Siena scores the way it does.",
+          "Leg five is the route's best secret. Matera, the cave city of the Sassi, is served by its own railway: the Ferrovie Appulo Lucane, a separate line from Bari that is not part of Italy's national network and therefore doesn't appear in most national booking systems. Work back to Rome or Bologna, take a fast train across to Bari (a few hours; check current times), then find the FAL platforms beside Bari Centrale. The little train to Matera Centrale usually means a change at Altamura and about an hour and a half in total. Two warnings, freely given: the line runs no trains on Sundays, when FAL's own buses substitute, and it is the stretch of this route most prone to long engineering-works bus replacement — it spent months of 2025 fully bus-substituted, so check before you travel. The reward for navigating all this is a town of cave hotels lit like candles at night, and the satisfaction of having arrived somewhere genuinely awkward to reach, slowly, on rails.",
+        ],
+      },
+      {
+        h2: "Leg six: the long haul east to Sighișoara",
+        paras: [
+          "The final leg is the biggest, and it's the one to treat as a journey rather than a transfer: from southern Italy to Transylvania. The shape is simple even though the booking takes an evening. Fast trains run north from Bari up the Adriatic coast towards Bologna and Venice; from northern Italy, overnight and daytime trains continue towards Vienna (check current sleeper routes when you book, since night-train networks change season to season); Vienna to Budapest is a frequent, easy run of a few hours. Break the journey wherever suits you: this is two to three travel days, and rushing it misses the point.",
+          "Then the finish: one through sleeper between Vienna, Budapest and Bucharest — the Dacia — crosses Transylvania on the main line and calls at Sighișoara, arriving at a civilised hour of the morning heading east; its rival the Ister currently skips the stop, so check the calling points when you book. That matters. Sighișoara is the town at the very top of our cosiness index, Romania is the cosiest country in our data, and this far end of the route is the destination the whole line has been pointing at. The station sits in the lower town; the medieval citadel is a climb above it, and the cosiest places to stay are inside the citadel walls. Cross a continent by rail to get there, and the climb through the citadel gate feels earned.",
+        ],
+        tip: "For the eastern legs, book the Hungarian and Romanian trains via the national operators (MÁV and CFR): fares are modest and the through trains across Transylvania are easier to book than most people expect.",
+      },
+      {
+        h2: "The honest detours: where the rails stop short",
+        paras: [
+          "Three of our cosiest-scoring towns don't fit the continental spine, and two of them need a bus at the end; we'd rather tell you that than pretend. Pitlochry, in Highland Perthshire, is the easy one: it has its own station on the Highland Main Line, direct trains between Edinburgh or Glasgow and Inverness call there, and the Inverness portion of the Caledonian Sleeper from London calls too (no Saturday-night trains). Keswick, in the Lake District, lost its railway decades ago: take the train to Penrith on the West Coast Main Line, then a regular bus into the fells. Kinsale, on Ireland's south coast, has no railway either: train to Cork's Kent station, then a local bus down to the harbour. In all three cases the last miles by road are short and scenic. Just don't let a booking site tell you there's a station where there isn't one.",
+          "And if the route leaves you greedy for more: the two Moroccan towns on our index are reachable without flying too. Rail down through Spain, a ferry across the Strait of Gibraltar, then Morocco's own railways on to Fez and Marrakech. Be honest with your calendar, though: allow three days or more from London, and note that the ferries from Algeciras land at Tanger Med, a freight port about forty-five minutes by bus from the city, while the Tarifa boats serve Tangier Ville itself. That's a whole second journey. The idea behind it is the same one this route runs on: the cosiest places reward the traveller who arrives slowly.",
+        ],
+      },
+    ],
+    pick: null,
+    outro: [
+      {
+        h2: "How to actually book this",
+        paras: [
+          "Book legs, not the journey. No single site sells London-to-Transylvania as one ticket; the workable method is one booking per leg: Eurostar and the Belgian legs first, the Italian fast trains as soon as your dates firm up (that's where advance fares save the most), the eastern legs closer to travel. If your plan is loose, price an Interrail pass against point-to-point fares: the pass wins when you want the freedom to linger an extra night in Como; fixed-date advance tickets win when you don't.",
+          "Pack for platforms, not carousels. One bag you can lift over your head is the difference between enjoying six train changes and enduring them, and it matters doubly on this route, which ends with a hill climb in Siena and a citadel climb in Sighișoara. Finally, pace it like the guesthouse owners would: one night is genuinely enough in some stops (we've written separately about choosing a hotel for a single night), but the towns at either end, Bruges and Sighișoara, deserve two.",
+        ],
+        tip: "Timetables on this route change with the seasons, especially the night trains. Treat every journey time here as an honest approximation and check current schedules the week you book; that ten-minute habit is what separates a smooth trip from a stranded one.",
+      },
+    ],
+    faqs: [
+      {
+        q: "Can you really travel from London to Transylvania entirely by train?",
+        a: "Yes: every leg of this route runs on scheduled rail services: Eurostar to Brussels, Belgian domestic trains to Bruges and Antwerp, Alpine trains to Como, Italian trains to Siena and (via the separate Ferrovie Appulo Lucane line from Bari) Matera, then trains north and east via Vienna and Budapest to Sighișoara, where the Dacia sleeper calls on the Budapest–Bucharest main line. The only caveats are pacing (the eastern legs take two to three days done comfortably) and checking current timetables, since night-train routes change seasonally.",
+      },
+      {
+        q: "How long does the whole route take?",
+        a: "Comfortably, about two weeks: a day or two in each of the six main stops, plus the travel days. The legs within Belgium and Italy are short, while Antwerp to Como and Matera to Sighișoara are proper travel days worth breaking overnight. It compresses to roughly ten days if you must, but this route punishes hurry, because so much of its pleasure happens in the train windows.",
+      },
+      {
+        q: "Do I need an Interrail pass, or should I book individual tickets?",
+        a: "Price both. Fixed dates favour point-to-point advance tickets, especially on Eurostar and the Italian high-speed trains, where early booking is dramatically cheaper. A flexible itinerary favours a pass, which lets you stay an extra night wherever a hotel is too cosy to leave. Note that Eurostar and some Alpine and night trains still require paid seat reservations on top, and Matera's Ferrovie Appulo Lucane is a separate railway with its own inexpensive tickets.",
+      },
+    ],
+    related: [
+      { label: "Cosy hotels in Bruges", to: "guides/bruges-cosy-hotel" },
+      { label: "Cosy hotels in Sighișoara", to: "guides/sighisoara-cosy-hotel" },
+      { label: "Cosy hotels in Matera", to: "guides/matera-cosy-hotel" },
+      { label: "The cosiest hotel towns — the data", to: "data/cosiest-hotel-towns" },
+      { label: "How to choose a hotel for one night", to: "blog/how-to-choose-a-hotel-for-one-night" },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
