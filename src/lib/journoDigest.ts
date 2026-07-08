@@ -65,10 +65,34 @@ function extractEmail(block: string): string | null {
   return emails.find((e) => /reply|query|pitch|press|source/i.test(e)) ?? emails[0] ?? null;
 }
 
+// Digest navigation/index blocks — a table-of-contents-style list of query titles some senders
+// (Featured especially) prepend to the actual queries — aren't real queries and would otherwise
+// land on the board as an empty "new" row. Two heuristics, either is enough to skip:
+//  1. the block's first non-empty line looks like a section header ("QUERIES FROM …", "INDEX …").
+//  2. the block is mostly a numbered list of one-line items with NEITHER a reply address NOR a
+//     Query:/Summary: marker — real query blocks always have one or the other.
+// When neither heuristic clearly matches, we keep the block: losing a real query silently is worse
+// than one unlabeled index row Per has to skip by hand.
+function isIndexBlock(block: string): boolean {
+  const firstLine = (block.split("\n").find((l) => l.trim().length > 0) || "").trim();
+  if (/^\**\s*(QUERIES FROM|INDEX)/i.test(firstLine)) return true;
+
+  const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 2) return false;
+  const numbered = lines.filter((l) => /^\d+[.):]\s/.test(l));
+  const isNumberedList = numbered.length >= 2 && numbered.length / lines.length >= 0.6;
+  if (!isNumberedList) return false;
+
+  const hasMarkers = /(?:^|\n)[ \t]*(?:query|summary|reply[\s-]*to)[ \t]*:/i.test(block);
+  const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(block);
+  return !hasMarkers && !hasEmail;
+}
+
 /** Parse one digest email body into individual queries. */
 export function parseDigest(text: string, source: string): ParsedQuery[] {
   const out: ParsedQuery[] = [];
   for (const block of splitBlocks(text)) {
+    if (isIndexBlock(block)) continue;
     const outlet = extractField(block, ["Media Outlet", "Outlet", "Publication", "Source"]);
     const journalist = extractField(block, ["Journalist", "Reporter", "Byline", "Name", "Author"]);
     const deadline = extractField(block, ["Deadline"]);

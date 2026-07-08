@@ -21,6 +21,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getAccessToken, searchMessageIds, getMessagePlainText, createGmailDraft, GmailScopeError } from "@/lib/gmail";
 import { parseDigest, sourceFromEmail, type ParsedQuery } from "@/lib/journoDigest";
+import { draftReply as sharedDraftReply, subjectFor, getAnthropicClient } from "@/lib/journoReply";
 
 type Query = ParsedQuery & { receivedAt: string | null };
 
@@ -28,7 +29,6 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const HAIKU = "claude-haiku-4-5";
-const SONNET = "claude-sonnet-4-6";
 
 // Quota/cost safety: cap how much of a single run goes to the LLM.
 const MAX_MESSAGES = 15; // digest emails fetched per run
@@ -42,38 +42,9 @@ const SEARCH_Q =
   'OR subject:"Source of Sources" OR subject:"SOS Daily" OR subject:"Featured question" OR subject:"Featured questions") ' +
   "newer_than:2d";
 
-// The ONLY facts the draft model is allowed to cite. Hardcoded so a hallucinated stat can never
-// reach a journalist — if a claim isn't in here, it doesn't go in the email.
-const SOURCE_LIBRARY = `SOURCE LIBRARY (the ONLY facts you may cite — never invent a fact, hotel, or number beyond this list):
-- GotCosy analyzed guest-review language across 17,727 hotels; report + methodology + 164-city tiers + free CSVs: https://gotcosy.com/en/data/cosiest-hotel-towns
-- Host-gap: in the 10 cosiest towns in the data, 74% of hotels' review evidence mentions a host, owner or family member, vs 26% in 8 large cities.
-- Guesthouse-type naming (guesthouse/B&B/pension etc. in the listing name): 31% of hotels in the cosiest towns vs 10% in the large cities.
-- "Boutique" appears in review evidence 53 times in the large cities' data vs 3 times in the towns'; big-city boutique hotels average a 6.30 cosy score vs 6.01 for big-city hotels overall.
-- Among reviews that mention atmosphere, "quiet" is the single most common theme — 35.6% of 9,437 atmosphere-mentioning reviews.
-- The cosy score is near-uncorrelated with generic guest star ratings (r=0.10, n=7,048) — cosiness and overall rating measure different things.
-- Founder: Per, runs GotCosy (a small hotel-discovery site that scores hotels for cosiness by reading guest reviews).`;
-
-const DRAFT_RULES = `RULES for the reply you write:
-- 100-170 words.
-- Answer THEIR question first — do not open with a generic pitch.
-- Cite at most 2 stats from the source library above.
-- NEVER invent a fact, hotel name, or number that isn't in the source library.
-- If you offer specific review-evidence lines, you MUST label them "condensed by our scoring model from review text — not verbatim guest quotes."
-- Offer to run a custom data cut for their story (a region, a hotel type, a different comparison).
-- Sign off exactly: "Per — gotcosy.com"
-- Plain email prose. No subject line, no markdown, no bullet lists unless the query specifically asks for a list.
-Reply with ONLY the email body text — nothing else.`;
-
-function buildDraftPrompt(q: Query): string {
-  return `You are drafting a reply, AS PER (founder of GotCosy), to a journalist's source request pulled from a PR digest (${q.source}). Write a reply that could credibly help with their story.
-
-${SOURCE_LIBRARY}
-
-${DRAFT_RULES}
-
-THE JOURNALIST'S QUERY${q.outlet ? ` (outlet: ${q.outlet})` : ""}${q.deadline ? ` (deadline: ${q.deadline})` : ""}:
-${q.query_text}`;
-}
+// draftReply + SOURCE_LIBRARY + subjectFor now live in src/lib/journoReply.ts, shared with the
+// /growth/journo board's manual "Draft with AI" action so both paths produce an identical reply.
+const draftReply = sharedDraftReply;
 
 const TRIAGE_SYSTEM = `You triage inbound journalist source-requests for GotCosy, a small hotel-discovery site that scores hotels for cosiness from guest reviews (17,727 hotels, 164 cities). GotCosy can credibly contribute to queries about: hotels/accommodation, travel (especially Europe and small towns), sleep/quiet travel, boutique/design stays, guesthouses/B&Bs and independent hotels, or travel data/statistics/trend pieces. Everything else — unrelated industries, finance, tech, general lifestyle with no travel/hospitality angle — is a low fit. Score fit_score from 0 (no fit) to 1 (perfect fit); most real queries in this niche land 0.5-0.9, reserve >0.85 for a near-exact match. Give one concise sentence explaining the score, and a short category label for the query (e.g. "hotel trends", "boutique hotels", "travel data", "unrelated").`;
 
@@ -88,17 +59,8 @@ const TRIAGE_SCHEMA = {
   required: ["fit_score", "fit_reason", "category"],
 } as const;
 
-let _client: Anthropic | null = null;
-function getClient(): Anthropic | null {
-  if (_client) return _client;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
-  _client = new Anthropic({ apiKey });
-  return _client;
-}
-
 async function triage(q: Query): Promise<{ fit_score: number; fit_reason: string; category: string } | null> {
-  const client = getClient();
+  const client = getAnthropicClient();
   if (!client) return null;
   try {
     const resp = await client.messages.create({
@@ -121,24 +83,6 @@ async function triage(q: Query): Promise<{ fit_score: number; fit_reason: string
   }
 }
 
-async function draftReply(q: Query): Promise<string | null> {
-  const client = getClient();
-  if (!client) return null;
-  try {
-    const resp = await client.messages.create({
-      model: SONNET,
-      max_tokens: 500,
-      temperature: 0.4,
-      messages: [{ role: "user", content: buildDraftPrompt(q) }],
-    } as Anthropic.MessageCreateParamsNonStreaming);
-    if (resp.stop_reason === "refusal") return null;
-    const textBlock = resp.content.find((b): b is Anthropic.TextBlock => b.type === "text");
-    return textBlock ? textBlock.text.trim() : null;
-  } catch {
-    return null;
-  }
-}
-
 // Best-effort Telegram ping (same pattern/channel as reddit-scan / outreach-sync). No-op when env
 // unset; never throws.
 async function pushTelegram(text: string): Promise<boolean> {
@@ -155,11 +99,6 @@ async function pushTelegram(text: string): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-function subjectFor(q: Query): string {
-  const base = (q.category ? `${q.category}: ` : "") + q.query_text.replace(/\s+/g, " ").trim();
-  return `Re: ${base.slice(0, 90)}`;
 }
 
 export async function GET(req: Request) {

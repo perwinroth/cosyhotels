@@ -1,9 +1,11 @@
 "use client";
 // /growth/journo board — journo_queries rows grouped by status. Each card shows the outlet/deadline/
-// category/fit reasoning, the query text (collapsible — some blocks are long), the Gmail draft link
-// when we made one, and Skip / Mark sent actions via a server action.
+// fit reasoning, a whitespace-collapsed summary (full text in a details toggle), a one-click
+// "Draft with AI → Gmail" action (works on ANY row with a reply_to, not just good-fit ones), a
+// manual-compose fallback link, and Skip / Mark sent actions.
 import { useState, useTransition } from "react";
-import { updateJournoStatus } from "@/app/growth/journo/actions";
+import { updateJournoStatus, draftAndOpen } from "@/app/growth/journo/actions";
+import { gmailComposeUrl } from "@/lib/badgePitch";
 
 export type JournoRow = {
   id: string;
@@ -55,6 +57,10 @@ function Card({ row }: { row: JournoRow }) {
   const [status, setStatus] = useState(row.status);
   const [err, setErr] = useState(false);
 
+  const [draftLink, setDraftLink] = useState(row.draft_link);
+  const [draftPending, startDraftTransition] = useTransition();
+  const [draftErr, setDraftErr] = useState<string | null>(null);
+
   function act(next: string) {
     const prev = status;
     setStatus(next);
@@ -68,24 +74,53 @@ function Card({ row }: { row: JournoRow }) {
     });
   }
 
+  function makeDraft() {
+    setDraftErr(null);
+    startDraftTransition(async () => {
+      const r = await draftAndOpen(row.id);
+      if (r.ok && r.link) {
+        setDraftLink(r.link);
+        setStatus("drafted");
+      } else {
+        setDraftErr(r.error || "draft failed — try again");
+      }
+    });
+  }
+
+  const collapsed = row.query_text.replace(/\s+/g, " ").trim();
+  const summary = collapsed.length > 200 ? `${collapsed.slice(0, 200)}…` : collapsed;
+  const manualSubject = `Re:${(row.outlet ? ` ${row.outlet}:` : "") + " " + summary.slice(0, 80)}`;
+  const manualUrl = row.reply_to ? gmailComposeUrl(row.reply_to, manualSubject, `> ${row.query_text}`) : null;
+
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, padding: "11px 12px", display: "flex", flexDirection: "column", gap: 7, opacity: pending ? 0.7 : 1 }}>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
         <span style={{ fontSize: 13.5, fontWeight: 600 }}>{row.outlet || row.category || "Unlabeled query"}</span>
         {fitChip(row.fit_score)}
-        {row.deadline && <span style={{ fontSize: 11.5, color: "var(--ember-ink)" }}>deadline {row.deadline}</span>}
+        {row.deadline && <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ember-ink)" }}>deadline {row.deadline}</span>}
         {row.received_at && <span style={{ fontSize: 11, color: "var(--muted)" }}>{fmtDate(row.received_at)}</span>}
         {row.source && <span style={{ fontSize: 11, color: "var(--muted)" }}>· {row.source}</span>}
       </div>
       {row.fit_reason && <div style={{ fontSize: 12, color: "var(--muted)" }}>{row.fit_reason}</div>}
+      <p style={{ fontSize: 12.5, color: "var(--foreground)", margin: 0, lineHeight: 1.5 }}>{summary}</p>
       <details>
-        <summary style={{ cursor: "pointer", fontSize: 12.5, color: "var(--muted)" }}>Query text</summary>
+        <summary style={{ cursor: "pointer", fontSize: 12.5, color: "var(--muted)" }}>Full query text</summary>
         <pre style={{ marginTop: 6, whiteSpace: "pre-wrap", fontFamily: "inherit", fontSize: 12.5, lineHeight: 1.5, background: "var(--surface-2)", borderRadius: 8, padding: 8 }}>{row.query_text}</pre>
       </details>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 12 }}>
-        {row.draft_link && (
-          <a href={row.draft_link} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: "#fff", background: "var(--sage)", borderRadius: 6, padding: "4px 10px", textDecoration: "none" }}>
+        {draftLink && (
+          <a href={draftLink} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: "#fff", background: "var(--sage)", borderRadius: 6, padding: "4px 10px", textDecoration: "none" }}>
             ✉ Open draft ↗
+          </a>
+        )}
+        {!draftLink && row.reply_to && (
+          <button disabled={draftPending} onClick={makeDraft} style={{ border: "none", background: "var(--sage)", color: "#fff", borderRadius: 6, padding: "4px 10px", fontSize: 12, fontWeight: 700, cursor: draftPending ? "default" : "pointer" }}>
+            {draftPending ? "Drafting…" : "Draft with AI → Gmail"}
+          </button>
+        )}
+        {manualUrl && (
+          <a href={manualUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "var(--muted)", textDecoration: "underline" }}>
+            Compose manually ↗
           </a>
         )}
         {status !== "sent" && (
@@ -99,6 +134,7 @@ function Card({ row }: { row: JournoRow }) {
           </button>
         )}
         {err && <span style={{ color: "var(--ember)", fontSize: 11.5 }}>couldn&apos;t save — try again</span>}
+        {draftErr && <span style={{ color: "var(--ember)", fontSize: 11.5 }}>{draftErr}</span>}
       </div>
     </div>
   );

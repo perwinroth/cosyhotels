@@ -1,15 +1,22 @@
 "use client";
 // The /growth "Today" daily plan, interactive: each item has a tickbox that records the kanban move
-// straight from here — email/IG → "contacted" (POST /api/admin/hotel-outreach), Reddit → "replied"
-// (POST /api/admin/reddit-status). Ticked rows grey out; on next load they've left the plan (the page
-// is force-dynamic and the queries exclude non-queued / non-new). Optimistic: tick, POST, grey.
-import { useState, type CSSProperties } from "react";
+// straight from here — email/IG → "contacted" (POST /api/admin/hotel-outreach), Reddit lead → "replied"
+// (POST /api/admin/reddit-status), Reddit planned answer → done marker in localStorage (no DB row for
+// these — they come from src/data/redditAnswerPlan.ts, not reddit_leads). Ticked rows grey out; on
+// next load they've left the plan (force-dynamic + the queries exclude non-queued / non-new).
+// Optimistic: tick, POST (or localStorage write), grey.
+import { useEffect, useState, type CSSProperties } from "react";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import CopyButton from "./CopyButton";
 
-export type PlanEmail = { hotelId: string; name: string; city: string; score: number; email: string; gmailUrl: string };
+export type PlanEmail = { hotelId: string; name: string; city: string; score: number; email: string; gmailUrl: string; variant?: string };
 export type PlanInstagram = { hotelId: string; name: string; city: string; score: number; handle: string; igUrl: string; pitch: string };
-export type PlanReddit = { id: string; subreddit: string | null; title: string | null; url: string; city: string | null };
+export type PlanReddit = {
+  id: string; subreddit: string | null; title: string | null; url: string; city: string | null;
+  answer?: string; worthiness?: number; source?: "planned" | "lead";
+};
+
+const REDDIT_DONE_KEY = "reddit-plan-done";
 
 const CARD: CSSProperties = { display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12 };
 const scoreBadge = (score: number): CSSProperties => ({ flex: "none", width: 34, height: 34, borderRadius: 8, background: cosyBadgeColor(score), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Fraunces, serif", fontSize: 13.5, fontWeight: 700 });
@@ -38,6 +45,23 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
+  // Planned reddit-answer "done" state lives only in localStorage — these threads have no
+  // reddit_leads row to PATCH, so there's nothing server-side to move.
+  const [redditDone, setRedditDone] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(REDDIT_DONE_KEY);
+      if (raw) setRedditDone(JSON.parse(raw));
+    } catch { /* localStorage unavailable — plan just always shows as pending */ }
+  }, []);
+  function markRedditPlanDone(id: string) {
+    setRedditDone((d) => {
+      const next = { ...d, [id]: true };
+      try { localStorage.setItem(REDDIT_DONE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }
+
   async function move(key: string, url: string, body: unknown) {
     if (done[key] || busy[key]) return;
     setBusy((b) => ({ ...b, [key]: true }));
@@ -52,6 +76,13 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
   // Bulk "mark all sent" for the day's emails — ticks every un-done one at once.
   const markAllEmails = () => Promise.all(emails.filter((e) => !done[e.hotelId] && !busy[e.hotelId]).map((e) => tickHotel(e.hotelId, "email")));
   const allEmailsDone = emails.length > 0 && emails.every((e) => done[e.hotelId]);
+
+  // Today-reddit ordering: planned answers (worthiness >= 4, from redditAnswerPlan.ts) first, while
+  // any remain un-done; once every planned answer is ticked done, fall back to the newest reddit_leads.
+  const plannedReddit = reddit.filter((r) => r.source === "planned");
+  const leadReddit = reddit.filter((r) => r.source !== "planned");
+  const plannedPending = plannedReddit.filter((r) => !redditDone[r.id]);
+  const redditToShow: PlanReddit[] = plannedPending.length > 0 ? plannedPending : leadReddit;
 
   const countDone = (keys: string[]) => keys.filter((k) => done[k]).length;
   const sub = { fontWeight: 400, color: "var(--muted)" } as const;
@@ -83,7 +114,10 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
                   <span style={scoreBadge(e.score)}>{e.score.toFixed(1)}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ ...nameStyle, textDecoration: d ? "line-through" : "none" }}>{e.name}</div>
-                    <div style={metaStyle}>{e.city}</div>
+                    <div style={metaStyle}>
+                      {e.city}
+                      {e.variant && <span style={{ marginLeft: 6, fontSize: 10.5, fontWeight: 700, color: "var(--muted)", border: "1px solid var(--line)", borderRadius: 999, padding: "0 6px" }}>{e.variant}</span>}
+                    </div>
                   </div>
                   <a href={e.gmailUrl} target="_blank" rel="noreferrer" className="hov" style={EMBER_BTN}>Email ↗</a>
                   <Tick done={d} busy={!!busy[e.hotelId]} onTick={() => tickHotel(e.hotelId, "email")} />
@@ -121,15 +155,43 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued 
         </>
       )}
 
-      {reddit.length > 0 && (
+      {redditToShow.length > 0 && (
         <>
           <div style={planHead}>
-            💬 Reddit — reply to these {reddit.length}
-            <span style={sub}> · {countDone(reddit.map((r) => r.id))}/{reddit.length} done</span>
+            💬 Reddit — reply to these {redditToShow.length}
+            <span style={sub}>
+              {plannedReddit.length > 0
+                ? ` · ${plannedReddit.length - plannedPending.length}/${plannedReddit.length} planned answers done`
+                : ` · ${countDone(redditToShow.map((r) => r.id))}/${redditToShow.length} done`}
+            </span>
           </div>
-          <p style={{ ...metaStyle, margin: "0 0 8px" }}>Reply like a human (2–3 specific hotels + one link, never a bare link) → tick it (moves to Replied).</p>
+          <p style={{ ...metaStyle, margin: "0 0 8px" }}>
+            {plannedPending.length > 0
+              ? "Founder-reviewed answers, ready to post — skim the thread first for anything new, copy the answer, post it from your own Reddit account → tick done."
+              : "Reply like a human (2–3 specific hotels + one link, never a bare link) → tick it (moves to Replied)."}
+          </p>
           <div style={{ display: "grid", gap: 6 }}>
-            {reddit.map((r) => {
+            {redditToShow.map((r) => {
+              if (r.source === "planned") {
+                const rd = !!redditDone[r.id];
+                return (
+                  <div key={r.id} style={{ ...CARD, flexDirection: "column", alignItems: "stretch", gap: 6, opacity: rd ? 0.5 : 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ ...nameStyle, textDecoration: rd ? "line-through" : "none" }}>{r.title || r.url}</div>
+                        <div style={metaStyle}>
+                          {r.subreddit ? `r/${r.subreddit}` : null}{r.city ? ` · ${r.city}` : ""}{r.worthiness ? ` · worthiness ${r.worthiness}/5` : ""}
+                        </div>
+                      </div>
+                      <Tick done={rd} busy={false} onTick={() => markRedditPlanDone(r.id)} />
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      <CopyButton text={r.answer || ""} label="Copy answer" />
+                      <a href={r.url} target="_blank" rel="noreferrer" className="hov" style={SAGE_BTN}>Open thread ↗</a>
+                    </div>
+                  </div>
+                );
+              }
               const d = !!done[r.id];
               return (
                 <div key={r.id} style={{ ...CARD, opacity: d ? 0.5 : 1 }}>

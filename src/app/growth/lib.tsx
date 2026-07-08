@@ -6,6 +6,7 @@ import { getGscSummary, gscConfigured } from "@/lib/gsc";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
 import { buildBadgePitch, buildVariantPitch, variantFor, gmailComposeUrl, instagramDmUrl } from "@/lib/badgePitch";
 import { displayCity, isLatin } from "@/lib/placeText";
+import { REDDIT_ANSWER_PLAN } from "@/data/redditAnswerPlan";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any;
 
@@ -14,7 +15,19 @@ export const DAILY = { emails: 30, instagram: 10, reddit: 3 };
 
 export type TodayEmail = { hotelId: string; name: string; city: string; score: number; email: string; gmailUrl: string; variant: string };
 export type TodayInstagram = { hotelId: string; name: string; city: string; score: number; handle: string; igUrl: string; pitch: string };
-export type TodayReddit = { id: string; subreddit: string; title: string; url: string; city: string | null };
+// `source: "planned"` = a founder-reviewed answer from redditAnswerPlan.ts (has `answer` + `worthiness`);
+// `source: "lead"` = a fresh reddit_leads row Per hasn't answered yet — the fallback once every planned
+// answer is marked done (done-tracking is client-side localStorage, see TodayPlan.tsx).
+export type TodayReddit = {
+  id: string; subreddit: string | null; title: string | null; url: string; city: string | null;
+  answer?: string; worthiness?: number; source: "planned" | "lead";
+};
+
+// Pull "belgium" out of https://www.reddit.com/r/belgium/comments/... — best-effort, only used for display.
+function subredditFromUrl(url: string): string | null {
+  const m = url.match(/reddit\.com\/r\/([^/]+)/i);
+  return m ? m[1] : null;
+}
 
 // The concrete "do exactly this today" queue: the top-scored queued hotels to email + DM, and the best
 // Reddit threads to reply to — capped to DAILY so Per just works the list, no judgement calls.
@@ -31,7 +44,26 @@ export async function getTodayPlan(db: DB): Promise<{
       db.from("reddit_leads").select("id,subreddit,title,url,city").eq("status", "new").order("found_at", { ascending: false }).limit(DAILY.reddit),
     ]);
     const totalTxt = (total || 17000).toLocaleString();
-    const reddit = (redditRows || []) as TodayReddit[];
+
+    // Today-reddit ordering: the founder-reviewed plan (worthiness >= 4) goes first — TodayPlan.tsx
+    // hides each one client-side once ticked done (localStorage `reddit-plan-done`) and only falls
+    // back to showing the newest reddit_leads once every planned answer is done.
+    const planned: TodayReddit[] = REDDIT_ANSWER_PLAN
+      .filter((p) => p.worthiness >= 4)
+      .map((p) => ({
+        id: p.threadUrl,
+        subreddit: subredditFromUrl(p.threadUrl),
+        title: p.title,
+        url: p.threadUrl,
+        city: p.market,
+        answer: p.answer,
+        worthiness: p.worthiness,
+        source: "planned" as const,
+      }));
+    const leadReddit: TodayReddit[] = ((redditRows || []) as Array<{ id: string; subreddit: string | null; title: string | null; url: string; city: string | null }>)
+      .map((r) => ({ ...r, source: "lead" as const }));
+    const reddit: TodayReddit[] = [...planned, ...leadReddit];
+
     const ids = ((queued || []) as Array<{ hotel_id: string }>).map((r) => String(r.hotel_id));
     if (!ids.length) return { ...empty, reddit };
 

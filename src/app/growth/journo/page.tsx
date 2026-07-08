@@ -9,6 +9,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const metadata: Metadata = { title: "Journo queries", robots: { index: false, follow: false } };
 
+// Same heuristic as journoDigest.ts's isIndexBlock (the parser now skips these going forward) — used
+// here only to sweep rows inserted before that fix landed.
+const STALE_INDEX_PATTERN = /^\**\s*(QUERIES FROM|INDEX)/i;
+
 export default async function GrowthJournoPage() {
   const db = getServerSupabase();
   let rows: JournoRow[] = [];
@@ -19,6 +23,16 @@ export default async function GrowthJournoPage() {
       .order("received_at", { ascending: false, nullsFirst: false })
       .limit(60);
     rows = (data || []) as JournoRow[];
+
+    // One-time cleanup: digest navigation/index blocks that landed as regular "new" rows before the
+    // parser fix (journoDigest.ts isIndexBlock) shipped. Guarded to status="new" so a row a human
+    // already triaged (drafted/sent/skipped/expired) is never touched.
+    const stale = rows.filter((r) => r.status === "new" && STALE_INDEX_PATTERN.test(r.query_text.trim()));
+    if (stale.length) {
+      await db.from("journo_queries").update({ status: "skipped" }).in("id", stale.map((r) => r.id));
+      const staleIds = new Set(stale.map((r) => r.id));
+      rows = rows.map((r) => (staleIds.has(r.id) ? { ...r, status: "skipped" } : r));
+    }
   }
 
   return (
