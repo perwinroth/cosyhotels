@@ -64,8 +64,8 @@ export const LISTING_KIT: KitField[] = [
   {
     label: "Launch / first comment (Product Hunt, Indie Hackers, forums)",
     value:
-      "I kept booking hotels that looked cosy in photos and were not. The truth was usually in the reviews, but nobody reads 400 of them. So I had a model read them for me: 17,727 hotels, each scored against the same rubric for warmth, quiet and character, with the methodology and its limitations published. It is free. I would genuinely like to know where the scoring feels wrong; that feedback improves the rubric.",
-    hint: "First-person Per. Invite criticism; do not sell.",
+      "I kept booking hotels that looked cosy in photos and were not. The truth was usually in the reviews, but nobody reads 400 of them. So I had a model read them for me: 17,727 hotels, each scored against the same rubric for warmth, quiet and character, with the methodology and its limitations published. Nothing scores an 8; the honest ceiling in the data is 7.8. It is free. I would genuinely like to know where the scoring feels wrong; that feedback improves the rubric.",
+    hint: "First-person Per. Invite criticism; do not sell. The 7.8 ceiling is verified against cosy_scores (2026-07-09).",
   },
   { label: "Categories / tags", value: "Travel, Hotels, AI, Search and Discovery, Data" },
   { label: "Alternative to (comparison directories)", value: "Booking.com, TripAdvisor, Mr and Mrs Smith" },
