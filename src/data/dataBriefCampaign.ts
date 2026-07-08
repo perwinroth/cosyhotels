@@ -58,7 +58,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://thetravelfolk.substack.com",
     what: "Paris-based Europe travel guides; family-run boutique hotels and guesthouses by stated preference.",
     personal:
-      "You've said your ideal trip ends at a family-run place. It turns out the guests of places like that keep proving your point, in writing.",
+      "Your Lake Como stay was Alessandro and Andrea and their grandmother's house; your Bologna hotel picks are stained glass and quirky interiors, no names. You've already written both halves of the pattern I've been measuring.",
     email: "jenoa@thetravelfolk.com",
     route: "email (verified on site)",
     activity: "ongoing monthly pipeline",
@@ -70,7 +70,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://idyllmag.substack.com",
     what: "Curates soulful, design-led hotels with compelling backstories — not mass-market chains.",
     personal:
-      "Idyll picks hotels for the story behind them. Here's an odd thing I can now show: small towns get cosy through a person, big cities get there through design. You cover that exact fault line.",
+      "Your Ha(a)ïtza review runs on William and Sylvie; your El Cortés review runs on ironwork and stained glass, and no owner gets named. That difference between a seaside town and a big city turns out to be measurable.",
     email: "helloidyllmag@gmail.com",
     route: "email (verified on About page)",
     activity: "post Jun 30, 2026",
@@ -82,7 +82,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://marissaklurstein.substack.com",
     what: "Hotels 'with soul, a story, a sensibility'; heavy Italy focus, country-by-country guides.",
     personal:
-      "Your June essay argued personal connection beats amenities. I can put a number on that now — and Italy sits all over the top of the table.",
+      "You wrote that people you send to La Minerva who don't know the owners still leave 'feeling like they did.' That effect shows up at scale in my review data, and Italy sits all over the top of the table.",
     email: null,
     route: "Substack DM / reply-to",
     activity: "post Jul 5, 2026",
@@ -94,7 +94,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://ginasjournal.substack.com",
     what: "Author of two UK boutique-hotel guidebooks (Hoxton Mini Press); independents over chains, fortnightly.",
     personal:
-      "Your guidebooks pick independent hotels by eye. I think I can show what that eye is detecting: the person running the building.",
+      "In April you wrote you'd much rather support hotels that invest in local talent than fly in senior management. The places that do have something measurable: guests write about the person running the building, by name.",
     email: null,
     route: "Instagram DM @ginagoesto",
     activity: "fortnightly, active 2026",
@@ -106,10 +106,10 @@ export const TARGETS: BriefTarget[] = [
     url: "https://fromthepoolside.com",
     what: "A personal edit of boutique hotels 'saved, reviewed, and shared with restraint' — small independents and B&Bs.",
     personal:
-      "You share finds with restraint, so I'll be brief: the thing your kind of hotel has in common turns out to be measurable.",
+      "You went back to Lundies House and wrote that it 'doesn't feel like a hotel. It feels like staying with someone.' Guests across my review data keep saying exactly that about small remote places, and almost never about city ones.",
     email: null,
-    route: "contact form on site",
-    activity: "Jan 2026",
+    route: "Substack DM / reply-to at fromthepoolside.substack.com; site contact form as fallback",
+    activity: "post Jun 22, 2026 (fromthepoolside.substack.com)",
   },
   {
     rank: 6,
@@ -118,10 +118,10 @@ export const TARGETS: BriefTarget[] = [
     url: "https://wander-lush.org",
     what: "Guesthouse-heavy Balkans/Caucasus coverage with a small-local-business ethos.",
     personal:
-      "Romania came out the single cosiest country in my data, and its evidence lines are all hosts by name. Your exact territory.",
+      "In your Akhaltsikhe guide, the Chobareti farmstay is Aluda and his family first, the buildings second. That ordering is the pattern my review data keeps finding in guesthouse country — and Romania, where you've covered the same kind of places, tops the whole table.",
     email: "emily@wander-lush.org",
     route: "email (published obfuscated on site) + contact form",
-    activity: "10-year-anniversary post, active",
+    activity: "guides updated/posted Jun 17–25, 2026",
   },
   {
     rank: 7,
@@ -130,7 +130,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://travlinmad.com",
     what: "'Eat Local, Travel Slow™' — dedicated Local Stays category.",
     personal:
-      "'Eat local, travel slow' seems to extend to who runs your hotel. The stays guests warm to are the ones where they learn the owner's name.",
+      "Your Mary Day piece gives the captains more ink than the schooner, and 'connections to people and place' is the payoff you land on. Hotel guests do the same thing in their reviews, it turns out — but only in some places.",
     email: "Lori@Travlinmad.com",
     route: "email (verified) + /contact page",
     activity: "ongoing",
@@ -142,7 +142,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://postcardsfromwherever.substack.com",
     what: "Slow, design-led hotels and hideaways.",
     personal:
-      "Your hideaways beat sits on both sides of something odd I found: small towns get cosy through a host, cities through design. Two routes, same warmth.",
+      "In your Late Spring Edit, Hotel Sundal is Caroline and Harold before it's ten bedrooms, and Off Grid Girona earns its spot by 'operating more of a guest house than a hotel.' My review data backs that up: it's how small places get warm.",
     email: null,
     route: "Instagram DM @emmajaynelavelle",
     activity: "active 2026",
@@ -154,22 +154,22 @@ export const TARGETS: BriefTarget[] = [
     url: "https://surcollective.substack.com",
     what: "'Checking In' reviews of independent, design-led stays.",
     personal:
-      "Checking In notices one hotel at a time what I've been measuring across thousands — and the scale version has a twist I didn't expect.",
+      "Your Checking In on Pulitzer Paris gave the family behind it (hoteliers since 1967) as much attention as the rooms. My review data puts numbers on that instinct — maybe an angle for the series now that you're posting again.",
     email: null,
     route: "Substack DM / reply-to",
-    activity: "post Jun 28, 2026",
+    activity: "post Jun 28, 2026 (comeback after ~5-month hiatus; Checking In series dormant since Feb 2025)",
   },
   {
     rank: 10,
     name: "Hedwig Travel — Sabine Russek",
     first: "Sabine",
-    url: "https://hedwigtravel.substack.com",
+    url: "https://icouldlivehere.substack.com",
     what: "'Accommodation Wishlist' series on small, characterful stays.",
     personal:
-      "The places on your Accommodation Wishlist share a trait I can finally name with data: someone's name attached to the building.",
+      "Six volumes into your Accommodation Wishlist, you almost always say who runs the place — Willy Aziz's Nile boats, the 'locally owned, locally managed' guesthouse in Taghit. My review data suggests that habit is the whole finding.",
     email: null,
-    route: "Substack DM / reply-to",
-    activity: "active 2025–26",
+    route: "Substack DM / reply-to at icouldlivehere.substack.com (hedwigtravel.substack.com is stale — 302s to a bare profile)",
+    activity: "post May 6, 2026 (Wishlist Vol. 06)",
   },
   {
     rank: 11,
@@ -178,10 +178,10 @@ export const TARGETS: BriefTarget[] = [
     url: "https://sotheresthisplace.substack.com",
     what: "Off-the-beaten-path guides + a Wishlist Hotels series.",
     personal:
-      "The hotels you wishlist are small, off the path, with someone's name over the door: exactly where this signal concentrates.",
+      "The figure who steals your love letter to Porquerolles is a fisherman nicknamed the pirate, not the beaches. That's the pattern in my hotel-review data too: in the cosiest small towns, the person is the place.",
     email: null,
     route: "Instagram DM @monicamendal; Substack Chat (paid)",
-    activity: "Apr 2026",
+    activity: "post Jun 9, 2026 (Travel Field Notes 05)",
   },
   {
     rank: 12,
@@ -190,11 +190,11 @@ export const TARGETS: BriefTarget[] = [
     url: "https://liviahengel.substack.com",
     what: "Essays on what makes a place feel meaningful; Italy focus.",
     personal:
-      "You ask what makes a place feel meaningful. One measurable answer showed up in my data: a person. And Italy owns the top of the table.",
+      "In your soul-place essay you wrote that we talk about soulmates like they're only people, but sometimes they're a place. My review data found the reverse hiding inside that: when a small-town hotel feels that way, there's usually a named person carrying it.",
     email: null,
     route: "Instagram DM @liviahengel or Substack",
-    activity: "Feb 2026 (sparse)",
-    flag: "Cadence gap — real and active within window, but posts are sparse.",
+    activity: "last post Feb 4, 2026; ~5-month gap as of Jul 2026",
+    flag: "CADENCE GAP CONFIRMED — founder call: send vs defer. Cited post retitled 'What It Feels Like to Find Your Soul Place'.",
   },
   {
     rank: 13,
@@ -203,7 +203,7 @@ export const TARGETS: BriefTarget[] = [
     url: "https://italysegreta.com",
     what: "'Only small, family-run boutique hotels in Italy.'",
     personal:
-      "The only hotels you'll feature are small and family-run — and Italian towns hold the top of my cosiest-towns table, which I don't think is a coincidence.",
+      "You built the Selection on a claim: places that feel 'less like hotels and more like homes', run by a 'community of owners'. My review data just tested that claim across thousands of hotels, and it holds — with Italian towns crowding the top.",
     email: null,
     route: "contact via italysegreta.com/newsletter",
     activity: "active",
@@ -213,13 +213,13 @@ export const TARGETS: BriefTarget[] = [
     rank: 14,
     name: "Departure — Henah Velez",
     first: "Henah",
-    url: "https://henahvelez.substack.com",
+    url: "https://www.joindeparture.com",
     what: "Slow-travel and small-business-adjacent newsletter (~4k subs); hotels not the core beat.",
     personal:
-      "Your slow-travel lens fits the quiet half of what I found: towns where the person running the place is the experience.",
-    email: null,
-    route: "Substack reply-to",
-    activity: "active",
+      "You called independent bookstores the epitome of slow travel. Hotels run on the same mechanism, it turns out: in the cosiest small towns in my review data, guests write about the owner by name.",
+    email: "henah@henahvelez.com",
+    route: "email (from her Substack profile — re-verify deliverability before send) or reply-to at joindeparture.com",
+    activity: "post Jun 25, 2026",
     flag: "WEAKER FIT: one research pass classified her as Quiet-lane rather than Character-lane.",
   },
   {
@@ -229,10 +229,9 @@ export const TARGETS: BriefTarget[] = [
     url: "https://timetobeitalian.substack.com",
     what: "Le Marche hidden gems; not hotel-specific.",
     personal:
-      "Le Marche's guesthouses are the kind of places my data keeps surfacing: host-run, small, remembered by name.",
+      "You promised your October Le Marche group 'a family-run winery where the owners sit down with us'. That's the pattern my hotel-review data keeps finding in the cosiest small towns — guests remember the owner, by name.",
     email: null,
     route: "Substack subscribe/DM",
-    activity: "UNCONFIRMED",
-    flag: "Verify 2025–26 activity before sending; drop if none found.",
+    activity: "post Jul 8, 2026 (12 posts Mar–Jul 2026)",
   },
 ];
