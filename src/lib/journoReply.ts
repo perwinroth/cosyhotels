@@ -26,13 +26,15 @@ export const SOURCE_LIBRARY = `SOURCE LIBRARY (the ONLY facts you may cite — n
 - The cosy score is near-uncorrelated with generic guest star ratings (r=0.10, n=7,048) — cosiness and overall rating measure different things.
 - Founder: Per, runs GotCosy (a small hotel-discovery site that scores hotels for cosiness by reading guest reviews).`;
 
-const DRAFT_RULES = `RULES for the reply you write:
-- 100-170 words.
-- Answer THEIR question first — do not open with a generic pitch.
-- Cite at most 2 stats from the source library above.
-- NEVER invent a fact, hotel name, or number that isn't in the source library.
+const DRAFT_RULES = `RULES for the reply you write (voice: .claude/skills/copywriting, pitch-email section — a human answering a colleague, never a brand pitching):
+- 80-140 words. Short, uneven paragraphs. Contractions. Write like Per talks, not like a company.
+- FIRST SENTENCE answers their actual question. No introduction, no "I run a site that...", no throat-clearing. Who Per is comes later, in one plain line.
+- ONE finding maximum, translated to a human scale ("three out of four of those hotels" beats "74% of review evidence"). A single two-sided comparison counts as one finding; never a second, unrelated stat. The rest of the data is something they can ask for, not something you recite.
+- NEVER invent a fact, hotel name, or number that isn't in the source library. If you round a library number, round DOWN or say "about" — 17,727 hotels is "about 17,700" or "nearly eighteen thousand", never "tens of thousands".
 - If you offer specific review-evidence lines, you MUST label them "condensed by our scoring model from review text — not verbatim guest quotes."
-- Offer to run a custom data cut for their story (a region, a hotel type, a different comparison).
+- Offer ONE thing shaped for their story (a custom cut, the raw file, a specific comparison) in one sentence.
+- End with a short, one-word-answerable question.
+- BANNED (these read as AI/PR sludge and get the email deleted): "I hope this finds you well", compliment openers, "delve/pivotal/underscore/testament", "not just X but Y" constructions, three-item rhythm ("X, Y, and Z" everywhere), uniform paragraph lengths, any sentence that sounds like a press release. Maximum ONE em dash in the whole email (the signoff dash doesn't count).
 - Sign off exactly: "Per — gotcosy.com"
 - Plain email prose. No subject line, no markdown, no bullet lists unless the query specifically asks for a list.
 Reply with ONLY the email body text — nothing else.`;
