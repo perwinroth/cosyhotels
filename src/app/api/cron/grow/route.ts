@@ -6,7 +6,9 @@
 //   1. Google Search Console: top pages last 28 days by clicks — if GOOGLE_SEARCH_CONSOLE_KEY set.
 //   2. Identify cities that have >=3 hotels in Supabase but no guide page yet (the gaps).
 //   3. Write a growth_log row capturing the run (needs the 2026_growth_log.sql migration).
-//   4. Submit sitemap URLs to Google/Bing indexing APIs — if GOOGLE_INDEXING_KEY / BING_API_KEY set.
+//   4. Submit fresh editorial URLs to Google/legacy-Bing APIs (small quotas; each gated on its
+//      env key) and the FULL sitemap URL set to IndexNow (Bing/Yandex/Seznam/Naver; keyless
+//      beyond the public key file this repo serves).
 //
 // Note: a serverless cron cannot spawn code-generating agents or edit source (cityGuides.ts),
 // so it records gaps_identified rather than fabricating pages_created. The existing guide
@@ -15,7 +17,8 @@
 import { NextResponse, after } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityGuides } from "@/data/cityGuides";
-import { submitUrls } from "@/lib/indexing";
+import { submitUrls, submitUrlsToIndexNow } from "@/lib/indexing";
+import { staticUrls, cityUrls, blogUrls, hotelUrls, collectionUrls } from "@/lib/seo/sitemapData";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -93,13 +96,25 @@ async function run(): Promise<Record<string, unknown>> {
     errors.push(`gap_scan_error:${String(e)}`);
   }
 
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "";
-  const candidateUrls = gaps
-    .slice(0, 10)
-    .map((c) => `${base}/en/guides/${norm(c).replace(/[^a-z0-9]+/g, "-")}-cosy-hotel`);
-  errors.push(...(await submitToIndexing(candidateUrls)));
+  // Gap-guide URLs render but are noindex (doorway guard in the guide page), so submitting them
+  // was wasted quota every week. Submit real, indexable URLs instead: the sitemap builders apply
+  // the SAME gates as the pages, so this list can never contain a 404 or noindexed URL.
+  let sitemapLocs: string[] = [];
+  try {
+    const [st, ci, bl, ho, co] = await Promise.all([staticUrls(), cityUrls(), blogUrls(), hotelUrls(), collectionUrls()]);
+    sitemapLocs = [...st, ...ci, ...bl, ...ho, ...co].map((u) => u.loc);
+  } catch (e) {
+    errors.push(`sitemap_collect_error:${String(e)}`);
+  }
+  // Google Indexing API + legacy Bing have small quotas: send only fresh editorial pages there.
+  // IndexNow takes the whole site in one POST (10k-URL limit; we are well under it).
+  const freshUrls = sitemapLocs.filter((u) => u.includes("/en/blog/") || u.includes("/en/guides/")).slice(0, 20);
+  errors.push(...(await submitToIndexing(freshUrls)));
+  const inow = await submitUrlsToIndexNow(sitemapLocs);
+  errors.push(`indexnow_bulk_submitted:${inow.submitted}`);
+  if (inow.errors.length) errors.push(`indexnow_bulk_errors:${inow.errors.join("|")}`);
 
-  const details = { gapCount: gaps.length, candidateUrls, gscTop: gsc.top };
+  const details = { gapCount: gaps.length, sitemapUrlCount: sitemapLocs.length, submittedFresh: freshUrls, gscTop: gsc.top };
   try {
     await db.from("growth_log").insert({
       pages_created: 0, // serverless cron records gaps; page creation is a code change

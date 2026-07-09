@@ -9,7 +9,12 @@ description = "Confirmed false positives (model-id/config strings, not credentia
 regexTarget = "line"
 regexes = [
   '''label: "claude-[a-z0-9.-]+"''',
+  # IndexNow key: public BY PROTOCOL DESIGN — ownership is verified by serving this exact
+  # value openly at /<key>.txt, so it is not a credential (see src/lib/indexing.ts).
+  '''ccfa02a93fbd23e93591e19da6928868''',
 ]
 paths = [
   '''\.gitleaksignore$''',
+  # The IndexNow public key file itself.
+  '''public/ccfa02a93fbd23e93591e19da6928868\.txt$''',
 ]
