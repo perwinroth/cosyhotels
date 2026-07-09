@@ -28,6 +28,11 @@ export const citiesLarge: string[] = [
   "Pune","Ahmedabad","Varanasi","Rishikesh","Amritsar","Shimla","Leh","Goa","Pondicherry","Mysuru",
   "Male","Thimphu",
   // Additional Oceania
-  "Byron Bay","Gold Coast","Canberra","Hobart","Darwin","Rotorua","Taupo","Dunedin"
+  "Byron Bay","Gold Coast","Canberra","Hobart","Darwin","Rotorua","Taupo","Dunedin",
+  // Cities with live, indexable collection pages that were sitemap-orphans because they were
+  // missing here (2026-07-09 audit; each verified single-location + non-control in the DB).
+  // Deliberately NOT added: Lexington, Woodstock, Keswick (each merges two same-named towns
+  // in the DB today — a page would assert false inventory) and Savannah (control market).
+  "Asheville","Banff","Stowe","Sedona","Skaneateles","Bath","Tofino","Sausalito","Middleburg"
 ];
 
