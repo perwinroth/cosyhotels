@@ -41,8 +41,10 @@ const EMAIL_CTA: CSSProperties = { border: "none", background: "var(--ember)", c
 const GMAIL_ACCOUNT = "gotcosy@gmail.com";
 
 function gmailUrl(to: string, subject: string, body: string): string {
-  const p = new URLSearchParams({ authuser: GMAIL_ACCOUNT, view: "cm", fs: "1", to, su: subject, body });
-  return `https://mail.google.com/mail/u/0/?` + p.toString();
+  const p = new URLSearchParams({ view: "cm", fs: "1", to, su: subject, body });
+  // Path-pinned account (u/<email>) — authuser + u/0 contradicted each other and fell back to the
+  // browser default account after an error (2026-07-09).
+  return `https://mail.google.com/mail/u/${GMAIL_ACCOUNT}/?` + p.toString();
 }
 
 function CopyPitch({ pitch }: { pitch: string }) {
