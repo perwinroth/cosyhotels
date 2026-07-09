@@ -299,8 +299,8 @@ gotcosy.com`,
     priority: 1,
     priorityWhy: "The board note said they are not publishing new stories, but the Challenger confirmed the guidelines DO accept podcast scripts, so the draft below is sendable.",
     pitch: {
-      to: "editorial@gonomad.com",
-      route: "email (verified in their writer guidelines; query letter, one page)",
+      to: "max.gonomad@gmail.com",
+      route: "email (Max Hartshorne, Editor; verified gonomad.com/contact-us 2026-07-09 after editorial@ hard-bounced)",
       subject: "Small towns beat the famous capitals",
       body: `Your guidelines ask for a query letter first, one page, podcast scripts over travel stories. So here's the query.
 
@@ -345,7 +345,8 @@ gotcosy.com`,
     priorityWhy: "The boutique-effect pitch (6.30 vs 6.01) plus the exclusive big-city boutique cut fits their hotel edit.",
     pitch: {
       to: "press@sheerluxe.com",
-      route: "email (press, verified on their contact page)",
+      route: "email (press@, per their contact page) BOUNCED 2026-07-09 NoSuchUser; site lists NO working editorial route; HOLD pending another channel (LinkedIn/contributor)",
+      hold: "press@ bounced 2026-07-09; no working route on their site",
       subject: "What makes a boutique hotel feel warm",
       body: `Your June piece on how the SL team would spend a weekend at a luxury hotel is the test I trust: what you'd actually do there, not the room specs. I built a dataset that asks the same question.
 
