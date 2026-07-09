@@ -33,6 +33,9 @@ export const citiesLarge: string[] = [
   // missing here (2026-07-09 audit; each verified single-location + non-control in the DB).
   // Deliberately NOT added: Lexington, Woodstock, Keswick (each merges two same-named towns
   // in the DB today — a page would assert false inventory) and Savannah (control market).
-  "Asheville","Banff","Stowe","Sedona","Skaneateles","Bath","Tofino","Sausalito","Middleburg"
+  "Asheville","Banff","Stowe","Sedona","Skaneateles","Bath","Tofino","Sausalito","Middleburg",
+  // Rustic-collection cities (enabled 2026-07-09) missing from the known list; each verified
+  // single-location + non-control via DB lat/lng. Siena/Perugia were already listed above.
+  "San Gimignano","Como","Montepulciano","Ronda","Füssen"
 ];
 
