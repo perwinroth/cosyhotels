@@ -169,7 +169,13 @@ async function newestDate(q: string, accessToken: string): Promise<number | null
 export async function wasDeliveredTo(email: string, accessToken: string): Promise<boolean> {
   const sent = await newestDate(`in:sent to:${email}`, accessToken);
   if (sent === null) return false;
-  const bounced = await newestDate(`from:mailer-daemon "${email}"`, accessToken);
+  // Bounce senders vary (Gmail mailer-daemon, Zoho MailDeliverySubsystem, postmaster); Zoho bounces
+  // for per@gotcosy.com sends only reach THIS mailbox if Zoho forwards inbound to gotcosy@gmail.com
+  // (founder setting — without it this check is blind to Zoho bounces; 2026-07-09 live evidence).
+  const bounced = await newestDate(
+    `(from:mailer-daemon OR from:mailerdaemon OR from:postmaster OR subject:"could not be delivered" OR subject:"delivery status notification") "${email}"`,
+    accessToken
+  );
   return bounced === null || sent > bounced;
 }
 
