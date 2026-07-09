@@ -157,8 +157,12 @@ export const CONCEPTS: TravellerFitConcept[] = [
     re: /luxur|opulent|sumptuous|lavish|indulgent|refined elegance|five[- ]?star|high[- ]?end|plush/i,
   },
   {
+    // Collections enabled 2026-07-09: demand verified (25+ Reddit ask-threads: agriturismo
+    // Tuscany, farmhouse stays, countryside hotels — die-validation trip/facet findings) and
+    // the eligible cities (Siena 20, Perugia 10, San Gimignano 8, Como 6, Montepulciano 5,
+    // Füssen 5, Ronda 5) match the ask geography. No control market clears the ≥5 min.
     id: "rustic", slug: "rustic", label: "Rustic retreats", noun: "for a rustic escape",
-    category: "style", evidence: "soft", minConfidence: 0.78, collectionEnabled: false,
+    category: "style", evidence: "soft", minConfidence: 0.78, collectionEnabled: true,
     description: "Countryside warmth: farmhouses, exposed beams and reclaimed timber.",
     seoQueryPatterns: ["rustic hotels in {city}", "countryside hotels near {city}"],
     aiPromptPatterns: ["find a rustic countryside hotel near {city}", "recommend a farmhouse-style stay near {city}"],
