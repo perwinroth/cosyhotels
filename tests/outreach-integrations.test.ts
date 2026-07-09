@@ -8,7 +8,7 @@ import { join } from "node:path";
 
 process.env.NEXT_PUBLIC_SITE_URL = "https://gotcosy.com";
 
-import { rawMessage } from "../src/lib/gmail";
+import { rawMessage, createGmailDraft, getDigestAccessToken } from "../src/lib/gmail";
 import { INDEXNOW_KEY, submitUrlsToIndexNow, submitUrlsToBing } from "../src/lib/indexing";
 import { CONCEPTS, CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, cityCollectionMin } from "../src/lib/travellerFit";
 import { citiesLarge } from "../src/data/cities_large";
@@ -39,6 +39,42 @@ test("a multiline parsed subject cannot break the header block (the 06:30 corrup
   const subjectLine = headerBlock.split("\r\n").find((l) => l.startsWith("Subject: "));
   assert.ok(subjectLine && subjectLine.length > "Subject: ".length, "subject survives sanitization non-empty");
   assert.equal(body.trim(), "Real body");
+});
+
+test("draft deep-links point at gotcosy@gmail.com — the ONLY sending account (founder canon 2026-07-09)", async () => {
+  // Mock the OAuth + drafts endpoints so no network/credentials are needed.
+  process.env.GMAIL_CLIENT_ID = "x"; process.env.GMAIL_CLIENT_SECRET = "y"; process.env.GMAIL_REFRESH_TOKEN = "z";
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (url: string | URL) =>
+    String(url).includes("oauth2")
+      ? new Response(JSON.stringify({ access_token: "t" }), { status: 200 })
+      : new Response(JSON.stringify({ id: "draft-1" }), { status: 200 })) as typeof fetch;
+  try {
+    const res = await createGmailDraft({ to: "a@b.com", subject: "S", body: "B" });
+    assert.ok(res);
+    assert.equal(res.link, "https://mail.google.com/mail/u/gotcosy@gmail.com/#drafts");
+  } finally {
+    globalThis.fetch = realFetch;
+    delete process.env.GMAIL_CLIENT_ID; delete process.env.GMAIL_CLIENT_SECRET; delete process.env.GMAIL_REFRESH_TOKEN;
+  }
+});
+
+test("digest reads use the DIGEST mailbox token when set (two mailboxes, two jobs)", async () => {
+  process.env.GMAIL_CLIENT_ID = "x"; process.env.GMAIL_CLIENT_SECRET = "y";
+  process.env.GMAIL_REFRESH_TOKEN = "send-token"; process.env.GMAIL_DIGEST_REFRESH_TOKEN = "digest-token";
+  const seen: string[] = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (_url: string | URL, init?: RequestInit) => {
+    seen.push(new URLSearchParams(String(init?.body)).get("refresh_token") || "");
+    return new Response(JSON.stringify({ access_token: "t" }), { status: 200 });
+  }) as typeof fetch;
+  try {
+    await getDigestAccessToken();
+    assert.deepEqual(seen, ["digest-token"], "digest reads must exchange the digest token, not the send token");
+  } finally {
+    globalThis.fetch = realFetch;
+    for (const k of ["GMAIL_CLIENT_ID", "GMAIL_CLIENT_SECRET", "GMAIL_REFRESH_TOKEN", "GMAIL_DIGEST_REFRESH_TOKEN"]) delete process.env[k];
+  }
 });
 
 test("a newline in the To value cannot inject headers", () => {

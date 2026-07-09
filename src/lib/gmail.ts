@@ -1,16 +1,12 @@
 // Create Gmail drafts as per@gotcosy.com via the API — the reliable version of the outreach button
-// (compose URLs can't force a From). Auth: OAuth refresh token whose mailbox is per@gotcosy.com's
-// verified "Send As" account — the token IS the account, so whichever inbox GMAIL_REFRESH_TOKEN was
-// minted for is where drafts land and where the read helpers below search (currently being migrated
-// to perwinroth@gmail.com — update ACCOUNT below to match whenever the token changes). Env:
-// GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET / GMAIL_REFRESH_TOKEN. Server-only.
-const ACCOUNT = "perwinroth@gmail.com"; // must match the mailbox GMAIL_REFRESH_TOKEN belongs to — only used to build the Drafts deep-link
-const FROM = "Got Cosy <per@gotcosy.com>"; // per@gotcosy.com must be a verified Send-As on ACCOUNT.
-// If it is NOT verified there, Gmail silently REWRITES From to the mailbox's primary address —
-// the draft then sends from the bare personal account (2026-07-09 incident, same defect class as
-// the sender-address incident). Two founder-side remedies: verify per@gotcosy.com as Send-As on
-// ACCOUNT (Gmail Settings → Accounts → "Send mail as", Zoho SMTP), or re-mint GMAIL_REFRESH_TOKEN
-// for gotcosy@gmail.com (where it is already the verified default) and update ACCOUNT to match.
+// (compose URLs can't force a From). Auth: OAuth refresh token; the token IS the account — whichever
+// mailbox GMAIL_REFRESH_TOKEN was minted for is where drafts land and where the read helpers below
+// search. CANONICAL (founder, 2026-07-09): gotcosy@gmail.com is the ONLY sending account; its default
+// Send-As is per@gotcosy.com via the already-configured Zoho relay. Token re-minted for
+// gotcosy@gmail.com 2026-07-09 (verified via users/me/profile). perwinroth@gmail.com must never be a
+// sending identity. Env: GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET / GMAIL_REFRESH_TOKEN. Server-only.
+const ACCOUNT = "gotcosy@gmail.com"; // must match the mailbox GMAIL_REFRESH_TOKEN belongs to — only used to build the Drafts deep-link
+const FROM = "Got Cosy <per@gotcosy.com>"; // the verified default Send-As on ACCOUNT (Gmail honors it at send time)
 
 export function gmailConfigured(): boolean {
   return Boolean(process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN);
@@ -98,6 +94,25 @@ export async function getAccessToken(): Promise<string> {
   if (!client_id || !client_secret || !refresh_token) {
     throw new Error("Gmail not configured — missing GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET / GMAIL_REFRESH_TOKEN.");
   }
+  return exchangeRefreshToken(client_id, client_secret, refresh_token);
+}
+
+// TWO mailboxes, two jobs (founder architecture, 2026-07-09): HARO/SOS DIGESTS arrive at
+// perwinroth@gmail.com; SENDING is per@gotcosy.com via gotcosy@gmail.com. One token can only be one
+// mailbox, so digest READING gets its own read-only token. Falls back to the main token when
+// GMAIL_DIGEST_REFRESH_TOKEN is unset — that fallback searches the SENDING mailbox, where digests
+// do not arrive (verified 0 hits 2026-07-09), so the digest token must be minted for
+// perwinroth@gmail.com via scripts/gmail-auth.mjs (log in as perwinroth@gmail.com).
+export async function getDigestAccessToken(): Promise<string> {
+  const client_id = process.env.GMAIL_CLIENT_ID, client_secret = process.env.GMAIL_CLIENT_SECRET;
+  const refresh_token = process.env.GMAIL_DIGEST_REFRESH_TOKEN || process.env.GMAIL_REFRESH_TOKEN;
+  if (!client_id || !client_secret || !refresh_token) {
+    throw new Error("Gmail not configured — missing GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET and a refresh token.");
+  }
+  return exchangeRefreshToken(client_id, client_secret, refresh_token);
+}
+
+async function exchangeRefreshToken(client_id: string, client_secret: string, refresh_token: string): Promise<string> {
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ grant_type: "refresh_token", client_id, client_secret, refresh_token }),

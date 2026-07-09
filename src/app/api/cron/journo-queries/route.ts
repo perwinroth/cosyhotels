@@ -19,7 +19,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { getAccessToken, searchMessageIds, getMessagePlainText, createGmailDraft, GmailScopeError } from "@/lib/gmail";
+import { getDigestAccessToken, searchMessageIds, getMessagePlainText, createGmailDraft, GmailScopeError } from "@/lib/gmail";
 import { parseDigest, sourceFromEmail, type ParsedQuery } from "@/lib/journoDigest";
 import { draftReply as sharedDraftReply, subjectFor, getAnthropicClient } from "@/lib/journoReply";
 
@@ -124,13 +124,15 @@ export async function GET(req: Request) {
     return NextResponse.json({ from: "journo-queries", ok: false, error: "ANTHROPIC_API_KEY not set — add it to Vercel env." });
   }
 
-  // Refresh the Gmail access token up front. A missing-env or insufficient-scope failure returns a
+  // Refresh the DIGEST-mailbox access token up front (HARO/SOS digests arrive at
+  // perwinroth@gmail.com — the READ mailbox; drafts are created separately via the main token in
+  // the SEND mailbox, gotcosy@gmail.com). A missing-env or insufficient-scope failure returns a
   // graceful 200 so a broken/unconfigured token never crashes the cron.
   let accessToken: string;
   try {
-    accessToken = await getAccessToken();
+    accessToken = await getDigestAccessToken();
   } catch (e) {
-    const scopeHint = "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN";
+    const scopeHint = "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs (as perwinroth@gmail.com) and update GMAIL_DIGEST_REFRESH_TOKEN";
     return NextResponse.json({
       from: "journo-queries",
       ok: false,
