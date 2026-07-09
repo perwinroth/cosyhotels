@@ -181,6 +181,22 @@ test("homonym-merging cities and control markets stay OFF the known list", () =>
   }
 });
 
+// ── compose links: account pinned in the PATH; authuser+u/0 is the broken pair (2026-07-09) ──
+
+test("every Gmail compose builder pins gotcosy@gmail.com in the URL path — no authuser, no u/0", async () => {
+  const { gmailComposeUrl } = await import("../src/lib/badgePitch");
+  const url = gmailComposeUrl("x@y.com", "Subject", "Body");
+  assert.ok(url.startsWith("https://mail.google.com/mail/u/gotcosy@gmail.com/?"), url);
+  assert.ok(!url.includes("authuser"), "authuser param must not reappear");
+  // Client components can't be imported here; guard their SOURCE against the broken pattern.
+  const { readFileSync: rf } = await import("node:fs");
+  for (const f of ["src/components/growth/PrBoard.tssx".replace("tssx", "tsx"), "src/components/growth/BadgeBoard.tsx", "src/lib/outreachTemplates.ts"]) {
+    const src = rf(join(__dirname, "..", f), "utf8");
+    assert.ok(!/mail\/u\/0\/\?/.test(src), `${f}: u/0 compose path must not reappear`);
+    assert.ok(!/authuser/.test(src.replace(/\/\/.*$/gm, "")), `${f}: authuser must not reappear outside comments`);
+  }
+});
+
 // ── blogPickScores: readers must see the LIVE calculated score, never a stale snapshot ──
 
 test("blog picks render live scores; below-gate and missing hotels drop out", async () => {

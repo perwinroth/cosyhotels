@@ -36,8 +36,10 @@ export function buildBadgePitch(
 // One-click Gmail compose deep-link (opens gotcosy@gmail.com with a pre-filled, editable draft; nothing
 // auto-sends; the from-address is that account's default send-as, per@gotcosy.com).
 export function gmailComposeUrl(to: string, subject: string, body: string): string {
-  const p = new URLSearchParams({ authuser: GMAIL_ACCOUNT, view: "cm", fs: "1", to, su: subject, body });
-  return `https://mail.google.com/mail/u/0/?${p.toString()}`;
+  const p = new URLSearchParams({ view: "cm", fs: "1", to, su: subject, body });
+  // Account goes in the PATH (u/<email>), never authuser + u/0: that pair contradicts itself and
+  // Gmail errors once, then silently falls back to the browser's default account (2026-07-09).
+  return `https://mail.google.com/mail/u/${GMAIL_ACCOUNT}/?${p.toString()}`;
 }
 
 // Instagram DM deep-link (DMs can't be pre-filled; Per pastes the copied pitch).
