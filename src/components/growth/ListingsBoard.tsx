@@ -5,6 +5,7 @@
 // "not saved" hint appears, so chipping away never blocks on infra.
 import { useState } from "react";
 import type { KitField, ListingTarget } from "@/data/listingTargets";
+import Linkify from "@/components/growth/Linkify";
 
 export type ListingRow = ListingTarget & { status: string };
 
@@ -94,8 +95,8 @@ function Card({ row, status, saveFailed, onSet }: { row: ListingRow; status: str
           ))}
         </span>
       </div>
-      <div className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>Form asks for: {row.fields}</div>
-      <div className="mt-1 text-sm">{row.note}</div>
+      <div className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>Form asks for: <Linkify text={row.fields} /></div>
+      <div className="mt-1 text-sm"><Linkify text={row.note} /></div>
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
         <a
           className="rounded-lg px-2.5 py-1 text-xs font-bold no-underline"
