@@ -12,6 +12,7 @@ export function organizationSchema() {
     "@type": "Organization",
     "@id": ORG_ID,
     name: "Got Cosy",
+    alternateName: "Cozy Hotels Guide",
     url: site.url,
     description: site.description,
     logo: `${site.url}/icon`,
