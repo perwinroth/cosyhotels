@@ -17,6 +17,7 @@ import {
   type PrPitch,
 } from "@/data/prActions";
 import { createPrDraft } from "@/app/growth/pr/actions";
+import Linkify from "@/components/growth/Linkify";
 
 export type PrBoardRow = {
   id: string;
@@ -141,13 +142,13 @@ function Card({ row, status, gmailOn, onSet }: { row: PrBoardRow; status: string
         <span className="text-[11px]" style={{ color: "var(--muted)" }}>{row.actionType}</span>
         <StatusPills row={row} status={status} onSet={onSet} />
       </div>
-      <div className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>{row.priorityWhy}</div>
+      <div className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}><Linkify text={row.priorityWhy} /></div>
       {hold && (
         <div className="mt-1.5 text-sm rounded-lg px-2.5 py-1.5 font-semibold" style={{ background: "color-mix(in oklab, var(--ember) 14%, transparent)" }}>
           On hold: {hold}
         </div>
       )}
-      {row.instructions && <div className="mt-1.5 text-sm whitespace-pre-wrap">{row.instructions}</div>}
+      {row.instructions && <div className="mt-1.5 text-sm whitespace-pre-wrap"><Linkify text={row.instructions} /></div>}
       {row.pitch && (
         <>
           <div className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>
