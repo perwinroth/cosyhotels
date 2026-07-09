@@ -37,7 +37,7 @@ const encHeader = (s: string) => (/[^\x00-\x7F]/.test(s) ? `=?UTF-8?B?${Buffer.f
 // guard also closes the header-injection hole for any parser-derived value.
 const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").replace(/\s{2,}/g, " ").trim();
 
-function rawMessage({ to, subject, body }: { to: string; subject: string; body: string }): string {
+export function rawMessage({ to, subject, body }: { to: string; subject: string; body: string }): string {
   const cleanTo = oneLine(to);
   const cleanSubject = oneLine(subject) || "Re: your query";
   const headers = [
