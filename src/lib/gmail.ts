@@ -57,7 +57,7 @@ export async function createGmailDraft(msg: { to: string; subject: string; body:
       body: JSON.stringify({ message: { raw: rawMessage(msg) } }),
     }).then((x) => x.json());
     if (!r.id) return null;
-    return { id: r.id, link: `https://mail.google.com/mail/u/${ACCOUNT}/#drafts` };
+    return { id: r.id, link: `https://mail.google.com/mail/?authuser=${encodeURIComponent(ACCOUNT)}#drafts` };
   } catch { return null; }
 }
 

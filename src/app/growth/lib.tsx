@@ -109,7 +109,10 @@ export async function getTodayPlan(db: DB): Promise<{
       else if (handle) instagram.push({ hotelId, name, city, score, handle, igUrl: instagramDmUrl(handle), pitch });
     }
     return {
-      emails: emails.slice(0, DAILY.emails),
+      // The day's email work is DAILY.emails sends TOTAL: already-contacted-today counts against
+      // the cap, so the queue shrinks as you mark and hits zero when you're done, instead of
+      // refilling with the next 30 (which read as "my marks didn't save" — founder, 2026-07-09).
+      emails: emails.slice(0, Math.max(0, DAILY.emails - (contactedToday ?? 0))),
       instagram: instagram.slice(0, DAILY.instagram),
       reddit,
       totalEmailQueued: emails.length,

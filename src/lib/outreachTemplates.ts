@@ -36,5 +36,6 @@ export function outreachPitch(row: { outlet: string; fit: string }): { subject: 
 export function gmailComposeUrl(row: { email?: string; outlet: string; fit: string }): string {
   const t = (TEMPLATES[row.fit] || TEMPLATES["data-study"])(row.outlet);
   const p = new URLSearchParams({ view: "cm", fs: "1", to: row.email || "", su: t.subject, body: t.body });
-  return `https://mail.google.com/mail/u/${GMAIL_ACCOUNT}/?` + p.toString();
+  p.set("authuser", GMAIL_ACCOUNT);
+  return `https://mail.google.com/mail/?` + p.toString();
 }

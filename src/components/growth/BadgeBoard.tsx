@@ -44,7 +44,8 @@ function gmailUrl(to: string, subject: string, body: string): string {
   const p = new URLSearchParams({ view: "cm", fs: "1", to, su: subject, body });
   // Path-pinned account (u/<email>) — authuser + u/0 contradicted each other and fell back to the
   // browser default account after an error (2026-07-09).
-  return `https://mail.google.com/mail/u/${GMAIL_ACCOUNT}/?` + p.toString();
+  p.set("authuser", GMAIL_ACCOUNT);
+  return `https://mail.google.com/mail/?` + p.toString();
 }
 
 function CopyPitch({ pitch }: { pitch: string }) {
