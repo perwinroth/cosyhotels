@@ -8,7 +8,8 @@ import blogPicksData from "@/data/blogPicks.json";
 
 // Picks are precomputed (scripts/generate-blog-picks.mts): each hotel assigned to ONE post, with a
 // bespoke grounded "why it fits this topic" line. Regenerate the JSON to refresh.
-type BlogPick = { slug: string; name: string; city: string; country: string; score: number; why: string; img: string | null; cta: string };
+import { picksWithLiveScores, type PickEntry } from "@/lib/blogPickScores";
+type BlogPick = PickEntry;
 const BLOG_PICKS = blogPicksData as Record<string, BlogPick[]>;
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
@@ -99,7 +100,10 @@ export default async function BlogPostPage({ params }: Props) {
   const L = params.locale;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || site.url;
 
-  const picks: BlogPick[] = post.pick ? (BLOG_PICKS[post.slug] || []) : [];
+  // Editorial picks come from the JSON; the SCORE a reader sees is always the live calculated
+  // value (below-gate hotels drop out) — stored numbers went stale after the 2026-07-02 rescore.
+  const storedPicks: BlogPick[] = post.pick ? (BLOG_PICKS[post.slug] || []) : [];
+  const picks: BlogPick[] = await picksWithLiveScores(storedPicks);
 
   // A related link to a blog post that's still draft/scheduled would 404 — drop those. Non-blog
   // related links (Cosy Index, city guides, the data study) always render, so keep them as-is.
