@@ -1,5 +1,6 @@
-// Badge-outreach auto-advance cron (every 6h). Reads the gotcosy@gmail.com mailbox to move outreach
-// cards forward without manual clicks:
+// Outreach auto-advance cron (every 6h). Reads the gotcosy@gmail.com mailbox to move BOTH boards'
+// cards forward without manual clicks (badge outreach via hotel_outreach; PR board via the
+// `outreach` table keyed by prActions card id):
 //   queued    → contacted   when we've SENT a pitch to the hotel's email (in:sent to:<email>)
 //   contacted → replied     when the hotel has REPLIED (in:inbox from:<email>)
 // It NEVER downgrades a status and NEVER touches won / won_confirmed / declined — those are human-set.
@@ -16,6 +17,7 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getAccessToken, wasDeliveredTo, gotReplyFrom, GmailScopeError } from "@/lib/gmail";
+import { PR_ACTIONS } from "@/data/prActions";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -158,11 +160,57 @@ export async function GET(req: Request) {
     return NextResponse.json({ from: "outreach-sync", ok: false, error: String(e instanceof Error ? e.message : e), checked }, { status: 502 });
   }
 
-  const advanced = advancedContacted + advancedReplied;
+  // ── PR-board targets (founder ask 2026-07-09: queued→contacted→replied advance automatically) ──
+  // Targets = prActions cards with a verified email. Missing `outreach` row = queued (the board's
+  // default). Human-only states (won / confirmed / declined) and replied are never touched; the
+  // eq-status guards below make concurrent human clicks win. Publication→won detection is a TODO
+  // wired to the weekly mention tracker, not this cron.
+  let prContacted = 0;
+  let prReplied = 0;
+  const prWouldChange: Array<{ id: string; from: string; to: string }> = [];
+  try {
+    const prTargets = Object.entries(PR_ACTIONS)
+      .map(([id, a]) => ({ id, email: (a.pitch?.to || "").trim() }))
+      .filter((t) => t.email);
+    const { data: prRows } = await db.from("outreach").select("id, status").in("id", prTargets.map((t) => t.id));
+    const prStatus = new Map(((prRows || []) as Array<{ id: string; status: string }>).map((r) => [r.id, r.status]));
+    for (const t of prTargets) {
+      let cur = prStatus.get(t.id) || "queued";
+      if (cur === "queued" && (await wasDeliveredTo(t.email, accessToken))) {
+        prWouldChange.push({ id: t.id, from: "queued", to: "contacted" });
+        if (!dry) {
+          const now = new Date().toISOString();
+          const { error } = await db.from("outreach").upsert({ id: t.id, status: "contacted", updated_at: now });
+          if (error) return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+        }
+        prContacted++;
+        cur = "contacted";
+      }
+      if (cur === "contacted" && (await gotReplyFrom(t.email, accessToken))) {
+        prWouldChange.push({ id: t.id, from: "contacted", to: "replied" });
+        if (!dry) {
+          const { error } = await db
+            .from("outreach")
+            .update({ status: "replied", updated_at: new Date().toISOString() })
+            .eq("id", t.id)
+            .eq("status", "contacted");
+          if (error) return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+        }
+        prReplied++;
+      }
+    }
+  } catch (e) {
+    if (e instanceof GmailScopeError) {
+      return NextResponse.json({ from: "outreach-sync", ok: false, error: "Gmail needs readonly scope — re-run scripts/gmail-auth.mjs", checked });
+    }
+    return NextResponse.json({ from: "outreach-sync", ok: false, error: String(e instanceof Error ? e.message : e), checked }, { status: 502 });
+  }
+
+  const advanced = advancedContacted + advancedReplied + prContacted + prReplied;
   let notified = false;
   if (advanced > 0 && !dry) {
     notified = await pushTelegram(
-      `${advanced} outreach card${advanced > 1 ? "s" : ""} auto-advanced (${advancedContacted} contacted, ${advancedReplied} replied).\n\nBoard → https://gotcosy.com/badge-outreach`,
+      `${advanced} outreach card${advanced > 1 ? "s" : ""} auto-advanced (badge: ${advancedContacted} contacted / ${advancedReplied} replied; PR: ${prContacted} contacted / ${prReplied} replied).\n\nBoards → https://gotcosy.com/growth/pr and /badge-outreach`,
     );
   }
 
@@ -173,6 +221,9 @@ export async function GET(req: Request) {
     checked,
     advancedContacted,
     advancedReplied,
+    prContacted,
+    prReplied,
+    prWouldChange,
     capped,
     notified,
     ...(dry ? { wouldChange } : {}),
