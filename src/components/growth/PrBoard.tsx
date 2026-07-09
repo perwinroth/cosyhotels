@@ -19,6 +19,11 @@ import {
 import { createPrDraft } from "@/app/growth/pr/actions";
 import Linkify from "@/components/growth/Linkify";
 
+// Compose in Gmail AS gotcosy@gmail.com (account pinned in the path — never mailto:, which opens
+// the device's default mail identity, i.e. the wrong-sender trap all over again).
+const composeHref = (to: string) => `https://mail.google.com/mail/u/gotcosy@gmail.com/?${new URLSearchParams({ view: "cm", fs: "1", to })}`;
+
+
 export type PrBoardRow = {
   id: string;
   outlet: string;
@@ -152,7 +157,7 @@ function Card({ row, status, gmailOn, onSet }: { row: PrBoardRow; status: string
       {row.pitch && (
         <>
           <div className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>
-            Route: {row.pitch.to ? <a className="underline" href={`mailto:${row.pitch.to}`}>{row.pitch.to}</a> : row.pitch.route}
+            Route: {row.pitch.to ? <a className="underline" href={composeHref(row.pitch.to)} target="_blank" rel="noopener noreferrer">{row.pitch.to}</a> : row.pitch.route}
           </div>
           <details className="mt-2">
             <summary className="cursor-pointer text-sm" style={{ color: "var(--muted)" }}>Full email</summary>
@@ -177,7 +182,7 @@ function Card({ row, status, gmailOn, onSet }: { row: PrBoardRow; status: string
       {!row.pitch && row.actionType === "email" && (row.email || row.contactRoute) && (
         <div className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>
           Contact: {row.email
-            ? <a className="underline" href={`mailto:${row.email}`}>{row.email}</a>
+            ? <a className="underline" href={composeHref(row.email)} target="_blank" rel="noopener noreferrer">{row.email}</a>
             : /^https?:/.test(row.contactRoute)
               ? <a className="underline" href={row.contactRoute} target="_blank" rel="noreferrer">{row.contactRoute}</a>
               : row.contactRoute}
