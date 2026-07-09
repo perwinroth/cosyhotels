@@ -230,12 +230,44 @@ gotcosy.com`,
     actionType: "email",
     priority: 2,
     priorityWhy: "No public pitch inbox; the points-bookable-cosy angle needs a custom cut not yet built.",
+    pitch: {
+      to: "tips@thepointsguy.com",
+      route: "email (tips@, verified on their contact page)",
+      subject: "Romantic stays your star filter misses",
+      body: `Blair and Melissa's romantic-getaways piece opens on the misconception that romance needs a flight. Our data points the same way: the feeling hides where the booking filters don't look.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests write; the scores barely track star ratings, so our lists surface places the usual filters miss.
+
+For a follow-up or a refresh I can build a cut of the cosiest romantic stays within reach of major US cities, with the guest evidence behind each.
+
+Want a sample city?
+
+Per
+gotcosy.com`,
+    },
   },
   "lauren-belzer-laurenbelz-com-28": {
     outlet: "Lauren Belzer",
     actionType: "email",
     priority: 2,
     priorityWhy: "Email needs verifying first (the board's own flag); niche blogger.",
+    pitch: {
+      to: "lauren@laurenbelz.com",
+      route: "email (partnerships page, verified)",
+      subject: "Solo stays where someone knows your name",
+      body: `Your San Diego guide starts with the city feeling like two different places depending on who you're visiting. Hotels split the same way, and guests write it down.
+
+I run Got Cosy. We scored 17,727 hotels by reading guest reviews.
+
+In the cosiest towns in our data, three out of four hotels have guests writing about a person: the owner, someone by name.
+
+If it fits a future guide, I can build you a solo-friendly cut of the cosiest stays for any city you're covering, with the review evidence behind each.
+
+Worth a look?
+
+Per
+gotcosy.com`,
+    },
   },
   "project-nord-37": {
     outlet: "Project Nord",
