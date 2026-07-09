@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { claudeCosyScore } from "@/lib/scoring/claudeCosy";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { fetchGradedProfiles, fetchPanelProfiles, selectAnchorsFor, formatCalibration } from "@/lib/scoring/calibration";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -31,8 +32,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Please provide the hotel name and at least a city, website, or description." }, { status: 400 });
   }
 
+  // Calibrate the public scorer to the SAME scale as the live dataset (founder-caught
+  // 2026-07-09: an uncalibrated run handed a fictional guesthouse 8.2 while the live ceiling
+  // is ~7.6 — a hotelier then finds no hotel on the site anywhere near their score). Two
+  // parts, both derived from real data, best-effort (scoring proceeds uncalibrated on failure):
+  // the human-grade anchors the recompute cron already uses, plus the live scale ceiling.
+  let calibration: string | undefined;
+  const dbForCal = getServerSupabase();
+  if (dbForCal) {
+    try {
+      const [owner, panel, mx] = await Promise.all([
+        fetchGradedProfiles(dbForCal),
+        fetchPanelProfiles(dbForCal),
+        dbForCal.from("cosy_scores").select("score_final").not("score_final", "is", null).order("score_final", { ascending: false }).limit(1),
+      ]);
+      const anchors = selectAnchorsFor({ city, country, amenities, stars: null }, [...owner, ...panel], 12);
+      const ceiling = mx.data?.[0]?.score_final;
+      calibration = [
+        formatCalibration(anchors),
+        typeof ceiling === "number"
+          ? `\nScale context: across the ~17,700 hotels scored on this exact rubric, the current MAXIMUM score is ${Number(ceiling).toFixed(1)}/10. Scores above that ceiling should be practically unreachable for a self-described submission; a plausible small cosy place lands well below it.`
+          : "",
+      ].filter(Boolean).join("\n") || undefined;
+    } catch {
+      /* best-effort: uncalibrated scoring is better than no scoring */
+    }
+  }
+
   try {
-    const r = await claudeCosyScore({ name, city, country, website, description, amenities });
+    const r = await claudeCosyScore({ name, city, country, website, description, amenities, calibration });
     const db = getServerSupabase();
     if (db) {
       try {
