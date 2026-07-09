@@ -269,12 +269,12 @@ gotcosy.com`,
     pitch: {
       to: "editorial@gonomad.com",
       route: "email (verified in their writer guidelines; query letter, one page)",
-      subject: "Query: small towns beat famous capitals",
-      body: `Your guidelines say it plainly: no new travel stories, scripts for the GoNOMAD Travel Podcast instead, query letter first and keep it to a page. So here's the query.
+      subject: "Small towns beat the famous capitals",
+      body: `Your guidelines ask for a query letter first, one page, podcast scripts over travel stories. So here's the query.
 
-I run Got Cosy. We scored 17,727 hotels by reading what guests wrote in reviews, and the cosiest hotel towns are places nobody thinks to look: Alberobello and San Gimignano outscore Rome, Paris and Vienna. I'd like to script that for the podcast: how small towns quietly beat the capitals, told through what guests actually wrote about them.
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote, and the cosiest hotel towns are places nobody thinks to look: Alberobello and San Gimignano outscore Rome and Paris.
 
-Methodology and the full tables are public and free to cite.
+I'd like to script that for the GoNOMAD Travel Podcast: how small towns quietly beat the capitals, told through what guests actually wrote. Methodology's public and free to cite.
 
 Want the full pitch?
 
@@ -315,13 +315,13 @@ gotcosy.com`,
       to: "press@sheerluxe.com",
       route: "email (press, verified on their contact page)",
       subject: "What makes a boutique hotel feel warm",
-      body: `I keep coming back to how your travel desk writes hotels: the weekend the team would spend there, not room specs. That's the test I trust too, and it turns out you can measure it.
+      body: `Your June piece on how the SL team would spend a weekend at a luxury hotel is the test I trust: what you'd actually do there, not the room specs. I built a dataset that asks the same question.
 
 I run Got Cosy. We scored 17,727 hotels by reading what guests write.
 
 In big cities, the stays guests call boutique average 6.30 out of 10 for warmth; the big-city average is 6.01. Small scale is what earns the feeling.
 
-For your next hotel edit I can build a ranked cut of the cosiest big-city boutique stays, each with the review evidence behind it.
+For your next hotel edit I can build a ranked cut of the cosiest big-city boutique stays, with the review evidence behind each.
 
 Want it?
 
@@ -338,11 +338,11 @@ gotcosy.com`,
       to: "richard@greentraveller.co.uk",
       route: "email (Richard Hammond; verified on their contact page)",
       subject: "Independent hotels and what guests remember",
-      body: `You ask carbon consultants and heads of impact what one thing they'd change about travel. If your series ever asked me, I'd change what we measure about hotels.
+      body: `I'd like to offer Green Traveller a number I think you'll want on record: independent hotels average 4.6 out of 10 for warmth in guest reviews; chains average 3.1.
 
-I run Got Cosy. We scored 17,727 hotels by reading what guests wrote in their reviews. Independents average 4.6 out of 10 on that warmth score; chain hotels average 3.1. Booking independent is measurably warmer, not merely worthier. Your founding premise, with numbers on it.
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote.
 
-If it's useful, I'll build Green Traveller an exclusive cut of the highest-scoring independent stays with the guest evidence behind each, and I'm happy to go on the record. Methodology and limitations are public.
+If it's useful I'll build you the highest-scoring independent stays with the guest evidence behind each, and I'm happy to go on the record. Methodology and limitations are public.
 
 Worth a look?
 
@@ -361,11 +361,13 @@ PS. One email only. If this isn't for you, I won't chase.`,
       to: "homesandantiques@ourmedia.co.uk",
       route: "email (editorial address on their contact page)",
       subject: "The fireplace tell in hotel reviews",
-      body: `You run whole explainers on patina, the wear that makes a piece worth keeping. Hotel guests have their own version of that detail, and it shows up in their reviews.
+      body: `Jenny Oldaker's January piece on boutique hotels has a line I kept: "architectural touches of old rub shoulders with thoroughly modern luxuries". Our data has a name for what those touches do to guests.
 
-I run Got Cosy. We scored 17,727 hotels by reading what guests wrote. The rarest thing guests mention is a fireplace, yet it's roughly 8.5 times more common in the hotels that score genuinely cosy (7.0 and up) than in the rest. One object carrying that much of the feeling.
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote.
 
-I can build you an interiors-signal cut: fireplaces, courtyards, and the towns where those details cluster, with the guest evidence behind each. Formed for a feature on the details guests actually write about.
+Guests rarely mention a fireplace, yet it's roughly 8.5 times more common in hotels that score genuinely cosy (7.0 and up) than in the rest.
+
+I can build you an interiors-signal cut: fireplaces, courtyards, and the towns where they cluster, with the guest evidence behind each.
 
 Interested?
 
@@ -384,11 +386,11 @@ PS. One email, no follow-ups from me.`,
       to: "hello-us@timeout.com",
       route: "email (US editorial mailto, verified on their contact page)",
       subject: "A different kind of cozy hotel list",
-      body: `Lauren Dana's cozy-hotels list opens by defining hygge; the hard part is proving which hotels actually deliver it. That's the exact thing we measure.
+      body: `Alex Sims' Chicago guide praises The Guesthouse for "cozy touches like wood salvaged from a Wisconsin barn". That's exactly the kind of detail our whole dataset is built to catch.
 
-I run Got Cosy. We scored 17,727 hotels by reading what guests wrote in reviews. Those scores barely track star ratings (analysis shared on request), so our per-city lists come out different from the ones everyone builds off the same sources.
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote in reviews; the scores barely track star ratings, so our per-city lists come out different from everyone else's.
 
-Time Out works city by city, and so do we. I can send per-city cosiest-hotel cuts for any of your cozy-hotel page refreshes, free to cite, no link needed.
+Time Out works city by city, and so do we. I can send per-city cosiest-hotel cuts for any cozy-hotel page refresh, free to cite, no link needed.
 
 Want a sample city?
 
@@ -758,7 +760,13 @@ gotcosy.com`,
       to: "arvid@thebootstrappedfounder.com",
       route: "email (verified mailto on their podcast page)",
       subject: "Grading hotels honestly as a solo founder",
-      body: `Arvid, you bill the show as a weekly one about bootstrapping businesses and building in public, so here's a build whose entire product is a refusal to round up. I bootstrapped Got Cosy, where AI reads the guest reviews of 17,727 hotels against a fixed rubric, and nothing clears an 8 out of 10; publishing that ceiling, limitations page and all, turned out to be the product's credibility. Solo founder, real dataset, no growth claims to make. Happy to unpack the rubric design and why honest grading sells. Worth a slot?
+      body: `In March you asked: if building software keeps getting easier, what exactly are we building our businesses on? Mine is built on the answer you gave: data.
+
+I bootstrapped Got Cosy, where AI reads the guest reviews of 17,727 hotels against a fixed rubric. Nothing clears an 8 out of 10, and publishing that ceiling turned out to be the product's credibility.
+
+Solo founder, real dataset, no growth claims. Happy to unpack the rubric design and why honest grading sells.
+
+Worth a slot?
 
 Per
 gotcosy.com`,
