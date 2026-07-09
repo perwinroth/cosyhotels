@@ -166,7 +166,7 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
 
       <section className="mt-12">
         <h2 className="text-xl font-semibold">How the Cosy Index works</h2>
-        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>Every hotel is scored by AI on the signals that actually make a stay cosy: small room counts, fireplaces and soaking tubs, natural materials, intimate design, and reviews where guests feel genuinely welcomed rather than processed. Scores run 0–10, calibrated against hundreds of hand-graded hotels; the very cosiest top out around 7.8, and clearing {INDEX_MIN.toFixed(1)} puts a hotel in the Index. Browse the full rankings by city in our <a href={`/${params.locale}`} className="underline">cosy hotel guides</a>.</p>
+        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>Every hotel is scored by AI on the signals that actually make a stay cosy: small room counts, fireplaces and soaking tubs, natural materials, intimate design, and reviews where guests feel genuinely welcomed rather than processed. Scores run 0–10, calibrated against hundreds of hand-graded hotels; the very cosiest top out around 7.8, and clearing {INDEX_MIN.toFixed(1)} puts a hotel in the Index. Browse the full rankings by city in our <a href={`/${params.locale}`} className="underline">cosy hotel guides</a>. Americans spell it cozy; the Index scores the feeling, not the spelling.</p>
       </section>
     </div>
   );

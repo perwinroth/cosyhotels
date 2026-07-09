@@ -122,7 +122,7 @@ export default async function StudyPage({ params }: { params: { locale: string }
       <p className="text-sm font-medium tracking-wide uppercase" style={{ color: "var(--ember)", letterSpacing: "0.08em" }}>Data study · {total.toLocaleString()} hotels</p>
       <h1 className="mt-2 font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">The cosiest hotels in the world aren&apos;t the ones you&apos;d expect</h1>
       <p className="mt-5 text-xl leading-relaxed" style={{ color: "var(--muted)" }}>
-        The cosiest places we found are a renovated mansion in Palma, a wooden ryokan in Kyoto, a spa-kúria in rural Hungary. Not one is a name you&apos;d recognise. Not one is a chain. We scored <strong style={{ color: "var(--foreground)" }}>{total.toLocaleString()} hotels</strong> for cosiness, and what predicts it has almost nothing to do with the things hotels brag about. We&apos;ll show you the data, finding by finding.
+        The cosiest places we found are a renovated mansion in Palma, a wooden ryokan in Kyoto, a spa-kúria in rural Hungary. Not one is a name you&apos;d recognise. Not one is a chain. We scored <strong style={{ color: "var(--foreground)" }}>{total.toLocaleString()} hotels</strong> for cosiness, and what predicts it has almost nothing to do with the things hotels brag about. We&apos;ll show you the data, finding by finding. Cosy, or cozy in American English: the word changes spelling across the Atlantic, the thing itself does not.
       </p>
 
       <div className="not-prose mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">

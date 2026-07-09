@@ -121,7 +121,7 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
       </h1>
       <p className="mt-5 text-lg leading-relaxed" style={{ color: "var(--muted)" }}>
         We analysed {REVIEWS.toLocaleString("en-GB")} guest reviews to score hotels on one quality nobody rates:
-        cosiness. It turns out to be genuinely rare ({COSY_PCT}% of hotels), and the things that predict it are
+        cosiness (coziness, to American readers). It turns out to be genuinely rare ({COSY_PCT}% of hotels), and the things that predict it are
         not the things hotels advertise.
       </p>
 
