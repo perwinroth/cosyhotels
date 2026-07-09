@@ -181,6 +181,19 @@ test("homonym-merging cities and control markets stay OFF the known list", () =>
   }
 });
 
+// ── blogPickScores: readers must see the LIVE calculated score, never a stale snapshot ──
+
+test("blog picks render live scores; below-gate and missing hotels drop out", async () => {
+  const { applyLiveScores } = await import("../src/lib/blogPickScores");
+  const picks = [
+    { slug: "a", name: "A", city: "X", country: "Y", score: 8.8, why: "", img: null, cta: "" }, // stale 8.8
+    { slug: "b", name: "B", city: "X", country: "Y", score: 8.1, why: "", img: null, cta: "" }, // now below gate
+    { slug: "c", name: "C", city: "X", country: "Y", score: 7.0, why: "", img: null, cta: "" }, // delisted
+  ];
+  const out = applyLiveScores(picks, { a: 6.9, b: 4.3, c: undefined });
+  assert.deepEqual(out.map((p) => [p.slug, p.score]), [["a", 6.9]], "stale 8.8 must render as the live 6.9; sub-gate + missing hotels must not be featured");
+});
+
 // ── controlMarkets.ts: the guard the SEO surfaces will need (york bug, G14) ──
 
 test("control detection flags savannah and york but never new york", () => {
