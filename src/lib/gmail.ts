@@ -5,7 +5,12 @@
 // to perwinroth@gmail.com — update ACCOUNT below to match whenever the token changes). Env:
 // GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET / GMAIL_REFRESH_TOKEN. Server-only.
 const ACCOUNT = "perwinroth@gmail.com"; // must match the mailbox GMAIL_REFRESH_TOKEN belongs to — only used to build the Drafts deep-link
-const FROM = "Got Cosy <per@gotcosy.com>"; // per@gotcosy.com must be a verified Send-As on ACCOUNT
+const FROM = "Got Cosy <per@gotcosy.com>"; // per@gotcosy.com must be a verified Send-As on ACCOUNT.
+// If it is NOT verified there, Gmail silently REWRITES From to the mailbox's primary address —
+// the draft then sends from the bare personal account (2026-07-09 incident, same defect class as
+// the sender-address incident). Two founder-side remedies: verify per@gotcosy.com as Send-As on
+// ACCOUNT (Gmail Settings → Accounts → "Send mail as", Zoho SMTP), or re-mint GMAIL_REFRESH_TOKEN
+// for gotcosy@gmail.com (where it is already the verified default) and update ACCOUNT to match.
 
 export function gmailConfigured(): boolean {
   return Boolean(process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN);
@@ -26,11 +31,19 @@ async function accessToken(): Promise<string | null> {
 // RFC 2047-encode a header value if it has non-ASCII (em dashes, curly quotes, emoji).
 const encHeader = (s: string) => (/[^\x00-\x7F]/.test(s) ? `=?UTF-8?B?${Buffer.from(s, "utf8").toString("base64")}?=` : s);
 
+// Header values must be single-line: an embedded CR/LF ends the RFC-822 header block early, so
+// every later header (MIME-Version, Content-Type…) leaks into the visible body and the draft
+// loses its real subject — exactly what a multiline parsed digest title did on 2026-07-09. Same
+// guard also closes the header-injection hole for any parser-derived value.
+const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").replace(/\s{2,}/g, " ").trim();
+
 function rawMessage({ to, subject, body }: { to: string; subject: string; body: string }): string {
+  const cleanTo = oneLine(to);
+  const cleanSubject = oneLine(subject) || "Re: your query";
   const headers = [
     `From: ${FROM}`,
-    to ? `To: ${to}` : "",
-    `Subject: ${encHeader(subject)}`,
+    cleanTo ? `To: ${cleanTo}` : "",
+    `Subject: ${encHeader(cleanSubject)}`,
     "MIME-Version: 1.0",
     'Content-Type: text/plain; charset="UTF-8"',
     "Content-Transfer-Encoding: 8bit",
