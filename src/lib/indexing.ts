@@ -10,7 +10,11 @@
 // discovery mechanism for Google.
 import crypto from "crypto";
 
-export type SubmitResult = { provider: "google" | "bing"; submitted: number; errors: string[] };
+export type SubmitResult = { provider: "google" | "bing" | "indexnow"; submitted: number; errors: string[] };
+
+// IndexNow (Bing/Yandex/Seznam/Naver). The key is public BY DESIGN — the protocol verifies
+// ownership by fetching it back from /<key>.txt, so hardcoding it is not a secret leak.
+export const INDEXNOW_KEY = "ccfa02a93fbd23e93591e19da6928868"; // served from public/<key>.txt
 
 function b64url(input: Buffer | string): string {
   return Buffer.from(input).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -99,20 +103,56 @@ export async function submitUrlsToBing(urls: string[]): Promise<SubmitResult> {
       headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify({ siteUrl, urlList: urls }),
     });
-    if (!r.ok) return { provider: "bing", submitted: 0, errors: [`http_${r.status}`] };
+    if (!r.ok) {
+      // Surface the reason string — weeks of bare http_400 tags hid whether the failure was a
+      // property mismatch, a dead key, or quota (see die-validation bing-channel finding 2026-07-09).
+      const body = (await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 160);
+      return { provider: "bing", submitted: 0, errors: [`http_${r.status}${body ? `:${body}` : ""}`] };
+    }
     return { provider: "bing", submitted: urls.length, errors };
   } catch {
     return { provider: "bing", submitted: 0, errors: ["fetch_error"] };
   }
 }
 
-// Submit to both providers; returns flat tags suitable for a growth_log errors[] column.
+// IndexNow: one POST covers Bing + Yandex + Seznam + Naver; up to 10,000 URLs per call.
+// Unlike the legacy Bing Webmaster API it needs no per-property API key — only the public
+// key file this repo serves at /<INDEXNOW_KEY>.txt. All URLs must be on `host`.
+export async function submitUrlsToIndexNow(urls: string[]): Promise<SubmitResult> {
+  if (!urls.length) return { provider: "indexnow", submitted: 0, errors: [] };
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
+  let host: string;
+  try {
+    host = new URL(site).host;
+  } catch {
+    return { provider: "indexnow", submitted: 0, errors: ["bad_site_url"] };
+  }
+  const batch = urls.slice(0, 10000);
+  try {
+    const r = await fetch("https://api.indexnow.org/indexnow", {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({ host, key: INDEXNOW_KEY, keyLocation: `${site}/${INDEXNOW_KEY}.txt`, urlList: batch }),
+    });
+    if (!r.ok) {
+      const body = (await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 160);
+      return { provider: "indexnow", submitted: 0, errors: [`http_${r.status}${body ? `:${body}` : ""}`] };
+    }
+    return { provider: "indexnow", submitted: batch.length, errors: [] };
+  } catch {
+    return { provider: "indexnow", submitted: 0, errors: ["fetch_error"] };
+  }
+}
+
+// Submit to all providers; returns flat tags suitable for a growth_log errors[] column.
 export async function submitUrls(urls: string[]): Promise<string[]> {
   const tags: string[] = [];
-  const [g, b] = await Promise.all([submitUrlsToGoogle(urls), submitUrlsToBing(urls)]);
+  const [g, b, x] = await Promise.all([submitUrlsToGoogle(urls), submitUrlsToBing(urls), submitUrlsToIndexNow(urls)]);
   tags.push(`google_submitted:${g.submitted}`);
   if (g.errors.length) tags.push(`google_errors:${g.errors.join("|")}`);
   tags.push(`bing_submitted:${b.submitted}`);
   if (b.errors.length) tags.push(`bing_errors:${b.errors.join("|")}`);
+  tags.push(`indexnow_submitted:${x.submitted}`);
+  if (x.errors.length) tags.push(`indexnow_errors:${x.errors.join("|")}`);
   return tags;
 }
