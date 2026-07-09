@@ -317,7 +317,9 @@ gotcosy.com`,
       subject: "What makes a boutique hotel feel warm",
       body: `I keep coming back to how your travel desk writes hotels: the weekend the team would spend there, not room specs. That's the test I trust too, and it turns out you can measure it.
 
-I run Got Cosy. We scored 17,727 hotels by reading what guests write. In big cities, the stays guests call boutique average 6.30 out of 10 for warmth; the big-city average is 6.01. Small scale is what earns the feeling.
+I run Got Cosy. We scored 17,727 hotels by reading what guests write.
+
+In big cities, the stays guests call boutique average 6.30 out of 10 for warmth; the big-city average is 6.01. Small scale is what earns the feeling.
 
 For your next hotel edit I can build a ranked cut of the cosiest big-city boutique stays, each with the review evidence behind it.
 
