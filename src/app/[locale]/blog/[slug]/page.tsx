@@ -155,7 +155,7 @@ export default async function BlogPostPage({ params }: Props) {
 
       <div className="flex items-start justify-between gap-4">
         <p className="text-sm font-medium tracking-wide uppercase" style={{ color: "var(--ember)", letterSpacing: "0.08em" }}>{post.eyebrow}</p>
-        <div className="flex-none"><ShareButton title={post.title} url={`/${L}/blog/${post.slug}`} /></div>
+        <div className="flex-none"><ShareButton title={post.title} url={`/${L}/blog/${post.slug}`} label="Share" /></div>
       </div>
       <h1 className="mt-2 font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">{post.h1}</h1>
       <p className="mt-5 text-xl leading-relaxed" style={{ color: "var(--muted)" }}>{post.lead}</p>
