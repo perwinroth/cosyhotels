@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type Variant = "pill" | "icon";
-export default function ShareButton({ title, text, url: urlProp, variant = "pill" }: { title?: string; text?: string; url?: string; variant?: Variant }) {
+export default function ShareButton({ title, text, url: urlProp, variant = "pill", label = "Share stay" }: { title?: string; text?: string; url?: string; variant?: Variant; label?: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [igCopied, setIgCopied] = useState(false);
@@ -86,10 +86,10 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
   return (
     <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
       {variant === "pill" ? (
-        <button ref={btnRef} onClick={onShare} aria-label="Share this stay" aria-haspopup="menu" aria-expanded={open}
+        <button ref={btnRef} onClick={onShare} aria-label={label} aria-haspopup="menu" aria-expanded={open}
           style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 14px 7px 12px", borderRadius: 999, border: "1px solid color-mix(in srgb, var(--ember) 45%, var(--line))", background: "color-mix(in srgb, var(--ember) 7%, var(--card))", color: "var(--ember-ink)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
           <span style={{ width: 15, height: 15 }} aria-hidden>{ICON.share}</span>
-          Share stay
+          {label}
         </button>
       ) : (
         <button ref={btnRef} onClick={onShare} aria-label="Share" title="Share" aria-haspopup="menu" aria-expanded={open} className="hov"
