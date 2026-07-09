@@ -21,7 +21,7 @@ import Linkify from "@/components/growth/Linkify";
 
 // Compose in Gmail AS gotcosy@gmail.com (account pinned in the path — never mailto:, which opens
 // the device's default mail identity, i.e. the wrong-sender trap all over again).
-const composeHref = (to: string) => `https://mail.google.com/mail/u/gotcosy@gmail.com/?${new URLSearchParams({ view: "cm", fs: "1", to })}`;
+const composeHref = (to: string) => `https://mail.google.com/mail/?${new URLSearchParams({ view: "cm", fs: "1", to, authuser: "gotcosy@gmail.com" })}`;
 
 
 export type PrBoardRow = {
@@ -137,7 +137,7 @@ function Card({ row, status, gmailOn, onSet }: { row: PrBoardRow; status: string
   // authuser pins compose to the gotcosy@gmail.com account (default send-as = per@gotcosy.com via
   // Zoho relay); without it Gmail opens u/0 — whichever account the founder logged into first.
   const composeUrl = row.pitch?.to
-    ? `https://mail.google.com/mail/u/gotcosy@gmail.com/?${new URLSearchParams({ view: "cm", fs: "1", to: row.pitch.to, su: row.pitch.subject, body: row.pitch.body })}`
+    ? `https://mail.google.com/mail/?${new URLSearchParams({ view: "cm", fs: "1", to: row.pitch.to, su: row.pitch.subject, body: row.pitch.body, authuser: "gotcosy@gmail.com" })}`
     : null;
   return (
     <div className="rounded-2xl border p-4 mb-3" style={{ borderColor: DONE.has(status) ? "var(--sage)" : "var(--line)", background: "var(--card)", opacity: dimmed ? 0.55 : 1 }}>

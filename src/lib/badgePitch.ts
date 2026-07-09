@@ -39,7 +39,8 @@ export function gmailComposeUrl(to: string, subject: string, body: string): stri
   const p = new URLSearchParams({ view: "cm", fs: "1", to, su: subject, body });
   // Account goes in the PATH (u/<email>), never authuser + u/0: that pair contradicts itself and
   // Gmail errors once, then silently falls back to the browser's default account (2026-07-09).
-  return `https://mail.google.com/mail/u/${GMAIL_ACCOUNT}/?${p.toString()}`;
+  p.set("authuser", GMAIL_ACCOUNT);
+  return `https://mail.google.com/mail/?${p.toString()}`;
 }
 
 // Instagram DM deep-link (DMs can't be pre-filled; Per pastes the copied pitch).

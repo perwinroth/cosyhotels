@@ -52,7 +52,7 @@ test("draft deep-links point at gotcosy@gmail.com — the ONLY sending account (
   try {
     const res = await createGmailDraft({ to: "a@b.com", subject: "S", body: "B" });
     assert.ok(res);
-    assert.equal(res.link, "https://mail.google.com/mail/u/gotcosy@gmail.com/#drafts");
+    assert.equal(res.link, "https://mail.google.com/mail/?authuser=gotcosy%40gmail.com#drafts");
   } finally {
     globalThis.fetch = realFetch;
     delete process.env.GMAIL_CLIENT_ID; delete process.env.GMAIL_CLIENT_SECRET; delete process.env.GMAIL_REFRESH_TOKEN;
@@ -183,17 +183,17 @@ test("homonym-merging cities and control markets stay OFF the known list", () =>
 
 // ── compose links: account pinned in the PATH; authuser+u/0 is the broken pair (2026-07-09) ──
 
-test("every Gmail compose builder pins gotcosy@gmail.com in the URL path — no authuser, no u/0", async () => {
+test("every Gmail compose builder uses authuser (u/<email> path 404s for this account; u/0 = wrong account)", async () => {
   const { gmailComposeUrl } = await import("../src/lib/badgePitch");
   const url = gmailComposeUrl("x@y.com", "Subject", "Body");
-  assert.ok(url.startsWith("https://mail.google.com/mail/u/gotcosy@gmail.com/?"), url);
-  assert.ok(!url.includes("authuser"), "authuser param must not reappear");
-  // Client components can't be imported here; guard their SOURCE against the broken pattern.
+  assert.ok(url.startsWith("https://mail.google.com/mail/?"), url);
+  assert.ok(url.includes("authuser=gotcosy%40gmail.com"), "authuser must pin the sending account");
+  // Client components can't be imported here; guard their SOURCE against both broken patterns.
   const { readFileSync: rf } = await import("node:fs");
-  for (const f of ["src/components/growth/PrBoard.tssx".replace("tssx", "tsx"), "src/components/growth/BadgeBoard.tsx", "src/lib/outreachTemplates.ts"]) {
+  for (const f of ["src/components/growth/PrBoard.tsx", "src/components/growth/BadgeBoard.tsx", "src/lib/outreachTemplates.ts"]) {
     const src = rf(join(__dirname, "..", f), "utf8");
-    assert.ok(!/mail\/u\/0\/\?/.test(src), `${f}: u/0 compose path must not reappear`);
-    assert.ok(!/authuser/.test(src.replace(/\/\/.*$/gm, "")), `${f}: authuser must not reappear outside comments`);
+    assert.ok(!/mail\/u\/0\/\?/.test(src), `${f}: u/0 compose path must not reappear (wrong-account fallback)`);
+    assert.ok(!/mail\/u\/gotcosy/.test(src), `${f}: u/<email> path must not reappear (404s for this account — founder-verified 2026-07-09)`);
   }
 });
 
