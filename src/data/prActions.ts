@@ -489,6 +489,20 @@ gotcosy.com`,
     priority: 3,
     priorityWhy: "A Google Form route exists; Lane-3 towns-beat-capitals is a clean one-finding pitch.",
     instructions: "Use the Google Form linked from fodors.com/about-us. Paste a Lane-3 pitch: towns beat capitals only (one finding) and offer the towns cut.",
+    pitch: {
+      to: null,
+      route: "Google Form linked from fodors.com/about-us (paste, no email)",
+      subject: "Small towns beat the famous capitals",
+      body: `Small towns beat the famous capitals for cosiness, and guest reviews prove it.
+
+I run Got Cosy, a small hotel-discovery site. We scored 17,727 hotels by reading what guests wrote against a fixed rubric. Alberobello averages 6.75 out of 10 for warmth and San Gimignano 6.72; Rome comes in at 6.05 and Paris at 6.00.
+
+For Fodor's I can build a towns-beat-capitals cut: the ranked towns, the hotels that earn it, and what guests actually wrote about them. Free to cite, methodology public at gotcosy.com/en/cosy-index.
+
+Interested? I'll send the full table.
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "sleeper-magazine-15": {
     outlet: "Sleeper",
