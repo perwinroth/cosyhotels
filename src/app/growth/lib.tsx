@@ -43,10 +43,12 @@ export async function getTodayPlan(db: DB): Promise<{
     // refills after every tick, so without this count the founder's sent work looks lost.
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
-    const [{ data: queued }, { count: total }, { data: redditRows }, { count: contactedToday }] = await Promise.all([
+    // Reddit POSTING channel retired 2026-07-09 (u/gotcosycom spam-filtered; founder deleted the
+    // account). The reddit-scan cron stays as demand INTELLIGENCE (/growth/reddit), but Today must
+    // never queue answers nobody can post. redditRows fetch removed; reddit stays [] permanently.
+    const [{ data: queued }, { count: total }, { count: contactedToday }] = await Promise.all([
       db.from("hotel_outreach").select("hotel_id").eq("status", "queued"),
       db.from("cosy_scores").select("*", { count: "exact", head: true }),
-      db.from("reddit_leads").select("id,subreddit,title,url,city").eq("status", "new").order("found_at", { ascending: false }).limit(DAILY.reddit),
       db.from("hotel_outreach").select("*", { count: "exact", head: true }).eq("status", "contacted").gte("contacted_at", todayStart.toISOString()),
     ]);
     const sentToday = { count: contactedToday ?? 0 };
@@ -67,13 +69,12 @@ export async function getTodayPlan(db: DB): Promise<{
         worthiness: p.worthiness,
         source: "planned" as const,
       }));
-    const leadReddit: TodayReddit[] = ((redditRows || []) as Array<{ id: string; subreddit: string | null; title: string | null; url: string; city: string | null }>)
+    const leadReddit: TodayReddit[] = ([] as Array<{ id: string; subreddit: string | null; title: string | null; url: string; city: string | null }>)
       .map((r) => ({ ...r, source: "lead" as const }));
     // Control-market exclusion (src/lib/controlMarkets.ts): Savannah/York leads must never be
     // actioned or the GSC treated-vs-control measurement is contaminated. Rows stay in the DB;
     // Today just never shows them.
-    const reddit: TodayReddit[] = [...planned, ...leadReddit]
-      .filter((r) => !isControlMarket(r.city) && !isControlMarket(r.subreddit));
+    const reddit: TodayReddit[] = []; // retired channel — see note above
 
     const ids = ((queued || []) as Array<{ hotel_id: string }>).map((r) => String(r.hotel_id));
     if (!ids.length) return { ...empty, reddit, sentToday };

@@ -60,7 +60,6 @@ export default async function GrowthTodayPage() {
   const boards: Board[] = [
     { href: "/growth/pr", title: "PR outreach", count: counts.pr, blurb: "Queued targets to pitch: draft, send, mark done." },
     { href: "/growth/badges", title: "Badge outreach", count: counts.badges, blurb: "Top-2.3% hotels to pitch their “Rated Cosy” badge (approx.)." },
-    { href: "/growth/reddit", title: "Reddit", count: counts.reddit, blurb: "New threads asking for cosy hotels; reply like a human." },
     { href: "/growth/blog", title: "Blog", count: counts.blog, blurb: "Drafts + scheduled posts to review before they publish." },
     { href: "/growth/listings", title: "Listings & directories", count: listingsCount, blurb: "Entity profiles + directory submissions; copy kit included, chip away." },
   ];
