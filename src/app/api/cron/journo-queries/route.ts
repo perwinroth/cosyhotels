@@ -19,7 +19,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { getDigestAccessToken, searchMessageIds, getMessagePlainText, createGmailDraft, GmailScopeError } from "@/lib/gmail";
+import { getAccessToken, getDigestAccessToken, searchMessageIds, getMessagePlainText, createGmailDraft, GmailScopeError } from "@/lib/gmail";
 import { parseDigest, sourceFromEmail, type ParsedQuery } from "@/lib/journoDigest";
 import { draftReply as sharedDraftReply, subjectFor, getAnthropicClient } from "@/lib/journoReply";
 
@@ -47,6 +47,11 @@ const SEARCH_Q =
   '(from:sourceofsources.com OR from:helpareporter.com OR from:helpareporter.net OR from:sourcebottle.com OR from:thesourcebottle.com OR from:featured.com OR from:connectively.us ' +
   'OR subject:"Source of Sources" OR subject:"SOS Daily" OR subject:"Featured question" OR subject:"Featured questions") ' +
   "newer_than:2d";
+
+// MentionMatch subscribed with per@gotcosy.com (2026-07-10) -> lands in the SEND mailbox
+// (gotcosy@gmail.com, via the Zoho forward), NOT the digest mailbox. Searched separately
+// with the MAIN token. Sender verified from the live confirmation mail: hi@mentionmatch.com.
+const MENTIONMATCH_Q = "from:mentionmatch.com newer_than:2d";
 
 // draftReply + SOURCE_LIBRARY + subjectFor now live in src/lib/journoReply.ts, shared with the
 // /growth/journo board's manual "Draft with AI" action so both paths produce an identical reply.
@@ -140,9 +145,20 @@ export async function GET(req: Request) {
     });
   }
 
-  let messageIds: string[];
+  // Two mailboxes, two source sets: HARO/SOS/Featured digests live in the DIGEST mailbox
+  // (perwinroth); MentionMatch arrives in the SEND mailbox (gotcosy, via the Zoho forward).
+  // Each message id is read with the token of the mailbox it came from.
+  const jobs: Array<{ id: string; token: string }> = [];
   try {
-    messageIds = await searchMessageIds(SEARCH_Q, accessToken, MAX_MESSAGES);
+    const digestIds = await searchMessageIds(SEARCH_Q, accessToken, MAX_MESSAGES);
+    for (const id of digestIds) jobs.push({ id, token: accessToken });
+    try {
+      const mainToken = await getAccessToken();
+      const mmIds = await searchMessageIds(MENTIONMATCH_Q, mainToken, MAX_MESSAGES);
+      for (const id of mmIds) jobs.push({ id, token: mainToken });
+    } catch {
+      /* main-mailbox search is best-effort; digest sources still run */
+    }
   } catch (e) {
     if (e instanceof GmailScopeError) {
       return NextResponse.json({ from: "journo-queries", ok: false, error: "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN" });
@@ -152,10 +168,10 @@ export async function GET(req: Request) {
 
   // Fetch + parse every digest message into individual queries.
   const parsed: Query[] = [];
-  for (const id of messageIds) {
+  for (const { id, token } of jobs.slice(0, MAX_MESSAGES)) {
     let msg;
     try {
-      msg = await getMessagePlainText(id, accessToken);
+      msg = await getMessagePlainText(id, token);
     } catch (e) {
       if (e instanceof GmailScopeError) {
         return NextResponse.json({ from: "journo-queries", ok: false, error: "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN" });
@@ -244,7 +260,7 @@ export async function GET(req: Request) {
   if (dry) {
     return NextResponse.json({
       from: "journo-queries", dry: true, ok: true,
-      messagesFound: messageIds.length, blocksParsed: parsed.length, newQueries: fresh.length, capped,
+      messagesFound: jobs.length, blocksParsed: parsed.length, newQueries: fresh.length, capped,
       preview: dryPreview,
     });
   }
@@ -270,7 +286,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     from: "journo-queries", ok: true, dry: false,
-    messagesFound: messageIds.length, blocksParsed: parsed.length, newQueries: fresh.length, capped,
+    messagesFound: jobs.length, blocksParsed: parsed.length, newQueries: fresh.length, capped,
     triaged: batch.length, drafted, notified, notifiedManual,
   });
 }
