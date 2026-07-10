@@ -1,0 +1,25 @@
+<svg width="560" height="160" viewBox="0 0 560 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Get Cosy – cosy hotel rooms, seal of approval">
+  <!-- Seal emblem (warm hygge palette) -->
+  <g transform="translate(20,20)">
+    <circle cx="60" cy="60" r="58" fill="#fffdf9" stroke="#c2603a" stroke-width="3.5"/>
+    <circle cx="60" cy="60" r="51" fill="none" stroke="#c2603a" stroke-width="1" opacity="0.35" stroke-dasharray="2 4"/>
+    <ellipse cx="60" cy="80" rx="32" ry="17" fill="#c2603a" opacity="0.10"/>
+    <ellipse cx="60" cy="62" rx="30" ry="27" fill="#8c6f5e" opacity="0.12"/>
+    <circle cx="48" cy="56" r="5.5" fill="#2b2420"/>
+    <circle cx="72" cy="56" r="5.5" fill="#2b2420"/>
+    <circle cx="49.6" cy="54.2" r="1.6" fill="#fffdf9"/>
+    <circle cx="73.6" cy="54.2" r="1.6" fill="#fffdf9"/>
+    <path d="M56 66 q4 4 8 0 q-4 3 -8 0z" fill="#c2603a"/>
+    <path d="M50 70 Q60 80 70 70" stroke="#2b2420" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M30 60 h13" stroke="#8c8178" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M30 65 h13" stroke="#8c8178" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M77 60 h13" stroke="#8c8178" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M77 65 h13" stroke="#8c8178" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M16 108 C32 98 44 118 60 108 C76 98 88 118 104 108" stroke="#5c6b56" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- Wordmark -->
+  <g transform="translate(166,40)">
+    <text x="0" y="44" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-weight="600" font-size="52" fill="#2b2420">Get Cosy</text>
+    <text x="2" y="80" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="500" font-size="17" letter-spacing="0.5" fill="#8c8178">Cosy hotel rooms · sealed with approval</text>
+  </g>
+</svg>
