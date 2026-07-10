@@ -453,6 +453,20 @@ gotcosy.com`,
     priority: 4,
     priorityWhy: "Their pitch form is reviewed monthly; per the Challenger, the visual-essay premise is a genuine fit.",
     instructions: "Submit via the pudding.cool/pitch form. Pitch what actually makes a hotel cosy as the visual-essay premise: signal lifts, the host gap and the score histogram as raw material, with r=0.10 as one beat, not the headline.",
+    pitch: {
+      to: null,
+      route: "pitch form at pudding.cool/pitch (reviewed monthly; paste, no email)",
+      subject: "The cosiest hotels come with a person",
+      body: `What makes a hotel cosy turns out to be a person, and the data draws beautifully. In the cosiest towns in our scoring, three out of four hotels have guests writing about the owner or a host, often by name; in the big cities it's one in four.
+
+I run Got Cosy, a small hotel-discovery site. We scored 17,727 hotels by reading what guests wrote against a fixed rubric.
+
+For a visual essay I can hand over everything raw: the host gap by town, plus the full score histogram and the signal data behind it.
+
+Interested?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "bl-shuttersunflowers": {
     outlet: "Shutters & Sunflowers",
@@ -482,6 +496,21 @@ gotcosy.com`,
     priority: 3,
     priorityWhy: "No unsolicited pitches; the tip form or a Muck Rack contact is the only way in. Wave-2 draft.",
     instructions: "Use the confidential tip form at skift.com/share-a-confidential-tip-with-skift with the stars-vs-cosiness finding in trade framing (their note calls it the sweet spot), or find the hospitality reporter on Muck Rack.",
+    pitch: {
+      to: null,
+      route: "confidential tip form at skift.com/share-a-confidential-tip-with-skift (or a Muck Rack contact)",
+      subject: "Star ratings barely track guest warmth",
+      body: `Hotel star ratings barely track how warm a stay feels to guests. Across 7,048 hotels, the correlation between our cosiness score and star rating is r=0.10, close to zero.
+
+I run Got Cosy, a small hotel-discovery site. We scored 17,727 hotels by reading what guests wrote against a fixed rubric.
+
+For the industry that's a measurement gap: the main quality label misses the quality guests describe most vividly. Methodology and free CSVs are public, and I'll share the full file with a reporter.
+
+Want it?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+      hold: "wave-2: send only after the r=0.10 methodology page is live",
+    },
   },
   "fodor-s-travel-4": {
     outlet: "Fodor's",
@@ -510,6 +539,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 3,
     priorityWhy: "Editorial form route; the Lane-2 host story with design framing fits the title.",
     instructions: "Editorial form at sleepermagazine.com/contact; pitch the Lane-2 host story with design framing.",
+    pitch: {
+      to: null,
+      route: "editorial form at sleepermagazine.com/contact",
+      subject: "The owner is the design brief",
+      body: `In the cosiest hotel towns in our data, three out of four hotels have guests writing about a person: the owner, a host, often by name. In the big cities it's one in four.
+
+I run Got Cosy, a small hotel-discovery site. We scored 17,727 hotels by reading what guests wrote against a fixed rubric.
+
+For Sleeper that's a design brief: what does a building have to do so the owner can be the experience? I can shape that host story with the guest evidence behind it.
+
+Interested?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "hotel-designs-25": {
     outlet: "Hotel Designs",
@@ -517,6 +560,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 3,
     priorityWhy: "Its own note suggests the 17,727-hotels-scored framing; a Lane-4 pitch fits.",
     instructions: "Use hoteldesigns.net/contact-us; Lane-4 pitch with the 17,727 hotels scored, what the data reveals framing from its note.",
+    pitch: {
+      to: null,
+      route: "contact form at hoteldesigns.net/contact-us",
+      subject: "Guests praise quiet above decor",
+      body: `Among 9,437 hotel reviews that mention atmosphere, the most common theme is quiet, at 35.6%. Not decor, not fireplaces: quiet.
+
+I run Got Cosy. We scored 17,727 hotels for cosiness by reading what guests wrote against a fixed rubric.
+
+For Hotel Designs I can turn the dataset into a practical piece: what the scoring reveals about designing for the atmosphere guests actually praise, with the review evidence behind it. Free to cite, methodology public.
+
+Interested?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "hotel-news-resource-13": {
     outlet: "Hotel News Resource",
@@ -538,6 +595,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 3,
     priorityWhy: "Creator Programme route; the cosiness-vs-stars and independents-vs-chains data works as infographic material.",
     instructions: "Creator Programme: visualcapitalist.com/creator-hub/submit; offer the cosiness-vs-stars and independents-vs-chains data as infographic material.",
+    pitch: {
+      to: null,
+      route: "Creator Programme form at visualcapitalist.com/creator-hub/submit",
+      subject: "Stars and cosiness barely correlate",
+      body: `Here's a relationship your readers would expect to be strong and isn't: hotel star ratings barely track how cosy guests find a stay. Across 7,048 hotels the correlation is r=0.10.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote against a fixed rubric, and the data is free to use.
+
+Through the Creator Programme I'd like to offer the cosiness-versus-stars dataset as infographic material, raw file included, with an independents-versus-chains cut alongside if useful.
+
+Interested?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "condor-ferries-travel-statistics-b21": {
     outlet: "Condor Ferries stats",
@@ -545,6 +616,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 3,
     priorityWhy: "A classic link magnet: their 100-plus-statistics round-up hyperlinks sources.",
     instructions: "Via condorferries.co.uk/contact-us: pitch adding our cosiness stats (with links) to their statistics round-up.",
+    pitch: {
+      to: null,
+      route: "contact form at condorferries.co.uk/contact-us",
+      subject: "Genuinely cosy hotels are rare",
+      body: `A statistic for your travel statistics round-up: only 1 in 44 hotels scores genuinely cosy, 7.0 or higher on a 0-10 scale.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote against a fixed rubric, and we publish the data as free CSVs.
+
+If a cosiness entry fits the page, I'll send a short set of citable stats with source links, formatted to drop straight in.
+
+Want them?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "siteminder-hotel-industry-statistics-b20": {
     outlet: "SiteMinder stats guide",
@@ -552,6 +637,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 3,
     priorityWhy: "No public email; inclusion in the stats guide with attribution is the ask.",
     instructions: "Pitch the content or PR team via the site contact; ask for inclusion in the stats guide with attribution, citing the free CSVs.",
+    pitch: {
+      to: null,
+      route: "site contact form, addressed to the content or PR team",
+      subject: "Quiet tops the atmosphere themes",
+      body: `One for the statistics guide: among hotel reviews that mention atmosphere, quiet is the single most common theme, 35.6% of 9,437 reviews.
+
+I run Got Cosy. We scored 17,727 hotels for cosiness by reading what guests wrote against a fixed rubric. The data ships as free CSVs, methodology public.
+
+I'd be glad to see the stat included with attribution to Got Cosy, and I'll send the exact lines and source links if that helps.
+
+Shall I?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "bl-thehotelguru": {
     outlet: "The Hotel Guru",
@@ -559,6 +658,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 3,
     priorityWhy: "A citation ask, not a story pitch: be cited or listed as a cosiness data source.",
     instructions: "Site contact; ask to be cited or listed as a cosiness data source.",
+    pitch: {
+      to: null,
+      route: "site contact form",
+      subject: "A cosiness data source, free to cite",
+      body: `An ask rather than a story pitch: would you cite Got Cosy as a cosiness data source?
+
+We scored 17,727 hotels by reading what guests wrote against a fixed rubric. The score barely tracks star ratings (r=0.10 across 7,048 hotels), so it catches a quality star ratings and price bands can't see.
+
+Methodology and free CSVs are at gotcosy.com/en/data/cosiest-hotel-towns; anything there is free to use with attribution.
+
+Worth a look?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "journohq-best-ai-travel-tools-2026-b28": {
     outlet: "JournoHQ roundup",
@@ -566,6 +679,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 3,
     priorityWhy: "Inclusion ask for Best AI Travel Tools 2026 as the cosiness-scoring layer alongside Layla, Mindtrip and Wanderlog.",
     instructions: "Contact via the About page or media kit; ask for inclusion in Best AI Travel Tools 2026 as the cosiness-scoring layer.",
+    pitch: {
+      to: null,
+      route: "contact via the About page or media kit",
+      subject: "The cosiness-scoring layer for your list",
+      body: `I'd like to put Got Cosy forward for Best AI Travel Tools 2026, as the cosiness-scoring layer alongside the planners.
+
+Our AI reads guest reviews and scores hotels for cosiness; 17,727 scored so far against a fixed rubric. The honesty tell: nothing scores an 8 out of 10. The ceiling is 7.8 and the limitations are published.
+
+It's free to use with no signup, and the methodology is public.
+
+Would you consider it?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "the-aficionados-27": {
     outlet: "The Aficionados",
@@ -573,6 +700,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 3,
     priorityWhy: "Anti-chain design site; the Cosy Score works as a data layer on their curation.",
     instructions: "Via theaficionados.com/contact: offer the Cosy Score as a data layer on their curation.",
+    pitch: {
+      to: null,
+      route: "contact form at theaficionados.com/contact",
+      subject: "Data that agrees with your curation",
+      body: `Your site argues against the chains, and our data agrees with numbers attached. Owner-run hotels average 4.6 out of 10 for cosiness in our scoring; chains average 3.1, across 367 chain properties.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote against a fixed rubric.
+
+I'd like to offer the Cosy Score as a data layer on your curation: your eye, backed by scored review evidence for every property. Methodology is public.
+
+Worth exploring?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "travlinmad-36": {
     outlet: "Travlinmad",
@@ -586,6 +727,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 2,
     priorityWhy: "Small niche blog; Lane-3 one-finding pitch.",
     instructions: "Contact form; Lane-3 one-finding pitch.",
+    pitch: {
+      to: null,
+      route: "site contact form",
+      subject: "The cosiest towns aren't the famous ones",
+      body: `The cosiest hotel towns in our data aren't the famous ones. Alberobello averages 6.75 out of 10 for warmth and San Gimignano 6.72, while Rome sits at 6.05 and Paris at 6.00.
+
+I run Got Cosy, a small hotel-discovery site. We scored 17,727 hotels by reading what guests wrote against a fixed rubric.
+
+If it suits the blog, I can build a small-towns piece for your readers with the guest evidence behind each pick.
+
+Worth a look?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "kelly-s-cosy-life-31": {
     outlet: "Kelly's Cosy Life",
@@ -593,6 +748,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 2,
     priorityWhy: "Small lifestyle blogger; Lane-3 pitch.",
     instructions: "Contact page; Lane-3 pitch.",
+    pitch: {
+      to: null,
+      route: "site contact page",
+      subject: "Small towns beat the great capitals",
+      body: `Guest reviews say small towns beat the great capitals for cosiness, and not by a little. In our scoring Alberobello averages 6.75 out of 10 and San Gimignano 6.72; Rome manages 6.05, Paris 6.00.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote against a fixed rubric.
+
+If you'd like material for a cosy-travel post, I'll send the ranked towns and what guests actually wrote about the winners.
+
+Want the list?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "her-happy-habitat-34": {
     outlet: "Her Happy Habitat",
@@ -600,6 +769,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 2,
     priorityWhy: "Small blog; Lane-4 bring-it-home framing.",
     instructions: "Contact form; Lane-4 bring-it-home framing.",
+    pitch: {
+      to: null,
+      route: "site contact form",
+      subject: "The cosiest hotels earn it with quiet",
+      body: `Among 9,437 hotel reviews that mention atmosphere, the most common theme isn't decor. It's quiet, at 35.6%.
+
+I run Got Cosy. We scored 17,727 hotels for cosiness by reading what guests wrote against a fixed rubric.
+
+The bring-it-home angle: the places guests call cosiest earn it with things a home can copy, and quiet tops that list. Happy to share what the reviews say if it fits a post.
+
+Interested?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "roam-and-reside-29": {
     outlet: "Roam and Reside",
@@ -607,6 +790,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 2,
     priorityWhy: "Small blog, but the owner is an interior designer; Lane-4 visual-signals angle.",
     instructions: "Contact form; Lane-4 visual-signals angle.",
+    pitch: {
+      to: null,
+      route: "site contact form",
+      subject: "Warmth isn't the plaque by the door",
+      body: `How warm a hotel feels barely tracks its star rating: across 7,048 hotels the correlation with our cosiness score is r=0.10. Whatever earns the feeling, it isn't the plaque by the door.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote against a fixed rubric.
+
+Since you design interiors, I think the visual side of the data would interest you: the signals guests describe when a room feels warm. Happy to share the file for a post.
+
+Worth a look?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "lighthouse-travel-trends-blog-b22": {
     outlet: "Lighthouse trends blog",
@@ -614,6 +811,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 2,
     priorityWhy: "No public email; medium-hard route for a modest gain.",
     instructions: "Pitch the content team via the site contact.",
+    pitch: {
+      to: null,
+      route: "site contact form, addressed to the content team",
+      subject: "Genuine cosiness is genuinely scarce",
+      body: `Only 1 in 44 hotels scores genuinely cosy: 7.0 or better on our 0-10 scale.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote against a fixed rubric, with methodology and free CSVs published.
+
+For the trends blog that's a supply story: the quality guests praise most warmly is genuinely scarce, and the data shows where it clusters. I'll send the summary and the file if useful.
+
+Want it?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "locals-insider-best-ai-travel-tools-b29": {
     outlet: "LOCALS Insider",
@@ -621,6 +832,21 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 2,
     priorityWhy: "Contact route unconfirmed (the board's flag).",
     instructions: "Confirm the contact route first, then send a short inclusion ask.",
+    pitch: {
+      to: null,
+      route: "contact route unconfirmed (the board's flag); confirm before sending",
+      subject: "An honest AI for cosy stays",
+      body: `A candidate for your AI travel tools list: Got Cosy, an AI that scores hotels for cosiness by reading guest reviews.
+
+It has scored 17,727 hotels against a fixed rubric, and the grading is honest enough that nothing reaches 8 out of 10; the ceiling is 7.8, limitations published.
+
+It does the one job the trip planners don't: telling you how warm a stay actually feels. Free, with no signup.
+
+Would you include it?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+      hold: "confirm the contact route before sending",
+    },
   },
   "nomads-world-b26": {
     outlet: "Nomads World",
@@ -635,6 +861,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 1,
     priorityWhy: "The board's own call: a long shot. Only the generic Lane-5 credential fits.",
     instructions: "Send one short note via the site contact and expect nothing.",
+    pitch: {
+      to: null,
+      route: "site contact form",
+      subject: "Cosy hotel data, in case it's useful",
+      body: `A short note in case it's ever useful. I run Got Cosy, where we scored 17,727 hotels for cosiness by reading what guests wrote against a fixed rubric.
+
+The finding I'd offer: how warm a stay feels barely tracks star ratings (r=0.10 across 7,048 hotels), so the two measure quite different things.
+
+If a cosy-stays angle ever fits one of your projects, the data and methodology are free to use.
+
+Useful?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "bl-secornwall": {
     outlet: "Enjoying SE Cornwall",
@@ -642,6 +882,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 1,
     priorityWhy: "Honest: we have no Cornwall cut and the lane story has no local hook. Weak fit, bottom of the pile.",
     instructions: "Site contact, only if everything else is exhausted.",
+    pitch: {
+      to: null,
+      route: "site contact form",
+      subject: "Quiet is what guests praise most",
+      body: `Among hotel reviews that mention atmosphere, quiet is the single most common theme: 35.6% of 9,437 reviews in our data.
+
+I run Got Cosy. We scored 17,727 hotels for cosiness by reading what guests wrote against a fixed rubric.
+
+Honestly: I don't have a Cornwall cut yet. But quiet is your patch's whole argument, so if a quiet-stays angle ever fits a post, I'll gladly share what the data says.
+
+Worth a look?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "how-to-hygge-the-british-way-32": {
     outlet: "How to Hygge the British Way",
@@ -649,6 +903,20 @@ Per Winroth, founder, Got Cosy (gotcosy.com)`,
     priority: 1,
     priorityWhy: "No contact page; blog comments or the Facebook group only. The route is too weak to prioritise.",
     instructions: "Blog comments or the Facebook group only.",
+    pitch: {
+      to: null,
+      route: "blog comments or the Facebook group only (no contact page)",
+      subject: "Hygge in a hotel is a person",
+      body: `Hygge in a hotel turns out to be a person, not a look. In the cosiest towns in our data, three out of four hotels have guests writing about the owner or a host, often by name; in the big cities it's one in four.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote against a fixed rubric.
+
+If that fits a hygge post, I'll share the data and what guests actually wrote.
+
+Interested?
+
+Per Winroth, founder, Got Cosy (gotcosy.com)`,
+    },
   },
   "bl-byway": {
     outlet: "Byway",
