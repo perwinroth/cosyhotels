@@ -7,7 +7,7 @@ import { citiesLarge } from "@/data/cities_large";
 import { cityGuides } from "@/data/cityGuides";
 import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
 import { COUNTRIES } from "@/lib/country";
-import { loadCountryCounts, HUB_404_BELOW } from "@/lib/countryHub";
+import { loadCountryCounts, loadCountryHotels, HUB_404_BELOW } from "@/lib/countryHub";
 import { REGIONS } from "@/data/regions";
 
 // ONE implementation of the site search, shared by the /api/search autocomplete route and the
@@ -146,13 +146,25 @@ export function searchRegions(q: string, limit = 3): RegionHit[] {
     .map((r) => ({ name: r.name, slug: r.slug, the: r.the }));
 }
 
-// Combined lookup used by both the API route and the results page.
-export async function searchSite(
-  q: string,
-  opts?: { hotelLimit?: number; cityLimit?: number; countryLimit?: number; regionLimit?: number },
-): Promise<SearchResults> {
-  const query = q.trim();
-  if (query.length < 2) return { hotels: [], cities: [], countries: [], regions: [] };
+// Queries arrive as natural phrases ("cosy hotels in sweden"). Strip our own vocabulary and
+// connective filler so the place or name underneath can match; used as a retry when the raw
+// phrase finds nothing, never as the first attempt (hotel NAMES legitimately contain "hotel").
+const FILLER = new Set([
+  "cosy", "cozy", "cosiest", "coziest", "hotel", "hotels", "stay", "stays",
+  "in", "the", "a", "an", "for", "of", "best", "most", "near", "with", "and", "to",
+]);
+export function coreQuery(q: string): string {
+  return q
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w && !FILLER.has(w))
+    .join(" ")
+    .trim();
+}
+
+type SearchOpts = { hotelLimit?: number; cityLimit?: number; countryLimit?: number; regionLimit?: number };
+
+async function runSearch(query: string, opts?: SearchOpts): Promise<SearchResults> {
   const [hotels, cities, countries] = await Promise.all([
     searchHotels(query, opts?.hotelLimit ?? 6),
     searchCities(query, opts?.cityLimit ?? 5),
@@ -160,4 +172,43 @@ export async function searchSite(
   ]);
   const regions = searchRegions(query, opts?.regionLimit ?? 3);
   return { hotels, cities, countries, regions };
+}
+
+const hasAny = (r: SearchResults) =>
+  r.hotels.length > 0 || r.cities.length > 0 || r.countries.length > 0 || r.regions.length > 0;
+
+// Combined lookup used by both the API route and the results page.
+export async function searchSite(
+  q: string,
+  opts?: SearchOpts,
+): Promise<SearchResults> {
+  const query = q.trim();
+  if (query.length < 2) return { hotels: [], cities: [], countries: [], regions: [] };
+
+  let results = await runSearch(query, opts);
+
+  // Natural-phrase retry: "cosy hotels in sweden" found nothing raw, so search its core ("sweden").
+  if (!hasAny(results)) {
+    const core = coreQuery(query);
+    if (core.length >= 2 && core !== query.toLowerCase()) results = await runSearch(core, opts);
+  }
+
+  // Country intent answers with hotels, not only a link: a matched country with no hotel rows
+  // pulls its top-scored live hotels inline (same loader as the country hub page, so the list
+  // matches what the hub shows and never features below-gate hotels).
+  if (results.hotels.length === 0 && results.countries.length > 0) {
+    const canon = COUNTRIES.find((c) => c.slug === results.countries[0].slug);
+    if (canon) {
+      const hub = await loadCountryHotels(canon, opts?.hotelLimit ?? 6);
+      results = {
+        ...results,
+        hotels: hub.map((h) => ({
+          slug: h.slug, name: h.name, city: h.city, country: h.country,
+          score: h.score, description: h.snippet || undefined,
+        })).filter((h) => isLatin(h.name)),
+      };
+    }
+  }
+
+  return results;
 }
