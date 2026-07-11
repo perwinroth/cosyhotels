@@ -172,6 +172,30 @@ export const CONCEPTS: TravellerFitConcept[] = [
     aiPromptPatterns: ["find a rustic countryside hotel near {city}", "recommend a farmhouse-style stay near {city}"],
     re: /rustic|farmhouse|converted (barn|mill)|exposed (beam|stone)|reclaimed wood|country(side)? retreat|agriturismo/i,
   },
+  {
+    // Rising-intent regex facet (2026-07-12, REGEX_FACET_SLUGS): 91% of travellers want
+    // reading-and-relaxation trips (Expedia Unpack '26). Regex must stay IDENTICAL to the
+    // facets.ts entry (tests/rising-facets.test.ts pins the pair); tuning history lives there.
+    id: "reading-retreat", slug: "reading-retreat", label: "Hotels for a reading retreat", noun: "for a reading retreat",
+    category: "intent", evidence: "soft", minConfidence: 0.75, collectionEnabled: true,
+    description: "Stays made for reading: a library or shelves of real books, an armchair in a calm corner, nobody hurrying you.",
+    seoQueryPatterns: ["hotels with a library in {city}", "reading retreat hotels in {city}"],
+    aiPromptPatterns: ["find a hotel in {city} with a library or reading room", "recommend a quiet hotel in {city} where I can read all weekend"],
+    re: /librar(?:y|ies)|\bbooks\b|book collection|with a book\b|reading (?:room|nook|corner|chair)|window seat|armchair|fireside/i,
+  },
+  {
+    // Rising-intent regex facet (2026-07-12, REGEX_FACET_SLUGS): 84% farm-stay interest
+    // (Expedia); slug is the international search word, the label names agriturismo (the rising
+    // term). HARD evidence: "on a working farm" is a factual claim the LLM alone must never
+    // grant. Regex must stay IDENTICAL to the facets.ts entry (tests pin the pair); vineyard and
+    // winery were dropped there after the 2026-07-12 data check (34 non-farm matches).
+    id: "farm-stay", slug: "farm-stay", label: "Farm stays & agriturismi", noun: "on a farm or agriturismo",
+    category: "style", evidence: "hard", minConfidence: 0.85, collectionEnabled: true,
+    description: "Stays on a working farm, agriturismo or masseria: farmhouse rooms, olive groves and orchards, food grown on the land.",
+    seoQueryPatterns: ["agriturismo near {city}", "farm stay hotels near {city}"],
+    aiPromptPatterns: ["find an agriturismo near {city}", "recommend a farm stay near {city} with home-grown food"],
+    re: /agriturismo|farm[- ]?stay|farmhouse|working farm|masseria|olive (?:grove|trees)|orchard/i,
+  },
 
   // ── amenity (all hard) ──
   {
@@ -273,7 +297,7 @@ export const LEGACY_FACET_SLUGS: ReadonlySet<string> = new Set(["fireplace", "ro
  * this), so every surface (page, hub, sitemap, hotel/guide links) matches the same hotels.
  * Non-legacy slugs keep the stricter ≥5 city gate below — only their MATCHING is regex-live.
  */
-export const REGEX_FACET_SLUGS: ReadonlySet<string> = new Set([...LEGACY_FACET_SLUGS, "quiet"]);
+export const REGEX_FACET_SLUGS: ReadonlySet<string> = new Set([...LEGACY_FACET_SLUGS, "quiet", "reading-retreat", "farm-stay"]);
 
 /**
  * Minimum matching hotels for a city collection page (/cosy-hotels/{slug}/{city}) to exist and be
