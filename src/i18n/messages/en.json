@@ -34,6 +34,6 @@
   },
   "guides": {
     "h1_city": "{city} cosy hotels",
-    "intro_city": "Cosy and romantic stays in {city}, scored 0–10 for cosiness by AI."
+    "intro_city": "Cosy and romantic stays in {city}, scored from 0 to 10 for cosiness by AI."
   }
 }

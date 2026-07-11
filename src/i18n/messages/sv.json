@@ -1,0 +1,39 @@
+{
+ "brand": {
+  "name": "Get Cosy",
+  "tagline": "Hitta mysiga hotellrum",
+  "description": "Utvalda mysiga vistelser."
+ },
+ "nav": {
+  "explore": "Utforska",
+  "collections": "Kollektioner",
+  "guides": "Guider",
+  "how": "Så räknar vi",
+  "seal": "Kvalitetsstämpel"
+ },
+ "hotels": {
+  "h1_generic": "Mysiga hotellrum & boutiquehotell",
+  "h1_city": "Mysigt hotell i {city} – boutiquevistelser",
+  "intro_generic": "Hitta mysiga hotellrum, boutiquehotell och romantiska weekendresor världen över. Använd sök och filter för att hitta intima boenden med varm design och fina omdömen.",
+  "intro_city": "Hitta ett mysigt hotell i {city}. Vi lyfter fram intima boutiqueboenden med varm design, fina omdömen och den där mysiga känslan."
+ },
+ "home": {
+  "browseAll": "Visa alla hotell"
+ },
+ "footer": {
+  "cosy_score": "Mysighetsbetyg",
+  "disclosure": "Affiliate-information",
+  "privacy": "Integritet",
+  "about": "Om oss",
+  "contact": "Kontakt"
+ },
+ "collections": {
+  "title": "Kollektioner",
+  "intro": "Utvalda hotellteman för inspiration och planering.",
+  "hotels": "hotell"
+ },
+ "guides": {
+  "h1_city": "Mysiga hotell i {city}",
+  "intro_city": "Mysiga och romantiska boenden i {city}, AI-betygsatta från 0 till 10 i mysighet."
+ }
+}
