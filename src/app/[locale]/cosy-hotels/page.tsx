@@ -12,7 +12,7 @@ export function generateMetadata(): Metadata {
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels`;
   const title = "Cosy hotels: browse by theme and country";
-  const description = "Find genuinely cosy hotels by what makes them cosy (a fireplace, a spa, boutique character, a view) or by country. Every hotel AI-scored 0–10 for warmth and character.";
+  const description = "Find genuinely cosy hotels by what makes them cosy (a fireplace, a spa, boutique character, a view) or by country. Every hotel AI-scored from 0 to 10 for warmth and character.";
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };
 }
 
@@ -29,7 +29,7 @@ export default async function CosyHotelsHub({ params }: { params: { locale: stri
     <div className="mx-auto max-w-5xl px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(crumbs)} />
       <h1 className="font-display text-3xl font-semibold">Cosy hotels</h1>
-      <p className="mt-2 max-w-2xl" style={{ color: "var(--muted)" }}>Browse genuinely cosy places to stay by what makes them cosy, or by country. Every hotel is AI-scored 0–10 for warmth, character and intimacy, not stars.</p>
+      <p className="mt-2 max-w-2xl" style={{ color: "var(--muted)" }}>Browse genuinely cosy places to stay by what makes them cosy, or by country. Every hotel is AI-scored from 0 to 10 for warmth, character and intimacy, not stars.</p>
 
       <section className="mt-8">
         <h2 className="text-lg font-medium">By theme</h2>

@@ -302,7 +302,7 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
       <H2>Methodology (the honest version)</H2>
       <p className="leading-relaxed" style={{ color: "var(--muted)" }}>
         We started from {data.methodology.n_hotels_total.toLocaleString("en-GB")} hotels.{" "}
-        {data.methodology.n_hotels_with_score_row.toLocaleString("en-GB")} were AI-scored 0–10 from guest-review
+        {data.methodology.n_hotels_with_score_row.toLocaleString("en-GB")} were AI-scored from 0 to 10 from guest-review
         text, and {data.methodology.n_hotels_with_review_derived_signals.toLocaleString("en-GB")} of those had
         enough review-derived evidence to support the signal breakdowns above. The league tables above use only
         hotels scoring {data.methodology.qualification_threshold_for_league_tables} (our operational floor for

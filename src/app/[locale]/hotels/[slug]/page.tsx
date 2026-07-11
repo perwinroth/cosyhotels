@@ -84,7 +84,7 @@ function hotelFaqs(o: { name: string; city: string; country: string; cosy: numbe
     q: `Is ${name} a cosy hotel?`,
     a: s != null
       ? `${name} scores ${s.toFixed(1)}/10 on Got Cosy's cosiness scale: ${band}${city ? ` in ${city}` : ""}. The score weighs warmth, intimacy and character, not stars.`
-      : `Got Cosy rates hotels 0–10 for cosiness: warmth, intimacy and character${city ? `, including stays in ${city}` : ""}.`,
+      : `Got Cosy rates hotels from 0 to 10 for cosiness: warmth, intimacy and character${city ? `, including stays in ${city}` : ""}.`,
   });
   faqs.push({
     q: `What makes ${name} cosy?`,
