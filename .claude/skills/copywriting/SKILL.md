@@ -91,6 +91,9 @@ Subject: What makes a boutique hotel feel warm
 
 **Referencing a writer's own work (one-shot pitches):** read their actual recent pieces first; hook to what they published lately, in their vocabulary, never their About page. Any quoted phrase or claimed detail MUST be verified against the raw page text, not a summarising fetch (invented-detail incidents: 2026-07-08 Gina dossier; 2026-07-09 "weekends the team actually had" vs the verified conditional "would spend"). If a citation can't be verified raw, the line claims only what IS verified.
 
+## Demand vocabulary tracking (standing rule, founder 2026-07-12)
+Travellers change what they CALL what they want; our data measures the underlying qualities, so vocabulary shifts are free demand if pages carry the current words. Every new page, facet, pitch or campaign names the rising intent it serves (current risers, evidence-verified 2026-07: sleep tourism / rest-first, quiet travel / hushpitality / quietcation, reading retreats, farm stays / agriturismo, slow travel, solo female travel). Weave rising synonyms into existing pages before building new ones. Never adopt a trend word from an unsourced viral stat; the standing riser/faller table lives in die-validation memory/findings/accommodation-trend-report-2026-07-12.md and is re-scanned quarterly.
+
 ## Before you ship
 Cut one adjective per sentence. Read the first paragraph alone: does it make someone keep reading? Check every number is real and sourced. Remove the throat-clear. If it could have been written by any hotel-affiliate blog, rewrite it.
 For an email: read it aloud as Per. If any sentence sounds like a company, cut it. If the first line could go to anyone else on the list, rewrite it.
