@@ -79,7 +79,12 @@ export async function GET(req: Request) {
   const pinAccount = process.env.BLOTATO_PINTEREST_ACCOUNT_ID || "7575";
   // Default board = "Cosy hotel stays" (gotcosy Pinterest). Override via BLOTATO_PINTEREST_BOARD_ID.
   const pinBoard = process.env.BLOTATO_PINTEREST_BOARD_ID || "1102537621216957324";
-  const igAccount = process.env.BLOTATO_INSTAGRAM_ACCOUNT_ID || "";
+  // INSTAGRAM AUTOPOSTING SUSPENDED (founder, 2026-07-12). Instagram restricted @got_cosy on
+  // 2026-07-11 15:02 ("we restrict certain activity") after this cron's API post with multiple
+  // @-mentions; the account must stay clean for the badge DM wave (incident record:
+  // die-validation outreach-experiment-preregistration, INCIDENT 2026-07-11). Pinterest is
+  // unaffected. Re-enabling needs a mention cap and a Challenger re-pass, not just this flag.
+  const igAccount = "";
 
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
