@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityToSlug } from "@/lib/citySlug";
 import { stay22AllezUrl } from "@/lib/affiliates";
-import { CONCEPT_BY_SLUG, cityCollectionMin, LEGACY_FACET_SLUGS } from "@/lib/travellerFit";
+import { CONCEPT_BY_SLUG, cityCollectionMin, LEGACY_FACET_SLUGS, conceptCityBlocked } from "@/lib/travellerFit";
 import { FACET_CITY_COPY } from "@/data/discoveryOverrides";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
@@ -25,6 +25,9 @@ export const revalidate = 3600;
 async function load(conceptSlug: string, citySlug: string) {
   const concept = CONCEPT_BY_SLUG[conceptSlug];
   if (!concept || !concept.collectionEnabled) return null;
+  // Experiment-control exclusion: NEW rising-intent facets never mint a control-market city page
+  // (York/Savannah/Fez/Venice) — the page structurally does not exist (404). Legacy 5 untouched.
+  if (conceptCityBlocked(concept, resolveCity(citySlug))) return null;
   const res = await loadCityCosyHotels(citySlug);
   if (!res) return null;
   const assignments = await loadConceptAssignments([concept.slug], res.hotels.map((h) => h.id));

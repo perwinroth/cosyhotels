@@ -17,7 +17,7 @@ import { FACETS, matchesFacet } from "@/lib/facets";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/components/HotelGraph";
 import TravellerFit from "@/components/TravellerFit";
-import { CONCEPT_BY_SLUG, cityCollectionMin, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
+import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
 import { loadCityCosyHotels, loadConceptAssignments, conceptMembers } from "@/lib/seo/cityHotels";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
@@ -185,12 +185,17 @@ export default async function HotelDetail({ params }: Props) {
     // sort by the DISPLAYED score before slicing so the 6 shown are the 6 cosiest, in order.
     rows.sort((a, b) => Number((b.score_final ?? b.score) || 0) - Number((a.score_final ?? a.score) || 0));
     sameCity = rows.slice(0, 6).map((r) => ({ slug: String(r.hotel?.slug), name: String(r.hotel?.name_en || r.hotel?.name || ""), score: Number((r.score_final ?? r.score) || 0) })).filter((h) => h.slug && h.name);
-    // Safe collection links: a facet page needs ≥2 in-city matches, so only link facets where this
-    // hotel + its peers give ≥2 — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
+    // Safe collection links: a facet page needs ≥ its city minimum of in-city matches (legacy 5 →
+    // 2, rising-intent facets → 5, per cityCollectionMin), so only link facets where this hotel +
+    // its peers clear it — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
     for (const f of FACETS) {
+      // Experiment-control exclusion: a NEW rising-intent facet's control-market city page does
+      // not exist (conceptCityBlocked), so never link it. Legacy 5 unaffected.
+      if (conceptCityBlocked(CONCEPT_BY_SLUG[f.slug], cityName)) continue;
       const self = matchesFacet(f, (scoreRow?.signals as string[] | null) ?? null, cosyDescription) ? 1 : 0;
       const peerMatches = rows.filter((r) => matchesFacet(f, r.signals, r.description)).length;
-      if (self + peerMatches >= 2 && citySlugBase) collectionLinks.push({ href: `/${params.locale}/cosy-hotels/${f.slug}/${citySlugBase}`, label: `Cosy hotels ${f.label} in ${cityName}` });
+      const min = cityCollectionMin(CONCEPT_BY_SLUG[f.slug]);
+      if (self + peerMatches >= min && citySlugBase) collectionLinks.push({ href: `/${params.locale}/cosy-hotels/${f.slug}/${citySlugBase}`, label: `Cosy hotels ${f.label} in ${cityName}` });
     }
   }
 
@@ -225,7 +230,9 @@ export default async function HotelDetail({ params }: Props) {
         const cityAssignments = await loadConceptAssignments(collectionSlugs, cityRes.hotels.map((h) => h.id));
         for (const slug of collectionSlugs) {
           const c = CONCEPT_BY_SLUG[slug];
-          if (c) cityMemberCount.set(slug, conceptMembers(c, cityRes.hotels, cityAssignments).length);
+          // Experiment-control exclusion: a blocked (concept, city) page 404s, so its member count
+          // here stays 0 and the badge falls back to the always-on theme hub link below.
+          if (c && !conceptCityBlocked(c, cityRes.cityName)) cityMemberCount.set(slug, conceptMembers(c, cityRes.hotels, cityAssignments).length);
         }
       }
     }

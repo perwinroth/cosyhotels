@@ -6,7 +6,7 @@ import { guides } from "@/data/guides";
 import { cityGuides } from "@/data/cityGuides";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getVisibleBlogPosts } from "@/lib/blogSchedule";
-import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, cityCollectionMin } from "@/lib/travellerFit";
+import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, REGEX_FACET_SLUGS, cityCollectionMin, conceptCityBlocked } from "@/lib/travellerFit";
 import { cityFromSlug } from "@/lib/citySlug";
 import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
 import { REGIONS } from "@/data/regions";
@@ -130,14 +130,19 @@ export async function collectionUrls(): Promise<Url[]> {
     const cityName = resolveCity(citySlug);
     const cityHotels = cityMembers(cityName, rpcCityUniverse(cityName, rows));
     for (const c of concepts) {
+      // Experiment-control exclusion: NEW rising-intent facets never mint a control-market city
+      // page, so the sitemap never emits one (the page itself 404s via the same predicate).
+      if (conceptCityBlocked(c, cityName)) continue;
       if (conceptMembers(c, cityHotels, assignments).length >= cityCollectionMin(c)) {
         urls.push({ loc: `${SITE}/en/cosy-hotels/${c.slug}/${citySlug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
       }
     }
   }
-  // Theme hubs: the legacy 5 unconditionally (each matches hundreds of hotels — as before). New
-  // concepts only when their LIVE stored membership clears the noindex gate, so the sitemap never
-  // lists a noindexed thin hub (and emits nothing new while the table is empty).
+  // Theme hubs: the legacy 5 unconditionally (each matches hundreds of hotels — as before). Other
+  // concepts only when their LIVE membership clears the noindex gate — stored assignments, or, for
+  // the rising-intent regex facets, live regex matches over the same scan (the hub page counts the
+  // union, so clearing either floor means the hub renders ≥ the gate and is indexable). The
+  // sitemap never lists a noindexed thin hub (and emits nothing new while the table is empty).
   const storedLive = new Map<string, number>();
   for (const [hid, m] of assignments) {
     if (!liveIds.has(hid)) continue;
@@ -147,7 +152,10 @@ export async function collectionUrls(): Promise<Url[]> {
     }
   }
   for (const c of concepts) {
-    if (LEGACY_FACET_SLUGS.has(c.slug) || (storedLive.get(c.slug) || 0) >= THEME_HUB_INDEX_MIN) {
+    const regexLive = !LEGACY_FACET_SLUGS.has(c.slug) && REGEX_FACET_SLUGS.has(c.slug)
+      ? rows.filter((r) => c.re.test(`${(r.signals || []).join(" ")} ${r.description || ""}`)).length
+      : 0;
+    if (LEGACY_FACET_SLUGS.has(c.slug) || (storedLive.get(c.slug) || 0) >= THEME_HUB_INDEX_MIN || regexLive >= THEME_HUB_INDEX_MIN) {
       urls.push({ loc: `${SITE}/en/cosy-hotels/${c.slug}`, lastmod: nowIso(), changefreq: "weekly", priority: 0.6 });
     }
   }

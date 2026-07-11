@@ -295,7 +295,12 @@ export default async function CosiestHotelTownsReport({ params }: { params: Prom
           <strong>Quiet is the single most common theme in atmosphere-mentioning reviews</strong>: it appears in{" "}
           {QUIET_ATMOSPHERE_PCT.toFixed(1)}% of the {QUIET_ATMOSPHERE_N.toLocaleString("en-GB")} reviews across our
           wider corpus that mention atmosphere at all. We don&apos;t rank cities by &quot;quietest&quot;; a review
-          mentioning quiet isn&apos;t an acoustic measurement (see Limitations, below).
+          mentioning quiet isn&apos;t an acoustic measurement (see Limitations, below). The trade now calls this
+          demand hushpitality and travellers call it a quietcation, so we rank the hotels guests themselves
+          describe that way:{" "}
+          <a href={`/${l}/cosy-hotels/quiet`} className="underline" style={{ color: "var(--ember)" }}>
+            cosy hotels for a quiet night&apos;s sleep
+          </a>.
         </li>
       </ul>
 
