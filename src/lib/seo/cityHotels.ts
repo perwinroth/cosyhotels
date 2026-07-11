@@ -10,7 +10,7 @@ import { EXONYMS } from "@/lib/exonyms";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { matchesFacet, facetBySlug, type Facet } from "@/lib/facets";
 import {
-  CONCEPTS, CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS,
+  CONCEPTS, CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, REGEX_FACET_SLUGS,
   type TravellerFitConcept,
 } from "@/lib/travellerFit";
 
@@ -126,10 +126,11 @@ export function facetHotels(facet: Facet, hotels: CityCosyHotel[]): CityCosyHote
 //
 // A live cosy hotel belongs to concept C iff EITHER
 //   • stored: a hotel_traveller_fit row (C, hotel) with confidence ≥ C.minConfidence, OR
-//   • legacy: C is one of the original 5 facets (LEGACY_FACET_SLUGS) and C's regex matches the
-//     hotel's signals+description (identical to matchesFacet — the concept `re` equals the facet `re`).
-// Union + dedup. This is a strict SUPERSET of today's facet membership, so the legacy 5 can only
-// GAIN hotels; with hotel_traveller_fit empty every surface degrades to exactly today's behavior.
+//   • regex-live: C is a regex facet (REGEX_FACET_SLUGS: the original 5 + the rising-intent
+//     facets) and C's regex matches the hotel's signals+description (identical to matchesFacet —
+//     the concept `re` equals the facets.ts `re` for every regex facet).
+// Union + dedup. This is a strict SUPERSET of stored-only membership, so regex facets can only
+// GAIN hotels; with hotel_traveller_fit empty every surface degrades to regex-only membership.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Noindex threshold shared by the theme hub page and the hub index (a thinner hub is noindexed). */
@@ -235,14 +236,14 @@ export function conceptMembers(
   hotels: CityCosyHotel[],
   assignments: AssignmentsByHotel,
 ): ConceptCosyHotel[] {
-  const isLegacy = LEGACY_FACET_SLUGS.has(concept.slug);
+  const regexLive = REGEX_FACET_SLUGS.has(concept.slug); // legacy 5 + rising-intent facets
   const out: ConceptCosyHotel[] = [];
   for (const h of hotels) {
     const stored = assignments.get(h.id)?.get(concept.slug);
     const storedOk = stored != null && stored >= concept.minConfidence;
-    // Legacy regex = matchesFacet semantics (concept.re === the facet re for the original 5).
-    const legacyOk = isLegacy && concept.re.test(`${(h.signals || []).join(" ")} ${h.description || ""}`);
-    if (storedOk || legacyOk) out.push({ ...h, fitConfidence: storedOk ? stored : null });
+    // Live regex = matchesFacet semantics (concept.re === the facets.ts re for every regex facet).
+    const regexOk = regexLive && concept.re.test(`${(h.signals || []).join(" ")} ${h.description || ""}`);
+    if (storedOk || regexOk) out.push({ ...h, fitConfidence: storedOk ? stored : null });
   }
   return out;
 }

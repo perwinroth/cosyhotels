@@ -2,14 +2,15 @@
 // Ranks the cosiest hotels that belong to the Traveller Fit concept (stored hotel_traveller_fit
 // assignments ≥ minConfidence ∪, for the legacy 5, the original real-signal regex) and links out to
 // the per-city collection pages (/cosy-hotels/{concept}/{city}) — the internal-linking payoff.
-// With hotel_traveller_fit empty the legacy 5 degrade to exactly the original facet hub; new
-// concepts have no legacy source, so they render nothing (→ notFound below 2 total).
+// With hotel_traveller_fit empty the regex facets (legacy 5 + rising-intent) degrade to exactly
+// the regex-backed hub; stored-only concepts render nothing (→ notFound below 2 total).
 import { cache } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { CONCEPTS, CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, cityCollectionMin } from "@/lib/travellerFit";
+import { CONCEPTS, CONCEPT_BY_SLUG, REGEX_FACET_SLUGS, cityCollectionMin } from "@/lib/travellerFit";
+import { facetBySlug } from "@/lib/facets";
 import { cityToSlug, cityFromSlug } from "@/lib/citySlug";
 import { displayCity, isLatin } from "@/lib/placeText";
 import { stay22AllezUrl } from "@/lib/affiliates";
@@ -39,7 +40,7 @@ const loadConcept = cache(async (conceptSlug: string): Promise<{ hotels: Match[]
   const concept = CONCEPT_BY_SLUG[conceptSlug];
   const db = getServerSupabase();
   if (!concept || !concept.collectionEnabled || !db) return null;
-  const isLegacy = LEGACY_FACET_SLUGS.has(concept.slug);
+  const regexLive = REGEX_FACET_SLUGS.has(concept.slug); // legacy 5 + rising-intent facets
 
   const cityTally = new Map<string, { city: string; slug: string; n: number }>();
   const seen = new Set<string>();     // dedup by hotel name
@@ -57,9 +58,9 @@ const loadConcept = cache(async (conceptSlug: string): Promise<{ hotels: Match[]
   // Stored assignments (empty map when hotel_traveller_fit is empty).
   const assignments = await loadConceptAssignments([concept.slug]);
 
-  // ── Legacy regex source (the original 5 only): scan the cosiest 4k live hotels in score order and
-  //    keep real-signal/description matches — preserving today's ordering + per-city tally. ──
-  if (isLegacy) {
+  // ── Live regex source (regex facets: the original 5 + rising-intent): scan the cosiest 4k live
+  //    hotels in score order and keep real-signal/description matches — same ordering + tally. ──
+  if (regexLive) {
     const { data } = await db
       .from("cosy_scores")
       .select(CITY_HOTEL_SELECT)
@@ -160,7 +161,10 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
   }
 
   const top = hotels[0];
-  const intro = `The cosiest hotels ${phrase} we've scored worldwide; ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score, backed by real signals and guest reviews.`;
+  // A facet-specific opening sentence (facets.ts `intro`, e.g. quiet's rising-intent vocabulary)
+  // is prepended to the data-led line when present; the data-led line always renders.
+  const facetIntro = facetBySlug(concept.slug)?.intro;
+  const intro = `${facetIntro ? `${facetIntro} ` : ""}The cosiest hotels ${phrase} we've scored worldwide; ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score, backed by real signals and guest reviews.`;
   const itemList = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${phrase}`, numberOfItems: hotels.length,
     itemListElement: hotels.map((h, i) => ({

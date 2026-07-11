@@ -102,7 +102,11 @@ export const CONCEPTS: TravellerFitConcept[] = [
     description: "Calm, restful stays away from noise and crowds, good for a relaxing weekend.",
     seoQueryPatterns: ["quiet hotels in {city}", "peaceful hotels in {city}"],
     aiPromptPatterns: ["recommend a quiet hotel in {city} for a relaxing weekend", "find a peaceful hotel in {city} away from the crowds"],
-    re: /\bquiet\b|peaceful|tranquil|serene|secluded|restful|hushed|away from the (crowd|hustle|bustle)|off the beaten/i,
+    // 2026-07-12 (rising-intent facet "quiet"): regex aligned with src/lib/facets.ts — a strict
+    // SUPERSET of the previous one (adds silent/silence/calm/calming; boundaries throughout), so
+    // no existing match is ever lost. Must stay IDENTICAL to the facets.ts quiet regex
+    // (tests/rising-facets.test.ts pins the pair) — quiet is now regex-live (REGEX_FACET_SLUGS).
+    re: /\b(?:quiet|peaceful|tranquil|hushed|silent|silence|serene|restful|calm|calming|secluded)\b|away from the (?:crowd|hustle|bustle)|off the beaten/i,
   },
   {
     id: "family-friendly", slug: "family-friendly", label: "Family-friendly hotels", noun: "for families",
@@ -261,6 +265,15 @@ export const CONCEPT_BY_SLUG: Record<string, TravellerFitConcept> = Object.fromE
 
 /** The 5 original facets (src/lib/facets.ts) — their indexed URLs keep the historic ≥2 gate. */
 export const LEGACY_FACET_SLUGS: ReadonlySet<string> = new Set(["fireplace", "romantic", "spa", "boutique", "views"]);
+
+/**
+ * Concepts whose membership ALSO includes live regex matches over signals+description (the legacy-5
+ * mechanism, extended 2026-07-12 to the rising-intent facets). Every slug here must have a
+ * facets.ts entry whose regex is IDENTICAL to the concept's `re` (tests/rising-facets.test.ts pins
+ * this), so every surface (page, hub, sitemap, hotel/guide links) matches the same hotels.
+ * Non-legacy slugs keep the stricter ≥5 city gate below — only their MATCHING is regex-live.
+ */
+export const REGEX_FACET_SLUGS: ReadonlySet<string> = new Set([...LEGACY_FACET_SLUGS, "quiet"]);
 
 /**
  * Minimum matching hotels for a city collection page (/cosy-hotels/{slug}/{city}) to exist and be

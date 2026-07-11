@@ -185,12 +185,14 @@ export default async function HotelDetail({ params }: Props) {
     // sort by the DISPLAYED score before slicing so the 6 shown are the 6 cosiest, in order.
     rows.sort((a, b) => Number((b.score_final ?? b.score) || 0) - Number((a.score_final ?? a.score) || 0));
     sameCity = rows.slice(0, 6).map((r) => ({ slug: String(r.hotel?.slug), name: String(r.hotel?.name_en || r.hotel?.name || ""), score: Number((r.score_final ?? r.score) || 0) })).filter((h) => h.slug && h.name);
-    // Safe collection links: a facet page needs ≥2 in-city matches, so only link facets where this
-    // hotel + its peers give ≥2 — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
+    // Safe collection links: a facet page needs ≥ its city minimum of in-city matches (legacy 5 →
+    // 2, rising-intent facets → 5, per cityCollectionMin), so only link facets where this hotel +
+    // its peers clear it — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
     for (const f of FACETS) {
       const self = matchesFacet(f, (scoreRow?.signals as string[] | null) ?? null, cosyDescription) ? 1 : 0;
       const peerMatches = rows.filter((r) => matchesFacet(f, r.signals, r.description)).length;
-      if (self + peerMatches >= 2 && citySlugBase) collectionLinks.push({ href: `/${params.locale}/cosy-hotels/${f.slug}/${citySlugBase}`, label: `Cosy hotels ${f.label} in ${cityName}` });
+      const min = cityCollectionMin(CONCEPT_BY_SLUG[f.slug]);
+      if (self + peerMatches >= min && citySlugBase) collectionLinks.push({ href: `/${params.locale}/cosy-hotels/${f.slug}/${citySlugBase}`, label: `Cosy hotels ${f.label} in ${cityName}` });
     }
   }
 
