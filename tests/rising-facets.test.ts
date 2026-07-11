@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { FACETS, facetBySlug, matchesFacet } from "../src/lib/facets";
-import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, REGEX_FACET_SLUGS, cityCollectionMin } from "../src/lib/travellerFit";
+import { CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, REGEX_FACET_SLUGS, cityCollectionMin, conceptCityBlocked } from "../src/lib/travellerFit";
 
 // ── the five original facets are untouched (G14: never break existing integrations) ──
 
@@ -145,4 +145,53 @@ test("farm-stay positives: real farm/agriturismo evidence matches", () => {
 test("neither reading-retreat nor farm-stay defines an intro override (data-led intro renders)", () => {
   assert.equal(reading.intro, undefined);
   assert.equal(farm.intro, undefined);
+});
+
+// ── experiment-control exclusion: NEW facets never mint control-market pages (coordinator rule) ──
+
+test("control-market city pages are excluded for the NEW quiet facet; New York survives", () => {
+  const c = CONCEPT_BY_SLUG["quiet"];
+  for (const city of ["York", "Fez", "Venice", "Savannah", "venice", " york ", "Venice-historic"]) {
+    assert.equal(conceptCityBlocked(c, city), true, `${city} must be blocked for quiet`);
+  }
+  assert.equal(conceptCityBlocked(c, "New York"), false, "New York must survive");
+  assert.equal(conceptCityBlocked(c, "Yorkshire"), false, "exact match only, never substring");
+  assert.equal(conceptCityBlocked(c, "Fes al Bali"), false, "exact match only");
+});
+
+test("legacy facets' control-market behaviour is byte-identical: never blocked", () => {
+  for (const slug of LEGACY_FACET_SLUGS) {
+    const c = CONCEPT_BY_SLUG[slug];
+    for (const city of ["York", "Fez", "Venice", "Savannah", "New York"]) {
+      assert.equal(conceptCityBlocked(c, city), false, `${slug}/${city} must stay exactly as before`);
+    }
+  }
+});
+
+test("the exclusion is structural: every enumeration surface consults conceptCityBlocked", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  for (const f of [
+    "src/app/[locale]/cosy-hotels/[facet]/[city]/page.tsx", // city-page generation/rendering
+    "src/app/[locale]/cosy-hotels/[facet]/page.tsx",        // global hub's city list
+    "src/lib/seo/sitemapData.ts",                            // sitemap emission
+    "src/lib/seo/cityHotels.ts",                             // conceptCityMembersLive (link verification)
+    "src/app/[locale]/hotels/[slug]/page.tsx",               // hotel-page facet + badge links
+    "src/app/[locale]/guides/[slug]/page.tsx",               // guide-page facet links
+  ]) {
+    const src = readFileSync(join(__dirname, "..", f), "utf8");
+    assert.ok(src.includes("conceptCityBlocked"), `${f} must consult conceptCityBlocked`);
+  }
+});
+
+test("farm-stay Venice and reading-retreat York pages are excluded; New York survives for both", () => {
+  // The data check found farm-stay Venice at 5 matches (would otherwise mint a page) and
+  // reading-retreat York at 4 (one hotel away from minting) — both must be structurally blocked.
+  for (const slug of ["farm-stay", "reading-retreat"]) {
+    const c = CONCEPT_BY_SLUG[slug];
+    for (const city of ["York", "Fez", "Venice", "Savannah"]) {
+      assert.equal(conceptCityBlocked(c, city), true, `${slug}/${city} must be blocked`);
+    }
+    assert.equal(conceptCityBlocked(c, "New York"), false, `${slug}/New York must survive`);
+  }
 });

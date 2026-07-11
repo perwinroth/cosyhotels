@@ -13,6 +13,7 @@
 // This mirrors src/lib/facets.ts (the original 5 long-tail facets, which live on as concepts here
 // with identical slugs + regex semantics so their indexed URLs keep working). Nothing here exposes
 // the internal cosy-scoring machinery — these are outward-facing travel concepts only.
+import { isFacetMintControlCity } from "./controlMarkets"; // relative: node test runner imports this file without the @/ alias
 
 export type FitCategory = "intent" | "style" | "amenity" | "atmosphere" | "location";
 
@@ -298,6 +299,20 @@ export const LEGACY_FACET_SLUGS: ReadonlySet<string> = new Set(["fireplace", "ro
  * Non-legacy slugs keep the stricter ≥5 city gate below — only their MATCHING is regex-live.
  */
 export const REGEX_FACET_SLUGS: ReadonlySet<string> = new Set([...LEGACY_FACET_SLUGS, "quiet", "reading-retreat", "farm-stay"]);
+
+/**
+ * TRUE when a (concept, city) collection page must NOT exist: the concept is a NEW rising-intent
+ * regex facet (non-legacy member of REGEX_FACET_SLUGS) and the city is an experiment control
+ * (Savannah/York GSC controls; Fez and Venice-historic analysis controls). Minting a NEW page for
+ * a control city would be new treatment of an experiment control; not minting keeps the world
+ * unchanged. The legacy five are untouched (their pages pre-date the experiment). Every
+ * enumeration surface — the city page itself, the hub's city list, conceptCityMembersLive, the
+ * sitemap, and hotel/guide facet links — consults this ONE predicate (structural, not cosmetic;
+ * tests/rising-facets.test.ts greps each surface for it).
+ */
+export function conceptCityBlocked(c: TravellerFitConcept, cityName: string): boolean {
+  return REGEX_FACET_SLUGS.has(c.slug) && !LEGACY_FACET_SLUGS.has(c.slug) && isFacetMintControlCity(cityName);
+}
 
 /**
  * Minimum matching hotels for a city collection page (/cosy-hotels/{slug}/{city}) to exist and be

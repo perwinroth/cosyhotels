@@ -10,7 +10,7 @@ import { EXONYMS } from "@/lib/exonyms";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { matchesFacet, facetBySlug, type Facet } from "@/lib/facets";
 import {
-  CONCEPTS, CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, REGEX_FACET_SLUGS,
+  CONCEPTS, CONCEPT_BY_SLUG, LEGACY_FACET_SLUGS, REGEX_FACET_SLUGS, conceptCityBlocked,
   type TravellerFitConcept,
 } from "@/lib/travellerFit";
 
@@ -217,6 +217,9 @@ export async function conceptCityMembersLive(
   concept: TravellerFitConcept,
   citySlug: string,
 ): Promise<ConceptCosyHotel[] | null> {
+  // Experiment-control exclusion: a NEW rising-intent facet must never mint a control-market city
+  // page, so its live membership there is structurally empty (city page 404s, no surface links it).
+  if (conceptCityBlocked(concept, resolveCity(citySlug))) return [];
   const res = await loadCityCosyHotels(citySlug);
   if (!res) return null;
   const assignments = await loadConceptAssignments([concept.slug], res.hotels.map((h) => h.id));
