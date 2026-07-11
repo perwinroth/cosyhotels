@@ -41,7 +41,7 @@ function Tick({ done, busy, onTick }: { done: boolean; busy: boolean; onTick: ()
   );
 }
 
-export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued, sentToday }: { emails: PlanEmail[]; instagram: PlanInstagram[]; reddit: PlanReddit[]; totalEmailQueued: number; sentToday: { count: number } }) {
+export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued, sentToday, igNote }: { emails: PlanEmail[]; instagram: PlanInstagram[]; reddit: PlanReddit[]; totalEmailQueued: number; sentToday: { count: number }; igNote?: string }) {
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
@@ -155,6 +155,7 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued,
             <span style={sub}> · {countDone(instagram.map((i) => i.hotelId))}/{instagram.length} done</span>
           </div>
           <p style={{ ...metaStyle, margin: "0 0 8px" }}>Copy the pitch → open the DM → paste & send → tick it (moves to Contacted).</p>
+          {igNote && <p style={{ ...metaStyle, margin: "0 0 8px", color: "var(--ember-ink)", fontWeight: 600 }}>{igNote}</p>}
           <div style={{ display: "grid", gap: 6 }}>
             {instagram.map((i) => {
               const d = !!done[i.hotelId];

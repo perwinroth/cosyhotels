@@ -4,7 +4,7 @@
 // scroll jumps); the data is force-dynamic so every visit is fresh.
 import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { getBoardCounts, getTodayStats, getTodayPlan, Stat } from "./lib";
+import { getBoardCounts, getTodayStats, getTodayPlan, Stat, IG_RAMP_NOTE } from "./lib";
 import { LISTING_TARGETS } from "@/data/listingTargets";
 import TodayPlan from "@/components/growth/TodayPlan";
 
@@ -74,7 +74,7 @@ export default async function GrowthTodayPage() {
       </p>
 
       {/* ───────── Today's plan: the concrete daily to-do, tick each off ───────── */}
-      <TodayPlan emails={plan.emails} instagram={plan.instagram} reddit={plan.reddit} totalEmailQueued={plan.totalEmailQueued} sentToday={plan.sentToday} />
+      <TodayPlan emails={plan.emails} instagram={plan.instagram} reddit={plan.reddit} totalEmailQueued={plan.totalEmailQueued} sentToday={plan.sentToday} igNote={IG_RAMP_NOTE} />
 
       {/* ───────── Boards (navigation / full pipeline) ───────── */}
       <h2 className="font-display" style={{ fontSize: 15, fontWeight: 600, marginTop: 30, color: "var(--foreground)" }}>Boards</h2>

@@ -105,3 +105,46 @@ Per
 gotcosy.com`,
   };
 }
+
+// ----- Instagram badge wave (Challenger-passed 2026-07-11) -----
+// House style note: the email variants above use commas/colons, never em dashes, so the approved DM
+// texts (drafted with em dashes) were normalised to commas/colons per the Challenger's own exception
+// rule ("keep em dashes ONLY if the email variants use them" — they don't).
+
+// Percentile rounding for every "top {PCT}%" claim: ALWAYS round UP, so the claim can only ever
+// understate the hotel's standing (5.7 → "top 6%", never "top 5%"). Pure + exported for tests.
+export function roundPctUp(rawPct: number): number {
+  return Math.ceil(rawPct);
+}
+
+// The badge-tier ladder. The percent LABELS here are fixed copy, computed from live score_final
+// counts on 2026-07-11 and rounded up; they are NOT recomputed. The per-hotel "{PCT}%" used in DMs
+// is a different number: computed per hotel (stamped by scripts/seed-ig-outreach.mjs).
+export type BadgeTier = { key: "index" | "top16" | "top27"; label: string };
+export function tierForScore(score: number): BadgeTier | null {
+  if (score >= 7.0) return { key: "index", label: "Cosy Index" };
+  if (score >= 6.5) return { key: "top16", label: "Rated Cosy · Top 16%" };
+  if (score >= 6.0) return { key: "top27", label: "Rated Cosy · Top 27%" };
+  return null; // below the proactive-outreach floor: no tier, no graphic
+}
+
+// Challenger-approved DM texts for the IG wave. Contract (tested in tests/ig-wave.test.ts):
+// exactly ONE http link (the asset page), the opt-out sentence always present, and the evidence
+// phrase NEVER wrapped in quote marks. score/pct/total must come STAMPED from the outreach row
+// (frozen at queue time by the seeder) — callers must not recompute them live (drift risk).
+export function buildVariantDm(
+  variant: PitchVariant,
+  opts: { name: string; score: number; pct: number; evidence: string; assetLink: string; total?: number },
+): string {
+  const totalTxt = (opts.total ?? 17727).toLocaleString("en-GB");
+  const score = opts.score.toFixed(1);
+  // Trim trailing sentence punctuation from the condensed evidence so the template's own full stop
+  // never doubles up ("…blankets.." / "…blankets….").
+  const ev = String(opts.evidence || "").trim().replace(/[.…\s]+$/, "");
+  const optOut = `If you'd rather not hear from us, just reply "no thanks" and we won't write again.`;
+  if (variant === "v2") {
+    const evidence = ev ? `What guests keep mentioning, condensed from their reviews: ${ev}. ` : "";
+    return `${opts.name} scored ${score}/10 for cosiness: top ${opts.pct}% of the ${totalTxt} hotels we've analysed from guest reviews. ${evidence}We made you a free ready-to-post graphic with it, nothing to buy, nothing asked: ${opts.assetLink}. I'm Per, I run Got Cosy. ${optOut}`;
+  }
+  return `${opts.name} scored ${score}/10 for cosiness in our review-language analysis of ${totalTxt} hotels: top ${opts.pct}% of them. The method is public, and this page has the evidence from your own guests plus a free ready-to-post graphic: ${opts.assetLink}. Happy to answer anything about how the score works. ${optOut}`;
+}

@@ -4,7 +4,7 @@
 import type { ReactNode } from "react";
 import { getGscSummary, gscConfigured } from "@/lib/gsc";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
-import { buildBadgePitch, buildVariantPitch, variantFor, gmailComposeUrl, instagramDmUrl } from "@/lib/badgePitch";
+import { buildBadgePitch, buildVariantPitch, buildVariantDm, variantFor, gmailComposeUrl, instagramDmUrl, pitchExcerpt } from "@/lib/badgePitch";
 import { displayCity, isLatin } from "@/lib/placeText";
 import { isControlMarket } from "@/lib/controlMarkets";
 import { REDDIT_ANSWER_PLAN } from "@/data/redditAnswerPlan";
@@ -13,6 +13,10 @@ type DB = any;
 
 // The daily drip sizes — small enough to protect deliverability + get actually done every day.
 export const DAILY = { emails: 30, instagram: 10, reddit: 3 };
+
+// Shown on the Today board next to the IG queue. DAILY.instagram stays 10 (the hard cap); the ramp
+// is the founder's send discipline for the wave (Challenger condition, 2026-07-11).
+export const IG_RAMP_NOTE = "Ramp: 5/day weeks 1-2, then 10/day. Never batch-send. Mark contacted at send time.";
 
 export type TodayEmail = { hotelId: string; name: string; city: string; score: number; email: string; gmailUrl: string; variant: string };
 export type TodayInstagram = { hotelId: string; name: string; city: string; score: number; handle: string; igUrl: string; pitch: string };
@@ -46,11 +50,19 @@ export async function getTodayPlan(db: DB): Promise<{
     // Reddit POSTING channel retired 2026-07-09 (u/gotcosycom spam-filtered; founder deleted the
     // account). The reddit-scan cron stays as demand INTELLIGENCE (/growth/reddit), but Today must
     // never queue answers nobody can post. redditRows fetch removed; reddit stays [] permanently.
-    const [{ data: queued }, { count: total }, { count: contactedToday }] = await Promise.all([
+    const [{ data: queued }, { count: total }, { count: contactedToday }, stampRes] = await Promise.all([
       db.from("hotel_outreach").select("hotel_id").eq("status", "queued"),
       db.from("cosy_scores").select("*", { count: "exact", head: true }),
       db.from("hotel_outreach").select("*", { count: "exact", head: true }).eq("status", "contacted").gte("contacted_at", todayStart.toISOString()),
+      // Stamped IG-wave numbers (scripts/seed-ig-outreach.mjs). FAIL-SOFT by design: until the
+      // founder runs the stamped_* column migration this select errors → stamps stays empty →
+      // IG cards keep the v1 pitch. The three queries above are untouched either way (G14).
+      db.from("hotel_outreach").select("hotel_id, stamped_score, stamped_pct, stamped_total").eq("status", "queued").eq("channel", "instagram"),
     ]);
+    type StampRow = { hotel_id: string; stamped_score: number | null; stamped_pct: number | null; stamped_total: number | null };
+    const stamps = new Map(
+      (((stampRes as { data: StampRow[] | null }).data) || []).map((s) => [String(s.hotel_id), s]),
+    );
     const sentToday = { count: contactedToday ?? 0 };
     const totalTxt = (total || 17000).toLocaleString();
 
@@ -107,7 +119,23 @@ export async function getTodayPlan(db: DB): Promise<{
       const vp = buildVariantPitch(variant, { name, score, slug: h.slug, city, description: r.description }, { base });
       const hotelId = String(r.hotel_id);
       if (email) emails.push({ hotelId, name, city, score, email, variant, gmailUrl: gmailComposeUrl(email, vp.subject, vp.body) });
-      else if (handle) instagram.push({ hotelId, name, city, score, handle, igUrl: instagramDmUrl(handle), pitch });
+      else if (handle) {
+        // IG wave (2026-07-11): the DM's numbers come STAMPED from the seeded outreach row — frozen
+        // at queue time so the claim can never drift from what was verified when queued. NO live-pct
+        // fallback: an unstamped row keeps the v1 buildBadgePitch exactly as before.
+        const st = stamps.get(hotelId);
+        const igPitch = st && st.stamped_score != null && st.stamped_pct != null
+          ? buildVariantDm(variant, {
+              name,
+              score: Number(st.stamped_score),
+              pct: Number(st.stamped_pct),
+              total: st.stamped_total == null ? undefined : Number(st.stamped_total),
+              evidence: pitchExcerpt(r.description, 140),
+              assetLink: `${base}/for-hotels/assets/${h.slug}`,
+            })
+          : pitch;
+        instagram.push({ hotelId, name, city, score, handle, igUrl: instagramDmUrl(handle), pitch: igPitch });
+      }
     }
     return {
       // The day's email work is DAILY.emails sends TOTAL: already-contacted-today counts against

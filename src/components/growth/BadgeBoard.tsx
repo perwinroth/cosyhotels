@@ -4,7 +4,7 @@
 // card carries the hotel's Cosy Score badge (via cosyBadgeColor) and a channel-aware pitch action:
 // email → open in Gmail (pre-filled), else Instagram → copy pitch + open the DM thread, else copy.
 import { useState, type CSSProperties } from "react";
-import Kanban, { type KanbanCard, type KanbanColumn } from "./Kanban";
+import Kanban, { type KanbanCard, type KanbanColumn, useKanbanMove } from "./Kanban";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 
 export type BadgeBoardRow = {
@@ -23,6 +23,9 @@ const COLUMNS: KanbanColumn[] = [
   { id: "won", title: "Won", hint: "Said yes; badge on the way.", advanceLabel: "Mark confirmed" },
   { id: "won_confirmed", title: "Won confirmed", hint: "Badge embedded; backlink verified live." },
   { id: "declined", title: "Declined", hint: "Not interested.", discard: true },
+  // IG wave (2026-07-11): DMs that physically can't be sent (closed DMs, dead/renamed handle).
+  // Distinct from Declined — they never SAW the pitch, so this bucket must not pollute reply-rate.
+  { id: "undeliverable", title: "Couldn't send", hint: "DM couldn't be delivered (closed DMs, dead handle).", discard: true },
 ];
 
 // Shared button styling — matches the original copy-pitch button (tokens only: --sage / #fff).
@@ -77,6 +80,22 @@ function InstagramPitch({ pitch, handle }: { pitch: string; handle: string }) {
   );
 }
 
+// IG-card-only "Couldn't send" — records status "undeliverable" through the SAME optimistic move
+// path as every other stage change (Kanban's move → onMove → POST /api/admin/hotel-outreach), so
+// failures snap back with the standard error chip. Hidden once the card is already there.
+function CouldntSend({ hotelId }: { hotelId: string }) {
+  const { move, statusOf } = useKanbanMove();
+  if (statusOf(hotelId) === "undeliverable") return null;
+  return (
+    <button
+      onClick={() => move(hotelId, "undeliverable")}
+      style={{ border: "1px solid var(--line)", background: "none", color: "var(--muted)", borderRadius: 7, padding: "5px 11px", fontSize: 12, fontWeight: 700, cursor: "pointer", lineHeight: 1.4 }}
+    >
+      Couldn&apos;t send
+    </button>
+  );
+}
+
 export default function BadgeBoard({ rows, channelById }: { rows: BadgeBoardRow[]; channelById: Record<string, string> }) {
   async function onMove(hotelId: string, status: string) {
     const r = await fetch("/api/admin/hotel-outreach", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hotel_id: hotelId, status, channel: channelById[hotelId] }) });
@@ -90,7 +109,9 @@ export default function BadgeBoard({ rows, channelById }: { rows: BadgeBoardRow[
     const badge = (
       <span style={{ flex: "none", width: 40, height: 40, borderRadius: 8, background: cosyBadgeColor(h.score), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Fraunces, serif", fontSize: 15, fontWeight: 700 }}>{h.score.toFixed(1)}</span>
     );
-    const fallback = h.instagram ? <InstagramPitch pitch={h.pitch} handle={h.instagram} /> : <CopyPitch pitch={h.pitch} />;
+    const fallback = h.instagram
+      ? <><InstagramPitch pitch={h.pitch} handle={h.instagram} /><CouldntSend hotelId={h.hotelId} /></>
+      : <CopyPitch pitch={h.pitch} />;
     const body = h.email ? (
       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>{badge}</div>
