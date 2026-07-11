@@ -44,9 +44,40 @@ export async function translate(text: string, targetLocale: string): Promise<str
 
   const protectedText = protect(text);
   let translated = protectedText;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const deeplKey = process.env.DEEPL_API_KEY;
   const googleKey = process.env.GOOGLE_TRANSLATE_API_KEY;
-  // Try DeepL first
+  // Claude first (key already provisioned for scoring; better register control than MT, and the
+  // glossary below keeps brand vocabulary stable — founder decision 2026-07-12). Haiku: this is
+  // volume translation, cached forever per string in the translations table.
+  if (anthropicKey) {
+    try {
+      const glossary =
+        target === 'sv'
+          ? ' Render "cosy" and its forms as "mysig/mysigt/mysiga" (never "gemytlig" or "hemtrevlig").'
+          : '';
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          system:
+            `Translate the user's text into the language with ISO code "${target}" for a hotel-discovery website. ` +
+            'Natural, idiomatic marketing register, not literal. Never translate: brand names (Got Cosy), hotel names, ' +
+            'city names beyond their standard exonym, placeholder tokens like __PROTECT_0__ or {city}, URLs, or numbers.' +
+            glossary +
+            ' Reply with ONLY the translation, no quotes, no commentary.',
+          messages: [{ role: 'user', content: protectedText }],
+        }),
+        signal: AbortSignal.timeout(20000),
+      });
+      const json = await res.json();
+      const out = Array.isArray(json?.content) ? json.content.map((b: { text?: string }) => b?.text || '').join('').trim() : '';
+      if (res.ok && out) translated = out;
+    } catch {}
+  }
+  // Try DeepL next
   if (deeplKey) {
     try {
       const form = new URLSearchParams();
@@ -60,7 +91,7 @@ export async function translate(text: string, targetLocale: string): Promise<str
       if (out) translated = out;
     } catch {}
   }
-  // Fallback to Google Translate v2
+  // Fallback to Google Translate v2 (only if neither Claude nor DeepL produced output)
   if (translated === protectedText && googleKey) {
     try {
       const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${googleKey}`, {
