@@ -173,7 +173,7 @@ export default async function StudyPage({ params }: { params: { locale: string }
         <p>If you run a hotel, that reject list is a free playbook; we turned it into one: <a href={`/${L}/make-your-hotel-look-cosy`}>how to make your hotel look cosy online</a>.</p>
 
         <h2>How we measure it, and where it&apos;s fuzzy</h2>
-        <p>Each hotel is scored 0–10 by AI reading its real photos and guest reviews, weighting cosiness signals: warm light, natural materials, fireplaces, intimate scale, and the language guests use when they feel genuinely welcomed rather than processed.</p>
+        <p>Each hotel is scored from 0 to 10 by AI reading its real photos and guest reviews, weighting cosiness signals: warm light, natural materials, fireplaces, intimate scale, and the language guests use when they feel genuinely welcomed rather than processed.</p>
         <p><strong>The honest caveat:</strong> cosiness is subjective. Our score agrees with human raters about as well as two humans agree with each other; no further, because there isn&apos;t a further. We&apos;d rather show you a transparent, consistent score than pretend cosiness is an exact science.</p>
       </div>
 

@@ -31,5 +31,5 @@ export const CITY_COPY: Record<string, string> = {
 };
 
 export function cityCopy(city: string): string {
-  return CITY_COPY[city] || `Find the cosiest, most characterful boutique hotels in ${city} — small independent stays scored 0–10 by AI for warmth, character and intimacy, with real photos and honest cosy scores.`;
+  return CITY_COPY[city] || `Find the cosiest, most characterful boutique hotels in ${city} — small independent stays scored from 0 to 10 by AI for warmth, character and intimacy, with real photos and honest cosy scores.`;
 }

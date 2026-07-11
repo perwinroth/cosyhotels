@@ -130,7 +130,7 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/${concept.slug}`;
   const title = `Cosy hotels ${phrase}, AI-ranked worldwide`;
-  const description = `The cosiest hotels ${phrase}, from around the world, each AI-scored 0–10 for warmth and character, ranked best first.`;
+  const description = `The cosiest hotels ${phrase}, from around the world, each AI-scored from 0 to 10 for warmth and character, ranked best first.`;
   return {
     title, description,
     alternates: { canonical: url },

@@ -106,7 +106,7 @@ export default async function CosinessReport({ params }: { params: Promise<{ loc
     about: {
       "@type": "Dataset",
       name: "Got Cosy hotel cosiness dataset",
-      description: `${TOTAL.toLocaleString("en-GB")} hotels scored 0–10 for cosiness from ${REVIEWS.toLocaleString("en-GB")} guest reviews and vetted photos. Snapshot ${SNAPSHOT}.`,
+      description: `${TOTAL.toLocaleString("en-GB")} hotels scored from 0 to 10 for cosiness from ${REVIEWS.toLocaleString("en-GB")} guest reviews and vetted photos. Snapshot ${SNAPSHOT}.`,
       creator: { "@type": "Organization", name: "Got Cosy" },
       variableMeasured: ["cosy score (0-10)", "cosy signals", "city", "country", "star rating"],
     },

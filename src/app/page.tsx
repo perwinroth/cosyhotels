@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   title: "Got Cosy? AI-rated cosy hotels",
-  description: "Hotels ranked by cosiness, scored 0–10 by AI for warmth, character and intimacy, not just stars.",
+  description: "Hotels ranked by cosiness, scored from 0 to 10 by AI for warmth, character and intimacy, not just stars.",
   openGraph: {
     title: "Got Cosy? AI-rated cosy hotels",
     description: "Hotels ranked by cosiness, not just stars.",

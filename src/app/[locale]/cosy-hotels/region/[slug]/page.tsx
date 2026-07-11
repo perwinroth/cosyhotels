@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: { locale: string; s
   const url = `/en/cosy-hotels/region/${region.slug}`;
   const place = regionLabel(region);
   const title = `Cosy hotels in ${place}, AI-ranked for cosiness`;
-  const description = `The cosiest boutique and independent hotels across ${place}, each AI-scored 0–10 for warmth, character and intimacy; ranked best first, not by stars.`;
+  const description = `The cosiest boutique and independent hotels across ${place}, each AI-scored from 0 to 10 for warmth, character and intimacy; ranked best first, not by stars.`;
   const thin = (await loadRegionCount(region)) < HUB_MIN;
   return {
     title, description,
