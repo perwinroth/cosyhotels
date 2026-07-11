@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { CONCEPTS, CONCEPT_BY_SLUG, REGEX_FACET_SLUGS, cityCollectionMin } from "@/lib/travellerFit";
+import { CONCEPTS, CONCEPT_BY_SLUG, REGEX_FACET_SLUGS, cityCollectionMin, conceptCityBlocked } from "@/lib/travellerFit";
 import { facetBySlug } from "@/lib/facets";
 import { cityToSlug, cityFromSlug } from "@/lib/citySlug";
 import { displayCity, isLatin } from "@/lib/placeText";
@@ -48,6 +48,9 @@ const loadConcept = cache(async (conceptSlug: string): Promise<{ hotels: Match[]
   const hotels: Match[] = [];
   const tallyCity = (city: string) => {
     if (!city) return;
+    // Experiment-control exclusion: NEW rising-intent facets never list a control-market city
+    // (its city page structurally does not exist — see conceptCityBlocked).
+    if (conceptCityBlocked(concept, city)) return;
     // Tally per KNOWN city (round-trips cleanly), so a per-city link never points at a 404.
     const base = cityToSlug(city).replace(/-cosy-hotel$/, "");
     if (!cityFromSlug(`${base}-cosy-hotel`)) return;

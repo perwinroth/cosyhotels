@@ -17,7 +17,7 @@ import { FACETS, matchesFacet } from "@/lib/facets";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/components/HotelGraph";
 import TravellerFit from "@/components/TravellerFit";
-import { CONCEPT_BY_SLUG, cityCollectionMin, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
+import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
 import { loadCityCosyHotels, loadConceptAssignments, conceptMembers } from "@/lib/seo/cityHotels";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
@@ -189,6 +189,9 @@ export default async function HotelDetail({ params }: Props) {
     // 2, rising-intent facets → 5, per cityCollectionMin), so only link facets where this hotel +
     // its peers clear it — guarantees the /cosy-hotels/[facet]/[city] page won't 404.
     for (const f of FACETS) {
+      // Experiment-control exclusion: a NEW rising-intent facet's control-market city page does
+      // not exist (conceptCityBlocked), so never link it. Legacy 5 unaffected.
+      if (conceptCityBlocked(CONCEPT_BY_SLUG[f.slug], cityName)) continue;
       const self = matchesFacet(f, (scoreRow?.signals as string[] | null) ?? null, cosyDescription) ? 1 : 0;
       const peerMatches = rows.filter((r) => matchesFacet(f, r.signals, r.description)).length;
       const min = cityCollectionMin(CONCEPT_BY_SLUG[f.slug]);
@@ -227,7 +230,9 @@ export default async function HotelDetail({ params }: Props) {
         const cityAssignments = await loadConceptAssignments(collectionSlugs, cityRes.hotels.map((h) => h.id));
         for (const slug of collectionSlugs) {
           const c = CONCEPT_BY_SLUG[slug];
-          if (c) cityMemberCount.set(slug, conceptMembers(c, cityRes.hotels, cityAssignments).length);
+          // Experiment-control exclusion: a blocked (concept, city) page 404s, so its member count
+          // here stays 0 and the badge falls back to the always-on theme hub link below.
+          if (c && !conceptCityBlocked(c, cityRes.cityName)) cityMemberCount.set(slug, conceptMembers(c, cityRes.hotels, cityAssignments).length);
         }
       }
     }

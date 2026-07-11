@@ -9,7 +9,7 @@ import ShareButton from "@/components/ShareButton";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { populatedCities } from "@/lib/social";
 import { FACETS, matchesFacet } from "@/lib/facets";
-import { CONCEPT_BY_SLUG, cityCollectionMin } from "@/lib/travellerFit";
+import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked } from "@/lib/travellerFit";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { liveCosyCountForCityName, aliasCity } from "@/lib/seo/cityHotels";
 import Image from "next/image";
@@ -425,7 +425,8 @@ export default async function GuidePage({ params }: Props) {
   // page's own gate (legacy 5 → 2, rising-intent facets → 5, per cityCollectionMin), so a guide
   // never links a facet/city page that 404s.
   const citySlugBase = cityToSlug(cityName).replace(/-cosy-hotel$/, '');
-  const availableFacets = FACETS.filter((f) => chosen.filter((h) => matchesFacet(f, h._signals, h.snippet)).length >= cityCollectionMin(CONCEPT_BY_SLUG[f.slug]));
+  // (conceptCityBlocked: a NEW rising-intent facet's control-market city page does not exist.)
+  const availableFacets = FACETS.filter((f) => !conceptCityBlocked(CONCEPT_BY_SLUG[f.slug], cityName) && chosen.filter((h) => matchesFacet(f, h._signals, h.snippet)).length >= cityCollectionMin(CONCEPT_BY_SLUG[f.slug]));
   // Internal linking: other cosy city guides (crawl depth + link equity + keeps users on site).
   const otherCities = (await populatedCities(db))
     .filter((c) => c.city.toLowerCase() !== cityName.toLowerCase())
