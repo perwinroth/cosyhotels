@@ -27,6 +27,20 @@ const nextConfig: NextConfig = {
         destination: "/:locale/guides/new-york-cosy-hotel",
         permanent: true,
       },
+      // IG badge wave (2026-07-11): the DM's asset link and the graphic's printed verification line
+      // are deliberately locale-less ("gotcosy.com/hotels/x" reads cleaner than "/en/hotels/x"), but
+      // only /[locale]/... routes exist — so 308 the bare paths to their /en twins. NB: neither path
+      // collides with an existing top-level route (checked: no src/app/hotels or src/app/for-hotels).
+      {
+        source: "/for-hotels/assets/:slug",
+        destination: "/en/for-hotels/assets/:slug",
+        permanent: true,
+      },
+      {
+        source: "/hotels/:slug",
+        destination: "/en/hotels/:slug",
+        permanent: true,
+      },
     ];
   },
 };

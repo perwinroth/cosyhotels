@@ -6,7 +6,10 @@ import { getServerSupabase } from "@/lib/supabase/server";
 // the row may not exist yet (the list is derived live; status is created on first change).
 export async function POST(req: Request) {
   const { hotel_id, status, channel } = await req.json().catch(() => ({}));
-  const allowed = ["queued", "contacted", "replied", "won", "won_confirmed", "declined"];
+  // "undeliverable" = the IG board's "Couldn't send" (closed DMs / dead handle) — the hotel never
+  // saw the pitch, so it's tracked apart from "declined". NB: if hotel_outreach has a status CHECK
+  // constraint it must include 'undeliverable' (see the SQL printed by scripts/seed-ig-outreach.mjs).
+  const allowed = ["queued", "contacted", "replied", "won", "won_confirmed", "declined", "undeliverable"];
   if (!hotel_id || !allowed.includes(status)) return NextResponse.json({ error: "bad request" }, { status: 400 });
   const db = getServerSupabase();
   if (!db) return NextResponse.json({ error: "db not configured" }, { status: 500 });
