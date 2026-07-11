@@ -35,10 +35,12 @@ test("every facet slug has a collection-enabled concept and, for regex facets, a
   }
 });
 
-test("REGEX_FACET_SLUGS = the legacy five plus quiet; rising facets keep the >=5 city gate", () => {
+test("REGEX_FACET_SLUGS = the legacy five plus the rising three; rising facets keep the >=5 city gate", () => {
   for (const slug of LEGACY_FACET_SLUGS) assert.ok(REGEX_FACET_SLUGS.has(slug));
-  assert.ok(REGEX_FACET_SLUGS.has("quiet"));
-  assert.equal(cityCollectionMin(CONCEPT_BY_SLUG["quiet"]), 5, "quiet must NOT inherit the legacy 2 gate");
+  for (const slug of ["quiet", "reading-retreat", "farm-stay"]) {
+    assert.ok(REGEX_FACET_SLUGS.has(slug), slug);
+    assert.equal(cityCollectionMin(CONCEPT_BY_SLUG[slug]), 5, `${slug} must NOT inherit the legacy 2 gate`);
+  }
 });
 
 // ── quiet: over-match guards (HAZARD: bare "sleep" and embedded "calm" must never match) ──
@@ -97,6 +99,54 @@ test("only quiet defines an intro override; the legacy five render their unchang
   assert.ok(quiet.intro && quiet.intro.length > 0);
 });
 
+// ── reading-retreat: over-match guards (HAZARD: booking/booked and the city of Reading) ──
+
+const reading = facetBySlug("reading-retreat")!;
+
+test("'booking a room' and booking/booked language do NOT match reading-retreat", () => {
+  assert.equal(matchesFacet(reading, null, "booking a room is easy"), false);
+  assert.equal(matchesFacet(reading, null, "guests book again before they've even left"), false);
+  assert.equal(matchesFacet(reading, ["staff book train tickets for guests"], "fully booked in summer"), false);
+});
+
+test("the city name Reading, England can never match reading-retreat", () => {
+  assert.equal(matchesFacet(reading, null, "a lovely hotel in Reading, England, close to the station"), false);
+  assert.equal(matchesFacet(reading, ["central Reading location"], "Reading town centre is a short walk"), false);
+});
+
+test("reading-retreat positives: real library/book evidence matches", () => {
+  assert.equal(matchesFacet(reading, null, "a library with armchairs"), true);
+  assert.equal(matchesFacet(reading, ["books everywhere throughout the hotel"], null), true);
+  assert.equal(matchesFacet(reading, null, "an extensive book collection instead of TVs"), true);
+  assert.equal(matchesFacet(reading, null, "settling in with a book by the fire"), true);
+  assert.equal(matchesFacet(reading, ["reading nook with views"], ""), true);
+  assert.equal(matchesFacet(reading, null, "a window seat overlooking the canal"), true);
+  assert.equal(matchesFacet(reading, null, "fireside lounges"), true);
+});
+
+// ── farm-stay: over-match guards (HAZARD: wine-country city hotels that are not farms) ──
+
+const farm = facetBySlug("farm-stay")!;
+
+test("'wine list' and vineyard-view language do NOT match farm-stay", () => {
+  assert.equal(matchesFacet(farm, null, "an excellent wine list in the restaurant"), false);
+  assert.equal(matchesFacet(farm, null, "vineyard views from the rooftop bar"), false);
+  assert.equal(matchesFacet(farm, ["winery tours bookable at reception"], "close to Martha's Vineyard"), false);
+});
+
+test("farm-stay positives: real farm/agriturismo evidence matches", () => {
+  assert.equal(matchesFacet(farm, null, "a working masseria"), true);
+  assert.equal(matchesFacet(farm, ["agriturismo in the hills"], null), true);
+  assert.equal(matchesFacet(farm, null, "a restored farmhouse among olive groves"), true);
+  assert.equal(matchesFacet(farm, null, "a family farm-stay with orchards"), true);
+  assert.equal(matchesFacet(farm, ["working farm estate"], ""), true);
+});
+
+test("neither reading-retreat nor farm-stay defines an intro override (data-led intro renders)", () => {
+  assert.equal(reading.intro, undefined);
+  assert.equal(farm.intro, undefined);
+});
+
 // ── experiment-control exclusion: NEW facets never mint control-market pages (coordinator rule) ──
 
 test("control-market city pages are excluded for the NEW quiet facet; New York survives", () => {
@@ -131,5 +181,17 @@ test("the exclusion is structural: every enumeration surface consults conceptCit
   ]) {
     const src = readFileSync(join(__dirname, "..", f), "utf8");
     assert.ok(src.includes("conceptCityBlocked"), `${f} must consult conceptCityBlocked`);
+  }
+});
+
+test("farm-stay Venice and reading-retreat York pages are excluded; New York survives for both", () => {
+  // The data check found farm-stay Venice at 5 matches (would otherwise mint a page) and
+  // reading-retreat York at 4 (one hotel away from minting) — both must be structurally blocked.
+  for (const slug of ["farm-stay", "reading-retreat"]) {
+    const c = CONCEPT_BY_SLUG[slug];
+    for (const city of ["York", "Fez", "Venice", "Savannah"]) {
+      assert.equal(conceptCityBlocked(c, city), true, `${slug}/${city} must be blocked`);
+    }
+    assert.equal(conceptCityBlocked(c, "New York"), false, `${slug}/New York must survive`);
   }
 });
