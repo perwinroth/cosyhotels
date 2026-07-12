@@ -45,6 +45,18 @@ async function pushTelegram(text: string): Promise<boolean> {
   }
 }
 
+// Failure alert (gap-sweep finding): every ok:false exit below returned silently, so a dead
+// token read as a quiet week. Ping Telegram before returning so the founder learns within one
+// cron cycle. Reuses pushTelegram (best-effort); dry runs never alert; never throws.
+async function alertFailure(reason: string, dry: boolean): Promise<void> {
+  if (dry) return;
+  try {
+    await pushTelegram(`⚠️ outreach-sync FAILED: ${reason}`.slice(0, 200));
+  } catch {
+    /* fail-open: alerting must never break the response */
+  }
+}
+
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -56,6 +68,7 @@ export async function GET(req: Request) {
 
   const db = getServerSupabase();
   if (!db) {
+    await alertFailure("Supabase not configured", dry);
     return NextResponse.json({ from: "outreach-sync", ok: false, error: "Supabase not configured" }, { status: 500 });
   }
 
@@ -66,11 +79,9 @@ export async function GET(req: Request) {
     accessToken = await getAccessToken();
   } catch (e) {
     const scopeHint = "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN";
-    return NextResponse.json({
-      from: "outreach-sync",
-      ok: false,
-      error: e instanceof GmailScopeError ? scopeHint : `${scopeHint} (${String(e instanceof Error ? e.message : e)})`,
-    });
+    const error = e instanceof GmailScopeError ? scopeHint : `${scopeHint} (${String(e instanceof Error ? e.message : e)})`;
+    await alertFailure(error, dry);
+    return NextResponse.json({ from: "outreach-sync", ok: false, error });
   }
 
   // Pull outreach cards still in the two auto-advanceable states, plus their hotel email.
@@ -79,6 +90,7 @@ export async function GET(req: Request) {
     .select("hotel_id, status")
     .in("status", ["queued", "contacted"]);
   if (rowsErr) {
+    await alertFailure(rowsErr.message, dry);
     return NextResponse.json({ from: "outreach-sync", ok: false, error: rowsErr.message }, { status: 500 });
   }
 
@@ -93,6 +105,7 @@ export async function GET(req: Request) {
       .select("id, email")
       .in("id", hotelIds);
     if (hotelsErr) {
+      await alertFailure(hotelsErr.message, dry);
       return NextResponse.json({ from: "outreach-sync", ok: false, error: hotelsErr.message }, { status: 500 });
     }
     for (const h of (hotels || []) as Array<{ id: string; email: string | null }>) {
@@ -128,7 +141,10 @@ export async function GET(req: Request) {
               .update({ status: "contacted", contacted_at: now, updated_at: now })
               .eq("hotel_id", row.hotel_id)
               .eq("status", "queued"); // guard: never clobber a concurrent human change
-            if (error) return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+            if (error) {
+              await alertFailure(error.message, dry);
+              return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+            }
           }
           advancedContacted++;
         }
@@ -141,7 +157,10 @@ export async function GET(req: Request) {
               .update({ status: "replied", updated_at: new Date().toISOString() })
               .eq("hotel_id", row.hotel_id)
               .eq("status", "contacted");
-            if (error) return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+            if (error) {
+              await alertFailure(error.message, dry);
+              return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+            }
           }
           advancedReplied++;
         }
@@ -150,14 +169,13 @@ export async function GET(req: Request) {
   } catch (e) {
     // A scope error can surface mid-loop (e.g. token downgraded); return graceful 200 with the hint.
     if (e instanceof GmailScopeError) {
-      return NextResponse.json({
-        from: "outreach-sync",
-        ok: false,
-        error: "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN",
-        checked,
-      });
+      const error = "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN";
+      await alertFailure(error, dry);
+      return NextResponse.json({ from: "outreach-sync", ok: false, error, checked });
     }
-    return NextResponse.json({ from: "outreach-sync", ok: false, error: String(e instanceof Error ? e.message : e), checked }, { status: 502 });
+    const error = String(e instanceof Error ? e.message : e);
+    await alertFailure(error, dry);
+    return NextResponse.json({ from: "outreach-sync", ok: false, error, checked }, { status: 502 });
   }
 
   // ── PR-board targets (founder ask 2026-07-09: queued→contacted→replied advance automatically) ──
@@ -181,7 +199,10 @@ export async function GET(req: Request) {
         if (!dry) {
           const now = new Date().toISOString();
           const { error } = await db.from("outreach").upsert({ id: t.id, status: "contacted", updated_at: now });
-          if (error) return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+          if (error) {
+            await alertFailure(error.message, dry);
+            return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+          }
         }
         prContacted++;
         cur = "contacted";
@@ -194,16 +215,23 @@ export async function GET(req: Request) {
             .update({ status: "replied", updated_at: new Date().toISOString() })
             .eq("id", t.id)
             .eq("status", "contacted");
-          if (error) return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+          if (error) {
+            await alertFailure(error.message, dry);
+            return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
+          }
         }
         prReplied++;
       }
     }
   } catch (e) {
     if (e instanceof GmailScopeError) {
-      return NextResponse.json({ from: "outreach-sync", ok: false, error: "Gmail needs readonly scope — re-run scripts/gmail-auth.mjs", checked });
+      const error = "Gmail needs readonly scope — re-run scripts/gmail-auth.mjs";
+      await alertFailure(error, dry);
+      return NextResponse.json({ from: "outreach-sync", ok: false, error, checked });
     }
-    return NextResponse.json({ from: "outreach-sync", ok: false, error: String(e instanceof Error ? e.message : e), checked }, { status: 502 });
+    const error = String(e instanceof Error ? e.message : e);
+    await alertFailure(error, dry);
+    return NextResponse.json({ from: "outreach-sync", ok: false, error, checked }, { status: 502 });
   }
 
   const advanced = advancedContacted + advancedReplied + prContacted + prReplied;
