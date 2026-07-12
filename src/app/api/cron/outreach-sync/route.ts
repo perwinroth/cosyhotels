@@ -85,10 +85,15 @@ export async function GET(req: Request) {
   }
 
   // Pull outreach cards still in the two auto-advanceable states, plus their hotel email.
+  // EMAIL-TRACK ONLY: mailbox evidence can only ever advance rows with an email identity; the
+  // 2026-07-11 seeding added 1,639 instagram-channel rows and the unfiltered select pushed the
+  // downstream hotels .in() past PostgREST's URL limit -> 400 Bad Request (same class as the
+  // 2026-07-02 city-scores incident). IG rows are founder-marked on the board, never here.
   const { data: rows, error: rowsErr } = await db
     .from("hotel_outreach")
-    .select("hotel_id, status")
-    .in("status", ["queued", "contacted"]);
+    .select("hotel_id, status, channel")
+    .in("status", ["queued", "contacted"])
+    .or("channel.is.null,channel.eq.email");
   if (rowsErr) {
     await alertFailure(rowsErr.message, dry);
     return NextResponse.json({ from: "outreach-sync", ok: false, error: rowsErr.message }, { status: 500 });
@@ -100,15 +105,20 @@ export async function GET(req: Request) {
   // Map hotel_id → email (only hotels with a usable email are processable).
   const emailByHotel = new Map<string, string>();
   if (hotelIds.length) {
-    const { data: hotels, error: hotelsErr } = await db
-      .from("hotels")
-      .select("id, email")
-      .in("id", hotelIds);
-    if (hotelsErr) {
-      await alertFailure(hotelsErr.message, dry);
-      return NextResponse.json({ from: "outreach-sync", ok: false, error: hotelsErr.message }, { status: 500 });
+    // Chunked defensively: .in() with hundreds of UUIDs overflows the request URL (400).
+    const hotels: Array<{ id: string; email: string | null }> = [];
+    for (let i = 0; i < hotelIds.length; i += 150) {
+      const { data: chunk, error: hotelsErr } = await db
+        .from("hotels")
+        .select("id, email")
+        .in("id", hotelIds.slice(i, i + 150));
+      if (hotelsErr) {
+        await alertFailure(hotelsErr.message, dry);
+        return NextResponse.json({ from: "outreach-sync", ok: false, error: hotelsErr.message }, { status: 500 });
+      }
+      hotels.push(...((chunk || []) as Array<{ id: string; email: string | null }>));
     }
-    for (const h of (hotels || []) as Array<{ id: string; email: string | null }>) {
+    for (const h of hotels) {
       const email = (h.email || "").trim();
       if (email) emailByHotel.set(String(h.id), email);
     }
