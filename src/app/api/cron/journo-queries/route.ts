@@ -112,6 +112,19 @@ async function pushTelegram(text: string): Promise<boolean> {
   }
 }
 
+// Failure alert (gap-sweep finding): every ok:false exit below returned silently, so a dead
+// token or missing key read as a quiet week. Ping Telegram before returning so the founder
+// learns within one cron cycle. Reuses pushTelegram (best-effort); dry runs never alert;
+// never throws.
+async function alertFailure(reason: string, dry: boolean): Promise<void> {
+  if (dry) return;
+  try {
+    await pushTelegram(`⚠️ journo-queries FAILED: ${reason}`.slice(0, 200));
+  } catch {
+    /* fail-open: alerting must never break the response */
+  }
+}
+
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -123,9 +136,11 @@ export async function GET(req: Request) {
 
   const db = getServerSupabase();
   if (!db) {
+    await alertFailure("Supabase not configured", dry);
     return NextResponse.json({ from: "journo-queries", ok: false, error: "Supabase not configured" }, { status: 500 });
   }
   if (!process.env.ANTHROPIC_API_KEY) {
+    await alertFailure("ANTHROPIC_API_KEY not set — add it to Vercel env.", dry);
     return NextResponse.json({ from: "journo-queries", ok: false, error: "ANTHROPIC_API_KEY not set — add it to Vercel env." });
   }
 
@@ -138,11 +153,9 @@ export async function GET(req: Request) {
     accessToken = await getDigestAccessToken();
   } catch (e) {
     const scopeHint = "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs (as perwinroth@gmail.com) and update GMAIL_DIGEST_REFRESH_TOKEN";
-    return NextResponse.json({
-      from: "journo-queries",
-      ok: false,
-      error: e instanceof GmailScopeError ? scopeHint : `${scopeHint} (${String(e instanceof Error ? e.message : e)})`,
-    });
+    const error = e instanceof GmailScopeError ? scopeHint : `${scopeHint} (${String(e instanceof Error ? e.message : e)})`;
+    await alertFailure(error, dry);
+    return NextResponse.json({ from: "journo-queries", ok: false, error });
   }
 
   // Two mailboxes, two source sets: HARO/SOS/Featured digests live in the DIGEST mailbox
@@ -161,9 +174,13 @@ export async function GET(req: Request) {
     }
   } catch (e) {
     if (e instanceof GmailScopeError) {
-      return NextResponse.json({ from: "journo-queries", ok: false, error: "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN" });
+      const error = "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN";
+      await alertFailure(error, dry);
+      return NextResponse.json({ from: "journo-queries", ok: false, error });
     }
-    return NextResponse.json({ from: "journo-queries", ok: false, error: String(e instanceof Error ? e.message : e) }, { status: 502 });
+    const error = String(e instanceof Error ? e.message : e);
+    await alertFailure(error, dry);
+    return NextResponse.json({ from: "journo-queries", ok: false, error }, { status: 502 });
   }
 
   // Fetch + parse every digest message into individual queries.
@@ -174,7 +191,9 @@ export async function GET(req: Request) {
       msg = await getMessagePlainText(id, token);
     } catch (e) {
       if (e instanceof GmailScopeError) {
-        return NextResponse.json({ from: "journo-queries", ok: false, error: "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN" });
+        const error = "Gmail not configured / needs readonly scope — re-run scripts/gmail-auth.mjs and update GMAIL_REFRESH_TOKEN";
+        await alertFailure(error, dry);
+        return NextResponse.json({ from: "journo-queries", ok: false, error });
       }
       continue; // one bad message shouldn't kill the whole run
     }
@@ -189,7 +208,10 @@ export async function GET(req: Request) {
   let existingIds = new Set<string>();
   if (parsed.length) {
     const { data: existing, error } = await db.from("journo_queries").select("id").in("id", parsed.map((q) => q.id));
-    if (error) return NextResponse.json({ from: "journo-queries", ok: false, error: error.message }, { status: 500 });
+    if (error) {
+      await alertFailure(error.message, dry);
+      return NextResponse.json({ from: "journo-queries", ok: false, error: error.message }, { status: 500 });
+    }
     existingIds = new Set((existing || []).map((r) => (r as { id: string }).id));
   }
   const fresh = parsed.filter((q) => !existingIds.has(q.id));
@@ -267,7 +289,10 @@ export async function GET(req: Request) {
 
   if (rows.length) {
     const { error } = await db.from("journo_queries").upsert(rows, { onConflict: "id", ignoreDuplicates: true });
-    if (error) return NextResponse.json({ from: "journo-queries", ok: false, error: error.message }, { status: 500 });
+    if (error) {
+      await alertFailure(error.message, dry);
+      return NextResponse.json({ from: "journo-queries", ok: false, error: error.message }, { status: 500 });
+    }
   }
 
   if (notifyLines.length) {
