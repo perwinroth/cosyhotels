@@ -26,6 +26,30 @@ export const FACETS: Facet[] = [
     intro: "The quietcation, or sleep tourism, trend has a point: a proper night's rest is now the main reason many travellers book a trip, and no amount of decor rescues a noisy room.",
     re: /\b(?:quiet|peaceful|tranquil|hushed|silent|silence|serene|restful|calm|calming|secluded)\b|away from the (?:crowd|hustle|bustle)|off the beaten/i,
   },
+
+  // reading-retreat — RISING INTENT: 91% of travellers want reading-and-relaxation trips (Expedia
+  // Unpack '26). Tuned against live data 2026-07-12 (149 of 6,345 live hotels): bare \bbook\b was
+  // DROPPED after the data check surfaced "book a return stay"/"book train tickets" false
+  // positives (71 singular-book hits, many junk); kept are plural \bbooks\b, "book collection" and
+  // "with a book" (all clean in the random sample). "reading" only matches followed by
+  // room/nook/corner/chair, so the city of Reading, England can never match, and
+  // "booking"/"booked" never match (\bbooks\b requires a word boundary after the s).
+  {
+    slug: "reading-retreat", label: "for a reading retreat", noun: "a reading retreat",
+    re: /librar(?:y|ies)|\bbooks\b|book collection|with a book\b|reading (?:room|nook|corner|chair)|window seat|armchair|fireside/i,
+  },
+
+  // farm-stay (agriturismo) — RISING INTENT: 84% farm-stay interest (Expedia). Slug is "farm-stay"
+  // (the international search word); the label names agriturismo (the rising term). Tuned against
+  // live data 2026-07-12 (166 of 6,345 live hotels): vineyard/winery were DROPPED after the data
+  // check found 34 vineyard-only matches that are not farms (hotel names like "The Vineyard
+  // Hotel", the place name Martha's Vineyard, city hotels with "vineyard views"); "wine list"
+  // never matched and still can't. Overlap with the rustic concept (agriturismo|farmhouse) is
+  // intended, like spa/sauna.
+  {
+    slug: "farm-stay", label: "on a farm or agriturismo", noun: "farm life",
+    re: /agriturismo|farm[- ]?stay|farmhouse|working farm|masseria|olive (?:grove|trees)|orchard/i,
+  },
 ];
 
 export function facetBySlug(slug: string): Facet | undefined {
