@@ -91,13 +91,24 @@ export async function getTodayPlan(db: DB): Promise<{
     const ids = ((queued || []) as Array<{ hotel_id: string }>).map((r) => String(r.hotel_id));
     if (!ids.length) return { ...empty, reddit, sentToday };
 
-    // Pull the queued hotels' score + write-up + contact, best score first.
-    const { data } = await db
-      .from("cosy_scores")
-      .select("hotel_id, score, score_final, description, hotel:hotel_id!inner(slug, name, name_en, city, instagram, email)")
-      .in("hotel_id", ids)
-      .order("score", { ascending: false })
-      .limit(1000);
+    // Pull the queued hotels' score + write-up + contact, best score first. CHUNKED: the
+    // 2026-07-11 IG seed grew the queue to ~1,800 ids and a single .in() overflows the
+    // PostgREST URL (400 -> catch -> the board silently blanks; founder caught it 2026-07-12,
+    // same class as the outreach-sync fix and the June city-scores incident).
+    const rowsAll: unknown[] = [];
+    for (let i = 0; i < ids.length; i += 150) {
+      const { data: chunk } = await db
+        .from("cosy_scores")
+        .select("hotel_id, score, score_final, description, hotel:hotel_id!inner(slug, name, name_en, city, instagram, email)")
+        .in("hotel_id", ids.slice(i, i + 150))
+        .order("score", { ascending: false })
+        .limit(1000);
+      if (chunk) rowsAll.push(...(chunk as unknown[]));
+    }
+    // Re-sort across chunks (each chunk was sorted internally only).
+    const data = (rowsAll as Array<{ score: number | null; score_final: number | null }>).sort(
+      (a, b) => Number((b.score_final ?? b.score) || 0) - Number((a.score_final ?? a.score) || 0),
+    );
 
     type CRow = { hotel_id: string; score: number | null; score_final: number | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null; city: string | null; instagram: string | null; email: string | null } | null };
     const seen = new Set<string>();
