@@ -79,60 +79,214 @@ export const PR_ACTIONS: Record<string, PrAction> = {
     actionType: "email",
     priority: 5,
     priorityWhy: "Verified submissions inbox; the corrected 1-in-44 rarity hook is a clean trends story; top-tier authority.",
+    instructions: "PARKED, do not send. This card sits in batch-1b, which is formally parked until the eHotelier verdict lands (Lane-4 article submitted 2026-07-11; park recorded in HANDOVER-2026-07-12-FABLE5.md Part 3 and HANDOFF.md). What unparks it: the eHotelier editor says yes or no. Once that verdict arrives, this card gets a fresh pitch drafted to the 1-in-44 rarity trends angle (only 1 in 44 hotels is genuinely cosy: 404 of 17,727 score 7.0 or higher, 2.3 percent), taken through Challenger, then placed in the gotcosy@gmail.com Drafts folder for you to send Mon-Wed. No draft exists yet; the spec lives in the card row (cosyhotels/src/data/outreach.json, id travel-leisure-2) plus the corrected rarity wording in die-validation/memory/findings/pr-story-angles-2026-07-08.md. Two things to fix at draft time: the card note still says \"1-in-150\", which the Challenger killed (real figure is 1 in 44); and the on-file address submissions@travelandleisure.com must be re-verified against the live submissions page that morning (addresses rot; program rule). One-send-ever is clear: no Travel + Leisure row in the 2026-07-12 delivery audit and the card is still queued.",
   },
   "boutique-hotel-news-12": {
     outlet: "Boutique Hotel News",
     actionType: "email",
     priority: 4,
     priorityWhy: "Verified info@; its own note says the independents stat is tailor-made; Lane-2 host story in reserve.",
+    pitch: {
+      to: "eloise@internationalhospitality.media",
+      route: "Raw-verified 2026-07-12 at https://www.boutiquehotelnews.com/contact/ (curl, raw HTML): eloise@internationalhospitality.media is the ONLY address on the page, under the verbatim invite \"If you have a story to tell the industry, whether as an owner, developer, operator or supplier, email us!\" The board's old info@ address does not appear anywhere on the current page and is stale. Recipient is Eloise Hanson (raw-verified: meta author tag on the hooked article; listed on /authors/).",
+      subject: "What guests say independents do better",
+      body: `Hi Eloise,
+
+Your soft brands comment ends on a line I kept turning over: independents differentiate through design, F&B and local storytelling, but distribution decides who wins. The differentiation half is measurable. I run Got Cosy; we scored 17,727 hotels by reading what guests write in reviews.
+
+The gap is not subtle. Chain-affiliated hotels average 3.1 on our cosiness score; independents average 4.6 (367 chains scored).
+
+For BHN's owners and operators I can build a trade cut of what drives that gap in guest language, with the review evidence behind each part.
+
+Want it?
+
+Per
+gotcosy.com
+
+PS. One email only. If this isn't for you, I won't chase.`,
+    },
   },
   "phocuswire-10": {
     outlet: "PhocusWire",
     actionType: "email",
     priority: 4,
     priorityWhy: "Verified editor@; data-research-friendly trade; methodology-led Lane-2 pitch.",
+    pitch: {
+      to: "editor@phocuswire.com",
+      route: "editor@phocuswire.com (\"Main editorial: editor@phocuswire.com\" raw-verified 2026-07-12 on https://www.phocuswire.com/about-us, live page text via browser)",
+      subject: "Measuring hospitality's human last mile",
+      body: `Morgan Hines's commoditisation piece kept pulling me back to Narula's last mile: the execution layer stays human, and nobody puts a number on that layer.
+
+We do. I run Got Cosy: 17,727 hotels scored by reading what guests write, and the methodology is public.
+
+In the ten cosiest towns in our data, three hotels out of four have guests pointing to a person by name. In eight large cities it's closer to one in four. The differentiator is a person, and you can't standardise a person.
+
+For PhocusWire I can cut that by chains against independents and towns against cities, raw file on request.
+
+Worth a look?
+
+Per
+gotcosy.com
+
+PS. One email only. If this isn't for you, I won't chase.`,
+    },
   },
   "quartz-ideas-23": {
     outlet: "Quartz Ideas",
     actionType: "email",
     priority: 4,
     priorityWhy: "Public ideas@ inbox; formed economics angle (4.6 vs 3.1, 367 chains).",
+    pitch: {
+      to: "ideas@qz.com (VERIFY-AT-SEND)",
+      route: "VERIFY-AT-SEND. ideas@qz.com is the historic Quartz Ideas pitch inbox (per the qz.com/635686 \"complete guide to writing for Quartz Ideas\"), but it could NOT be raw-verified this session: qz.com/about/contact AND the guide page both return HTTP 403, so the address is search-summary-derived only. STRONGER caution before any send: Quartz was sold to Redbrick in April 2025 and fired every editorial staffer except the editor-in-chief and executive editor; the site now publishes largely AI-generated content (Futurism; TechCrunch 27 Jan 2025; Talking Biz News). The human-edited Ideas section is very likely defunct and ideas@qz.com likely unmonitored. Founder action: confirm a live human Ideas editor still exists before spending this exclusive cut. If it cannot be confirmed, PARK the card and redirect the economics-of-hospitality angle to a live business/data outlet (e.g. the Wave-2 Axios/Skift lane) rather than burning the one send on a dead inbox.",
+      subject: "Why chains can't buy back cosiness",
+      body: `I run Got Cosy. I scored 17,727 hotels by reading what guests wrote, and the gap I did not expect was the one between chains and independents.
+
+Across 367 chain hotels, the chains average 3.1 out of 10 for warmth. The independents average 4.6. What chains are built for, scale and sameness, is what guests stop writing warmly about.
+
+For Quartz Ideas I can build the economics cut: what independents sell that no capex buys back, with the review evidence behind each number (condensed from guest reviews by our scoring model, not verbatim quotes).
+
+Want it?
+
+Per
+gotcosy.com
+
+PS. One email only. If it's not for you, I won't chase.`,
+    },
   },
   "lonely-planet-3": {
     outlet: "Lonely Planet",
     actionType: "email",
     priority: 4,
     priorityWhy: "Verified editorial@; huge authority; Lane-3 towns cut as the backbone of a clusters piece, one finding only.",
+    pitch: {
+      to: "editorial@lonelyplanet.com (UNVERIFIED on LP's own current pages — confirm live address before send; see route note)",
+      route: "VERIFY-AT-SEND. The board's editorial@lonelyplanet.com could NOT be raw-verified on Lonely Planet's own live site: www.lonelyplanet.com/contact 301-redirects to a support portal (support.lonelyplanet.com/hc/en-us) that publishes no general editorial address; www.lonelyplanet.com/about/contribute shows no email or pitch instructions; the \"How do I become a Lonely Planet writer\" support article returns HTTP 403. editorial@lonelyplanet.com now appears ONLY in third-party writing-market listings (markets.litworth.com/publishers/1577, freedomwithwriting.com), and litworth itself states there is no single main editorial@ anymore, listing topic-specific editor addresses instead (e.g. sarah.stocking@, alicia.johnson@, melissa.yeager@lonelyplanet.com). LP restructured post-acquisition. Founder must confirm the current route at send: for this multi-destination clusters piece the \"multiple destinations / travel tips\" desk applies, so editorial@lonelyplanet.com is the best candidate if still live, otherwise the relevant Europe/destinations editor. Do not guess an address pattern.",
+      subject: "The cosiest towns beat Europe's capitals",
+      body: `I built Got Cosy expecting the big-name capitals to win: Rome, Paris, the cities your readers plan whole trips around. They didn't.
+
+We scored 17,727 hotels by reading what guests write. Town for town, small places like Alberobello and San Gimignano land cosier than the capitals that overshadow them.
+
+For your readers I can build a clusters piece: where cosiness collects on the map, with the town-by-town evidence behind it.
+
+Want it?
+
+Per
+gotcosy.com
+
+PS. One email only. If it's not for you, I won't chase.`,
+    },
   },
   "dwell-8": {
     outlet: "Dwell",
     actionType: "email",
     priority: 4,
     priorityWhy: "Verified edit@; Lane-4 design-cues angle matches their pitch guidance.",
+    pitch: {
+      to: "Dwell (edit@dwell.com)",
+      route: "edit@dwell.com — RAW-VERIFIED 2026-07-13",
+      subject: "Why small hotels read as cosy",
+      body: `I went hunting for the design features that make a hotel feel warm, and kept landing on one that isn't a decorative feature at all: how small the building is.
+
+I run Got Cosy. We scored 17,727 hotels by reading what guests wrote. In big cities, the stays guests call boutique average 6.30 out of 10 for warmth; the big-city average is 6.01. Small scale is what earns the feeling.
+
+For a piece on how design earns cosiness, I can build you a ranked cut of the cosiest big-city boutique stays, each with the condensed review evidence behind it.
+
+Worth a look?
+
+Per
+gotcosy.com
+
+PS. One email only. If it's not your thing, I won't chase.`,
+    },
   },
   "hospitality-design-hd-14": {
     outlet: "Hospitality Design",
     actionType: "email",
     priority: 4,
     priorityWhy: "Named exec editor email; Lane 4 plus the look-cosy asset.",
+    pitch: {
+      to: "Alissa Ponchione, Editor in Chief, Hospitality Design (the board's \"named exec editor\" — title updated from Executive Editor since the 2026-07-08 board build; raw-verified on the current masthead)",
+      route: "VERIFY-AT-SEND. hospitalitydesign.com/contact-us obfuscates every editorial email via Cloudflare email-protection, so no address is raw-verifiable from the source page. Strong candidate alissa.ponchione@hospitalitydesign.com appears only on third-party aggregators (ZoomInfo/Prowly), NOT the outlet page — do not send until the exact local-part is confirmed by unmasking the Cloudflare mailto on the live contact page (or a reply-scrape). Fallback if it will not unmask: Managing Editor Caitlin St John via the same page.",
+      subject: "The rarest detail in cosy hotels",
+      body: `I built Got Cosy by reading what guests write, hunting for the design moves that actually make a room feel warm, not the ones brochures brag about.
+
+We scored 17,727 hotels this way. One thing surprised me: a fireplace is the single rarest detail guests mention, yet it shows up about eight times more often in the stays that genuinely read as cosy, our top 2.3%.
+
+For HD I can build a ranked cut of the design signals guests name when a hotel feels warm, each with the review evidence behind it.
+
+Worth a look?
+
+Per
+gotcosy.com
+
+PS. One email only. If it's not for you, I won't chase.`,
+    },
   },
   "hospitality-interiors-26": {
     outlet: "Hospitality Interiors",
     actionType: "email",
     priority: 4,
     priorityWhy: "Named editor email; a perfect practical feature per its note.",
+    pitch: {
+      to: "Vicky Doe, Editor, Hospitality Interiors <vicky@lewisbusinessmedia.co.uk>",
+      route: "RAW-VERIFIED. Editorial address vicky@lewisbusinessmedia.co.uk (Vicky Doe, Editor) extracted as the literal string from a raw curl of https://www.hospitality-interiors.net/contact-us/ (not a summarising fetch). Contact page is the outlet's own current feature-idea route. Send per canon from Got Cosy <per@gotcosy.com> via the gotcosy@gmail.com mailbox.",
+      subject: "What makes a hotel room feel cosy",
+      body: `I run Got Cosy. For months I've been reading what hotel guests actually write about their rooms: not the fit-out spec, the feeling it leaves. That's your patch, so here's what surfaced.
+
+We scored 17,727 hotels for cosiness from their reviews. The independent, owner-shaped hotels beat the chains for it, 4.6 to 3.1. Character reads as warmth; the standardised room rarely does.
+
+For your pages I can build a practical piece: the design choices that actually move guests to call a room cosy, each with the review evidence behind it. The calm, characterful room people now go looking for, made concrete.
+
+Worth a look?
+
+Per
+gotcosy.com`,
+    },
   },
   "travelperk-trends-statistics-b19": {
     outlet: "TravelPerk stats hub",
     actionType: "email",
     priority: 4,
     priorityWhy: "Public press@; high DR, likely dofollow, hyperlinks originals; exactly our citation goal.",
+    pitch: {
+      to: "Perk media team (press@perk.com)",
+      route: "press@perk.com — RAW-VERIFIED 2026-07-13 at https://www.perk.com/press/ (\"For interviews, press requests or more information, please reach out to our media team\"). travelperk.com/press/ issues a 301 to perk.com/press/: the brand has rebranded from TravelPerk to Perk. FOUNDER-CONFIRM-FIT-BEFORE-SEND (see register): the outlet's focus is now corporate travel/expense, not the leisure travel-stats hub this card assumed.",
+      subject: "What a hotel's stars don't tell you",
+      body: `I built Got Cosy because a hotel's star rating never told me the thing I actually wanted to know: would the place feel warm, or like an airport lounge. So we read the guest reviews instead.
+
+We scored 17,727 hotels on how cosy they feel. Not one clears an 8 out of 10, and only 1 in 44 reaches a 7. Genuine warmth turns out to be rare, and it tracks almost nothing a hotel puts on its own website.
+
+I can pull a citable cut for your travel-stats readers, each figure linking back to the method. Useful?
+
+Per
+gotcosy.com`,
+    },
   },
   "flowingdata-21": {
     outlet: "FlowingData",
     actionType: "email",
     priority: 4,
     priorityWhy: "Solo blogger, contact on the about page; pitch the score distribution and methodology as a dataset worth featuring (r=0.10 is analysis shared on request).",
+    pitch: {
+      to: "FlowingData (Nathan Yau) — suggestions@flowingdata.com",
+      route: "suggestions@flowingdata.com — RAW-VERIFIED live in-browser (screenshot) at https://flowingdata.com/contact/ on 2026-07-13. The address is served as an anti-scrape IMAGE, not selectable text, so it was read visually. The page states: \"Send all post suggestions to the first address below... Suggestions sent to any other address won't be read.\" Our pitch IS a post suggestion (a dataset for a FlowingData post), so suggestions@ is the correct route, NOT nathan@flowingdata.com (that one is for membership/viz/collaboration inquiries). Note for the founder: the same page says \"I usually don't reply, but you can be sure I'll see your email\" — silence is doubly the norm here; a non-reply is not a fail and there is no follow-up (one-send-ever).",
+      subject: "The cosiness scale with an empty top",
+      body: `Your Fox 8 post, where a baseline just under 92°F makes a two-degree gap look huge, made me look again at my own scale. Mine runs the opposite way.
+
+I run Got Cosy. We scored 17,727 hotels by reading guest reviews, on a 0-to-10 cosiness scale.
+
+The surprise is the empty top: nothing clears 7.8. You'd expect a few nines. There are none.
+
+For a FlowingData post I can send the full distribution, the method behind the scores, and the raw file to plot yourself.
+
+Worth a look?
+
+Per
+gotcosy.com
+
+PS. One email only. If it's not for you, I won't chase.`,
+    },
   },
   "afar-coziest-us-hotels-b30": {
     outlet: "AFAR coziest-US page",
@@ -167,6 +321,25 @@ gotcosy.com`,
     actionType: "email",
     priority: 3,
     priorityWhy: "Verified personal email and the exact niche; small reach, a cheap and likely win.",
+    pitch: {
+      to: "Kayleigh Tanner, Hello Hygge <kayleigh_tanner@hotmail.co.uk>",
+      route: "kayleigh_tanner@hotmail.co.uk — RAW-VERIFIED 2026-07-13 against page text of https://hellohygge.com/contact/ (\"drop me an email at kayleigh_tanner@hotmail.co.uk\") and https://hellohygge.com/pr/ (same address). Solo blog run by Kayleigh Tanner (Brighton); no editorial submission form, personal email is the only route. Send Mon-Wed from gotcosy@gmail.com (From: Got Cosy <per@gotcosy.com>); founder sends.",
+      subject: "The towns with the cosiest hotels",
+      body: `I went looking in our data for where the cosiest stays cluster, expecting the famous cities. It kept landing on small towns instead, the kind most people drive straight through.
+
+I run Got Cosy. We read 68,269 guest reviews to score 17,727 hotels for how cosy they feel.
+
+In the ten cosiest towns, three stays in four have guests naming a person: the owner, someone at the front desk. In big cities it's closer to one in four. Who runs the place is most of the feeling.
+
+For your readers I can build a cut of those towns, each with the review evidence behind it.
+
+Want it?
+
+Per
+gotcosy.com
+
+PS One email only. If it's not for you, I won't chase.`,
+    },
   },
   "atlas-obscura-7": {
     outlet: "Atlas Obscura",
@@ -187,12 +360,42 @@ gotcosy.com`,
     actionType: "email",
     priority: 3,
     priorityWhy: "Verified editors@; independent-hotel editorial fit; modest reach.",
+    pitch: {
+      to: "The Agenda by Tablet Hotels — editors@tablethotels.com",
+      route: "editors@tablethotels.com — RAW-verified 2026-07-13 against Tablet's own submission page (magazine.tablethotels.com/en/2016/08/writing-for-the-agenda: \"Write to editors(at)tablethotels(dot)com and include your story pitches in the form of a title, subtitle, and a paragraph or two\"). Their model is a freelance story submission (they commission and pay ~$400-500 for ~1000 words), so this is shaped as a story idea Per would author, not a press release. Founder sends from gotcosy@gmail.com (per@gotcosy.com), Mon-Wed.",
+      subject: "Why small hotels measure warmer",
+      body: `Your Independents Day piece made the case that small-batch hotels deserve the attention, low room count and all. I kept coming back to it while scoring 17,727 hotels from their guest reviews.
+
+Across big cities, the hotels guests describe as boutique average 6.30 out of 10 for warmth; their bigger neighbours sit at 6.01. The small independents win the feeling, and the reviews say why.
+
+For The Agenda I could write that up, each claim carrying the guest-review language behind it.
+
+Worth a look?
+
+Per
+gotcosy.com
+
+PS. One email only. If it isn't for you, I won't chase.`,
+    },
   },
   "ttg-media-17": {
     outlet: "TTG Media",
     actionType: "email",
     priority: 3,
     priorityWhy: "General support@ first, then find the news editor; the 1-in-44 hook works for UK agents.",
+    pitch: {
+      to: "TTG Media newsdesk / news editor (UK travel trade) — address unverified, see route",
+      route: "VERIFY-AT-SEND. TTG Media's route could not be raw-verified. curl https://www.ttgmedia.com/contact-us returns 200 but is a JS-rendered SPA shell (no mailto/address in the DOM); WebFetch on the same URL 404s. Homepage (https://www.ttgmedia.com) is live. AT SEND: open the rendered Contact us page in a browser and grab the current newsdesk/news-editor address (do NOT assume news@ttgmedia.com from memory — it is unverified); if only a general/support inbox is exposed, send there addressed to the news editor by name. Do not send until an address is confirmed on the live page.",
+      subject: "Why independents book warmer than chains",
+      body: `I run Got Cosy, where we scored 17,727 hotels by reading what guests actually wrote, not their star ratings.
+
+One pattern matters for the agents you write for. Independent hotels average 4.6 out of 10 for warmth; chain-affiliated ones average 3.1, across 367 chains. Character is what guests write warmly about, and standardisation rarely is.
+
+So an agent chasing warmth for a client should lean independent. I can build you a bookable cut: the warmest independents by region, each with the review evidence. Want it?
+
+Per
+gotcosy.com`,
+    },
   },
   "the-guardian-travel-data-18": {
     outlet: "Guardian Travel/Data",
@@ -274,24 +477,90 @@ gotcosy.com`,
     actionType: "email",
     priority: 2,
     priorityWhy: "Verified hello@ but it is a design-shop blog; 17k hotels scored for hygge is a maybe.",
+    pitch: {
+      to: "Project Nord (Scandinavian design blog, Project Nord ApS, Copenhagen) — contact form; no public email on the live page",
+      route: "https://projectnord.com/pages/contact (contact form, raw-verified 2026-07-13) — email route VERIFY-AT-SEND (no public address on live page)",
+      subject: "What makes a stay feel calm",
+      body: `I'd like to write a short piece for your blog on what actually makes a place feel calm, hooked to your studio-apartment piece on small cosy spaces.
+
+I run Got Cosy. I scored 17,727 hotels by reading what guests wrote about how a stay feels.
+
+The feeling they name most is quiet, in more than a third of the hotels where they describe the atmosphere at all.
+
+I'd bring the review evidence and the full data behind it.
+
+Want it?
+
+Per
+gotcosy.com`,
+    },
   },
   "slow-travel-repeat-35": {
     outlet: "Slow Travel Repeat",
     actionType: "email",
     priority: 2,
     priorityWhy: "Verified email but the site takes barter and paid collabs; likely wants payment.",
+    pitch: {
+      to: "Sini Hietaharju, Slow Travel Repeat <sini@slowtravelrepeat.com>",
+      route: "sini@slowtravelrepeat.com — raw-verified at https://www.slowtravelrepeat.com/contact (WebFetch 2026-07-13): \"Got a question or a collaboration idea? Send me an email to sini@slowtravelrepeat.com\". Founder/sole editor: Sini Hietaharju. Send from per@gotcosy.com via the gotcosy@gmail.com mailbox; founder sends, Mon-Wed (today Mon 2026-07-13 qualifies). NOTE: board flag on this row is \"takes barter/paid collabs — likely wants payment\"; this is an EDITORIAL pitch offering a story, no payment. If she replies asking for paid/sponsored placement, decline per strategy (sponsored/nofollow = no SEO value; GoNOMAD precedent) — do not pay for coverage.",
+      subject: "Small towns outscore the famous capitals",
+      body: `You send readers to the lesser-known corners of Spain and Finland, not the postcard capitals. I built a hotel score that landed on the same instinct from a different direction.
+
+I run Got Cosy. We read the guest reviews for 17,727 hotels and scored each for cosiness.
+
+Small towns keep beating the big names for it: Alberobello and San Gimignano score higher than Rome, Paris or Vienna, town for town.
+
+I could build you a ranked cut of the cosiest slow-travel towns, each with the review evidence behind it.
+
+Want it?
+
+Per
+gotcosy.com
+
+PS. One email only. If it's not for you, I won't chase.`,
+    },
   },
   "mycloud-hospitality-blog-b25": {
     outlet: "mycloud blog",
     actionType: "email",
     priority: 2,
     priorityWhy: "A real trade blog but it demands 1000-plus words plus a link exchange; mid value for the effort.",
+    pitch: {
+      to: "harvey@mycloudhospitality.co.uk",
+      route: "Guest-post submission by email to harvey@mycloudhospitality.co.uk. RAW-verified from the outlet's own write-for-us page: https://www.mycloudhospitality.com/blog/hospitality-technology-write-for-us (address obfuscated on-page as \"harvey {@} mycloudhospitality.co.uk\"; confirmed in raw HTML via curl, not a summarising fetch). Page-stated requirements to honour if commissioned: minimum 1,000 words, non-promotional/informative, exclusive (no republishing elsewhere), 25-50 word author bio, one dofollow backlink to gotcosy.com. This is a guest-post OFFER; the 1,000-word article is written only on a yes.",
+      subject: "The score no hotel has beaten",
+      body: `I built Got Cosy by reading what guests actually write about hotels, not the star ratings. One number stopped me: across 17,727 hotels, none clears an eight for warmth. The cosiest stay we found stops at 7.8.
+
+For your hoteliers that ceiling is the interesting part: it says warmth is the hardest thing a property earns and the easiest to fake. I'd like to write a piece on what the highest-scoring hotels do that the rest don't, with the review evidence behind each point.
+
+Want it?
+
+Per
+gotcosy.com
+
+PS. One email only. If it's not a fit, I won't chase.`,
+    },
   },
   "hotelogix-blog-b24": {
     outlet: "Hotelogix blog",
     actionType: "email",
     priority: 2,
     priorityWhy: "Wants 2000-plus words and a DA35-plus reciprocal; high effort for one dofollow bio link.",
+    pitch: {
+      to: "Sakshi Sharma, Hotelogix guest blog <sakshi.sharma@hotelogix.com>",
+      route: "sakshi.sharma@hotelogix.com — RAW-verified 2026-07-13 verbatim on blog.hotelogix.com/hotelogix-guest-blogging-guidelines/ (their stated route: email a topic first, agree outline before writing). Addresses rot: re-verify against the live guidelines page on send morning.",
+      subject: "The person in your warmest reviews",
+      body: `I run Got Cosy. We scored 17,727 hotels by reading what guests write, 68,269 reviews in. As more travellers pick stays for how a place feels over its stars, one review pattern surfaced that your readers could use.
+
+In the ten cosiest hotel towns, three hotels out of four have guests writing about a person by name: the owner, someone on the desk. In large cities it's closer to one in four. Warmth, in a review, is usually a person.
+
+I'd like to write you a 2,000-word piece: how to read your own reviews for that signal, and what the warmest properties do to earn it.
+
+Worth an outline?
+
+Per
+gotcosy.com`,
+    },
   },
   "gonomad-travel-b27": {
     outlet: "GoNOMAD",
@@ -1115,7 +1384,7 @@ gotcosy.com`,
     actionType: "podcast-pitch",
     priority: 3,
     priorityWhy: "Lane 6 with an investor and operator slant.",
-    instructions: "Reach out via the Buzzsprout page or LinkedIn.",
+    instructions: "pitch returned to drafting: the drafted pitch was incomplete and failed Challenger review (truncated with no subject, body, or finding, so it could not be audited or sent); a completed redraft must go back through the Challenger before a pitch is placed here. Contact route unchanged: reach out via the Buzzsprout page or LinkedIn, raw-verifying the address at send.",
   },
   "travel-trends-podcast-dan-christian-b35": {
     outlet: "Travel Trends",
