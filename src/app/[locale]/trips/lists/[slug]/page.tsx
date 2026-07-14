@@ -5,6 +5,8 @@ import { resolveSavedListPicks } from "@/lib/tripsLive";
 import { translate } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import TripListRemoveControl from "@/components/TripListRemoveControl";
+import PlanOwnerControls from "@/components/PlanOwnerControls";
+import ShareButton from "@/components/ShareButton";
 
 type Props = { params: { locale: string; slug: string }; searchParams: { token?: string } };
 
@@ -62,7 +64,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
 
   const t = tx(params.locale);
   const [
-    lDefaultTitle, lYourPlan, lNoPicks, lRemove, lRemoving, lMethod, lDisclosure,
+    lDefaultTitle, lYourPlan, lNoPicks, lRemove, lRemoving, lMethod, lDisclosure, lSharePlan,
   ] = await Promise.all([
     t("Your Got Cosy plan"),
     t("Hotels in this plan"),
@@ -71,6 +73,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
     t("Removing…"),
     t("How we score cosiness"),
     t("Hotel picks are our own AI cosy scores, read live at the moment you open this page. Links to book are affiliate links; the scores are not for sale."),
+    t("Share plan"),
   ]);
 
   // Edit affordance: only when the visitor's own ?token= matches this row's edit_token. The token
@@ -89,6 +92,9 @@ export default async function SavedListPage({ params, searchParams }: Props) {
   const picks = await resolveSavedListPicks(list.items);
   const displayTitle = (list.title || "").trim() || lDefaultTitle;
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
+  // CLEAN public URL only, never the ?token= edit link — ShareButton takes `url` explicitly so this
+  // is what gets shared, never window.location (which may carry the owner's own ?token=).
+  const publicListUrl = `/${params.locale}/trips/lists/${list.slug}`;
 
   const itemListJsonLd = {
     "@context": "https://schema.org",
@@ -106,23 +112,40 @@ export default async function SavedListPage({ params, searchParams }: Props) {
   return (
     <article className="mx-auto max-w-3xl px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
-      <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight">{displayTitle}</h1>
+      {/* Client-only, renders nothing: if this device owns this plan (gc_trip in localStorage) and
+          the visitor arrived via the plain public URL, silently adds their own ?token= so the
+          remove controls below appear without them needing to keep the emailed/copied link. */}
+      <PlanOwnerControls slug={list.slug} />
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight">{displayTitle}</h1>
+        <div className="flex-none pt-1">
+          <ShareButton variant="pill" label={lSharePlan} title={displayTitle} url={publicListUrl} />
+        </div>
+      </div>
 
       <section className="mt-8">
         <h2 className="text-xl font-semibold">{lYourPlan}</h2>
         {picks.length > 0 ? (
           <ul className="mt-4 space-y-3">
             {picks.map((p) => (
-              <li key={p.slug} className="flex items-center gap-3 rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-                <span className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white" style={{ background: cosyBadgeColor(p.score), width: 44, height: 44, fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600 }}>
-                  {p.score.toFixed(1)}
-                </span>
-                <div className="min-w-0">
-                  <a href={detailsHref(p.slug)} className="font-medium hover:underline">{p.name}</a>
-                  <div className="text-xs" style={{ color: "var(--muted)" }}>{[p.city, p.country].filter(Boolean).join(", ")}</div>
+              <li key={p.slug} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
+                <div className="flex items-center gap-3">
+                  <span className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white" style={{ background: cosyBadgeColor(p.score), width: 44, height: 44, fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600 }}>
+                    {p.score.toFixed(1)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <a href={detailsHref(p.slug)} className="font-medium hover:underline">{p.name}</a>
+                    <div className="text-xs" style={{ color: "var(--muted)" }}>{[p.city, p.country].filter(Boolean).join(", ")}</div>
+                  </div>
+                  {canEdit && suppliedToken && (
+                    <TripListRemoveControl slug={list.slug} token={suppliedToken} hotelSlug={p.slug} label={lRemove} removingLabel={lRemoving} />
+                  )}
                 </div>
-                {canEdit && suppliedToken && (
-                  <TripListRemoveControl slug={list.slug} token={suppliedToken} hotelSlug={p.slug} label={lRemove} removingLabel={lRemoving} />
+                {/* Hotel descriptions are DATA, never translated per locale (same rule as the hotel
+                    detail page) — rendered as-is, JSX-escaped. This is what makes each saved plan a
+                    content-rich, indexable page instead of a bare name/score list. */}
+                {p.description && (
+                  <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{p.description}</p>
                 )}
               </li>
             ))}

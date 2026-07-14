@@ -6,6 +6,8 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
 import { sameHotel } from "@/lib/hotelIdentity";
 import ShareButton from "@/components/ShareButton";
+import SaveToTripButton from "@/components/SaveToTripButton";
+import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { populatedCities } from "@/lib/social";
 import { FACETS, matchesFacet } from "@/lib/facets";
@@ -432,6 +434,7 @@ export default async function GuidePage({ params }: Props) {
     .filter((c) => c.city.toLowerCase() !== cityName.toLowerCase())
     .sort((a, b) => b.hotels_scored - a.hotels_scored)
     .slice(0, 18);
+  const saveLabels = await buildSaveLabels(params.locale);
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -482,6 +485,7 @@ export default async function GuidePage({ params }: Props) {
                     <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
                       Check availability
                     </a>
+                    <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={params.locale} labels={saveLabels} />
                     <ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${h.city}`} url={detailsHref(h.slug)} />
                   </div>
                 </div>

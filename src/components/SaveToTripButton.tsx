@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 export type SaveToTripLabels = {
   save: string;
+  saveShort: string;
   added: string;
   emailPrompt: string;
   emailLabel: string;
@@ -25,7 +26,7 @@ export type SaveToTripLabels = {
   genericError: string;
 };
 
-type Props = { hotelSlug: string; locale: string; labels: SaveToTripLabels };
+type Props = { hotelSlug: string; locale: string; labels: SaveToTripLabels; variant?: "block" | "compact" };
 type StoredTrip = { slug: string; editToken: string };
 type Status = "idle" | "panel" | "done" | "error";
 
@@ -56,7 +57,8 @@ function isLikelyEmail(s: string): boolean {
   return at > 0 && at < s.length - 1 && s.slice(at + 1).includes(".");
 }
 
-export default function SaveToTripButton({ hotelSlug, locale, labels }: Props) {
+export default function SaveToTripButton({ hotelSlug, locale, labels, variant = "block" }: Props) {
+  const compact = variant === "compact";
   const [status, setStatus] = useState<Status>("idle");
   const [submitting, setSubmitting] = useState(false);
   const [email, setEmail] = useState("");
@@ -66,6 +68,9 @@ export default function SaveToTripButton({ hotelSlug, locale, labels }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [listSlug, setListSlug] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  // Compact variant only: the post-save confirmation is a small popover (not a layout-shifting
+  // block, since this button sits inline in a card row) that auto-dismisses after a few seconds.
+  const [donePopoverOpen, setDonePopoverOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
@@ -79,6 +84,13 @@ export default function SaveToTripButton({ hotelSlug, locale, labels }: Props) {
     document.addEventListener("keydown", onEsc);
     return () => document.removeEventListener("keydown", onEsc);
   }, [status]);
+
+  useEffect(() => {
+    if (!compact || status !== "done") return;
+    setDonePopoverOpen(true);
+    const id = setTimeout(() => setDonePopoverOpen(false), 4500);
+    return () => clearTimeout(id);
+  }, [compact, status]);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const planUrl = listSlug ? `${origin}/${locale}/trips/lists/${listSlug}` : "";
@@ -155,7 +167,9 @@ export default function SaveToTripButton({ hotelSlug, locale, labels }: Props) {
     }
   }
 
-  if (status === "done") {
+  // Block variant: an unsaved-to-saved transition fully replaces the button with a confirmation
+  // card (unchanged from v1 — no layout-shift concern, this sits in its own block below the CTA).
+  if (status === "done" && !compact) {
     return (
       <div className="rounded-xl border p-4 text-sm" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
         <p className="font-medium" style={{ color: "var(--foreground)" }}>{labels.added}</p>
@@ -172,17 +186,53 @@ export default function SaveToTripButton({ hotelSlug, locale, labels }: Props) {
 
   return (
     <div className="relative inline-block">
-      <button
-        type="button"
-        onClick={onSaveClick}
-        disabled={submitting}
-        className="rounded-xl px-4 py-2.5 text-sm font-medium"
-        style={{ border: "1px solid var(--line)", color: "var(--foreground)", background: "var(--card)" }}
-      >
-        {labels.save}
-      </button>
+      {compact ? (
+        <button
+          type="button"
+          onClick={status === "done" ? () => setDonePopoverOpen((v) => !v) : onSaveClick}
+          disabled={submitting}
+          aria-label={status === "done" ? labels.added : labels.saveShort}
+          title={status === "done" ? labels.added : labels.saveShort}
+          className="hov"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5, height: 34, padding: "0 12px",
+            borderRadius: 999, border: "1px solid var(--line)", background: "var(--card)",
+            color: status === "done" ? "var(--sage)" : "var(--foreground)", fontSize: 12.5, fontWeight: 600,
+            cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap",
+          }}
+        >
+          <span style={{ width: 14, height: 14, flexShrink: 0 }} aria-hidden>{status === "done" ? ICON.check : ICON.plus}</span>
+          {status === "done" ? labels.added : labels.saveShort}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onSaveClick}
+          disabled={submitting}
+          className="rounded-xl px-4 py-2.5 text-sm font-medium"
+          style={{ border: "1px solid var(--line)", color: "var(--foreground)", background: "var(--card)" }}
+        >
+          {labels.save}
+        </button>
+      )}
 
       {status === "error" && <p className="mt-1 text-xs" style={{ color: "var(--ember)" }}>{error}</p>}
+
+      {compact && status === "done" && donePopoverOpen && (
+        <div
+          role="status"
+          className="absolute left-0 z-20 mt-2 w-64 max-w-[90vw] rounded-xl border p-3 text-sm"
+          style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}
+        >
+          <p className="font-medium" style={{ color: "var(--foreground)" }}>{labels.added}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <a href={`/${locale}/trips/lists/${listSlug}`} className="text-sm font-medium hover:underline" style={{ color: "var(--ember)" }}>{labels.viewPlan}</a>
+            <button type="button" onClick={onCopy} className="rounded-lg border px-2.5 py-1 text-xs" style={{ borderColor: "var(--line)" }}>
+              {copied ? labels.copied : labels.copyLink}
+            </button>
+          </div>
+        </div>
+      )}
 
       {status === "panel" && (
         <div
@@ -190,7 +240,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels }: Props) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="save-to-trip-heading"
-          className="absolute left-0 z-20 mt-2 w-80 max-w-[90vw] rounded-2xl border p-4"
+          className={`absolute left-0 z-20 mt-2 ${compact ? "w-72" : "w-80"} max-w-[90vw] rounded-2xl border p-4`}
           style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}
         >
           <h3 id="save-to-trip-heading" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>{labels.emailPrompt}</h3>
@@ -247,3 +297,8 @@ export default function SaveToTripButton({ hotelSlug, locale, labels }: Props) {
     </div>
   );
 }
+
+const ICON = {
+  plus: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg>),
+  check: (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>),
+};

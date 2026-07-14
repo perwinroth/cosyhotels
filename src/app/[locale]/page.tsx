@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ShareButton from "@/components/ShareButton";
+import SaveToTripButton from "@/components/SaveToTripButton";
+import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
 import { cityGuides } from "@/data/cityGuides";
@@ -96,6 +98,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
     [chips, top] = await Promise.all([cityChips(), topHotels(db)]);
     top = top.filter((h) => isLatin(h.name_en || h.name)); // English site: skip non-Latin-named hotels
   }
+  const saveLabels = await buildSaveLabels(locale);
   // Fallback chips from the curated list if the DB is unavailable.
   const heroChips = (chips.length ? chips : cityGuides.map((g) => ({ city: g.city, slug: g.slug, count: 0 }))).slice(0, 6);
 
@@ -165,6 +168,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                         {/* Button below the text so it never overlaps a long hotel name. */}
                         <div className="mt-3 flex items-center gap-2">
                           <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex rounded-xl px-5 py-2.5 font-medium no-underline text-sm" style={{ background: "var(--ember)", color: "#16201C" }}>Check availability</a>
+                          <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} />
                           <ShareButton variant="icon" title={`${h.name_en || h.name}, a cosy hotel in ${h.city}`} url={`/${locale}/hotels/${h.slug}`} />
                         </div>
                       </div>

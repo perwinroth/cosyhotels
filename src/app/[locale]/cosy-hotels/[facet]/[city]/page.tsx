@@ -12,6 +12,8 @@ import { FACET_CITY_COPY } from "@/data/discoveryOverrides";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { translate, translateMany } from "@/lib/i18n/translate";
 import ShareButton from "@/components/ShareButton";
+import SaveToTripButton from "@/components/SaveToTripButton";
+import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import {
   loadCityCosyHotels, resolveCity, loadConceptAssignments,
   conceptMembers, orderConceptMembers, conceptLabelPhrase,
@@ -79,6 +81,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
   const h1 = isEn ? "" : await translate(`Cosy hotels ${phrase} in ${cityName}`, params.locale);
   const intro = isEn ? introEn : await translate(introEn, params.locale);
   const snippets = isEn ? hotels.map((h) => h.snippet) : await translateMany(hotels.map((h) => h.snippet || ""), params.locale);
+  const saveLabels = await buildSaveLabels(params.locale);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
   const jsonLd = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${phrase} in ${cityName}`, numberOfItems: hotels.length,
@@ -102,7 +105,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
                   <div className="flex items-baseline gap-2"><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
                   <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>
                   {snippets[idx] && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{snippets[idx]}</p>}
-                  <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${h.city}`} url={`/${params.locale}/hotels/${h.slug}`} /></div>
+                  <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><SaveToTripButton variant="compact" hotelSlug={h.slug} locale={params.locale} labels={saveLabels} /><ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${h.city}`} url={`/${params.locale}/hotels/${h.slug}`} /></div>
                 </div>
                 {ph && <a href={`/${params.locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
               </div>

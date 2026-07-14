@@ -16,6 +16,8 @@ import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { translate } from "@/lib/i18n/translate";
 import ShareButton from "@/components/ShareButton";
+import SaveToTripButton from "@/components/SaveToTripButton";
+import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 
 export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
@@ -133,6 +135,7 @@ export default async function AdaptiveReusePage({ params, searchParams }: { para
   const intro = await tl("Adaptive-reuse stays we've scored worldwide: former banks, prisons, post offices, factories and monasteries, each read for warmth from real guest reviews. The number is our cosy score, 0 to 10.");
   const labels = new Map<string, string>();
   for (const s of sections) labels.set(s.group, await tl(s.group));
+  const saveLabels = await buildSaveLabels(locale);
 
   const itemList = {
     "@context": "https://schema.org", "@type": "ItemList", name: "Cosy hotels that used to be something else", numberOfItems: hotels.length,
@@ -171,7 +174,7 @@ export default async function AdaptiveReusePage({ params, searchParams }: { para
                       <h3 className="text-lg font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h3>
                       {(h.city || h.country) && <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>}
                       {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.snippet}</p>}
-                      <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><ShareButton variant="icon" title={`${h.name}, a cosy hotel that used to be something else`} url={`/${locale}/hotels/${h.slug}`} /></div>
+                      <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} /><ShareButton variant="icon" title={`${h.name}, a cosy hotel that used to be something else`} url={`/${locale}/hotels/${h.slug}`} /></div>
                     </div>
                     {ph && <a href={`/${locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
                   </div>
