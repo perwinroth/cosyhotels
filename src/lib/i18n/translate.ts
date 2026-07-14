@@ -36,9 +36,9 @@ export async function translate(text: string, targetLocale: string): Promise<str
   // speaker ("absolutely bad Swedish"). Serve the SOURCE (English) on every locale until a
   // native-quality path ships (native-written templates + a review pass). The wiring stays
   // intact; set TRANSLATE_MT_ENABLED=1 to re-enable once quality is proven per-locale.
-  if (process.env.TRANSLATE_MT_ENABLED !== '1') return text;
+  if (process.env.TRANSLATE_MT_DISABLED === '1') return text; // Opus-enabled 2026-07-14; disable via TRANSLATE_MT_DISABLED=1
   const db = getServerSupabase();
-  const src = `v2op|${target}|${text}`; // versioned cache key
+  const src = `v3opus|${target}|${text}`; // versioned cache key
   const key = sha256(src);
   try {
     if (db) {
@@ -65,7 +65,7 @@ export async function translate(text: string, targetLocale: string): Promise<str
         method: 'POST',
         headers: { 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
+          model: 'claude-opus-4-8',
           max_tokens: 1024,
           system:
             `Translate the user's text into the language with ISO code "${target}" for a hotel-discovery website. ` +
