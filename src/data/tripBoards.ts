@@ -146,7 +146,7 @@ export const TRIP_BOARDS: TripBoard[] = [
         nights: 1,
         cityAliases: ["Fussen", "Fuessen"],
         whyOrder:
-          "Finish in Füssen, just over the German border below the Neuschwanstein castles. It is the smallest and stillest stop, a good last night before flying home from Munich, ninety minutes north. A room with a stove or a sauna is the reward for the drive up.",
+          "Finish in Füssen, just over the German border below Neuschwanstein castle. It is the smallest and stillest stop, a good last night before flying home from Munich, under two hours north. A room with a stove or a sauna is the reward for the drive up.",
       },
     ],
     whenToGo:
