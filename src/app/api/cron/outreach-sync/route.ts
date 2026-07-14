@@ -89,11 +89,15 @@ export async function GET(req: Request) {
   // 2026-07-11 seeding added 1,639 instagram-channel rows and the unfiltered select pushed the
   // downstream hotels .in() past PostgREST's URL limit -> 400 Bad Request (same class as the
   // 2026-07-02 city-scores incident). IG rows are founder-marked on the board, never here.
+  // ROTATION: actionable email rows (215+) exceed MAX_ROWS_PER_RUN, so process the least-recently-
+  // checked first (never-checked NULLs lead) and stamp last_checked_at on every examined row below.
+  // Without this the same first 80 ran every cycle and the ~135-row tail could never advance.
   const { data: rows, error: rowsErr } = await db
     .from("hotel_outreach")
     .select("hotel_id, status, channel")
     .in("status", ["queued", "contacted"])
-    .or("channel.is.null,channel.eq.email");
+    .or("channel.is.null,channel.eq.email")
+    .order("last_checked_at", { ascending: true, nullsFirst: true });
   if (rowsErr) {
     await alertFailure(rowsErr.message, dry);
     return NextResponse.json({ from: "outreach-sync", ok: false, error: rowsErr.message }, { status: 500 });
@@ -138,6 +142,8 @@ export async function GET(req: Request) {
     for (const row of batch) {
       const email = emailByHotel.get(row.hotel_id)!;
       checked++;
+      const now = new Date().toISOString();
+      let advanced = false;
 
       if (row.status === "queued") {
         // Advance only if the latest send actually DELIVERED — a blocked send still leaves a Sent copy,
@@ -145,10 +151,9 @@ export async function GET(req: Request) {
         if (await wasDeliveredTo(email, accessToken)) {
           wouldChange.push({ hotel_id: row.hotel_id, from: "queued", to: "contacted" });
           if (!dry) {
-            const now = new Date().toISOString();
             const { error } = await db
               .from("hotel_outreach")
-              .update({ status: "contacted", contacted_at: now, updated_at: now })
+              .update({ status: "contacted", contacted_at: now, updated_at: now, last_checked_at: now })
               .eq("hotel_id", row.hotel_id)
               .eq("status", "queued"); // guard: never clobber a concurrent human change
             if (error) {
@@ -157,6 +162,7 @@ export async function GET(req: Request) {
             }
           }
           advancedContacted++;
+          advanced = true;
         }
       } else if (row.status === "contacted") {
         if (await gotReplyFrom(email, accessToken)) {
@@ -164,7 +170,7 @@ export async function GET(req: Request) {
           if (!dry) {
             const { error } = await db
               .from("hotel_outreach")
-              .update({ status: "replied", updated_at: new Date().toISOString() })
+              .update({ status: "replied", updated_at: now, last_checked_at: now })
               .eq("hotel_id", row.hotel_id)
               .eq("status", "contacted");
             if (error) {
@@ -173,6 +179,21 @@ export async function GET(req: Request) {
             }
           }
           advancedReplied++;
+          advanced = true;
+        }
+      }
+
+      // Rotation stamp: mark this row checked even when it didn't advance, so the ORDER BY
+      // last_checked_at ASC moves it to the back and the next run covers the next slice. No status
+      // guard needed — it never touches status. (Advanced rows already stamped last_checked_at above.)
+      if (!advanced && !dry) {
+        const { error } = await db
+          .from("hotel_outreach")
+          .update({ last_checked_at: now })
+          .eq("hotel_id", row.hotel_id);
+        if (error) {
+          await alertFailure(error.message, dry);
+          return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
         }
       }
     }
