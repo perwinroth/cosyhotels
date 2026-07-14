@@ -10,6 +10,7 @@ import { stay22AllezUrl } from "@/lib/affiliates";
 import { CONCEPT_BY_SLUG, cityCollectionMin, LEGACY_FACET_SLUGS, conceptCityBlocked } from "@/lib/travellerFit";
 import { FACET_CITY_COPY } from "@/data/discoveryOverrides";
 import { cosyBadgeColor } from "@/lib/cosyColor";
+import { translate } from "@/lib/i18n/translate";
 import ShareButton from "@/components/ShareButton";
 import {
   loadCityCosyHotels, resolveCity, loadConceptAssignments,
@@ -40,10 +41,12 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   if (!concept || !concept.collectionEnabled) return {};
   const cityName = resolveCity(params.city);
   const phrase = conceptLabelPhrase(concept);
-  const title = FACET_CITY_COPY[`${params.facet}/${params.city}`]?.title ?? `Cosy hotels ${phrase} in ${cityName}`;
-  const description = LEGACY_FACET_SLUGS.has(concept.slug)
+  const titleBase = FACET_CITY_COPY[`${params.facet}/${params.city}`]?.title ?? `Cosy hotels ${phrase} in ${cityName}`;
+  const descBase = LEGACY_FACET_SLUGS.has(concept.slug)
     ? `AI-ranked cosy hotels ${phrase} in ${cityName}, scored from 0 to 10 for warmth and character, with real photos and the signals behind each score.`
     : `${concept.description} The cosiest hotels ${phrase} in ${cityName}, AI-scored from 0 to 10 for warmth and character.`;
+  const title = params.locale === "en" ? titleBase : await translate(titleBase, params.locale);
+  const description = params.locale === "en" ? descBase : await translate(descBase, params.locale);
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/${params.facet}/${params.city}`;
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };

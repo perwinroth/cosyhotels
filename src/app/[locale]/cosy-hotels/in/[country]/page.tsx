@@ -10,6 +10,7 @@ import { loadCountryCounts, loadCountryHotels, HUB_MIN, HUB_404_BELOW } from "@/
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
+import { translate } from "@/lib/i18n/translate";
 import ShareButton from "@/components/ShareButton";
 
 export const revalidate = 3600;
@@ -31,8 +32,10 @@ export async function generateMetadata({ params }: { params: { locale: string; c
   if (!country) return {};
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/in/${country.slug}`;
-  const title = `Cosy hotels in ${country.name}, AI-ranked for cosiness`;
-  const description = `The cosiest boutique and independent hotels in ${country.name}, each AI-scored from 0 to 10 for warmth, character and intimacy; ranked best first, not by stars.`;
+  const titleBase = `Cosy hotels in ${country.name}, AI-ranked for cosiness`;
+  const descBase = `The cosiest boutique and independent hotels in ${country.name}, each AI-scored from 0 to 10 for warmth, character and intimacy; ranked best first, not by stars.`;
+  const title = params.locale === "en" ? titleBase : await translate(titleBase, params.locale);
+  const description = params.locale === "en" ? descBase : await translate(descBase, params.locale);
   const thin = (await liveCount(country.slug)) < HUB_MIN;
   return {
     title, description,
