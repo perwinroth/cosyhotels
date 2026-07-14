@@ -8,6 +8,8 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import ShareButton from "@/components/ShareButton";
 import BadgeEmbed from "@/components/BadgeEmbed";
+import SaveToTripButton, { type SaveToTripLabels } from "@/components/SaveToTripButton";
+import { translate } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
@@ -334,6 +336,31 @@ export default async function HotelDetail({ params }: Props) {
     ? bespoke
     : hotelFaqs({ name: String(hotel.name), city: cityName, country: displayCountry(String(hotel.country || '')), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null, amenities: Array.isArray(hotel.amenities) ? (hotel.amenities as string[]) : [] });
   const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
+
+  // "Save to your plan" (saved lists v1) — every reader-facing string routes through translate()
+  // for non-en locales (standing rule); the button itself is a client component and receives only
+  // already-translated strings, never raw English.
+  const tx = (s: string) => (params.locale === "en" ? Promise.resolve(s) : translate(s, params.locale));
+  const saveLabelKeys = [
+    "Save to your plan", "Added to your plan", "Save this hotel to a plan", "Your email",
+    "you@example.com", "We use your email only to create your private edit link for this plan. It is never shown publicly, and you can ask us to revoke the link at any time.",
+    "Name your plan (optional)", "e.g. Our Tuscany trip", "Save", "Cancel", "Copy link", "Copied",
+    "View your plan", "Save this link. It is the only way to edit your plan later.",
+    "Enter a valid email and agree to continue.", "Something went wrong. Please try again.",
+  ];
+  const [
+    saveLabel, addedLabel, emailPromptLabel, emailLabelLabel, emailPlaceholderLabel, consentLabel,
+    titleLabelLabel, titlePlaceholderLabel, submitLabel, cancelLabel, copyLinkLabel, copiedLabel,
+    viewPlanLabel, yourPrivateLinkLabel, emailInvalidLabel, genericErrorLabel,
+  ] = await Promise.all(saveLabelKeys.map(tx));
+  const saveLabels: SaveToTripLabels = {
+    save: saveLabel, added: addedLabel, emailPrompt: emailPromptLabel, emailLabel: emailLabelLabel,
+    emailPlaceholder: emailPlaceholderLabel, consent: consentLabel, titleLabel: titleLabelLabel,
+    titlePlaceholder: titlePlaceholderLabel, submit: submitLabel, cancel: cancelLabel,
+    copyLink: copyLinkLabel, copied: copiedLabel, viewPlan: viewPlanLabel,
+    yourPrivateLink: yourPrivateLinkLabel, emailInvalid: emailInvalidLabel, genericError: genericErrorLabel,
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(hotelJsonLd) }} />
@@ -395,6 +422,10 @@ export default async function HotelDetail({ params }: Props) {
       </div>
       {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not only in the footer. */}
       <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>Booking via this link may earn us a commission; it never affects cosy scores.</p>
+
+      <div className="mt-3">
+        <SaveToTripButton hotelSlug={String(hotel.slug)} locale={params.locale} labels={saveLabels} />
+      </div>
 
       <HotelGraph city={cityName} cityLabel={cityName} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinks} extra={graphExtra} />
 
