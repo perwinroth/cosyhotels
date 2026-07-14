@@ -10,16 +10,15 @@ type Props = {
   locale: string;
   destinations: PickerDestination[];
   // Pre-translated labels (the parent server component translates them).
-  labels: { prompt: string; placeholder: string; go: string; mailtoText: string };
-  mailto: string;
+  labels: { prompt: string; placeholder: string; go: string; helper: string };
 };
 
 /**
  * Destination selector for /plan. Matches the typed destination against the launch boards' cities
- * (and aliases) and routes INSTANTLY to that board. An unmatched destination falls back to a mailto
- * (the v0 "tell us where you're going" path); the interactive builder is v1.
+ * (and aliases) and routes INSTANTLY to that board. An unmatched destination routes to site
+ * search (the cosiest hotels for any city/country); never opens an email client.
  */
-export default function TripDestinationPicker({ locale, destinations, labels, mailto }: Props) {
+export default function TripDestinationPicker({ locale, destinations, labels }: Props) {
   const router = useRouter();
   const [q, setQ] = useState("");
 
@@ -38,8 +37,10 @@ export default function TripDestinationPicker({ locale, destinations, labels, ma
     const slug = match(q);
     if (slug) {
       router.push(`/${locale}/trips/${slug}`);
-    } else {
-      window.location.href = `${mailto}?subject=${encodeURIComponent(`Trip idea: ${q}`)}`;
+    } else if (q.trim()) {
+      // No launch board for this destination yet: show the cosiest hotels for wherever they typed
+      // via site search (handles any city or country, natural phrasing). NEVER open an email client.
+      router.push(`/${locale}/search?q=${encodeURIComponent(q.trim())}`);
     }
   }
 
@@ -63,7 +64,7 @@ export default function TripDestinationPicker({ locale, destinations, labels, ma
           {labels.go}
         </button>
       </div>
-      <p className="mt-2 text-xs" style={{ color: "var(--muted)" }}>{labels.mailtoText}</p>
+      <p className="mt-2 text-xs" style={{ color: "var(--muted)" }}>{labels.helper}</p>
     </form>
   );
 }
