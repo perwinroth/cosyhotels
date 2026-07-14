@@ -50,16 +50,12 @@ export default function TripDestinationPicker({ locale, destinations, labels }: 
       <div className="mt-2 flex gap-2">
         <input
           id="trip-destination"
-          list="trip-destinations"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={labels.placeholder}
           className="flex-1 rounded-lg border px-3 py-2 text-sm"
           style={{ borderColor: "var(--line)", background: "var(--card)" }}
         />
-        <datalist id="trip-destinations">
-          {destinations.map((d) => <option key={`${d.boardSlug}-${d.label}`} value={d.label} />)}
-        </datalist>
         <button type="submit" className="rounded-lg px-4 py-2 text-sm font-medium text-white" style={{ background: "var(--ember)" }}>
           {labels.go}
         </button>
