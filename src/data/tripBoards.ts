@@ -181,6 +181,41 @@ export const TRIP_BOARDS: TripBoard[] = [
     ],
     publishedAt: "2026-07-14",
   },
+  // COZY-US EXPERIMENT ARM (2026-07-14): US-facing cozy spelling by design; measured vs the cosy
+  // boards. Do not "correct" to cosy. This is the ONLY board on the site that spells the head term
+  // "cozy" (z), deliberately, throughout its reader copy, because the American spelling is ~60% of
+  // the head-term family and matching the searcher is the whole point of the traffic read. Every
+  // other board and every site-wide string stays "cosy". Copy is DRAFT pending the Challenger.
+  {
+    slug: "cozy-new-england-autumn",
+    title: "A cozy New England fall: Boston to Stowe",
+    dek: "The classic cozy American leaf-peeping trip, done in two moves: a couple of city nights in Boston, then a drive up into the Green Mountains to Stowe, where the fall foliage and the fireplaces are the entire reason to go.",
+    season: "September to October",
+    stops: [
+      {
+        city: "Boston",
+        nights: 2,
+        cityAliases: [],
+        whyOrder:
+          "Start in Boston, the arrival city and a cozy first night before you head north. Back Bay and Beacon Hill are red-brick and walkable, so leave the car in a garage and cross them on foot: the Public Garden, Newbury Street and the gaslit lanes up to the State House are all a short stroll apart. Two nights lets the travel wear off and gives you a full day in the city before the drive.",
+      },
+      {
+        city: "Stowe",
+        nights: 3,
+        cityAliases: [],
+        whyOrder:
+          "Drive up to Stowe, about three and a half hours north through the Green Mountains, and the change of scene is the point: the city gives way to covered bridges, farm stands and hillsides turning gold and red. This is the fireside heart of the route, so give it three nights. The village is small and walkable, the Mountain Road runs up toward Smugglers' Notch for the drives and the long views, and a room with a wood stove is the reward at the end of each day.",
+      },
+    ],
+    whenToGo:
+      "Late September to mid-October is the point of this route: the sugar maples in the Vermont hills turn first, and the cool evenings are what make a fireplace and a heavy quilt worth having. Come in summer and Stowe is a green resort town like any other. Come once the leaves drop in late October and you get bare trees and stick season closing in. Time it to the peak color and the whole trip pays off.",
+    aiPromptPatterns: [
+      "plan a cozy New England fall foliage road trip Boston and Stowe",
+      "where to stay in Stowe Vermont for leaf peeping season",
+      "cozy fall road trip from Boston to Vermont",
+    ],
+    publishedAt: "2026-07-14",
+  },
 ];
 
 export function getTripBoard(slug: string): TripBoard | undefined {
