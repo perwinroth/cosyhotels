@@ -1,11 +1,15 @@
 import Link from "next/link";
 import HeaderSearch from "@/components/HeaderSearch";
 import ThemeToggle from "@/components/ThemeToggle";
+import CollectionNavLink from "@/components/CollectionNavLink";
+import { translate } from "@/lib/i18n/translate";
 
 // Shared site header (logo + search). Used by BOTH the [locale] layout (inner pages) AND the
 // homepage route (src/app/page.tsx), which is served by the root page and so does NOT get the
 // [locale] layout — without this, gotcosy.com / and /en rendered with no <header> landmark.
-export default function SiteHeader({ locale }: { locale: string }) {
+export default async function SiteHeader({ locale }: { locale: string }) {
+  // "Collection" entry point label, translated once here (server) and passed to the client link.
+  const collectionLabel = locale === "en" ? "Collection" : await translate("Collection", locale);
   return (
     <header className="sticky top-0 z-30 border-b" style={{ borderColor: 'var(--line)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}>
       <div className="mx-auto max-w-6xl px-4 h-[68px] flex items-center justify-between gap-3">
@@ -22,6 +26,7 @@ export default function SiteHeader({ locale }: { locale: string }) {
             position:fixed element in the root layout, which overlapped this Search button on any
             viewport narrower than the container. In the flex row it can never overlap again. */}
         <div className="flex items-center gap-2 min-w-0">
+          <CollectionNavLink locale={locale} label={collectionLabel} />
           <HeaderSearch locale={locale} />
           <ThemeToggle />
         </div>
