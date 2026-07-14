@@ -19,15 +19,18 @@ import {
 
 const pick = (slug: string, score: number): StopPick => ({ slug, name: slug, city: "X", country: "Y", score });
 
-// ── the launch set is exactly boards 1, 2, 3, 12 (Flanders, Tuscany, Alpine, Copenhagen) ──
+// ── the launch set is boards 1, 2, 3, 12 (Flanders, Tuscany, Alpine, Copenhagen), PLUS the
+//    cozy-US experiment arm (cozy-new-england-autumn), the one board that spells the head term
+//    "cozy" by design to read the larger US market against the cosy boards ──
 
-test("launch-4 boards present, no control-market or Venice board", () => {
-  assert.equal(TRIP_BOARDS.length, 4);
+test("launch-4 boards plus the cozy-US experiment arm present, no control-market or Venice board", () => {
+  assert.equal(TRIP_BOARDS.length, 5);
   const slugs = TRIP_BOARDS.map((b) => b.slug).sort();
   assert.deepEqual(slugs, [
     "alpine-winter-without-the-crowds",
     "copenhagen-in-the-cosy-months",
     "cosy-flanders-december",
+    "cozy-new-england-autumn",
     "tuscany-hill-towns",
   ]);
   for (const b of TRIP_BOARDS) {
