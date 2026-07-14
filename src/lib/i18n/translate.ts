@@ -33,7 +33,7 @@ export async function translate(text: string, targetLocale: string): Promise<str
   const target = (targetLocale || 'en').split('-')[0].toLowerCase();
   if (!text || target === 'en') return text;
   const db = getServerSupabase();
-  const src = `v1|${target}|${text}`; // versioned cache key
+  const src = `v2op|${target}|${text}`; // versioned cache key
   const key = sha256(src);
   try {
     if (db) {
@@ -48,7 +48,7 @@ export async function translate(text: string, targetLocale: string): Promise<str
   const deeplKey = process.env.DEEPL_API_KEY;
   const googleKey = process.env.GOOGLE_TRANSLATE_API_KEY;
   // Claude first (key already provisioned for scoring; better register control than MT, and the
-  // glossary below keeps brand vocabulary stable — founder decision 2026-07-12). Haiku: this is
+  // glossary below keeps brand vocabulary stable — founder decision 2026-07-12). Opus (make-or-break quality, founder 2026-07-14): this is
   // volume translation, cached forever per string in the translations table.
   if (anthropicKey) {
     try {
@@ -67,7 +67,7 @@ export async function translate(text: string, targetLocale: string): Promise<str
             'Natural, idiomatic marketing register, not literal. Never translate: brand names (Got Cosy), hotel names, ' +
             'city names beyond their standard exonym, placeholder tokens like __PROTECT_0__ or {city}, URLs, or numbers.' +
             glossary +
-            ' Reply with ONLY the translation, no quotes, no commentary.',
+            ' Never use em dashes or en dashes (the site forbids them); use commas, colons, or parentheses instead. Reply with ONLY the translation, no quotes, no commentary.',
           messages: [{ role: 'user', content: protectedText }],
         }),
         signal: AbortSignal.timeout(20000),
@@ -106,6 +106,7 @@ export async function translate(text: string, targetLocale: string): Promise<str
   }
 
   translated = unprotect(translated);
+  translated = translated.replace(/\s*[\u2014\u2013]\s*/g, ", "); // hard-strip em/en dashes (site rule)
   try {
     if (db) await db.from('translations').upsert({ lang: target, src_hash: key, src_text: text, translated_text: translated }, { onConflict: 'lang,src_hash' });
   } catch {}
