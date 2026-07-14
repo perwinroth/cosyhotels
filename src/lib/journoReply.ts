@@ -24,6 +24,8 @@ export const SOURCE_LIBRARY = `SOURCE LIBRARY (the ONLY facts you may cite; neve
 - "Boutique" appears in review evidence 53 times in the large cities' data vs 3 times in the towns'; big-city boutique hotels average a 6.30 cosy score vs 6.01 for big-city hotels overall.
 - Among reviews that mention atmosphere, "quiet" is the single most common theme: 35.6% of 9,437 atmosphere-mentioning reviews.
 - The cosy score is near-uncorrelated with generic guest star ratings (r=0.10, n=7,048): cosiness and overall rating measure different things.
+- Fireplaces are the strongest single cosy signal: a fireplace or wood stove shows up in the review evidence of 8.5x as many cosy hotels as uncosy ones (9.4% vs 1.1%).
+- Cosiness is rare and hard-won: across the 17,727 hotels nothing clears an 8, and the single cosiest is a six-room Tuscan agriturismo at 7.8 out of 10.
 - Founder: Per, runs GotCosy (a small hotel-discovery site that scores hotels for cosiness by reading guest reviews).`;
 
 const DRAFT_RULES = `RULES for the reply you write (voice: .claude/skills/copywriting, pitch-email section; a human answering a colleague, never a brand pitching):
