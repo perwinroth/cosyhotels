@@ -19,6 +19,7 @@
 // Resumable: skips rows whose notes are already v2/hidden unless --force. Backs up prev rows.
 import { createClient } from "@supabase/supabase-js";
 import Anthropic from "@anthropic-ai/sdk";
+import { stripEmDashes } from "./lib/copyClean.mjs";
 import { writeFileSync, readFileSync, existsSync, appendFileSync } from "fs";
 
 const args = process.argv.slice(2);
@@ -86,7 +87,7 @@ const SCORE_SCHEMA = { type: "object", additionalProperties: false, properties: 
 const VISION_SCHEMA = { type: "object", additionalProperties: false, properties: { signals: { type: "array", items: { type: "string" } }, description: { type: "string" }, confidence: { type: "string", enum: ["low", "medium", "high"] } }, required: ["signals", "description", "confidence"] };
 
 const COSY_DEF = `COSY = warmth, intimacy, character, charm, warm lighting, fireplaces, natural materials, a homely small-scale feel, warm personal service. NOT COSY = cold, corporate, sterile, large/impersonal, dated/run-down.`;
-const STYLE = `Write in warm, specific British English, exactly ONE sentence, grounded ONLY in what guests actually mention. Name concrete details (lighting, fireplace, rooms, breakfast, service, setting). The words "genuine" and "genuinely" are BANNED — never use them; choose more specific, varied wording. NEVER speculate. NEVER say data/details are limited/scarce, that little is known, or that "the name suggests". If reviews are lukewarm, be honest and understated, not gushing.`;
+const STYLE = `Write in warm, specific British English, exactly ONE sentence, grounded ONLY in what guests actually mention. Name concrete details (lighting, fireplace, rooms, breakfast, service, setting). The words "genuine" and "genuinely" are BANNED: never use them; choose more specific, varied wording. NEVER use em dashes (the "—" character): use a comma, a colon, or two sentences instead. NEVER speculate. NEVER say data/details are limited/scarce, that little is known, or that "the name suggests". If reviews are lukewarm, be plain and understated, not gushing.`;
 
 function scorePrompt(h, revs) {
   return `You are a STRICT cosiness judge. Using ONLY these guest reviews, rate how COSY the hotel actually is (0-10) and write one honest sentence.
@@ -138,7 +139,9 @@ async function reviewsFor(id, h) {
   if (fresh.length) { cache[id] = fresh; try { writeFileSync(CACHE, JSON.stringify(cache)); } catch {} }
   return fresh.length >= 3 ? fresh : cached;
 }
-const cleanSentence = (s) => String(s || "").trim().replace(/^["'\s]+|["'\s]+$/g, "").replace(/\s+/g, " ");
+// stripEmDashes enforces the founder copy rule (no em dashes reader-facing) on every generated
+// sentence, both the review and vision paths, so new descriptions never carry the banned character.
+const cleanSentence = (s) => stripEmDashes(String(s || "").trim().replace(/^["'\s]+|["'\s]+$/g, "").replace(/\s+/g, " "));
 const HEDGE = /(little detail|details? (are|is)? ?(limited|scarce|sparse)|limited (data|detail|information)|not much (is )?known|name suggest|based on (its |the )?name|hard to (say|assess)|can'?t say much|few details|promise of|carries the promise|promising the kind|hints? at|name (that )?(hints|suggests)|appears to|seems to offer|likely offers)/i;
 const bad = (s) => !s || String(s).trim().length < 40 || HEDGE.test(s); // HARD reject: empty/too-short/credibility hedge -> never ship
 const tic = (s) => /\bgenuine(ly)?\b/i.test(s); // SOFT: stylistic tic; prefer to avoid but acceptable (not "generic")
