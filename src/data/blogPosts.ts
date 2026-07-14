@@ -1,5 +1,5 @@
 // Editorial blog posts. Each is genuinely useful advice first, then real cosy-scored picks pulled
-// LIVE from the dataset (see selectBlogHotels) — never invented. Copy follows the /copywriting
+// LIVE from the dataset (see selectBlogHotels), never invented. Copy follows the /copywriting
 // skill: answer-first, specific, honest, British English. `pick` defines how the listicle hotels
 // are selected from our highest-cosiness hotels; `pick: null` is an advice-only (top-of-funnel)
 // post. Adding a post here automatically gives it a page, schema, sitemap entry and index card.
@@ -10,7 +10,7 @@ export type BlogRelated = { label: string; to: string }; // `to` is appended aft
 export type BlogPick = {
   re?: RegExp; chains?: boolean; minScore?: number; limit?: number;
   heading: string; blurb: string;
-  theme: string;     // what this topic needs — used to ground each pick's bespoke "why it fits" line
+  theme: string;     // what this topic needs, used to ground each pick's bespoke "why it fits" line
   priority: number;  // lower = claims shared hotels first (global uniqueness across posts)
 };
 export type BlogPost = {
@@ -21,7 +21,7 @@ export type BlogPost = {
   h1: string;
   lead: string;
   updated: string;
-  intro: BlogSection[];   // helpful "how to choose / what to look for" — rendered before the picks
+  intro: BlogSection[];   // helpful "how to choose / what to look for", rendered before the picks
   pick: BlogPick | null;  // the listicle (live data); null = advice-only post
   outro: BlogSection[];   // rendered after the picks
   faqs: BlogFaq[];
