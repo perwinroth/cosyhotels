@@ -198,7 +198,7 @@ export async function GET(req: Request) {
   const prWouldChange: Array<{ id: string; from: string; to: string }> = [];
   try {
     const prTargets = Object.entries(PR_ACTIONS)
-      .map(([id, a]) => ({ id, email: (a.pitch?.to || "").trim() }))
+      .map(([id, a]) => ({ id, email: (a.pitch?.to || "").trim(), outlet: a.outlet }))
       .filter((t) => t.email);
     const { data: prRows } = await db.from("outreach").select("id, status").in("id", prTargets.map((t) => t.id));
     const prStatus = new Map(((prRows || []) as Array<{ id: string; status: string }>).map((r) => [r.id, r.status]));
@@ -208,7 +208,9 @@ export async function GET(req: Request) {
         prWouldChange.push({ id: t.id, from: "queued", to: "contacted" });
         if (!dry) {
           const now = new Date().toISOString();
-          const { error } = await db.from("outreach").upsert({ id: t.id, status: "contacted", updated_at: now });
+          // outlet is NOT NULL with no default; Postgres checks it on the proposed insert tuple even
+          // for an existing id (ON CONFLICT DO UPDATE), so omitting it crashed this cron every run.
+          const { error } = await db.from("outreach").upsert({ id: t.id, outlet: t.outlet, status: "contacted", updated_at: now });
           if (error) {
             await alertFailure(error.message, dry);
             return NextResponse.json({ from: "outreach-sync", ok: false, error: error.message }, { status: 500 });
