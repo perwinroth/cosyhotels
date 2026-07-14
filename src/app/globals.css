@@ -1,6 +1,6 @@
-/* External @import rules MUST come before all other rules (incl. Tailwind's,
-   which expands into rules). Keep the font import first. */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
+/* Fonts (Fraunces + Inter) load via <link rel="stylesheet"> in layout.tsx <head> — moved out of a
+   render-blocking CSS @import so the font CSS is fetched in parallel and the origins are preconnected.
+   Same families/weights/optical-size axis/display=swap; no visual change. */
 @import "tailwindcss";
 
 /* ============================================================
