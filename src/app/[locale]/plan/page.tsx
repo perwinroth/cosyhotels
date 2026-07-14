@@ -34,7 +34,7 @@ export default async function PlanPage({ params }: Props) {
     t("Already know where you are going?"),
     t("Type a city, for example Bruges"),
     t("Go"),
-    t("Somewhere we do not cover yet? Tell us and we will point you the right way."),
+    t("Any city or country works, and we will show you the cosiest hotels there."),
   ]);
 
   // Translate each board's title + dek (editorial copy). City names in the destination list stay
@@ -65,8 +65,7 @@ export default async function PlanPage({ params }: Props) {
         <TripDestinationPicker
           locale={params.locale}
           destinations={destinations}
-          labels={{ prompt: lPrompt, placeholder: lPlaceholder, go: lGo, mailtoText: lMailto }}
-          mailto="mailto:per@gotcosy.com"
+          labels={{ prompt: lPrompt, placeholder: lPlaceholder, go: lGo, helper: lMailto }}
         />
       </div>
 
