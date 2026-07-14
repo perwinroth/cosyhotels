@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   const phrase = conceptLabelPhrase(concept);
   const title = FACET_CITY_COPY[`${params.facet}/${params.city}`]?.title ?? `Cosy hotels ${phrase} in ${cityName}`;
   const description = LEGACY_FACET_SLUGS.has(concept.slug)
-    ? `AI-ranked cosy hotels ${phrase} in ${cityName}, scored from 0 to 10 for warmth and character, with real photos and honest cosy scores.`
+    ? `AI-ranked cosy hotels ${phrase} in ${cityName}, scored from 0 to 10 for warmth and character, with real photos and the signals behind each score.`
     : `${concept.description} The cosiest hotels ${phrase} in ${cityName}, AI-scored from 0 to 10 for warmth and character.`;
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/${params.facet}/${params.city}`;

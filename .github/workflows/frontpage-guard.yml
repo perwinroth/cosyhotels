@@ -19,11 +19,11 @@ jobs:
       - name: Install deps
         run: npm ci --no-audit --no-fund
 
-      - name: Check Supabase data health (featured_top and city_top)
+      - name: Check Supabase data health (featured_top)
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           GUIDE_CITIES: ${{ vars.GUIDE_CITIES }}
         run: node scripts/check-frontdata.mjs
 

@@ -5,11 +5,11 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Brand kit", robots: { index: false, follow: false } };
 
 const BIOS: Array<{ platform: string; limit: string; text: string }> = [
-  { platform: "Pinterest", limit: "~160 chars", text: "The cosiest hotels, AI-ranked for warmth, character & intimacy, not just stars. Real photos, honest cosy scores. Find your cosiest stay → gotcosy.com" },
+  { platform: "Pinterest", limit: "~160 chars", text: "The cosiest hotels, AI-ranked for warmth, character & intimacy, not just stars. Real photos, the signals behind each score. Find your cosiest stay → gotcosy.com" },
   { platform: "Instagram", limit: "150 chars", text: "AI-rated cosy hotels ✨\nWarmth & character over star ratings 🔥\nReal cosy scores · boutique stays\nFind your cosiest stay ↓" },
-  { platform: "Threads", limit: "~160 chars", text: "AI-rated cosy hotels. We score warmth, character & intimacy, not stars. Real photos, honest cosy scores, boutique stays. → gotcosy.com" },
+  { platform: "Threads", limit: "~160 chars", text: "AI-rated cosy hotels. We score warmth, character & intimacy, not stars. Real photos, the signals behind each score, boutique stays. → gotcosy.com" },
   { platform: "TikTok", limit: "80 chars", text: "AI-rated cosy hotels 🔥 warmth & character, not stars → gotcosy.com" },
-  { platform: "Facebook (About)", limit: "longer", text: "Got Cosy? rates hotels on what actually makes a stay cosy (warmth, character and intimacy) using AI, not star ratings. Browse AI-ranked cosy hotels by city, each with real photos and an honest cosy score, and check availability in one tap. Find your cosiest stay at gotcosy.com." },
+  { platform: "Facebook (About)", limit: "longer", text: "Got Cosy? rates hotels on what actually makes a stay cosy (warmth, character and intimacy) using AI, not star ratings. Browse AI-ranked cosy hotels by city, each with real photos and the signals behind its score, and check availability in one tap. Find your cosiest stay at gotcosy.com." },
 ];
 
 export default function BrandPage() {
