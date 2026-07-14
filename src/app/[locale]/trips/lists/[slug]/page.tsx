@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { resolveSavedListPicks } from "@/lib/tripsLive";
 import { translate } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
+import { stay22AllezUrl } from "@/lib/affiliates";
 import TripListRemoveControl from "@/components/TripListRemoveControl";
 import PlanOwnerControls from "@/components/PlanOwnerControls";
 import ShareButton from "@/components/ShareButton";
@@ -44,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!indexable) return { robots: { index: false, follow: false } };
 
   const t = tx(params.locale);
-  const suffix = await t("A cosy travel plan on Got Cosy");
+  const suffix = await t("A cosy hotel collection on Got Cosy");
   const descTemplate = await t("hand-picked cosy hotels, chosen with Got Cosy's live cosy scores.");
   const pageTitle = `${title} · ${suffix}`;
   const description = `${title}: ${picks.length} ${descTemplate}`;
@@ -64,16 +66,18 @@ export default async function SavedListPage({ params, searchParams }: Props) {
 
   const t = tx(params.locale);
   const [
-    lDefaultTitle, lYourPlan, lNoPicks, lRemove, lRemoving, lMethod, lDisclosure, lSharePlan,
+    lDefaultTitle, lYourCollection, lNoPicks, lRemove, lRemoving, lMethod, lDisclosure, lShareCollection, lIntro, lCheckAvailability,
   ] = await Promise.all([
-    t("Your Got Cosy plan"),
-    t("Hotels in this plan"),
+    t("Your Got Cosy collection"),
+    t("Hotels in this collection"),
     t("None of the saved hotels currently clear our cosy bar. They may return if they are rescored."),
     t("Remove"),
     t("Removing…"),
     t("How we score cosiness"),
     t("Hotel picks are our own AI cosy scores, read live at the moment you open this page. Links to book are affiliate links; the scores are not for sale."),
-    t("Share plan"),
+    t("Share collection"),
+    t("A collection of cosy hotels on Got Cosy, each scored 0 to 10 for warmth and character."),
+    t("Check availability"),
   ]);
 
   // Edit affordance: only when the visitor's own ?token= matches this row's edit_token. The token
@@ -96,6 +100,27 @@ export default async function SavedListPage({ params, searchParams }: Props) {
   // is what gets shared, never window.location (which may carry the owner's own ?token=).
   const publicListUrl = `/${params.locale}/trips/lists/${list.slug}`;
 
+  // Vetted photos, same pattern as the city facet page (src/app/[locale]/cosy-hotels/[facet]/[city]/page.tsx):
+  // batch-fetch vision_ok images for the picks' hotel ids, chunked 150 at a time, skip placeholder art,
+  // keep the first vetted photo per hotel. Feeds the thumbnail below AND the JSON-LD image field.
+  const photo = new Map<string, string>();
+  if (picks.length > 0) {
+    const db = getServerSupabase();
+    if (db) {
+      const ids = picks.map((p) => p.id);
+      for (let i = 0; i < ids.length; i += 150) {
+        const { data: imgs } = await db.from("hotel_images").select("hotel_id,url").in("hotel_id", ids.slice(i, i + 150)).eq("vision_ok", true);
+        for (const im of (imgs || []) as Array<{ hotel_id: string | null; url: string | null }>) {
+          const hid = im.hotel_id ? String(im.hotel_id) : ""; const u = im.url || "";
+          if (hid && u && !u.includes("placehold.co") && !photo.has(hid)) photo.set(hid, u);
+        }
+      }
+    }
+  }
+
+  // ItemList JSON-LD upgraded to SEO parity with the city facet page: each item is a full Hotel
+  // (not a bare LodgingBusiness name/url), carrying its vetted image when we have one and a
+  // review/reviewRating that surfaces the live Cosy score to search engines.
   const itemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -104,51 +129,76 @@ export default async function SavedListPage({ params, searchParams }: Props) {
     itemListElement: picks.map((p, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      name: p.name,
-      item: { "@type": "LodgingBusiness", name: p.name, url: `${SITE}${detailsHref(p.slug)}` },
+      item: {
+        "@type": "Hotel",
+        name: p.name,
+        url: `${SITE}${detailsHref(p.slug)}`,
+        ...(photo.get(p.id) ? { image: photo.get(p.id) } : {}),
+        review: {
+          "@type": "Review",
+          author: { "@type": "Organization", name: "Got Cosy" },
+          reviewRating: { "@type": "Rating", ratingValue: Number(p.score.toFixed(1)), bestRating: 10, worstRating: 0, name: "Cosy score" },
+        },
+      },
     })),
   };
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
-      {/* Client-only, renders nothing: if this device owns this plan (gc_trip in localStorage) and
-          the visitor arrived via the plain public URL, silently adds their own ?token= so the
+      {/* Client-only, renders nothing: if this device owns this collection (gc_trip in localStorage)
+          and the visitor arrived via the plain public URL, silently adds their own ?token= so the
           remove controls below appear without them needing to keep the emailed/copied link. */}
       <PlanOwnerControls slug={list.slug} />
       <div className="flex items-start justify-between gap-4">
         <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight">{displayTitle}</h1>
         <div className="flex-none pt-1">
-          <ShareButton variant="pill" label={lSharePlan} title={displayTitle} url={publicListUrl} />
+          <ShareButton variant="pill" label={lShareCollection} title={displayTitle} url={publicListUrl} />
         </div>
       </div>
+      <p className="mt-3 text-base" style={{ color: "var(--muted)" }}>{lIntro}</p>
 
       <section className="mt-8">
-        <h2 className="text-xl font-semibold">{lYourPlan}</h2>
+        <h2 className="text-xl font-semibold">{lYourCollection}</h2>
         {picks.length > 0 ? (
           <ul className="mt-4 space-y-3">
-            {picks.map((p) => (
-              <li key={p.slug} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-                <div className="flex items-center gap-3">
-                  <span className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white" style={{ background: cosyBadgeColor(p.score), width: 44, height: 44, fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600 }}>
-                    {p.score.toFixed(1)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <a href={detailsHref(p.slug)} className="font-medium hover:underline">{p.name}</a>
-                    <div className="text-xs" style={{ color: "var(--muted)" }}>{[p.city, p.country].filter(Boolean).join(", ")}</div>
+            {picks.map((p) => {
+              const cta = stay22AllezUrl({ name: p.name, city: p.city, country: p.country, lat: p.lat, lng: p.lng, campaign: "collection" });
+              const ph = photo.get(p.id);
+              return (
+                <li key={p.slug} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white" style={{ background: cosyBadgeColor(p.score), width: 44, height: 44, fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600 }}>
+                      {p.score.toFixed(1)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <a href={detailsHref(p.slug)} className="font-medium hover:underline">{p.name}</a>
+                      <div className="text-xs" style={{ color: "var(--muted)" }}>{[p.city, p.country].filter(Boolean).join(", ")}</div>
+                      {/* Hotel descriptions are DATA, never translated per locale (same rule as the hotel
+                          detail page) — rendered as-is, JSX-escaped. This is what makes each collection a
+                          content-rich, indexable page instead of a bare name/score list. */}
+                      {p.description && (
+                        <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{p.description}</p>
+                      )}
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={p.name} data-city={p.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>{lCheckAvailability}</a>
+                        <ShareButton variant="icon" title={`${p.name}, a cosy hotel in ${p.city}`} url={detailsHref(p.slug)} />
+                        {canEdit && suppliedToken && (
+                          <TripListRemoveControl slug={list.slug} token={suppliedToken} hotelSlug={p.slug} label={lRemove} removingLabel={lRemoving} />
+                        )}
+                      </div>
+                    </div>
+                    {ph && (
+                      <a href={detailsHref(p.slug)} className="flex-shrink-0 hidden sm:block">
+                        <div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}>
+                          <Image src={ph} alt={p.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} />
+                        </div>
+                      </a>
+                    )}
                   </div>
-                  {canEdit && suppliedToken && (
-                    <TripListRemoveControl slug={list.slug} token={suppliedToken} hotelSlug={p.slug} label={lRemove} removingLabel={lRemoving} />
-                  )}
-                </div>
-                {/* Hotel descriptions are DATA, never translated per locale (same rule as the hotel
-                    detail page) — rendered as-is, JSX-escaped. This is what makes each saved plan a
-                    content-rich, indexable page instead of a bare name/score list. */}
-                {p.description && (
-                  <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{p.description}</p>
-                )}
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>{lNoPicks}</p>

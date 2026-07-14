@@ -46,8 +46,13 @@ export async function resolveBoardLive(board: TripBoard): Promise<ResolvedBoard>
 /** A saved-list pick also carries the hotel's full cosy-score description (same field the hotel
  *  detail page reads at `cosy_scores.description`), so the list page can render real, indexable
  *  content per hotel instead of just a name/score row. Optional: a hotel with no description yet
- *  simply omits it. */
+ *  simply omits it. `id`/`lat`/`lng` come from the `hotels` row and feed the photo map, the
+ *  affiliate "Check availability" CTA, and the JSON-LD image/rating (same fields the city facet
+ *  page reads via loadCityCosyHotels). */
 export interface SavedListPick extends StopPick {
+  id: string;
+  lat: number | null;
+  lng: number | null;
   description?: string;
 }
 
@@ -62,11 +67,14 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<SavedListP
   const db = getServerSupabase();
   if (!db || slugs.length === 0) return [];
   type Row = {
+    id: string;
     slug: string;
     name: string | null;
     name_en: string | null;
     city: string | null;
     country: string | null;
+    lat: number | null;
+    lng: number | null;
     cosy_scores: { score: number | null; score_final: number | null; description: string | null } | Array<{ score: number | null; score_final: number | null; description: string | null }> | null;
   };
   const bySlug = new Map<string, SavedListPick>();
@@ -74,7 +82,7 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<SavedListP
     const chunk = slugs.slice(i, i + 100);
     const { data, error } = await db
       .from("hotels")
-      .select("slug,name,name_en,city,country,cosy_scores(score,score_final,description)")
+      .select("id,slug,name,name_en,city,country,lat,lng,cosy_scores(score,score_final,description)")
       .in("slug", chunk);
     if (error || !data) continue;
     for (const row of data as unknown as Row[]) {
@@ -83,7 +91,10 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<SavedListP
       if (typeof score !== "number" || score < PUBLIC_GATE) continue;
       const name = String(row.name_en || row.name || row.slug).trim();
       const description = cs?.description?.trim() || undefined;
-      bySlug.set(row.slug, { slug: row.slug, name, city: displayCity(row.city, ""), country: displayCountry(row.country), score, description });
+      bySlug.set(row.slug, {
+        id: String(row.id), slug: row.slug, name, city: displayCity(row.city, ""), country: displayCountry(row.country),
+        lat: row.lat ?? null, lng: row.lng ?? null, score, description,
+      });
     }
   }
   return slugs.map((s) => bySlug.get(s)).filter((p): p is SavedListPick => Boolean(p));
