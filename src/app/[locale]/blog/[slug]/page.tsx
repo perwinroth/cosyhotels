@@ -13,6 +13,8 @@ type BlogPick = PickEntry;
 const BLOG_PICKS = blogPicksData as Record<string, BlogPick[]>;
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
+import SaveToTripButton, { type SaveToTripLabels } from "@/components/SaveToTripButton";
+import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { site } from "@/config/site";
 import { jsonLd } from "@/lib/schema";
 
@@ -51,7 +53,7 @@ function Section({ s }: { s: BlogSection }) {
   );
 }
 
-function PickCard({ h, idx, locale }: { h: BlogPick; idx: number; locale: string }) {
+function PickCard({ h, idx, locale, saveLabels }: { h: BlogPick; idx: number; locale: string; saveLabels: SaveToTripLabels }) {
   const detailsHref = `/${locale}/hotels/${h.slug}`;
   return (
     <li className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -71,6 +73,7 @@ function PickCard({ h, idx, locale }: { h: BlogPick; idx: number; locale: string
           )}
           <div className="mt-3 flex items-center gap-2">
             <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a>
+            <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} />
             <ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${h.city}`} url={detailsHref} />
           </div>
         </div>
@@ -104,6 +107,7 @@ export default async function BlogPostPage({ params }: Props) {
   // value (below-gate hotels drop out) — stored numbers went stale after the 2026-07-02 rescore.
   const storedPicks: BlogPick[] = post.pick ? (BLOG_PICKS[post.slug] || []) : [];
   const picks: BlogPick[] = await picksWithLiveScores(storedPicks);
+  const saveLabels = await buildSaveLabels(L);
 
   // A related link to a blog post that's still draft/scheduled would 404 — drop those. Non-blog
   // related links (Cosy Index, city guides, the data study) always render, so keep them as-is.
@@ -168,7 +172,7 @@ export default async function BlogPostPage({ params }: Props) {
           <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>{post.pick.blurb}</p>
           {picks.length > 0 ? (
             <ol className="mt-5 space-y-3">
-              {picks.map((h, i) => <PickCard key={h.slug} h={h} idx={i} locale={L} />)}
+              {picks.map((h, i) => <PickCard key={h.slug} h={h} idx={i} locale={L} saveLabels={saveLabels} />)}
             </ol>
           ) : (
             <p className="mt-5 text-sm" style={{ color: "var(--muted)" }}>We&apos;re refreshing this list; check back shortly, or browse <a href={`/${L}/cosy-index`} className="underline">the Cosy Index</a>.</p>

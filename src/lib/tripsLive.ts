@@ -43,6 +43,14 @@ export async function resolveBoardLive(board: TripBoard): Promise<ResolvedBoard>
   return { board, stops, indexable };
 }
 
+/** A saved-list pick also carries the hotel's full cosy-score description (same field the hotel
+ *  detail page reads at `cosy_scores.description`), so the list page can render real, indexable
+ *  content per hotel instead of just a name/score row. Optional: a hotel with no description yet
+ *  simply omits it. */
+export interface SavedListPick extends StopPick {
+  description?: string;
+}
+
 /**
  * Live resolution for saved lists (v1): given a set of hotel slugs a visitor picked, look up their
  * CURRENT score at request time (never store a snapshot, same lesson #44 rule as the boards) and
@@ -50,7 +58,7 @@ export async function resolveBoardLive(board: TripBoard): Promise<ResolvedBoard>
  * hotel). Order is preserved from the input `slugs` (the user's own list order). Batches the
  * lookup 100 at a time, same chunking as blogPickScores.ts's liveScoresBySlug.
  */
-export async function resolveSavedListPicks(slugs: string[]): Promise<StopPick[]> {
+export async function resolveSavedListPicks(slugs: string[]): Promise<SavedListPick[]> {
   const db = getServerSupabase();
   if (!db || slugs.length === 0) return [];
   type Row = {
@@ -59,14 +67,14 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<StopPick[]
     name_en: string | null;
     city: string | null;
     country: string | null;
-    cosy_scores: { score: number | null; score_final: number | null } | Array<{ score: number | null; score_final: number | null }> | null;
+    cosy_scores: { score: number | null; score_final: number | null; description: string | null } | Array<{ score: number | null; score_final: number | null; description: string | null }> | null;
   };
-  const bySlug = new Map<string, StopPick>();
+  const bySlug = new Map<string, SavedListPick>();
   for (let i = 0; i < slugs.length; i += 100) {
     const chunk = slugs.slice(i, i + 100);
     const { data, error } = await db
       .from("hotels")
-      .select("slug,name,name_en,city,country,cosy_scores(score,score_final)")
+      .select("slug,name,name_en,city,country,cosy_scores(score,score_final,description)")
       .in("slug", chunk);
     if (error || !data) continue;
     for (const row of data as unknown as Row[]) {
@@ -74,8 +82,9 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<StopPick[]
       const score = cs ? (typeof cs.score_final === "number" ? cs.score_final : cs.score) : null;
       if (typeof score !== "number" || score < PUBLIC_GATE) continue;
       const name = String(row.name_en || row.name || row.slug).trim();
-      bySlug.set(row.slug, { slug: row.slug, name, city: displayCity(row.city, ""), country: displayCountry(row.country), score });
+      const description = cs?.description?.trim() || undefined;
+      bySlug.set(row.slug, { slug: row.slug, name, city: displayCity(row.city, ""), country: displayCountry(row.country), score, description });
     }
   }
-  return slugs.map((s) => bySlug.get(s)).filter((p): p is StopPick => Boolean(p));
+  return slugs.map((s) => bySlug.get(s)).filter((p): p is SavedListPick => Boolean(p));
 }

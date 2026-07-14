@@ -1,6 +1,6 @@
 "use client";
 // Share control. Two shapes via `variant`:
-//   "pill" (default) — a warm ember "Share stay" pill for hotel/detail headers.
+//   "pill" (default) — a warm ember "Share" pill for hotel/detail headers.
 //   "icon"           — a compact 34px round icon for list rows (guides, facets, homepage cards).
 // Mobile → native share sheet (Web Share API) ONLY. Desktop → a popover: Copy link, Email, Pin it,
 // WhatsApp, Facebook, Messenger, Instagram. `url` lets a list row share a specific HOTEL (absolute
@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type Variant = "pill" | "icon";
-export default function ShareButton({ title, text, url: urlProp, variant = "pill", label = "Share stay" }: { title?: string; text?: string; url?: string; variant?: Variant; label?: string }) {
+export default function ShareButton({ title, text, url: urlProp, variant = "pill", label = "Share" }: { title?: string; text?: string; url?: string; variant?: Variant; label?: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [igCopied, setIgCopied] = useState(false);
