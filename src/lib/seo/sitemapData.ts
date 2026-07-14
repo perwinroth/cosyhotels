@@ -29,6 +29,7 @@ export function staticUrls(): Url[] {
     p("/en/what-makes-a-hotel-cosy", 0.7),
     p("/en/cosy-score", 0.6),
     p("/en/cosy-hotels", 0.7, "weekly"),
+    p("/en/plan", 0.7, "weekly"),
     p("/en/guides", 0.5),
     p("/en/for-hotels", 0.5),
     p("/en/press", 0.4),
