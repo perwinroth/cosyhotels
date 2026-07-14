@@ -197,7 +197,7 @@ export const TRIP_BOARDS: TripBoard[] = [
         nights: 2,
         cityAliases: [],
         whyOrder:
-          "Start in Boston, the arrival city and a cozy first night before you head north. Back Bay and Beacon Hill are flat, red-brick and walkable, so leave the car in a garage and cross them on foot: the Public Garden, Newbury Street and the gaslit lanes up to the State House are all a short stroll apart. Two nights lets the travel wear off and gives you a full day in the city before the drive.",
+          "Start in Boston, the arrival city and a cozy first night before you head north. Back Bay and Beacon Hill are red-brick and walkable, so leave the car in a garage and cross them on foot: the Public Garden, Newbury Street and the gaslit lanes up to the State House are all a short stroll apart. Two nights lets the travel wear off and gives you a full day in the city before the drive.",
       },
       {
         city: "Stowe",
@@ -208,7 +208,7 @@ export const TRIP_BOARDS: TripBoard[] = [
       },
     ],
     whenToGo:
-      "Late September to mid-October is the point of this route: the sugar maples in the Vermont hills turn first, and the cool evenings are what make a fireplace and a heavy quilt worth having. Come in summer and Stowe is a green resort town like any other. Come once the leaves drop in late October and you get bare trees and mud season closing in. Time it to the peak color and the whole trip pays off.",
+      "Late September to mid-October is the point of this route: the sugar maples in the Vermont hills turn first, and the cool evenings are what make a fireplace and a heavy quilt worth having. Come in summer and Stowe is a green resort town like any other. Come once the leaves drop in late October and you get bare trees and stick season closing in. Time it to the peak color and the whole trip pays off.",
     aiPromptPatterns: [
       "plan a cozy New England fall foliage road trip Boston and Stowe",
       "where to stay in Stowe Vermont for leaf peeping season",
