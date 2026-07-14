@@ -94,12 +94,18 @@ export async function generateMetadata({ params }: { params: { locale: string } 
   return {
     title, description,
     alternates: { canonical: url },
+    robots: { index: false, follow: false }, // private per-recipient preview — never indexed
     openGraph: { title, description, type: "website", url },
     twitter: { card: "summary", title, description },
   };
 }
 
-export default async function AdaptiveReusePage({ params }: { params: { locale: string } }) {
+// Private preview link, keyed on the recipient's name. The page is noindexed and 404s without the
+// correct ?key=, so it can be shared with one journalist without being public or discoverable.
+const ACCESS_KEYS = new Set(["lauren-harano"]);
+
+export default async function AdaptiveReusePage({ params, searchParams }: { params: { locale: string }; searchParams: { key?: string } }) {
+  if (!ACCESS_KEYS.has((searchParams?.key || "").toLowerCase())) notFound();
   const { locale } = params;
   const hotels = await loadHotels();
   if (hotels.length < 2) notFound();
