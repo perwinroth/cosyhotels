@@ -16,6 +16,7 @@ import { displayCity, isLatin } from "@/lib/placeText";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
+import { translate } from "@/lib/i18n/translate";
 import ShareButton from "@/components/ShareButton";
 import {
   CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, conceptLabelPhrase,
@@ -133,8 +134,10 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   const phrase = conceptLabelPhrase(concept);
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/${concept.slug}`;
-  const title = `Cosy hotels ${phrase}, AI-ranked worldwide`;
-  const description = `The cosiest hotels ${phrase}, from around the world, each AI-scored from 0 to 10 for warmth and character, ranked best first.`;
+  const titleBase = `Cosy hotels ${phrase}, AI-ranked worldwide`;
+  const descBase = `The cosiest hotels ${phrase}, from around the world, each AI-scored from 0 to 10 for warmth and character, ranked best first.`;
+  const title = params.locale === "en" ? titleBase : await translate(titleBase, params.locale);
+  const description = params.locale === "en" ? descBase : await translate(descBase, params.locale);
   return {
     title, description,
     alternates: { canonical: url },

@@ -10,6 +10,7 @@ import { loadRegionHotels, loadRegionCount, HUB_MIN, HUB_404_BELOW } from "@/lib
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
+import { translate } from "@/lib/i18n/translate";
 import ShareButton from "@/components/ShareButton";
 
 export const revalidate = 3600;
@@ -26,8 +27,10 @@ export async function generateMetadata({ params }: { params: { locale: string; s
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/cosy-hotels/region/${region.slug}`;
   const place = regionLabel(region);
-  const title = `Cosy hotels in ${place}, AI-ranked for cosiness`;
-  const description = `The cosiest boutique and independent hotels across ${place}, each AI-scored from 0 to 10 for warmth, character and intimacy; ranked best first, not by stars.`;
+  const titleBase = `Cosy hotels in ${place}, AI-ranked for cosiness`;
+  const descBase = `The cosiest boutique and independent hotels across ${place}, each AI-scored from 0 to 10 for warmth, character and intimacy; ranked best first, not by stars.`;
+  const title = params.locale === "en" ? titleBase : await translate(titleBase, params.locale);
+  const description = params.locale === "en" ? descBase : await translate(descBase, params.locale);
   const thin = (await loadRegionCount(region)) < HUB_MIN;
   return {
     title, description,
