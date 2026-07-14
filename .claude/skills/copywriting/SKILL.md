@@ -94,6 +94,9 @@ Subject: What makes a boutique hotel feel warm
 ## Demand vocabulary tracking (standing rule, founder 2026-07-12)
 Travellers change what they CALL what they want; our data measures the underlying qualities, so vocabulary shifts are free demand if pages carry the current words. Every new page, facet, pitch or campaign names the rising intent it serves (current risers, evidence-verified 2026-07: sleep tourism / rest-first, quiet travel / hushpitality / quietcation, reading retreats, farm stays / agriturismo, slow travel, solo female travel). Weave rising synonyms into existing pages before building new ones. Never adopt a trend word from an unsourced viral stat; the standing riser/faller table lives in die-validation memory/findings/accommodation-trend-report-2026-07-12.md and is re-scanned quarterly.
 
+## Every new feature is translatable (founder standing rule, 2026-07-14)
+No new reader-facing surface ships English-only. Any new page, board, card, section or copy string must render through translate(text, locale) for non-en locales (the pattern the guide pages use: `await translate(g.title, params.locale)`), exactly as titles/metas/intros already do. Live data (hotel names, scores) is locale-agnostic and needs no translation; editorial copy does. This is a heavier lift per feature and it is the price of the locale strategy (Swedish live; Spanish/French/German next). A feature that cannot be translated is not done. Locale go-live for new markets is gated on the trip planner being in place (founder, 2026-07-14).
+
 ## Before you ship
 Cut one adjective per sentence. Read the first paragraph alone: does it make someone keep reading? Check every number is real and sourced. Remove the throat-clear. If it could have been written by any hotel-affiliate blog, rewrite it.
 For an email: read it aloud as Per. If any sentence sounds like a company, cut it. If the first line could go to anyone else on the list, rewrite it.
