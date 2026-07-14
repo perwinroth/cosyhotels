@@ -112,3 +112,22 @@ export async function translate(text: string, targetLocale: string): Promise<str
   return translated;
 }
 
+// Batch-translate a list of strings with bounded concurrency. Each string is cached individually by
+// translate() (so hotel descriptions are translated at most once, ever), but a page can show dozens
+// of hotels — this caps the parallel fan-out on a cold cache so we never open 60 Claude requests at
+// once. Order is preserved; en is a no-op that returns the input array unchanged.
+export async function translateMany(texts: string[], targetLocale: string, concurrency = 8): Promise<string[]> {
+  const target = (targetLocale || 'en').split('-')[0].toLowerCase();
+  if (target === 'en') return texts;
+  const out = new Array<string>(texts.length);
+  let next = 0;
+  async function worker() {
+    while (next < texts.length) {
+      const i = next++;
+      out[i] = await translate(texts[i], target);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(Math.max(1, concurrency), texts.length || 1) }, worker));
+  return out;
+}
+

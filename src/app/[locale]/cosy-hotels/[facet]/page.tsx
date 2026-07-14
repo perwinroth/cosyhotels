@@ -16,7 +16,7 @@ import { displayCity, isLatin } from "@/lib/placeText";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
-import { translate } from "@/lib/i18n/translate";
+import { translate, translateMany } from "@/lib/i18n/translate";
 import ShareButton from "@/components/ShareButton";
 import {
   CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, conceptLabelPhrase,
@@ -170,7 +170,13 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
   // A facet-specific opening sentence (facets.ts `intro`, e.g. quiet's rising-intent vocabulary)
   // is prepended to the data-led line when present; the data-led line always renders.
   const facetIntro = facetBySlug(concept.slug)?.intro;
-  const intro = `${facetIntro ? `${facetIntro} ` : ""}The cosiest hotels ${phrase} we've scored worldwide; ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score, backed by real signals and guest reviews.`;
+  const introEn = `${facetIntro ? `${facetIntro} ` : ""}The cosiest hotels ${phrase} we've scored worldwide; ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score, backed by real signals and guest reviews.`;
+  // Visible body copy renders in the target language for non-en; en path is byte-identical (G14).
+  const isEn = params.locale === "en";
+  const h1 = isEn ? "" : await translate(`Cosy hotels ${phrase}`, params.locale);
+  const intro = isEn ? introEn : await translate(introEn, params.locale);
+  const byCityLabel = isEn ? "By city" : await translate("By city", params.locale);
+  const snippets = isEn ? hotels.map((h) => h.snippet) : await translateMany(hotels.map((h) => h.snippet || ""), params.locale);
   const itemList = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${phrase}`, numberOfItems: hotels.length,
     itemListElement: hotels.map((h, i) => ({
@@ -190,12 +196,12 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(itemList)} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(crumbs)} />
       <nav className="text-sm" style={{ color: "var(--muted)" }}><a href={`/${params.locale}/cosy-hotels`} className="hover:underline">Cosy hotels</a> / {phrase}</nav>
-      <h1 className="mt-2 text-2xl font-semibold">Cosy hotels {phrase}</h1>
+      <h1 className="mt-2 text-2xl font-semibold">{isEn ? <>Cosy hotels {phrase}</> : h1}</h1>
       <p className="mt-2" style={{ color: "var(--muted)" }}>{intro}</p>
 
       {cities.length > 0 && (
         <section className="mt-5">
-          <h2 className="text-sm font-medium" style={{ color: "var(--muted)" }}>By city</h2>
+          <h2 className="text-sm font-medium" style={{ color: "var(--muted)" }}>{byCityLabel}</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {cities.map((c) => (
               <a key={c.slug} href={`/${params.locale}/cosy-hotels/${concept.slug}/${c.slug}`} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm hover:underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -217,7 +223,7 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2"><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
                   {h.city && <div className="text-sm" style={{ color: "var(--muted)" }}>{h.city}</div>}
-                  {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.snippet}</p>}
+                  {snippets[idx] && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{snippets[idx]}</p>}
                   <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><ShareButton variant="icon" title={`${h.name}, a cosy hotel ${phrase}`} url={`/${params.locale}/hotels/${h.slug}`} /></div>
                 </div>
                 {ph && <a href={`/${params.locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}

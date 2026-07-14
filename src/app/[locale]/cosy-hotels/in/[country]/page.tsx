@@ -10,7 +10,7 @@ import { loadCountryCounts, loadCountryHotels, HUB_MIN, HUB_404_BELOW } from "@/
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
-import { translate } from "@/lib/i18n/translate";
+import { translate, translateMany } from "@/lib/i18n/translate";
 import ShareButton from "@/components/ShareButton";
 
 export const revalidate = 3600;
@@ -66,7 +66,16 @@ export default async function CountryHub({ params }: { params: { locale: string;
 
   const top = hotels[0];
   const shownCities = [...new Set(hotels.map((h) => h.city).filter(Boolean))].slice(0, 6);
-  const intro = `We've scored ${total.toLocaleString()} cosy ${total === 1 ? "hotel" : "hotels"} in ${country.name} that clear our cosiness bar; ${top.name} leads at ${top.score.toFixed(1)}/10. Here are the ${hotels.length} cosiest, ranked by cosy score.`;
+  const introEn = `We've scored ${total.toLocaleString()} cosy ${total === 1 ? "hotel" : "hotels"} in ${country.name} that clear our cosiness bar; ${top.name} leads at ${top.score.toFixed(1)}/10. Here are the ${hotels.length} cosiest, ranked by cosy score.`;
+  const featuringEn = `Featuring stays in ${shownCities.join(", ")}.`;
+  // Visible body copy renders in the target language for non-en (translate() preserves numbers,
+  // hotel + city names, and scores via its system prompt). The en path is untouched: the strings and
+  // JSX below are byte-identical to before, so /en output does not change (G14).
+  const isEn = params.locale === "en";
+  const h1 = isEn ? "" : await translate(`Cosy hotels in ${country.name}`, params.locale);
+  const intro = isEn ? introEn : await translate(introEn, params.locale);
+  const featuring = isEn ? "" : await translate(featuringEn, params.locale);
+  const snippets = isEn ? hotels.map((h) => h.snippet) : await translateMany(hotels.map((h) => h.snippet || ""), params.locale);
 
   const itemList = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels in ${country.name}`, numberOfItems: hotels.length,
@@ -87,10 +96,10 @@ export default async function CountryHub({ params }: { params: { locale: string;
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(itemList)} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(crumbs)} />
       <nav className="text-sm" style={{ color: "var(--muted)" }}><a href={`/${params.locale}/cosy-hotels`} className="hover:underline">Cosy hotels</a> / {country.name}</nav>
-      <h1 className="mt-2 text-2xl font-semibold">Cosy hotels in {country.name}</h1>
+      <h1 className="mt-2 text-2xl font-semibold">{isEn ? <>Cosy hotels in {country.name}</> : h1}</h1>
       <p className="mt-2" style={{ color: "var(--muted)" }}>{intro}</p>
       {shownCities.length > 1 && (
-        <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>Featuring stays in {shownCities.join(", ")}.</p>
+        <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>{isEn ? <>Featuring stays in {shownCities.join(", ")}.</> : featuring}</p>
       )}
 
       <ol className="mt-6 space-y-3">
@@ -104,7 +113,7 @@ export default async function CountryHub({ params }: { params: { locale: string;
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2"><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
                   <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, country.name].filter(Boolean).join(", ")}</div>
-                  {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.snippet}</p>}
+                  {snippets[idx] && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{snippets[idx]}</p>}
                   <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${country.name}`} url={`/${params.locale}/hotels/${h.slug}`} /></div>
                 </div>
                 {ph && <a href={`/${params.locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
