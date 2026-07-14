@@ -32,6 +32,11 @@ function sha256(s: string) {
 export async function translate(text: string, targetLocale: string): Promise<string> {
   const target = (targetLocale || 'en').split('-')[0].toLowerCase();
   if (!text || target === 'en') return text;
+  // KILL SWITCH (founder, 2026-07-14): machine translation quality was rejected by a native
+  // speaker ("absolutely bad Swedish"). Serve the SOURCE (English) on every locale until a
+  // native-quality path ships (native-written templates + a review pass). The wiring stays
+  // intact; set TRANSLATE_MT_ENABLED=1 to re-enable once quality is proven per-locale.
+  if (process.env.TRANSLATE_MT_ENABLED !== '1') return text;
   const db = getServerSupabase();
   const src = `v1|${target}|${text}`; // versioned cache key
   const key = sha256(src);
