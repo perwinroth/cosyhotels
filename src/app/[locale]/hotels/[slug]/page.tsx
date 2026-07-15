@@ -359,7 +359,7 @@ export default async function HotelDetail({ params }: Props) {
 
       {photo && (
         <div className="relative mt-5 w-full overflow-hidden rounded-2xl" style={{ aspectRatio: "16/9", border: "1px solid var(--line)" }}>
-          <Image src={photo} alt={`${hotel.name}${cityName ? `, ${cityName}` : ''}`} fill className="object-cover" sizes="(max-width:768px) 100vw, 768px" quality={70} unoptimized={/^https?:\/\//.test(photo)} />
+          <Image src={photo} alt={`${hotel.name}${cityName ? `, ${cityName}` : ''}`} fill className="object-cover" sizes="(max-width:768px) 100vw, 768px" quality={70} unoptimized={/^https?:\/\//.test(photo)} priority />
         </div>
       )}
 
