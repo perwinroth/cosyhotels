@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type Variant = "pill" | "icon";
-export default function ShareButton({ title, text, url: urlProp, variant = "pill", label = "Share" }: { title?: string; text?: string; url?: string; variant?: Variant; label?: string }) {
+export default function ShareButton({ title, text, url: urlProp, variant = "pill", label = "Share", block = false }: { title?: string; text?: string; url?: string; variant?: Variant; label?: string; block?: boolean }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [igCopied, setIgCopied] = useState(false);
@@ -84,7 +84,7 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
   const ico: React.CSSProperties = { width: 17, height: 17, flex: "none", color: "var(--muted)" };
 
   return (
-    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+    <div ref={ref} className={`relative ${block ? "block w-full sm:inline-block sm:w-auto" : "inline-block"}`}>
       {variant === "pill" ? (
         <button ref={btnRef} onClick={onShare} aria-label={label} aria-haspopup="menu" aria-expanded={open}
           style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 14px 7px 12px", borderRadius: 999, border: "1px solid color-mix(in srgb, var(--ember) 45%, var(--line))", background: "color-mix(in srgb, var(--ember) 7%, var(--card))", color: "var(--ember-ink)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -92,9 +92,13 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
           {label}
         </button>
       ) : (
-        <button ref={btnRef} onClick={onShare} aria-label="Share" title="Share" aria-haspopup="menu" aria-expanded={open} className="hov"
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)", color: "var(--muted)", cursor: "pointer", flexShrink: 0 }}>
+        <button ref={btnRef} onClick={onShare} aria-label="Share" title="Share" aria-haspopup="menu" aria-expanded={open}
+          className={`hov ${block ? "flex min-h-[44px] w-full items-center justify-center gap-2 text-sm font-medium sm:h-11 sm:min-h-0 sm:w-11 sm:gap-0" : ""}`}
+          style={block
+            ? { borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)", color: "var(--muted)", cursor: "pointer" }
+            : { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)", color: "var(--muted)", cursor: "pointer", flexShrink: 0 }}>
           <span style={{ width: 15, height: 15 }} aria-hidden>{ICON.share}</span>
+          {block ? <span className="sm:hidden">{label}</span> : null}
         </button>
       )}
       {open && pos && typeof document !== "undefined" && createPortal(
