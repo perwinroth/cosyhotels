@@ -29,7 +29,9 @@ export type SaveToTripLabels = {
   findByEmail: string;
 };
 
-type Props = { hotelSlug: string; locale: string; labels: SaveToTripLabels; variant?: "block" | "compact" };
+// `block` (compact variant only) makes the button full-width on mobile, `sm:w-auto` at >= sm — used
+// by HotelActions so Save stacks full-width under Check availability on phones.
+type Props = { hotelSlug: string; locale: string; labels: SaveToTripLabels; variant?: "block" | "compact"; block?: boolean };
 type StoredTrip = { slug: string; editToken: string };
 type Status = "idle" | "panel" | "done" | "error";
 
@@ -60,7 +62,7 @@ function isLikelyEmail(s: string): boolean {
   return at > 0 && at < s.length - 1 && s.slice(at + 1).includes(".");
 }
 
-export default function SaveToTripButton({ hotelSlug, locale, labels, variant = "block" }: Props) {
+export default function SaveToTripButton({ hotelSlug, locale, labels, variant = "block", block = false }: Props) {
   const compact = variant === "compact";
   const [status, setStatus] = useState<Status>("idle");
   const [submitting, setSubmitting] = useState(false);
@@ -194,7 +196,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
   }
 
   return (
-    <div className="relative inline-block">
+    <div className={`relative ${block ? "block w-full sm:inline-block sm:w-auto" : "inline-block"}`}>
       {compact ? (
         <button
           type="button"
@@ -202,7 +204,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
           disabled={submitting}
           aria-label={status === "done" ? labels.added : labels.saveShort}
           title={status === "done" ? labels.added : labels.saveShort}
-          className="hov"
+          className={`hov ${block ? "w-full sm:w-auto" : ""}`}
           style={{
             display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, height: 44, padding: "0 14px",
             borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)",
