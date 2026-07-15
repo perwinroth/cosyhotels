@@ -42,15 +42,24 @@ export default async function GrowthBadgesPage() {
   }
 
   const statusById = new Map<string, string>();
+  const pctById = new Map<string, number>();
   if (hotels.length) {
-    const { data: st } = await db.from("hotel_outreach").select("hotel_id,status").in("hotel_id", hotels.map((h) => h.id));
-    for (const s of (st || []) as Array<{ hotel_id: string; status: string }>) statusById.set(String(s.hotel_id), s.status);
+    const { data: st } = await db.from("hotel_outreach").select("hotel_id,status,stamped_pct").in("hotel_id", hotels.map((h) => h.id));
+    for (const s of (st || []) as Array<{ hotel_id: string; status: string; stamped_pct: number | null }>) {
+      statusById.set(String(s.hotel_id), s.status);
+      if (s.stamped_pct != null) pctById.set(String(s.hotel_id), Number(s.stamped_pct));
+    }
   }
 
   
   const built: BadgeBoardRow[] = hotels.map((h) => {
     const variant = variantFor(h.id);
-    const vp = buildVariantPitch(variant, { name: h.name, score: h.score, slug: h.slug, city: h.city, description: h.description }, { base });
+    const pct = pctById.get(h.id);
+    // Tier-honest: only a STAMPED hotel gets a real pitch. Unstamped rows show a seed-first note,
+    // never the old false "top 2.3%".
+    const vp = pct != null
+      ? buildVariantPitch(variant, { name: h.name, score: h.score, slug: h.slug, city: h.city, description: h.description }, { base, pct })
+      : { subject: "Seed this hotel to stamp its percentile", body: "No stamped percentile yet. Seed this hotel (which freezes its top-X% claim) before pitching." };
     const pitch = vp.body; const subject = vp.subject;
     // Channel priority: email → Gmail; else instagram → DM + copy; else copy pitch (website-only).
     // `email` is populated by the enrichment scraper (score≥7 hotels); `instagram` is the bare handle.

@@ -118,28 +118,41 @@ test("asset pack page metadata is noindex,nofollow", async () => {
 
 // ── (f) G14 guard: the email lane's pitch text is byte-identical (exact snapshot) ──
 
-test("buildVariantPitch v2 output is unchanged (guards accidental edits to the email lane)", () => {
+test("buildVariantPitch v2 is tier-honest: passed pct + tier badge, no hardcoded 2.3%, no city rank claim", () => {
   const out = buildVariantPitch(
     "v2",
-    { name: "Hotel Alma", score: 8.6, slug: "hotel-alma", city: "Bruges", description: "A snug canal-side townhouse. Guests praise the fireplace lounge." },
-    { base: "https://gotcosy.com" },
+    { name: "Hotel Alma", score: 6.5, slug: "hotel-alma", city: "Bruges", description: "A snug canal-side townhouse. Guests praise the fireplace lounge." },
+    { base: "https://gotcosy.com", pct: 16 },
   );
-  assert.equal(out.subject, "Your guests made Hotel Alma one of the cosiest hotels in Bruges");
+  assert.equal(out.subject, "Your guests put Hotel Alma in the cosiest 16% for warmth");
   assert.equal(
     out.body,
     `Hi,
 
-I run GotCosy, a small hotel-discovery site. We analyse the guest reviews of 17,727 hotels for warmth and character, and Hotel Alma came out in the top 2.3% of them, with a cosy score of 8.6/10.
+I run Got Cosy, a small hotel-discovery site. We read the guest reviews of 17,727 hotels for warmth and character, and Hotel Alma came out in the top 16% of them, with a cosy score of 6.5/10.
 
-What earned it is what your own guests keep saying; this line is condensed from their reviews: "A snug canal-side townhouse. Guests praise the fireplace lounge."
+What earned it is what your own guests keep writing. This line is condensed from their reviews, not a word-for-word quote: "A snug canal-side townhouse. Guests praise the fireplace lounge."
 
 Your page, with the score and the reasons behind it: https://gotcosy.com/en/hotels/hotel-alma
 
-We mainly wanted whoever creates that warmth to know how clearly it shows. If you'd like a small "Rated Cosy" badge for your website, it's free: https://gotcosy.com/en/hotels/hotel-alma?badge
+We mostly wanted whoever creates that warmth to know how clearly it shows. If you'd like the free Rated Cosy badge for your website, it's here and links back to your page: https://gotcosy.com/en/hotels/hotel-alma?badge
 
 If you'd rather not hear from us, just reply "no thanks".
 
 Per
 gotcosy.com`,
   );
+  assert.ok(!out.body.includes("2.3%"), "a lower-tier email must never claim top 2.3%");
+  assert.ok(!out.subject.includes("cosiest hotels in"), "no geographic (city) ranking claim");
+});
+
+test("buildVariantPitch tier-honesty across tiers (badge name + own percentile, v3)", () => {
+  const idx = buildVariantPitch("v3", { name: "Follonico", score: 7.8, slug: "follonico", city: "Torrita", description: "" }, { base: "https://gotcosy.com", pct: 2 });
+  assert.ok(idx.subject.includes("top 2% of 17,727"), "Cosy Index uses its own low pct");
+  assert.ok(idx.body.includes("Cosy Index badge"), "7.0+ offers the Cosy Index badge");
+
+  const low = buildVariantPitch("v3", { name: "Casa X", score: 6.1, slug: "casa-x", city: "Rome", description: "" }, { base: "https://gotcosy.com", pct: 24 });
+  assert.ok(low.subject.includes("top 24% of 17,727"), "Top 27% tier uses its own pct");
+  assert.ok(low.body.includes("Rated Cosy badge"), "below 7.0 offers the Rated Cosy badge");
+  assert.ok(!low.body.includes("2.3%") && !low.subject.includes("2.3%"), "no residual 2.3% at lower tiers");
 });
