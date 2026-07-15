@@ -6,7 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
 import { sameHotel } from "@/lib/hotelIdentity";
 import ShareButton from "@/components/ShareButton";
-import SaveToTripButton from "@/components/SaveToTripButton";
+import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
 import { populatedCities } from "@/lib/social";
@@ -464,11 +464,12 @@ export default async function GuidePage({ params }: Props) {
           {chosen.map((h, idx) => (
             <li key={h.slug} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h._cosy), width: 56, height: 56, fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600 }}>
+                <div className="flex-shrink-0 hidden sm:flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h._cosy), width: 56, height: 56, fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600 }}>
                   {h._cosy.toFixed(1)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="sm:hidden inline-flex items-center justify-center rounded-lg px-2 py-0.5 text-sm font-semibold text-white" style={{ background: cosyBadgeColor(h._cosy), fontFamily: 'Fraunces, serif' }}>{h._cosy.toFixed(1)}</span>
                     <span className="text-sm tabular-nums" style={{ color: 'var(--muted)' }}>#{idx + 1}</span>
                     <h2 className="text-lg font-semibold leading-tight">
                       <a href={detailsHref(h.slug)} className="hover:underline">{h.name}</a>
@@ -481,13 +482,7 @@ export default async function GuidePage({ params }: Props) {
                       <p className="mt-0.5 text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>
                     </div>
                   )}
-                  <div className="mt-3 flex items-center gap-2">
-                    <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: 'var(--ember)' }}>
-                      Check availability
-                    </a>
-                    <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={params.locale} labels={saveLabels} />
-                    <ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${h.city}`} url={detailsHref(h.slug)} />
-                  </div>
+                  <HotelActions href={h.cta} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref(h.slug)} />
                 </div>
                 {h._img && (
                   <a href={detailsHref(h.slug)} className="flex-shrink-0 hidden sm:block">
