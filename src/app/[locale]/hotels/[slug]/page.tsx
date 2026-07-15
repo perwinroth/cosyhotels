@@ -8,7 +8,8 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import ShareButton from "@/components/ShareButton";
 import BadgeEmbed from "@/components/BadgeEmbed";
-import SaveToTripButton, { type SaveToTripLabels } from "@/components/SaveToTripButton";
+import HotelActions from "@/components/HotelActions";
+import { type SaveToTripLabels } from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
@@ -362,7 +363,7 @@ export default async function HotelDetail({ params }: Props) {
         </div>
       )}
 
-      <div className="mt-6 flex items-center gap-5 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
+      <div className="mt-6 flex flex-col gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center sm:gap-5" style={{ borderColor: 'var(--line)', background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
         {cosyDisplay != null ? (
           <div className="flex-none flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 76, height: 76, background: badge, color: '#fff', fontSize: 28 }} aria-label={`Cosy score ${cosyDisplay.toFixed(1)} out of 10`}>
             {cosyDisplay.toFixed(1)}<span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', opacity: 0.8 }}>COSY</span>
@@ -398,11 +399,10 @@ export default async function HotelDetail({ params }: Props) {
 
       <TravellerFit displayed={displayedFits} hrefBySlug={hrefBySlug} />
 
-      <div className="mt-6 flex items-center gap-3">
-        <a className="rounded-xl px-4 py-2.5 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
-        <div className="ml-auto flex items-center gap-2">
-          <a className="rounded-xl px-5 py-3 font-medium no-underline text-sm" style={{ background: 'var(--ember)', color: '#16201C' }} href={bookingUrl} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={String(hotel.name)} data-city={cityName}>Check availability</a>
-          <SaveToTripButton hotelSlug={String(hotel.slug)} locale={params.locale} labels={saveLabels} variant="compact" />
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <a className="inline-flex min-h-[44px] items-center rounded-xl px-4 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
+        <div className="sm:ml-auto">
+          <HotelActions href={bookingUrl} hotelName={String(hotel.name)} city={cityName} slug={String(hotel.slug)} locale={params.locale} saveLabels={saveLabels} />
         </div>
       </div>
       {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not only in the footer. */}

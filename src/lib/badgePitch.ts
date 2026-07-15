@@ -57,29 +57,33 @@ export function variantFor(hotelId: string): PitchVariant {
   return parseInt(createHash("sha1").update(String(hotelId)).digest("hex").slice(0, 8), 16) % 2 === 0 ? "v2" : "v3";
 }
 
-// Challenger-approved texts (edits applied verbatim). Honesty clauses: excerpt always disclosed as
-// condensed-from-reviews; "top 2.3% of them"; opt-out line mandatory; no tracking pixels.
+// TIER-HONEST texts (Challenger-verified 2026-07-15, founder-approved). Each hotel's OWN percentile
+// (opts.pct = stamped, rounded up) is used, never a hardcoded "2.3%": that was only true for the
+// original 7.0+ wave and false for the 6.0-6.9 tiers the scrape opened up. Honesty clauses kept:
+// excerpt disclosed as condensed-from-reviews (never a verbatim quote); "top X% of them"; opt-out
+// mandatory; no tracking pixels. Badge name is tier-banded but the number in the copy is the hotel's.
 export function buildVariantPitch(
   variant: PitchVariant,
   h: { name: string; score: number; slug: string; city: string; description?: string | null },
-  opts: { base: string },
+  opts: { base: string; pct: number },
 ): { subject: string; body: string } {
   const hotelPage = `${opts.base}/en/hotels/${h.slug}`;
   const badgeLink = `${hotelPage}?badge`;
   const excerpt = pitchExcerpt(h.description, 300);
   const optOut = `If you'd rather not hear from us, just reply "no thanks".`;
+  const badgeName = h.score >= 7.0 ? "Cosy Index badge" : "Rated Cosy badge";
   if (variant === "v2") {
     return {
-      subject: `Your guests made ${h.name} one of the cosiest hotels in ${h.city}`,
+      subject: `Your guests put ${h.name} in the cosiest ${opts.pct}% for warmth`,
       body: `Hi,
 
-I run GotCosy, a small hotel-discovery site. We analyse the guest reviews of 17,727 hotels for warmth and character, and ${h.name} came out in the top 2.3% of them, with a cosy score of ${h.score.toFixed(1)}/10.
+I run Got Cosy, a small hotel-discovery site. We read the guest reviews of 17,727 hotels for warmth and character, and ${h.name} came out in the top ${opts.pct}% of them, with a cosy score of ${h.score.toFixed(1)}/10.
 
-${excerpt ? `What earned it is what your own guests keep saying; this line is condensed from their reviews: "${excerpt}"
+${excerpt ? `What earned it is what your own guests keep writing. This line is condensed from their reviews, not a word-for-word quote: "${excerpt}"
 
 ` : ""}Your page, with the score and the reasons behind it: ${hotelPage}
 
-We mainly wanted whoever creates that warmth to know how clearly it shows. If you'd like a small "Rated Cosy" badge for your website, it's free: ${badgeLink}
+We mostly wanted whoever creates that warmth to know how clearly it shows. If you'd like the free ${badgeName} for your website, it's here and links back to your page: ${badgeLink}
 
 ${optOut}
 
@@ -88,16 +92,16 @@ gotcosy.com`,
     };
   }
   return {
-    subject: `The data on ${h.name}: top 2.3% of 17,727 hotels for cosiness`,
+    subject: `The data on ${h.name}: top ${opts.pct}% of 17,727 hotels for cosiness`,
     body: `Hi,
 
-We've just published a guest-review-language analysis of 17,727 hotels: how warmly guests actually write about where they stayed. The methodology and full tables are public: https://gotcosy.com/en/data/cosiest-hotel-towns?utm_source=outreach&utm_campaign=v3
+We read the guest-review language of 17,727 hotels: how warmly guests actually write about where they stayed. The method and full tables are public: https://gotcosy.com/en/data/cosiest-hotel-towns?utm_source=outreach&utm_campaign=v3
 
-${h.name} scored ${h.score.toFixed(1)}/10: the top 2.3% of them.${excerpt ? ` The evidence (this line is condensed from your guests' reviews): "${excerpt}"` : ""}
+${h.name} scored ${h.score.toFixed(1)}/10, the top ${opts.pct}% of them.${excerpt ? ` The evidence, condensed from your guests' reviews and not a word-for-word quote: "${excerpt}"` : ""}
 
 Your full evidence page: ${hotelPage}
 
-A free "Rated Cosy" badge is available for your site if useful: ${badgeLink}. Happy to answer anything about how the score works.
+If it's useful, a free ${badgeName} for your site is here, and it links back to your page: ${badgeLink}. Happy to answer anything about how the score works.
 
 ${optOut}
 

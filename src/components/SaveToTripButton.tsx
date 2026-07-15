@@ -204,9 +204,9 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
           title={status === "done" ? labels.added : labels.saveShort}
           className="hov"
           style={{
-            display: "inline-flex", alignItems: "center", gap: 5, height: 34, padding: "0 12px",
-            borderRadius: 999, border: "1px solid var(--line)", background: "var(--card)",
-            color: status === "done" ? "var(--sage)" : "var(--foreground)", fontSize: 12.5, fontWeight: 600,
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, height: 44, padding: "0 14px",
+            borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)",
+            color: status === "done" ? "var(--sage)" : "var(--foreground)", fontSize: 13, fontWeight: 600,
             cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap",
           }}
         >
@@ -230,7 +230,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
       {compact && status === "done" && donePopoverOpen && (
         <div
           role="status"
-          className="absolute left-0 z-20 mt-2 w-64 max-w-[90vw] rounded-xl border p-3 text-sm"
+          className="fixed inset-x-3 bottom-3 z-50 mx-auto w-auto max-w-sm rounded-xl border p-3 text-sm sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:mx-0 sm:mt-2 sm:w-64"
           style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}
         >
           <p className="font-medium" style={{ color: "var(--foreground)" }}>{labels.added}</p>
@@ -250,7 +250,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
           role="dialog"
           aria-modal="true"
           aria-labelledby="save-to-trip-heading"
-          className={`absolute left-0 z-20 mt-2 ${compact ? "w-72" : "w-80"} max-w-[90vw] rounded-2xl border p-4`}
+          className={`z-50 max-w-[90vw] rounded-2xl border p-4 ${compact ? "fixed inset-x-3 bottom-3 mx-auto w-auto max-w-sm sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:mx-0 sm:mt-2 sm:w-72" : "absolute left-0 mt-2 w-80"}`}
           style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}
         >
           <h3 id="save-to-trip-heading" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>{labels.emailPrompt}</h3>

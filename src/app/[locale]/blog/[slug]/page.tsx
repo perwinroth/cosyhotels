@@ -13,7 +13,8 @@ type BlogPick = PickEntry;
 const BLOG_PICKS = blogPicksData as Record<string, BlogPick[]>;
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
-import SaveToTripButton, { type SaveToTripLabels } from "@/components/SaveToTripButton";
+import HotelActions from "@/components/HotelActions";
+import { type SaveToTripLabels } from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { site } from "@/config/site";
 import { jsonLd } from "@/lib/schema";
@@ -58,9 +59,10 @@ function PickCard({ h, idx, locale, saveLabels }: { h: BlogPick; idx: number; lo
   return (
     <li className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>{h.score.toFixed(1)}</div>
+        <div className="flex-shrink-0 hidden sm:flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>{h.score.toFixed(1)}</div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="sm:hidden inline-flex items-center justify-center rounded-lg px-2 py-0.5 text-sm font-semibold text-white" style={{ background: cosyBadgeColor(h.score), fontFamily: "Fraunces, serif" }}>{h.score.toFixed(1)}</span>
             <span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span>
             <h3 className="text-lg font-semibold leading-tight"><a href={detailsHref} className="hover:underline">{h.name}</a></h3>
           </div>
@@ -71,11 +73,7 @@ function PickCard({ h, idx, locale, saveLabels }: { h: BlogPick; idx: number; lo
               <p className="mt-0.5 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.why}</p>
             </div>
           )}
-          <div className="mt-3 flex items-center gap-2">
-            <a href={h.cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a>
-            <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} />
-            <ShareButton variant="icon" title={`${h.name}, a cosy hotel in ${h.city}`} url={detailsHref} />
-          </div>
+          <HotelActions href={h.cta} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref} />
         </div>
         {h.img && (
           <a href={detailsHref} className="flex-shrink-0 hidden sm:block">
