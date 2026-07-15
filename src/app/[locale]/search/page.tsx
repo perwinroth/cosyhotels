@@ -4,6 +4,10 @@ import { searchSite } from "@/lib/search";
 import { logSearch } from "@/lib/searchLog";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { cityGuides } from "@/data/cityGuides";
+import { stay22AllezUrl } from "@/lib/affiliates";
+import SaveToTripButton from "@/components/SaveToTripButton";
+import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import ShareButton from "@/components/ShareButton";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -31,6 +35,9 @@ export default async function SearchPage({ params, searchParams }: Props) {
   const q = (sp.q || "").trim();
   const { hotels, cities, countries, regions } = q.length >= 2 ? await searchSite(q, { hotelLimit: 24 }) : { hotels: [], cities: [], countries: [], regions: [] };
   const hasResults = hotels.length > 0 || cities.length > 0 || countries.length > 0 || regions.length > 0;
+  // Search is a high-intent surface; give each hotel the same book/save/share actions as our other
+  // listing cards. The page is noindex, so these carry no SEO cost, only UX and affiliate upside.
+  const saveLabels = hotels.length > 0 ? await buildSaveLabels(locale) : null;
   // Fire-and-forget: record real on-site demand (esp. zero-result queries). Never blocks this render.
   if (q.length >= 2) logSearch(q, { hotels: hotels.length, cities: cities.length, countries: countries.length, regions: regions.length, locale });
 
@@ -73,6 +80,11 @@ export default async function SearchPage({ params, searchParams }: Props) {
                       <p className="mt-0.5 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>
                     </div>
                   )}
+                  <div className="mt-3 flex items-center gap-2">
+                    <a href={stay22AllezUrl({ name: h.name, city: h.city, country: h.country, campaign: "search" })} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a>
+                    {saveLabels && <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} />}
+                    <ShareButton variant="icon" title={`${h.name}, a cosy hotel${h.city ? ` in ${h.city}` : ""}`} url={`/${locale}/hotels/${h.slug}`} />
+                  </div>
                 </div>
               </div>
             </li>
