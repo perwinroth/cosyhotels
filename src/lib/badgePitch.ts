@@ -142,9 +142,12 @@ export function buildVariantDm(
   // never doubles up ("…blankets.." / "…blankets….").
   const ev = String(opts.evidence || "").trim().replace(/[.…\s]+$/, "");
   const optOut = `If you'd rather not hear from us, just reply "no thanks" and we won't write again.`;
+  // Blank-line paragraph breaks (\n\n): pasted into an Instagram DM the single-blurb version read as
+  // a wall of text (founder, 2026-07-15). Wording is byte-identical to the approved copy; only spacing
+  // changed (and the full stop after the asset URL dropped so IG keeps the link clickable).
   if (variant === "v2") {
-    const evidence = ev ? `What guests keep mentioning, condensed from their reviews: ${ev}. ` : "";
-    return `${opts.name} scored ${score}/10 for cosiness: top ${opts.pct}% of the ${totalTxt} hotels we've analysed from guest reviews. ${evidence}We made you a free ready-to-post graphic with it, nothing to buy, nothing asked: ${opts.assetLink}. I'm Per, I run Got Cosy. ${optOut}`;
+    const evidence = ev ? `What guests keep mentioning, condensed from their reviews: ${ev}.\n\n` : "";
+    return `${opts.name} scored ${score}/10 for cosiness: top ${opts.pct}% of the ${totalTxt} hotels we've analysed from guest reviews.\n\n${evidence}We made you a free ready-to-post graphic with it, nothing to buy, nothing asked: ${opts.assetLink}\n\nI'm Per, I run Got Cosy. ${optOut}`;
   }
-  return `${opts.name} scored ${score}/10 for cosiness in our review-language analysis of ${totalTxt} hotels: top ${opts.pct}% of them. The method is public, and this page has the evidence from your own guests plus a free ready-to-post graphic: ${opts.assetLink}. Happy to answer anything about how the score works. ${optOut}`;
+  return `${opts.name} scored ${score}/10 for cosiness in our review-language analysis of ${totalTxt} hotels: top ${opts.pct}% of them.\n\nThe method is public, and this page has the evidence from your own guests plus a free ready-to-post graphic: ${opts.assetLink}\n\nHappy to answer anything about how the score works. ${optOut}`;
 }

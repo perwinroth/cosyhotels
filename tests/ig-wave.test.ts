@@ -23,14 +23,24 @@ const SAMPLE = {
 test("v2 DM matches the approved text exactly", () => {
   assert.equal(
     buildVariantDm("v2", SAMPLE),
-    `Hotel Alma scored 6.8/10 for cosiness: top 9% of the 17,727 hotels we've analysed from guest reviews. What guests keep mentioning, condensed from their reviews: log fire in the lounge and thick blankets. We made you a free ready-to-post graphic with it, nothing to buy, nothing asked: https://gotcosy.com/for-hotels/assets/hotel-alma. I'm Per, I run Got Cosy. If you'd rather not hear from us, just reply "no thanks" and we won't write again.`,
+    `Hotel Alma scored 6.8/10 for cosiness: top 9% of the 17,727 hotels we've analysed from guest reviews.
+
+What guests keep mentioning, condensed from their reviews: log fire in the lounge and thick blankets.
+
+We made you a free ready-to-post graphic with it, nothing to buy, nothing asked: https://gotcosy.com/for-hotels/assets/hotel-alma
+
+I'm Per, I run Got Cosy. If you'd rather not hear from us, just reply "no thanks" and we won't write again.`,
   );
 });
 
 test("v3 DM matches the approved text exactly", () => {
   assert.equal(
     buildVariantDm("v3", SAMPLE),
-    `Hotel Alma scored 6.8/10 for cosiness in our review-language analysis of 17,727 hotels: top 9% of them. The method is public, and this page has the evidence from your own guests plus a free ready-to-post graphic: https://gotcosy.com/for-hotels/assets/hotel-alma. Happy to answer anything about how the score works. If you'd rather not hear from us, just reply "no thanks" and we won't write again.`,
+    `Hotel Alma scored 6.8/10 for cosiness in our review-language analysis of 17,727 hotels: top 9% of them.
+
+The method is public, and this page has the evidence from your own guests plus a free ready-to-post graphic: https://gotcosy.com/for-hotels/assets/hotel-alma
+
+Happy to answer anything about how the score works. If you'd rather not hear from us, just reply "no thanks" and we won't write again.`,
   );
 });
 
@@ -48,7 +58,7 @@ test("both DMs carry exactly ONE http link, the opt-out sentence, and never quot
 test("stamped totals flow into the DM; trailing evidence punctuation never doubles the full stop", () => {
   const dm = buildVariantDm("v2", { ...SAMPLE, total: 18102, evidence: "warm staff and soft lighting." });
   assert.ok(dm.includes("the 18,102 hotels"), "stamped_total is rendered, formatted");
-  assert.ok(dm.includes("warm staff and soft lighting. We made you"), "no double full stop");
+  assert.ok(dm.includes("warm staff and soft lighting.\n\nWe made you"), "no double full stop");
   assert.ok(!dm.includes(".."), "no doubled punctuation anywhere");
 });
 
