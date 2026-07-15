@@ -17,11 +17,15 @@ export async function sendEmail({
   subject,
   html,
   text,
+  headers,
 }: {
   to: string;
   subject: string;
   html: string;
   text: string;
+  /** Optional extra email headers (e.g. List-Unsubscribe), passed through to Resend as-is. Only
+   *  future marketing sends need this; transactional sends omit it. */
+  headers?: Record<string, string>;
 }): Promise<{ ok: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { ok: false, error: "email not configured" };
@@ -39,6 +43,7 @@ export async function sendEmail({
         html,
         text,
         reply_to: "per@gotcosy.com",
+        ...(headers ? { headers } : {}),
       }),
     });
     if (!res.ok) {
@@ -50,4 +55,14 @@ export async function sendEmail({
     const message = e instanceof Error ? e.message : "Unknown error";
     return { ok: false, error: message };
   }
+}
+
+// One-click List-Unsubscribe headers (RFC 8058). Point unsubscribeUrl at
+// /[locale]/collections/unsubscribe?token=<unsubscribe_token> so a mail client's own "unsubscribe"
+// button (or its pre-fetch) hits our idempotent GET handler directly, no login required.
+export function listUnsubscribeHeaders(unsubscribeUrl: string): Record<string, string> {
+  return {
+    "List-Unsubscribe": `<${unsubscribeUrl}>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
 }

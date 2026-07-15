@@ -1,7 +1,7 @@
 // Multi-collection localStorage store ("gc_collections"). Saved lists v1 tracked only ONE
 // collection per device (legacy key "gc_trip" = {slug, editToken}). A visitor can now save several
 // collections on the same device, so this stores an ARRAY, most-recent first, de-duped by slug,
-// capped at MAX_COLLECTIONS. Pure client module (no "use client" needed — nothing here is a React
+// capped at MAX_COLLECTIONS. Pure client module (no "use client" needed, nothing here is a React
 // component). Backward compatible: readCollections() migrates a lone legacy gc_trip into the array
 // the first time it's read, and every write also refreshes gc_trip = latest, so any code that still
 // only reads the legacy key keeps working.
@@ -84,4 +84,16 @@ export function hasCollection(slug: string): boolean {
 /** The edit token for a given slug, if this device has one, else null. */
 export function getToken(slug: string): string | null {
   return readCollections().find((c) => c.slug === slug)?.editToken ?? null;
+}
+
+/** Clear every collection this device knows about (both the array and the legacy single-collection
+ *  key). Used after a right-to-be-forgotten erasure, so a deleted visitor's device does not keep
+ *  offering links to collections that no longer exist server-side. Never throws. */
+export function clearCollections(): void {
+  try {
+    window.localStorage.removeItem(STORE_KEY);
+    window.localStorage.removeItem(LEGACY_KEY);
+  } catch {
+    /* localStorage unavailable (private mode) */
+  }
 }

@@ -3,9 +3,10 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { hashToken } from "@/lib/savedLists";
 import { translate } from "@/lib/i18n/translate";
 import CollectionsViewSync, { type SyncEntry } from "@/components/CollectionsViewSync";
+import CollectionsForgetButton from "@/components/CollectionsForgetButton";
 
 // The destination of a "find my collections" magic link. Reads ?token=, hashes it, and looks it up
-// by hash only (we never store the raw token — src/lib/savedLists.ts hashToken/generateAccessToken).
+// by hash only (we never store the raw token, src/lib/savedLists.ts hashToken/generateAccessToken).
 // Never cached: a token's validity depends on the current time and whether it's already been used.
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,7 @@ export default async function CollectionsViewPage({ params, searchParams }: Prop
     }
   }
 
-  // Strictly scoped to the token's own email — this is the only query in the whole feature allowed
+  // Strictly scoped to the token's own email: this is the only query in the whole feature allowed
   // to select edit_token, because the visitor just proved ownership of this exact email via the
   // emailed link.
   const { data: lists } = await db
@@ -74,7 +75,11 @@ export default async function CollectionsViewPage({ params, searchParams }: Prop
     .eq("email", row.email);
   const rows = (lists || []) as ListRow[];
 
-  const [heading, forEmail, noneFound, hotelsCountLabel, viewLabel, manageLabel, findAgain] = await Promise.all([
+  const [
+    heading, forEmail, noneFound, hotelsCountLabel, viewLabel, manageLabel, findAgain,
+    forgetHeading, forgetExplanation, forgetButton, forgetConfirmPrompt, forgetConfirmButton,
+    forgetCancelButton, forgetDeleting, forgetDone, forgetError,
+  ] = await Promise.all([
     t("Your collections"),
     t("Collections for"),
     t("No collections were found for this email."),
@@ -82,6 +87,15 @@ export default async function CollectionsViewPage({ params, searchParams }: Prop
     t("View"),
     t("Manage"),
     t("Find by email"),
+    t("Delete everything"),
+    t("This permanently deletes all your collections and your contact data. This cannot be undone."),
+    t("Delete my data"),
+    t("Are you sure? This cannot be undone."),
+    t("Yes, delete everything"),
+    t("Cancel"),
+    t("Deleting…"),
+    t("Your data has been deleted."),
+    t("Something went wrong. Please try again or email per@gotcosy.com."),
   ]);
 
   const entries: SyncEntry[] = rows.map((r) => ({ slug: r.slug, editToken: r.edit_token || "", title: r.title }));
@@ -118,6 +132,21 @@ export default async function CollectionsViewPage({ params, searchParams }: Prop
       )}
 
       <a href={`/${locale}/collections/find`} className="mt-8 inline-block text-xs hover:underline" style={{ color: "var(--muted)" }}>{findAgain}</a>
+
+      <CollectionsForgetButton
+        token={rawToken}
+        labels={{
+          heading: forgetHeading,
+          explanation: forgetExplanation,
+          button: forgetButton,
+          confirmPrompt: forgetConfirmPrompt,
+          confirmButton: forgetConfirmButton,
+          cancelButton: forgetCancelButton,
+          deleting: forgetDeleting,
+          done: forgetDone,
+          error: forgetError,
+        }}
+      />
     </article>
   );
 }
