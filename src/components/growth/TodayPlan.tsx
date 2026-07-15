@@ -25,6 +25,11 @@ const SAGE_BTN: CSSProperties = { flex: "none", background: "var(--sage)", color
 const nameStyle: CSSProperties = { fontSize: 13.5, fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
 const metaStyle: CSSProperties = { fontSize: 12, color: "var(--muted)" };
 const planHead: CSSProperties = { fontSize: 13.5, fontWeight: 700, color: "var(--foreground)", margin: "18px 0 8px" };
+// Card list. minmax(0, 1fr) caps the single grid column at the container width — WITHOUT it the
+// default `auto` track grows to a card's max-content, so one over-long hotel name (nameStyle's
+// nowrap+ellipsis can't truncate without a width cap) blew the whole lane past the viewport and
+// scrolled the page sideways (2026-07-15). Keeps every lane at one consistent column width.
+const LIST: CSSProperties = { display: "grid", gap: 6, gridTemplateColumns: "minmax(0, 1fr)" };
 
 function Tick({ done, busy, onTick }: { done: boolean; busy: boolean; onTick: () => void }) {
   return (
@@ -126,7 +131,7 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued,
           {sentToday.count > 0 && emails.length === 0 && (
             <p style={{ ...metaStyle, margin: "0 0 8px" }}>Nothing more queued right now; today&apos;s sends are safely recorded.</p>
           )}
-          <div style={{ display: "grid", gap: 6 }}>
+          <div style={LIST}>
             {emails.map((e) => {
               const d = !!done[e.hotelId];
               return (
@@ -156,7 +161,7 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued,
           </div>
           <p style={{ ...metaStyle, margin: "0 0 8px" }}>Copy the pitch → open the DM → paste & send → tick it (moves to Contacted).</p>
           {igNote && <p style={{ ...metaStyle, margin: "0 0 8px", color: "var(--ember-ink)", fontWeight: 600 }}>{igNote}</p>}
-          <div style={{ display: "grid", gap: 6 }}>
+          <div style={LIST}>
             {instagram.map((i) => {
               const d = !!done[i.hotelId];
               return (
@@ -191,7 +196,7 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued,
               ? "Founder-reviewed answers, ready to post: skim the thread first for anything new, copy the answer, post it from your own Reddit account → tick done."
               : "Reply like a human (2–3 specific hotels + one link, never a bare link) → tick it (moves to Replied)."}
           </p>
-          <div style={{ display: "grid", gap: 6 }}>
+          <div style={LIST}>
             {redditToShow.map((r) => {
               if (r.source === "planned") {
                 const rd = !!redditDone[r.id];
