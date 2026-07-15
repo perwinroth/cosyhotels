@@ -109,8 +109,9 @@ test("the seeder's control list is a superset of the app-wide CONTROL_MARKETS", 
 // ── (e) asset page: noindex, and never in a sitemap ──
 
 test("asset pack page metadata is noindex,nofollow", async () => {
-  const { metadata } = await import("../src/app/[locale]/for-hotels/assets/[slug]/page");
-  const robots = metadata.robots as { index?: boolean; follow?: boolean };
+  const { generateMetadata } = await import("../src/app/[locale]/for-hotels/assets/[slug]/page");
+  const md = await generateMetadata({ params: Promise.resolve({ locale: "en", slug: "hotel-alma" }) });
+  const robots = md.robots as { index?: boolean; follow?: boolean };
   assert.equal(robots.index, false);
   assert.equal(robots.follow, false);
 });

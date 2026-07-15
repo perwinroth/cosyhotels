@@ -20,11 +20,21 @@ import BadgeEmbed from "@/components/BadgeEmbed";
 export const dynamic = "force-dynamic";
 
 // NOINDEX + not in any sitemap (verified: sitemapData.ts lists /en/for-hotels only, no globbing).
-// Plain exported metadata (no params needed) so tests can assert the robots rule directly.
-export const metadata: Metadata = {
-  title: "Your Got Cosy asset pack",
-  robots: { index: false, follow: false },
-};
+// generateMetadata (not a static export) so the per-hotel og:image is the LANDSCAPE 1200×630 card
+// (format=og) — a link preview wants 1.91:1, and the square feed graphic was being cropped + blurred
+// in Instagram DM previews (founder, 2026-07-15). Card 404s below the 6.0 floor → preview falls back
+// to text, never a broken square. robots stays noindex,nofollow (asserted in ig-wave.test.ts).
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
+  const ogImage = `${base}/api/asset-card?slug=${encodeURIComponent(slug)}&format=og`;
+  return {
+    title: "Your Got Cosy asset pack",
+    robots: { index: false, follow: false },
+    openGraph: { title: "Your Got Cosy asset pack", images: [{ url: ogImage, width: 1200, height: 630 }] },
+    twitter: { card: "summary_large_image", images: [ogImage] },
+  };
+}
 
 const wrap: CSSProperties = { maxWidth: 760, margin: "0 auto", padding: "40px 16px 64px" };
 const muted: CSSProperties = { color: "var(--muted)", fontSize: 14, lineHeight: 1.6 };
