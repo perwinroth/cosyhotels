@@ -48,6 +48,25 @@ export async function POST(req: Request) {
       updated_at: now,
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Marketing consent (best-effort, never blocks the save). Upsert email_contacts: only ever
+    // UPGRADE consent to true; an explicit `marketing: false` here must not downgrade a row that
+    // already opted in elsewhere, so we read the existing row first rather than blind-upserting.
+    try {
+      const optedIn = body.marketing === true;
+      const { data: existing } = await supabase.from("email_contacts").select("marketing_consent").eq("email", email as string).maybeSingle();
+      const nextConsent = optedIn || Boolean(existing?.marketing_consent);
+      await supabase.from("email_contacts").upsert({
+        email: email as string,
+        marketing_consent: nextConsent,
+        marketing_consent_at: optedIn ? now : (existing?.marketing_consent ? undefined : null),
+        source: "collection_save",
+        updated_at: now,
+      });
+    } catch {
+      /* best-effort: never block the save on the consent upsert */
+    }
+
     return NextResponse.json({ slug, editToken });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";

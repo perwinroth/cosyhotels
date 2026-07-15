@@ -8,8 +8,16 @@ import { translate } from "@/lib/i18n/translate";
 // homepage route (src/app/page.tsx), which is served by the root page and so does NOT get the
 // [locale] layout — without this, gotcosy.com / and /en rendered with no <header> landmark.
 export default async function SiteHeader({ locale }: { locale: string }) {
-  // "Collection" entry point label, translated once here (server) and passed to the client link.
-  const collectionLabel = locale === "en" ? "Collection" : await translate("Collection", locale);
+  // "Collection" entry point labels, translated once here (server) and passed to the client link.
+  // CollectionNavLink shows the singular link for one saved collection, or a small dropdown (menu
+  // label + per-item default title + a "find by email" footer link) once a device has 2+.
+  const tx = (s: string) => (locale === "en" ? Promise.resolve(s) : translate(s, locale));
+  const [collectionLabel, collectionsMenuLabel, defaultCollectionTitle, findByEmailLabel] = await Promise.all([
+    tx("Collection"),
+    tx("Collections"),
+    tx("Your Got Cosy collection"),
+    tx("Find by email"),
+  ]);
   return (
     <header className="sticky top-0 z-30 border-b" style={{ borderColor: 'var(--line)', background: 'var(--header-bg)', backdropFilter: 'blur(12px)' }}>
       <div className="mx-auto max-w-6xl px-4 h-[68px] flex items-center justify-between gap-3">
@@ -26,7 +34,13 @@ export default async function SiteHeader({ locale }: { locale: string }) {
             position:fixed element in the root layout, which overlapped this Search button on any
             viewport narrower than the container. In the flex row it can never overlap again. */}
         <div className="flex items-center gap-2 min-w-0">
-          <CollectionNavLink locale={locale} label={collectionLabel} />
+          <CollectionNavLink
+            locale={locale}
+            label={collectionLabel}
+            menuLabel={collectionsMenuLabel}
+            defaultTitle={defaultCollectionTitle}
+            findByEmailLabel={findByEmailLabel}
+          />
           <HeaderSearch locale={locale} />
           <ThemeToggle />
         </div>
