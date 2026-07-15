@@ -15,8 +15,7 @@ import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { translate } from "@/lib/i18n/translate";
-import ShareButton from "@/components/ShareButton";
-import SaveToTripButton from "@/components/SaveToTripButton";
+import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 
 export const revalidate = 3600;
@@ -169,12 +168,12 @@ export default async function AdaptiveReusePage({ params, searchParams }: { para
               return (
                 <li key={h.id} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>{h.score.toFixed(1)}</div>
+                    <div className="flex-shrink-0 hidden sm:flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>{h.score.toFixed(1)}</div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h3>
+                      <div className="flex flex-wrap items-center gap-2"><span className="sm:hidden inline-flex items-center justify-center rounded-lg px-2 py-0.5 text-sm font-semibold text-white" style={{ background: cosyBadgeColor(h.score), fontFamily: "Fraunces, serif" }}>{h.score.toFixed(1)}</span><h3 className="text-lg font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h3></div>
                       {(h.city || h.country) && <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>}
                       {h.snippet && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.snippet}</p>}
-                      <div className="mt-3 flex items-center gap-2"><a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a><SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} /><ShareButton variant="icon" title={`${h.name}, a cosy hotel that used to be something else`} url={`/${locale}/hotels/${h.slug}`} /></div>
+                      <HotelActions href={cta} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel that used to be something else`} shareUrl={`/${locale}/hotels/${h.slug}`} />
                     </div>
                     {ph && <a href={`/${locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
                   </div>

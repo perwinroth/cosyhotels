@@ -5,7 +5,6 @@
 // passed in via `labels` — this component renders no hardcoded English. Only ever talks to our own
 // /api/shortlists routes; no mailto, no external network calls.
 import { useEffect, useRef, useState } from "react";
-import { addCollection, readCollections } from "@/lib/collectionStore";
 
 export type SaveToTripLabels = {
   save: string;
@@ -25,8 +24,6 @@ export type SaveToTripLabels = {
   yourPrivateLink: string;
   emailInvalid: string;
   genericError: string;
-  marketingConsent: string;
-  findByEmail: string;
 };
 
 type Props = { hotelSlug: string; locale: string; labels: SaveToTripLabels; variant?: "block" | "compact" };
@@ -67,7 +64,6 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
   const [consent, setConsent] = useState(false);
-  const [marketing, setMarketing] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [listSlug, setListSlug] = useState<string | null>(null);
@@ -109,8 +105,6 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
         body: JSON.stringify({ add: hotelSlug, token: trip.editToken }),
       });
       if (!res.ok) throw new Error(labels.genericError);
-      const known = readCollections().find((c) => c.slug === trip.slug);
-      addCollection({ slug: trip.slug, editToken: trip.editToken, title: known?.title ?? null });
       setListSlug(trip.slug);
       setStatus("done");
     } catch {
@@ -145,16 +139,14 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
     setSubmitting(true);
     setError(null);
     try {
-      const trimmedTitle = title.trim() || undefined;
       const res = await fetch("/api/shortlists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail, itemSlug: hotelSlug, title: trimmedTitle, locale, marketing }),
+        body: JSON.stringify({ email: trimmedEmail, itemSlug: hotelSlug, title: title.trim() || undefined, locale }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.slug || !data.editToken) throw new Error(data.error || labels.genericError);
       writeStoredTrip({ slug: data.slug, editToken: data.editToken });
-      addCollection({ slug: data.slug, editToken: data.editToken, title: trimmedTitle ?? null });
       setListSlug(data.slug);
       setStatus("done");
     } catch {
@@ -188,7 +180,6 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
             {copied ? labels.copied : labels.copyLink}
           </button>
         </div>
-        <a href={`/${locale}/collections/find`} className="mt-2 block text-xs hover:underline" style={{ color: "var(--muted)" }}>{labels.findByEmail}</a>
       </div>
     );
   }
@@ -204,9 +195,9 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
           title={status === "done" ? labels.added : labels.saveShort}
           className="hov"
           style={{
-            display: "inline-flex", alignItems: "center", gap: 5, height: 34, padding: "0 12px",
-            borderRadius: 999, border: "1px solid var(--line)", background: "var(--card)",
-            color: status === "done" ? "var(--sage)" : "var(--foreground)", fontSize: 12.5, fontWeight: 600,
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, height: 44, padding: "0 14px",
+            borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)",
+            color: status === "done" ? "var(--sage)" : "var(--foreground)", fontSize: 13, fontWeight: 600,
             cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap",
           }}
         >
@@ -230,7 +221,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
       {compact && status === "done" && donePopoverOpen && (
         <div
           role="status"
-          className="absolute left-0 z-20 mt-2 w-64 max-w-[90vw] rounded-xl border p-3 text-sm"
+          className="fixed inset-x-3 bottom-3 z-50 mx-auto w-auto max-w-sm rounded-xl border p-3 text-sm sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:mx-0 sm:mt-2 sm:w-64"
           style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}
         >
           <p className="font-medium" style={{ color: "var(--foreground)" }}>{labels.added}</p>
@@ -240,7 +231,6 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
               {copied ? labels.copied : labels.copyLink}
             </button>
           </div>
-          <a href={`/${locale}/collections/find`} className="mt-2 block text-xs hover:underline" style={{ color: "var(--muted)" }}>{labels.findByEmail}</a>
         </div>
       )}
 
@@ -250,7 +240,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
           role="dialog"
           aria-modal="true"
           aria-labelledby="save-to-trip-heading"
-          className={`absolute left-0 z-20 mt-2 ${compact ? "w-72" : "w-80"} max-w-[90vw] rounded-2xl border p-4`}
+          className={`z-50 max-w-[90vw] rounded-2xl border p-4 ${compact ? "fixed inset-x-3 bottom-3 mx-auto w-auto max-w-sm sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:mx-0 sm:mt-2 sm:w-72" : "absolute left-0 mt-2 w-80"}`}
           style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}
         >
           <h3 id="save-to-trip-heading" className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>{labels.emailPrompt}</h3>
@@ -285,10 +275,6 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
             <label className="flex items-start gap-2 text-xs" style={{ color: "var(--muted)" }}>
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" required />
               <span>{labels.consent}</span>
-            </label>
-            <label className="flex items-start gap-2 text-xs" style={{ color: "var(--muted)" }}>
-              <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} className="mt-0.5" />
-              <span>{labels.marketingConsent}</span>
             </label>
             {emailError && <p className="text-xs" style={{ color: "var(--ember)" }}>{emailError}</p>}
             {error && <p className="text-xs" style={{ color: "var(--ember)" }}>{error}</p>}

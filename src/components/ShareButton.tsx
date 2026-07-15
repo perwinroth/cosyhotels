@@ -93,7 +93,7 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
         </button>
       ) : (
         <button ref={btnRef} onClick={onShare} aria-label="Share" title="Share" aria-haspopup="menu" aria-expanded={open} className="hov"
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 999, border: "1px solid var(--line)", background: "var(--card)", color: "var(--muted)", cursor: "pointer", flexShrink: 0 }}>
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)", color: "var(--muted)", cursor: "pointer", flexShrink: 0 }}>
           <span style={{ width: 15, height: 15 }} aria-hidden>{ICON.share}</span>
         </button>
       )}
