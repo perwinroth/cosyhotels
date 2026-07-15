@@ -1,9 +1,15 @@
-// Ready-to-post score graphic for the Instagram badge wave (linked from the per-hotel asset page).
-//   GET /api/asset-card?slug=<hotel-slug>&format=feed|story  → PNG (1080×1080 / 1080×1920)
+// Ready-to-post score graphic for the Instagram badge wave (linked from the per-hotel asset page)
+// AND the per-hotel link-preview card (og:image, format=og).
+//   GET /api/asset-card?slug=<hotel-slug>&format=feed|story|og
+//     feed  → 1080×1080 PNG (Instagram feed post)
+//     story → 1080×1920 PNG (Instagram story)
+//     og    → 1200×630 PNG  (1.91:1 link preview / og:image — sharp, correctly proportioned)
 // SECURITY: ALL data (name, score, tier, percentile, evidence) is loaded server-side from the DB by
 // slug — the format param only picks the layout; a requester can never choose a score or tier.
 // Score below the 6.0 proactive floor → 404 (no graphic exists below the floor; the asset PAGE
 // fail-softs instead). Mirrors the ImageResponse pattern of /api/social/hotel-pin.
+// satori rule (the historic 500, fixed 2026-07-15): EVERY <div> with more than one child needs an
+// explicit display:flex — so every div below sets it, and interpolated text uses a single string.
 import { ImageResponse } from "next/og";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { tierForScore, roundPctUp, pitchExcerpt } from "@/lib/badgePitch";
@@ -43,7 +49,8 @@ const notFound = () =>
 export async function GET(req: Request) {
   const p = new URL(req.url).searchParams;
   const slug = (p.get("slug") || "").trim();
-  const format = p.get("format") === "story" ? "story" : "feed";
+  const fmt = p.get("format");
+  const format = fmt === "story" ? "story" : fmt === "og" ? "og" : "feed";
   if (!slug) return notFound();
 
   const db = getServerSupabase();
@@ -65,93 +72,86 @@ export async function GET(req: Request) {
   const name = safe(String(hotel.name_en || hotel.name || "")).slice(0, 60);
   const evidence = safe(pitchExcerpt(sc?.description, 120)).replace(/[.…\s]+$/, "");
   const scoredStamp = `Scored ${new Date().toLocaleString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}`;
+  const totalTxt = (totalScored ?? 0).toLocaleString("en-GB");
+  const pctLine = pct != null ? `Top ${pct}% of ${totalTxt} hotels analysed` : "";
+  const verifyLine = `gotcosy.com/hotels/${hotel.slug}`;
+  const hex = badgeHex(eff);
 
+  const dims = format === "og" ? { width: 1200, height: 630 } : { width: 1080, height: format === "story" ? 1920 : 1080 };
+
+  // ── LANDSCAPE link-preview card (og:image, 1.91:1) ──────────────────────────────────────────────
+  if (format === "og") {
+    const img = new ImageResponse(
+      (
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#FAF7F1", padding: "54px 66px", fontFamily: "sans-serif" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <Flame size={38} />
+            <div style={{ display: "flex", fontSize: 32, fontWeight: 700, color: "#2b2420", letterSpacing: 2 }}>GOT COSY</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 46, marginTop: "auto", marginBottom: "auto" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: 206, height: 206, borderRadius: 42, background: hex, boxShadow: "0 8px 30px rgba(43,36,32,.18)", flexShrink: 0 }}>
+              <div style={{ display: "flex", fontSize: 90, fontWeight: 800, color: "#FFFFFF", lineHeight: 1 }}>{eff.toFixed(1)}</div>
+              <div style={{ display: "flex", fontSize: 21, fontWeight: 700, letterSpacing: 2, color: "#FAF7F1", marginTop: 6 }}>COSY SCORE</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
+              <div style={{ display: "flex", fontSize: name.length > 26 ? 44 : 56, fontWeight: 800, color: "#2b2420", lineHeight: 1.08 }}>{name}</div>
+              {tier && <div style={{ display: "flex", fontSize: 34, fontWeight: 800, color: "#B5642A" }}>{safe(tier.label)}</div>}
+              {pctLine && <div style={{ display: "flex", fontSize: 28, fontWeight: 600, color: "#2b2420" }}>{pctLine}</div>}
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "2px solid #e7dfd2", paddingTop: 26 }}>
+            <div style={{ display: "flex", fontSize: 24, color: "#8c8478" }}>{scoredStamp}</div>
+            <div style={{ display: "flex", fontSize: 26, fontWeight: 700, color: "#D2783A" }}>{verifyLine}</div>
+          </div>
+        </div>
+      ),
+      dims,
+    );
+    img.headers.set("cache-control", "public, max-age=3600, s-maxage=3600");
+    img.headers.set("x-robots-tag", "noindex");
+    return img;
+  }
+
+  // ── SQUARE / STORY download graphics (feed 1080², story 1080×1920) ───────────────────────────────
   const story = format === "story";
-  const width = 1080;
-  const height = story ? 1920 : 1080;
-
-  // Warm-cream card in the site's light palette (globals.css): paper #FAF7F1, ink #2b2420,
-  // ember #D2783A, muted #8c8478.
   const img = new ImageResponse(
     (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: story ? "center" : "flex-start",
-          background: "#FAF7F1",
-          padding: story ? "140px 90px" : "80px 90px",
-          fontFamily: "sans-serif",
-        }}
-      >
-        {/* brand row: flame + wordmark */}
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: story ? "center" : "flex-start", background: "#FAF7F1", padding: story ? "140px 90px" : "80px 90px", fontFamily: "sans-serif" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <Flame size={44} />
-          <div style={{ fontSize: 40, fontWeight: 700, color: "#2b2420", letterSpacing: 2 }}>GOT COSY</div>
+          <div style={{ display: "flex", fontSize: 40, fontWeight: 700, color: "#2b2420", letterSpacing: 2 }}>GOT COSY</div>
         </div>
 
-        {/* hotel name */}
         <div style={{ display: "flex", fontSize: name.length > 28 ? 64 : 78, fontWeight: 800, color: "#2b2420", lineHeight: 1.08, marginTop: story ? 90 : 70 }}>
           {name}
         </div>
 
-        {/* score badge + tier */}
         <div style={{ display: "flex", alignItems: "center", gap: 34, marginTop: story ? 80 : 60 }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 190,
-              height: 190,
-              borderRadius: 38,
-              background: badgeHex(eff),
-              boxShadow: "0 8px 30px rgba(43,36,32,.18)",
-            }}
-          >
-            <div style={{ fontSize: 82, fontWeight: 800, color: "#FFFFFF", lineHeight: 1 }}>{eff.toFixed(1)}</div>
-            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: 2, color: "#FAF7F1", marginTop: 6 }}>COSY SCORE</div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: 190, height: 190, borderRadius: 38, background: hex, boxShadow: "0 8px 30px rgba(43,36,32,.18)" }}>
+            <div style={{ display: "flex", fontSize: 82, fontWeight: 800, color: "#FFFFFF", lineHeight: 1 }}>{eff.toFixed(1)}</div>
+            <div style={{ display: "flex", fontSize: 20, fontWeight: 700, letterSpacing: 2, color: "#FAF7F1", marginTop: 6 }}>COSY SCORE</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {tier && <div style={{ fontSize: 44, fontWeight: 800, color: "#B5642A" }}>{safe(tier.label)}</div>}
-            {pct != null && (
-              <div style={{ fontSize: 32, fontWeight: 600, color: "#2b2420" }}>
-                Top {pct}% of {(totalScored ?? 0).toLocaleString("en-GB")} hotels analysed
-              </div>
-            )}
+            {tier && <div style={{ display: "flex", fontSize: 44, fontWeight: 800, color: "#B5642A" }}>{safe(tier.label)}</div>}
+            {pctLine && <div style={{ display: "flex", fontSize: 32, fontWeight: 600, color: "#2b2420" }}>{pctLine}</div>}
           </div>
         </div>
 
-        {/* evidence small print */}
         {evidence && (
           <div style={{ display: "flex", fontSize: 26, color: "#8c8478", lineHeight: 1.45, marginTop: story ? 90 : 64 }}>
-            condensed from guest reviews: {evidence}
+            {`condensed from guest reviews: ${evidence}`}
           </div>
         )}
 
-        {/* footer: date stamp + verification line */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: "auto",
-            paddingTop: 50,
-            borderTop: "2px solid #e7dfd2",
-          }}
-        >
-          <div style={{ fontSize: 26, color: "#8c8478" }}>{scoredStamp}</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: "#D2783A" }}>gotcosy.com/hotels/{hotel.slug}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", paddingTop: 50, borderTop: "2px solid #e7dfd2" }}>
+          <div style={{ display: "flex", fontSize: 26, color: "#8c8478" }}>{scoredStamp}</div>
+          <div style={{ display: "flex", fontSize: 28, fontWeight: 700, color: "#D2783A" }}>{verifyLine}</div>
         </div>
       </div>
     ),
-    { width, height },
+    dims,
   );
 
-  // ImageResponse is a Response — attach cache + noindex headers on the way out.
   img.headers.set("cache-control", "public, max-age=3600, s-maxage=3600");
   img.headers.set("x-robots-tag", "noindex");
   return img;
