@@ -5,6 +5,7 @@
 // passed in via `labels` — this component renders no hardcoded English. Only ever talks to our own
 // /api/shortlists routes; no mailto, no external network calls.
 import { useEffect, useRef, useState } from "react";
+import { addCollection, readCollections } from "@/lib/collectionStore";
 
 export type SaveToTripLabels = {
   save: string;
@@ -24,6 +25,8 @@ export type SaveToTripLabels = {
   yourPrivateLink: string;
   emailInvalid: string;
   genericError: string;
+  marketingConsent: string;
+  findByEmail: string;
 };
 
 type Props = { hotelSlug: string; locale: string; labels: SaveToTripLabels; variant?: "block" | "compact" };
@@ -64,6 +67,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
   const [consent, setConsent] = useState(false);
+  const [marketing, setMarketing] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [listSlug, setListSlug] = useState<string | null>(null);
@@ -105,6 +109,8 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
         body: JSON.stringify({ add: hotelSlug, token: trip.editToken }),
       });
       if (!res.ok) throw new Error(labels.genericError);
+      const known = readCollections().find((c) => c.slug === trip.slug);
+      addCollection({ slug: trip.slug, editToken: trip.editToken, title: known?.title ?? null });
       setListSlug(trip.slug);
       setStatus("done");
     } catch {
@@ -139,14 +145,16 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
     setSubmitting(true);
     setError(null);
     try {
+      const trimmedTitle = title.trim() || undefined;
       const res = await fetch("/api/shortlists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail, itemSlug: hotelSlug, title: title.trim() || undefined, locale }),
+        body: JSON.stringify({ email: trimmedEmail, itemSlug: hotelSlug, title: trimmedTitle, locale, marketing }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.slug || !data.editToken) throw new Error(data.error || labels.genericError);
       writeStoredTrip({ slug: data.slug, editToken: data.editToken });
+      addCollection({ slug: data.slug, editToken: data.editToken, title: trimmedTitle ?? null });
       setListSlug(data.slug);
       setStatus("done");
     } catch {
@@ -180,6 +188,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
             {copied ? labels.copied : labels.copyLink}
           </button>
         </div>
+        <a href={`/${locale}/collections/find`} className="mt-2 block text-xs hover:underline" style={{ color: "var(--muted)" }}>{labels.findByEmail}</a>
       </div>
     );
   }
@@ -231,6 +240,7 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
               {copied ? labels.copied : labels.copyLink}
             </button>
           </div>
+          <a href={`/${locale}/collections/find`} className="mt-2 block text-xs hover:underline" style={{ color: "var(--muted)" }}>{labels.findByEmail}</a>
         </div>
       )}
 
@@ -275,6 +285,10 @@ export default function SaveToTripButton({ hotelSlug, locale, labels, variant = 
             <label className="flex items-start gap-2 text-xs" style={{ color: "var(--muted)" }}>
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" required />
               <span>{labels.consent}</span>
+            </label>
+            <label className="flex items-start gap-2 text-xs" style={{ color: "var(--muted)" }}>
+              <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} className="mt-0.5" />
+              <span>{labels.marketingConsent}</span>
             </label>
             {emailError && <p className="text-xs" style={{ color: "var(--ember)" }}>{emailError}</p>}
             {error && <p className="text-xs" style={{ color: "var(--ember)" }}>{error}</p>}

@@ -6,6 +6,8 @@ import assert from "node:assert/strict";
 import {
   MAX_TITLE_LEN, MAX_ITEMS, sanitizeTitle, isValidEmail, normalizeLocale,
   generateEditToken, tokenAuthorized, withinItemsCap,
+  ACCESS_TOKEN_TTL_MIN, REQUEST_RATE_LIMIT, REQUEST_RATE_WINDOW_MIN,
+  generateAccessToken, hashToken,
 } from "../src/lib/savedLists";
 
 test("sanitizeTitle: trims, caps to 80, allows empty/undefined", () => {
@@ -72,4 +74,28 @@ test("tokenAuthorized: legacy rows (no edit_token) stay open; token rows require
 test("withinItemsCap: enforces the defensive items ceiling", () => {
   assert.equal(withinItemsCap(new Array(MAX_ITEMS).fill("x")), true);
   assert.equal(withinItemsCap(new Array(MAX_ITEMS + 1).fill("x")), false);
+});
+
+test("generateAccessToken: url-safe, at least 32 chars, not predictable/repeating", () => {
+  const a = generateAccessToken();
+  const b = generateAccessToken();
+  assert.ok(a.length >= 32, `token too short: ${a.length}`);
+  assert.match(a, /^[A-Za-z0-9_-]+$/);
+  assert.notEqual(a, b);
+});
+
+test("hashToken: deterministic, one-way looking (hex sha256), distinct inputs diverge", () => {
+  const raw = "fixture-raw-token-for-hash-test";
+  const a = hashToken(raw);
+  const b = hashToken(raw);
+  assert.equal(a, b, "hashing the same raw token twice must be deterministic");
+  assert.match(a, /^[a-f0-9]{64}$/, "sha256 hex digest is 64 lowercase hex chars");
+  assert.notEqual(a, raw);
+  assert.notEqual(hashToken(raw + "x"), a);
+});
+
+test("magic-link constants are sane (short TTL, small burst budget)", () => {
+  assert.equal(ACCESS_TOKEN_TTL_MIN, 30);
+  assert.equal(REQUEST_RATE_LIMIT, 3);
+  assert.equal(REQUEST_RATE_WINDOW_MIN, 15);
 });

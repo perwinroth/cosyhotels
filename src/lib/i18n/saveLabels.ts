@@ -24,6 +24,8 @@ const KEYS = [
   "Save this link. It is the only way to edit your collection later.",
   "Enter a valid email and agree to continue.",
   "Something went wrong. Please try again.",
+  "Email me occasional cosy hotel picks (optional)",
+  "Saving on another device? Find your collections by email.",
 ] as const;
 
 export async function buildSaveLabels(locale: string): Promise<SaveToTripLabels> {
@@ -32,10 +34,12 @@ export async function buildSaveLabels(locale: string): Promise<SaveToTripLabels>
     save, saveShort, added, emailPrompt, emailLabel, emailPlaceholder, consent,
     titleLabel, titlePlaceholder, submit, cancel, copyLink, copied,
     viewPlan, yourPrivateLink, emailInvalid, genericError,
+    marketingConsent, findByEmail,
   ] = await Promise.all(KEYS.map(tx));
   return {
     save, saveShort, added, emailPrompt, emailLabel, emailPlaceholder, consent,
     titleLabel, titlePlaceholder, submit, cancel, copyLink, copied,
     viewPlan, yourPrivateLink, emailInvalid, genericError,
+    marketingConsent, findByEmail,
   };
 }

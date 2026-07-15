@@ -67,3 +67,27 @@ export function tokenAuthorized(rowEditToken: string | null | undefined, provide
 export function withinItemsCap(items: string[]): boolean {
   return items.length <= MAX_ITEMS;
 }
+
+// ── Magic-link collection access (find-my-collections) ──────────────────────────────────────────
+// A short-lived token emailed to a visitor who asks "find my collections by email". We store only
+// its SHA-256 hash (collection_access_tokens.token_hash) so a DB read can never itself hand out a
+// working link; the raw token exists only in the email and, briefly, in the request/response.
+
+/** Minutes a minted access token stays valid. */
+export const ACCESS_TOKEN_TTL_MIN = 30;
+/** Max magic-link requests allowed per email within REQUEST_RATE_WINDOW_MIN. */
+export const REQUEST_RATE_LIMIT = 3;
+/** Rolling window (minutes) the rate limit above counts over. */
+export const REQUEST_RATE_WINDOW_MIN = 15;
+
+/** Raw, cryptographically-random access token, url-safe (24 bytes -> 32 base64url chars, over the
+ *  32+ char floor). */
+export function generateAccessToken(): string {
+  return crypto.randomBytes(24).toString("base64url");
+}
+
+/** One-way hash of a presented raw token. Look up collection_access_tokens by hashToken(raw), never
+ *  by the raw value itself (we never store the raw value). */
+export function hashToken(raw: string): string {
+  return crypto.createHash("sha256").update(raw).digest("hex");
+}
