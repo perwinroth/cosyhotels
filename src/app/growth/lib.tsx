@@ -54,10 +54,12 @@ export async function getTodayPlan(db: DB): Promise<{
       db.from("hotel_outreach").select("hotel_id").eq("status", "queued"),
       db.from("cosy_scores").select("*", { count: "exact", head: true }),
       db.from("hotel_outreach").select("*", { count: "exact", head: true }).eq("status", "contacted").gte("contacted_at", todayStart.toISOString()),
-      // Stamped IG-wave numbers (scripts/seed-ig-outreach.mjs). FAIL-SOFT by design: until the
-      // founder runs the stamped_* column migration this select errors → stamps stays empty →
-      // IG cards keep the v1 pitch. The three queries above are untouched either way (G14).
-      db.from("hotel_outreach").select("hotel_id, stamped_score, stamped_pct, stamped_total").eq("status", "queued").eq("channel", "instagram"),
+      // Stamped numbers (scripts/seed-*-outreach.mjs). ALL queued channels: the IG DM and the
+      // tier-honest v2/v3 EMAIL both read the STAMPED percentile so the claim can never drift.
+      // FAIL-SOFT: until the stamped_* columns exist this select errors → stamps stays empty →
+      // IG cards keep the v1 pitch and stampless email rows are skipped. The three queries above
+      // are untouched either way (G14).
+      db.from("hotel_outreach").select("hotel_id, stamped_score, stamped_pct, stamped_total").eq("status", "queued"),
     ]);
     type StampRow = { hotel_id: string; stamped_score: number | null; stamped_pct: number | null; stamped_total: number | null };
     const stamps = new Map(
@@ -127,14 +129,20 @@ export async function getTodayPlan(db: DB): Promise<{
       const pitch = buildBadgePitch({ name, score, slug: h.slug, city, description: r.description }, { totalTxt, base });
       // Variant experiment (pre-registered 2026-07-07): queued emails get v2/v3 by hotel-id hash.
       const variant = variantFor(r.hotel_id);
-      const vp = buildVariantPitch(variant, { name, score, slug: h.slug, city, description: r.description }, { base });
       const hotelId = String(r.hotel_id);
-      if (email) emails.push({ hotelId, name, city, score, email, variant, gmailUrl: gmailComposeUrl(email, vp.subject, vp.body) });
-      else if (handle) {
-        // IG wave (2026-07-11): the DM's numbers come STAMPED from the seeded outreach row — frozen
-        // at queue time so the claim can never drift from what was verified when queued. NO live-pct
-        // fallback: an unstamped row keeps the v1 buildBadgePitch exactly as before.
-        const st = stamps.get(hotelId);
+      // Numbers come STAMPED from the seeded outreach row, frozen at queue time so the "top X%"
+      // claim can never drift from what was verified when queued.
+      const st = stamps.get(hotelId);
+      if (email) {
+        // Tier-honest v2/v3 email needs a stamped percentile. An unstamped queued email row is
+        // skipped (no fallback to the old hardcoded-2.3% copy, which is false below 7.0).
+        if (st && st.stamped_pct != null) {
+          const stScore = st.stamped_score != null ? Number(st.stamped_score) : score;
+          const vp = buildVariantPitch(variant, { name, score: stScore, slug: h.slug, city, description: r.description }, { base, pct: Number(st.stamped_pct) });
+          emails.push({ hotelId, name, city, score: stScore, email, variant, gmailUrl: gmailComposeUrl(email, vp.subject, vp.body) });
+        }
+      } else if (handle) {
+        // IG wave (2026-07-11): NO live-pct fallback; an unstamped row keeps the v1 buildBadgePitch.
         const igPitch = st && st.stamped_score != null && st.stamped_pct != null
           ? buildVariantDm(variant, {
               name,
