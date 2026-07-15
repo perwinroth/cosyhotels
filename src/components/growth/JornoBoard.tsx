@@ -4,7 +4,7 @@
 // "Draft with AI → Gmail" action (works on ANY row with a reply_to, not just good-fit ones), a
 // manual-compose fallback link, and Skip / Mark sent actions.
 import { useState, useTransition } from "react";
-import { updateJournoStatus, draftAndOpen } from "@/app/growth/journo/actions";
+import { updateJournoStatus, draftAndOpen, addDirectRequest } from "@/app/growth/journo/actions";
 import { gmailComposeUrl } from "@/lib/badgePitch";
 
 export type JournoRow = {
@@ -157,9 +157,49 @@ function Card({ row }: { row: JournoRow }) {
   );
 }
 
+const fieldStyle: React.CSSProperties = { flex: 1, minWidth: 150, border: "1px solid var(--line)", background: "var(--surface-2)", color: "var(--foreground)", borderRadius: 6, padding: "6px 8px", fontSize: 12.5 };
+
+// Add a direct request (Substack call, DM, forwarded email) the digest cron never saw. Inserts a
+// journo_queries row; the card's existing "Draft with AI" button then works on it.
+function AddRequestForm() {
+  const [pending, startAddTransition] = useTransition();
+  const [msg, setMsg] = useState<string | null>(null);
+  const [ok, setOk] = useState(false);
+  function submit(formData: FormData) {
+    setMsg(null);
+    startAddTransition(async () => {
+      const r = await addDirectRequest(formData);
+      if (r.ok) { setOk(true); setMsg("Added. Draft it with the button on its card below."); }
+      else { setOk(false); setMsg(r.error || "couldn't add; try again"); }
+    });
+  }
+  return (
+    <details style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, padding: "11px 12px" }}>
+      <summary style={{ cursor: "pointer", fontSize: 13.5, fontWeight: 700 }}>+ Add a direct request (Substack, DM, forwarded email)</summary>
+      <form action={submit} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <input name="journalist" placeholder="Journalist name" required style={fieldStyle} />
+          <input name="outlet" placeholder="Outlet / where (e.g. Substack)" style={fieldStyle} />
+        </div>
+        <input name="reply_to" type="email" placeholder="Their email (needed for the draft)" style={fieldStyle} />
+        <textarea name="query_text" placeholder="What they're looking for" required rows={3} style={{ ...fieldStyle, resize: "vertical" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button type="submit" disabled={pending} style={{ border: "none", background: "var(--sage)", color: "#fff", borderRadius: 6, padding: "5px 12px", fontSize: 12.5, fontWeight: 700, cursor: pending ? "default" : "pointer" }}>{pending ? "Adding…" : "Add request"}</button>
+          {msg && <span style={{ fontSize: 11.5, color: ok ? "var(--sage)" : "var(--ember)" }}>{msg}</span>}
+        </div>
+      </form>
+    </details>
+  );
+}
+
 export default function JornoBoard({ rows }: { rows: JournoRow[] }) {
   if (!rows.length) {
-    return <p style={{ color: "var(--muted)", fontSize: 13.5 }}>No queries yet; the cron runs 3x/day and needs Per subscribed to Source of Sources / Featured digests at the inbox GMAIL_REFRESH_TOKEN is authorized for.</p>;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+        <AddRequestForm />
+        <p style={{ color: "var(--muted)", fontSize: 13.5 }}>No digest queries yet; the cron runs 3x/day and needs Per subscribed to Source of Sources / Featured digests at the inbox GMAIL_REFRESH_TOKEN is authorized for. You can still add a direct request above.</p>
+      </div>
+    );
   }
   const actionable = rows.filter((r) => r.status === "drafted" || r.status === "new").sort(byFitThenDeadline);
   // Auto-skipped = skipped with a confidently-low (or missing) fit; the founder's own skips of
@@ -169,6 +209,7 @@ export default function JornoBoard({ rows }: { rows: JournoRow[] }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      <AddRequestForm />
       {actionable.length > 0 && (
         <section>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
