@@ -6,6 +6,7 @@ import { resolveSavedListPicks } from "@/lib/tripsLive";
 import { translate } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { stay22AllezUrl } from "@/lib/affiliates";
+import { resolveBookingCta } from "@/lib/ctaPolicy";
 import TripListRemoveControl from "@/components/TripListRemoveControl";
 import PlanOwnerControls from "@/components/PlanOwnerControls";
 import ShareButton from "@/components/ShareButton";
@@ -66,7 +67,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
 
   const t = tx(params.locale);
   const [
-    lDefaultTitle, lYourCollection, lNoPicks, lRemove, lRemoving, lMethod, lDisclosure, lShareCollection, lIntro, lCheckAvailability,
+    lDefaultTitle, lYourCollection, lNoPicks, lRemove, lRemoving, lMethod, lDisclosureBase, lDisclosureAffiliate, lShareCollection, lIntro, lVisitWebsite, lCheckNearby,
   ] = await Promise.all([
     t("Your Got Cosy collection"),
     t("Hotels in this collection"),
@@ -74,10 +75,12 @@ export default async function SavedListPage({ params, searchParams }: Props) {
     t("Remove"),
     t("Removing…"),
     t("How we score cosiness"),
-    t("Hotel picks are our own AI cosy scores, read live at the moment you open this page. Links to book are affiliate links; the scores are not for sale."),
+    t("Hotel picks are our own AI cosy scores, read live at the moment you open this page; the scores are not for sale."),
+    t("Links to book are affiliate links."),
     t("Share collection"),
     t("A collection of cosy hotels on Got Cosy, each scored 0 to 10 for warmth and character."),
-    t("Check availability"),
+    t("Visit hotel website"),
+    t("Check nearby stays"),
   ]);
 
   // Edit affordance: only when the visitor's own ?token= matches this row's edit_token. The token
@@ -94,6 +97,9 @@ export default async function SavedListPage({ params, searchParams }: Props) {
   }
 
   const picks = await resolveSavedListPicks(list.items);
+  // Affiliate-disclosure gate (founder, 2026-07-16): only meaningful when a Stay22 button actually
+  // renders somewhere on this list; a list made entirely of real-website hotels has no affiliate link.
+  const anyStay22 = picks.some((p) => resolveBookingCta(p.website, "").mode === "stay22");
   const displayTitle = (list.title || "").trim() || lDefaultTitle;
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
   // CLEAN public URL only, never the ?token= edit link — ShareButton takes `url` explicitly so this
@@ -163,7 +169,9 @@ export default async function SavedListPage({ params, searchParams }: Props) {
         {picks.length > 0 ? (
           <ul className="mt-4 space-y-3">
             {picks.map((p) => {
-              const cta = stay22AllezUrl({ name: p.name, city: p.city, country: p.country, lat: p.lat, lng: p.lng, campaign: "collection" });
+              const stay22Href = stay22AllezUrl({ name: p.name, city: p.city, country: p.country, lat: p.lat, lng: p.lng, campaign: "collection" });
+              const cta = resolveBookingCta(p.website, stay22Href);
+              const ctaLabel = cta.mode === "website" ? lVisitWebsite : lCheckNearby;
               const ph = photo.get(p.id);
               return (
                 <li key={p.slug} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -181,7 +189,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
                         <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{p.description}</p>
                       )}
                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <a href={cta} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={p.name} data-city={p.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>{lCheckAvailability}</a>
+                        <a href={cta.href} target="_blank" rel={cta.rel} data-cta={cta.dataCta} data-hotel={p.name} data-city={p.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>{ctaLabel}</a>
                         <ShareButton variant="icon" title={`${p.name}, a cosy hotel in ${p.city}`} url={detailsHref(p.slug)} />
                         {canEdit && suppliedToken && (
                           <TripListRemoveControl slug={list.slug} token={suppliedToken} hotelSlug={p.slug} label={lRemove} removingLabel={lRemoving} />
@@ -207,7 +215,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
 
       <footer className="mt-12 border-t pt-6 text-sm" style={{ borderColor: "var(--line)", color: "var(--muted)" }}>
         <a href={`/${params.locale}/cosy-index`} className="hover:underline">{lMethod}</a>
-        <p className="mt-2">{lDisclosure}</p>
+        <p className="mt-2">{lDisclosureBase}{anyStay22 ? ` ${lDisclosureAffiliate}` : ""}</p>
       </footer>
     </article>
   );

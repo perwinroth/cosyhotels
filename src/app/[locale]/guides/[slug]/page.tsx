@@ -193,7 +193,7 @@ export default async function GuidePage({ params }: Props) {
     const cleanedCountry = displayCountry(String(h.country || ''));
     const displayName = String(h.name_en || h.name);
     const cta = stay22AllezUrl({ name: displayName, city: cleanedCity, country: cleanedCountry, lat: h.lat ?? null, lng: h.lng ?? null, campaign: `guide-${params.locale}` });
-    return { slug: String(h.slug), name: displayName, city: cleanedCity, country: cleanedCountry, _cosy: s, _img: img, _signals: signals, snippet, cta };
+    return { slug: String(h.slug), name: displayName, city: cleanedCity, country: cleanedCountry, _cosy: s, _img: img, _signals: signals, snippet, cta, website: h.website ?? null };
   })
 
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
@@ -318,7 +318,7 @@ export default async function GuidePage({ params }: Props) {
                       <p className="mt-0.5 text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>
                     </div>
                   )}
-                  <HotelActions href={h.cta} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref(h.slug)} />
+                  <HotelActions stay22Href={h.cta} website={h.website} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref(h.slug)} />
                 </div>
                 {h._img && (
                   <a href={detailsHref(h.slug)} className="flex-shrink-0 hidden sm:block">

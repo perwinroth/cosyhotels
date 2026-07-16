@@ -36,8 +36,8 @@ export const loadCountryCounts = cache(async (): Promise<Array<{ country: CanonC
   return [...tally.values()].sort((a, b) => b.live - a.live);
 });
 
-export type HubHotel = { id: string; slug: string; name: string; city: string; country: string; score: number; snippet: string; lat: number | null; lng: number | null };
-type CRow = { hotel_id: string; score: number | null; score_final: number | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat?: number | null; lng?: number | null } | null };
+export type HubHotel = { id: string; slug: string; name: string; city: string; country: string; score: number; snippet: string; lat: number | null; lng: number | null; website: string | null };
+type CRow = { hotel_id: string; score: number | null; score_final: number | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat?: number | null; lng?: number | null; website?: string | null } | null };
 const rowScore = (r: CRow) => Number((r.score_final ?? r.score) || 0);
 
 // Top cosy hotels for a country. Candidates are fetched via ilike patterns (exact match for short
@@ -55,7 +55,7 @@ export async function loadCountryHotels(country: CanonCountry, limit = 60): Prom
   for (const pat of patterns) {
     const { data } = await db
       .from("cosy_scores")
-      .select("hotel_id, score, score_final, description, hotel:hotel_id!inner(slug, name, name_en, city, country, lat, lng)")
+      .select("hotel_id, score, score_final, description, hotel:hotel_id!inner(slug, name, name_en, city, country, lat, lng, website)")
       .gte("score", 5)
       .ilike("hotel.country", pat)
       .order("score", { ascending: false })
@@ -71,7 +71,7 @@ export async function loadCountryHotels(country: CanonCountry, limit = 60): Prom
     const name = String(h.name_en || h.name || "").trim();
     if (!name || !isLatin(name) || seenName.has(name)) continue;
     seenName.add(name);
-    out.push({ id: String(r.hotel_id), slug: h.slug, name, city: displayCity(h.city), country: country.name, score: rowScore(r), snippet: r.description || "", lat: h.lat ?? null, lng: h.lng ?? null });
+    out.push({ id: String(r.hotel_id), slug: h.slug, name, city: displayCity(h.city), country: country.name, score: rowScore(r), snippet: r.description || "", lat: h.lat ?? null, lng: h.lng ?? null, website: h.website ?? null });
     if (out.length >= limit) break;
   }
   return out;

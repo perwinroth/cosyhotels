@@ -4,7 +4,7 @@
 // website-URL sanitizer that gates the new "Visit hotel website" CTA. Node built-in runner: npm test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DELISTED_SLUGS, isDelisted, isValidWebsiteUrl } from "../src/lib/delisted";
+import { DELISTED_SLUGS, isDelisted, isValidWebsiteUrl, isRealHotelWebsite } from "../src/lib/delisted";
 
 test("DELISTED_SLUGS contains brae-lodge", () => {
   assert.ok(DELISTED_SLUGS.has("brae-lodge"));
@@ -78,4 +78,45 @@ test("isValidWebsiteUrl rejects empty, javascript:, ftp: and non-URL strings", (
   assert.equal(isValidWebsiteUrl("javascript:alert(1)"), false);
   assert.equal(isValidWebsiteUrl("ftp://x"), false);
   assert.equal(isValidWebsiteUrl("not a url"), false);
+});
+
+// ── isRealHotelWebsite: gates the CTA-policy swap (founder, 2026-07-16) — a real, non-OTA site
+// replaces the Stay22 button entirely; an OTA/social/aggregator domain must never be treated as
+// the hotel's own site even when a scrape stored one as `website`. ──
+
+test("isRealHotelWebsite is true for a real, independent hotel website", () => {
+  assert.equal(isRealHotelWebsite("https://www.braelodge.com/"), true);
+  assert.equal(isRealHotelWebsite("http://example-guesthouse.com"), true);
+});
+
+test("isRealHotelWebsite is false for booking.com, facebook.com, instagram.com and subdomains", () => {
+  assert.equal(isRealHotelWebsite("https://www.booking.com/hotel/gb/brae-lodge.html"), false);
+  assert.equal(isRealHotelWebsite("https://booking.com/hotel/x"), false);
+  assert.equal(isRealHotelWebsite("https://es.booking.com/hotel/x"), false);
+  assert.equal(isRealHotelWebsite("https://www.facebook.com/braelodge"), false);
+  assert.equal(isRealHotelWebsite("https://m.facebook.com/braelodge"), false);
+  assert.equal(isRealHotelWebsite("https://www.instagram.com/braelodge"), false);
+  assert.equal(isRealHotelWebsite("https://hotels.com/ho123"), false);
+  assert.equal(isRealHotelWebsite("https://www.hotels.com/ho123"), false);
+});
+
+test("isRealHotelWebsite is false for tripadvisor/google/expedia/airbnb on any TLD", () => {
+  assert.equal(isRealHotelWebsite("https://www.tripadvisor.com/Hotel_Review-x"), false);
+  assert.equal(isRealHotelWebsite("https://www.tripadvisor.co.uk/Hotel_Review-x"), false);
+  assert.equal(isRealHotelWebsite("https://www.google.com/travel/hotels/x"), false);
+  assert.equal(isRealHotelWebsite("https://www.expedia.co.uk/x"), false);
+  assert.equal(isRealHotelWebsite("https://www.airbnb.de/rooms/x"), false);
+});
+
+test("isRealHotelWebsite is false for javascript:, empty, and malformed URLs (delegates to isValidWebsiteUrl)", () => {
+  assert.equal(isRealHotelWebsite("javascript:alert(1)"), false);
+  assert.equal(isRealHotelWebsite(""), false);
+  assert.equal(isRealHotelWebsite(undefined), false);
+  assert.equal(isRealHotelWebsite(null), false);
+  assert.equal(isRealHotelWebsite("not a url"), false);
+});
+
+test("isRealHotelWebsite does not false-positive on look-alike domains (not booking.com/hotels.com)", () => {
+  assert.equal(isRealHotelWebsite("https://www.notbooking.com/x"), true);
+  assert.equal(isRealHotelWebsite("https://www.grandhotels.com/x"), true);
 });

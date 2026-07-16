@@ -30,6 +30,7 @@ export type GuideHotelRow = {
   id: string; slug: string; name: string; name_en?: string | null; city: string | null; country: string | null;
   rating: number | null; address?: string | null; reviews_count?: number | null;
   source?: string | null; source_id?: string | null; lat?: number | null; lng?: number | null;
+  website?: string | null;
 };
 type ScoreRow = { hotel_id: string; score: number | null; score_final: number | null };
 
@@ -112,7 +113,7 @@ export async function computeGuidePicks(db: DB, cityName: string): Promise<Guide
   const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
   const { data: hRows } = await db
     .from('hotels')
-    .select('id,slug,name,name_en,city,country,rating,address,reviews_count,source,source_id,lat,lng')
+    .select('id,slug,name,name_en,city,country,rating,address,reviews_count,source,source_id,lat,lng,website')
     .or(`${orCity},${orAddr}`)
     .limit(800);
   let hotels = ((hRows || []) as GuideHotelRow[]).filter(Boolean);
@@ -122,7 +123,7 @@ export async function computeGuidePicks(db: DB, cityName: string): Promise<Guide
     if (bb) {
       const { data: geoRows } = await db
         .from('hotels')
-        .select('id,slug,name,name_en,city,country,rating,address,reviews_count,source,source_id,lat,lng')
+        .select('id,slug,name,name_en,city,country,rating,address,reviews_count,source,source_id,lat,lng,website')
         .gte('lat', bb.minLat)
         .lte('lat', bb.maxLat)
         .gte('lng', bb.minLng)

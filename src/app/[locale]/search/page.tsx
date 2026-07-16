@@ -5,6 +5,7 @@ import { logSearch } from "@/lib/searchLog";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { cityGuides } from "@/data/cityGuides";
 import { stay22AllezUrl } from "@/lib/affiliates";
+import { resolveBookingCta } from "@/lib/ctaPolicy";
 import SaveToTripButton from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import ShareButton from "@/components/ShareButton";
@@ -80,11 +81,16 @@ export default async function SearchPage({ params, searchParams }: Props) {
                       <p className="mt-0.5 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>
                     </div>
                   )}
-                  <div className="mt-3 flex items-center gap-2">
-                    <a href={stay22AllezUrl({ name: h.name, city: h.city, country: h.country, campaign: "search" })} target="_blank" rel="noopener nofollow sponsored" data-cta="check_availability" data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>Check availability</a>
-                    {saveLabels && <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} />}
-                    <ShareButton variant="icon" title={`${h.name}, a cosy hotel${h.city ? ` in ${h.city}` : ""}`} url={`/${locale}/hotels/${h.slug}`} />
-                  </div>
+                  {(() => {
+                    const cta = resolveBookingCta(h.website, stay22AllezUrl({ name: h.name, city: h.city, country: h.country, campaign: "search" }));
+                    return (
+                      <div className="mt-3 flex items-center gap-2">
+                        <a href={cta.href} target="_blank" rel={cta.rel} data-cta={cta.dataCta} data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>{cta.label}</a>
+                        {saveLabels && <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} />}
+                        <ShareButton variant="icon" title={`${h.name}, a cosy hotel${h.city ? ` in ${h.city}` : ""}`} url={`/${locale}/hotels/${h.slug}`} />
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </li>

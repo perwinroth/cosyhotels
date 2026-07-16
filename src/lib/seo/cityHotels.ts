@@ -19,18 +19,22 @@ export type CityCosyHotel = {
   id: string; slug: string; name: string; city: string; country: string;
   score: number; snippet: string; signals: string[] | null; description: string | null;
   lat: number | null; lng: number | null;
+  /** Raw stored hotel.website, unsanitized (src/lib/ctaPolicy.ts validates + OTA-filters it). Null
+   *  when the RPC/scan row didn't carry one — loadCityCosyHotels backfills it with a batched lookup
+   *  (the cosy_city_hotels RPC doesn't select the column; see attachWebsites below). */
+  website: string | null;
 };
 
 // Row shape returned by CITY_HOTEL_SELECT. Used by both the page fetch and the sitemap scan.
 export type ScoreHotelRow = {
   hotel_id: string; score: number | null; score_final: number | null;
   signals: string[] | null; description: string | null;
-  hotel: { slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat?: number | null; lng?: number | null } | null;
+  hotel: { slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat?: number | null; lng?: number | null; website?: string | null } | null;
 };
 
 // Keep the page fetch and the sitemap scan selecting IDENTICAL columns.
 export const CITY_HOTEL_SELECT =
-  "hotel_id, score, score_final, signals, description, hotel:hotel_id!inner(slug, name, name_en, city, country, lat, lng)";
+  "hotel_id, score, score_final, signals, description, hotel:hotel_id!inner(slug, name, name_en, city, country, lat, lng, website)";
 
 /** Recover a display city name from a city slug (known cities first, else prettified slug). */
 export function resolveCity(slug: string): string {
@@ -92,6 +96,7 @@ export function cityMembers(cityName: string, rows: ScoreHotelRow[]): CityCosyHo
       city: displayCity(h.city, cityName), country: displayCountry(h.country),
       score: Number((r.score_final ?? r.score) || 0), snippet: r.description || "",
       signals: r.signals, description: r.description, lat: h.lat ?? null, lng: h.lng ?? null,
+      website: h.website ?? null,
     });
   }
   return hotels;
@@ -116,7 +121,31 @@ export async function loadCityCosyHotels(citySlug: string): Promise<{ cityName: 
     signals: r.signals as string[] | null, description: r.description as string | null,
     hotel: { slug: r.slug as string, name: r.name as string, name_en: r.name_en as string | null, city: r.city as string | null, country: r.country as string | null, lat: r.lat as number | null, lng: r.lng as number | null },
   }));
-  return { cityName, hotels: cityMembers(cityName, rows) };
+  const hotels = cityMembers(cityName, rows);
+  await attachWebsites(db, hotels);
+  return { cityName, hotels };
+}
+
+/**
+ * Backfill CityCosyHotel.website via a plain batched select, since the cosy_city_hotels RPC (SQL
+ * function, not this codebase) doesn't return the column — see the migration comment in
+ * supabase/2026_accent_insensitive_city.sql. Mutates `hotels` in place. Fails open (leaves website
+ * null, so cards fall back to the Stay22 CTA — the pre-existing, safe default) on any DB error.
+ */
+async function attachWebsites(db: NonNullable<ReturnType<typeof getServerSupabase>>, hotels: CityCosyHotel[]): Promise<void> {
+  if (hotels.length === 0) return;
+  try {
+    const byId = new Map<string, string | null>();
+    for (let i = 0; i < hotels.length; i += 200) {
+      const ids = hotels.slice(i, i + 200).map((h) => h.id);
+      const { data, error } = await db.from("hotels").select("id,website").in("id", ids);
+      if (error) continue;
+      for (const r of (data || []) as Array<{ id: string; website: string | null }>) byId.set(String(r.id), r.website ?? null);
+    }
+    for (const h of hotels) h.website = byId.get(h.id) ?? null;
+  } catch {
+    // fail-open: website stays null on every hotel — same as before this backfill existed
+  }
 }
 
 /** Hotels in a city that match a facet (same predicate the facet page renders with). */

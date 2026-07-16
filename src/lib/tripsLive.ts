@@ -55,6 +55,7 @@ export interface SavedListPick extends StopPick {
   lat: number | null;
   lng: number | null;
   description?: string;
+  website?: string | null;
 }
 
 /**
@@ -76,6 +77,7 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<SavedListP
     country: string | null;
     lat: number | null;
     lng: number | null;
+    website: string | null;
     cosy_scores: { score: number | null; score_final: number | null; description: string | null } | Array<{ score: number | null; score_final: number | null; description: string | null }> | null;
   };
   const bySlug = new Map<string, SavedListPick>();
@@ -83,7 +85,7 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<SavedListP
     const chunk = slugs.slice(i, i + 100);
     const { data, error } = await db
       .from("hotels")
-      .select("id,slug,name,name_en,city,country,lat,lng,cosy_scores(score,score_final,description)")
+      .select("id,slug,name,name_en,city,country,lat,lng,website,cosy_scores(score,score_final,description)")
       .in("slug", chunk);
     if (error || !data) continue;
     for (const row of data as unknown as Row[]) {
@@ -95,7 +97,7 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<SavedListP
       const description = cs?.description?.trim() || undefined;
       bySlug.set(row.slug, {
         id: String(row.id), slug: row.slug, name, city: displayCity(row.city, ""), country: displayCountry(row.country),
-        lat: row.lat ?? null, lng: row.lng ?? null, score, description,
+        lat: row.lat ?? null, lng: row.lng ?? null, score, description, website: row.website ?? null,
       });
     }
   }

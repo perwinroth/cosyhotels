@@ -56,6 +56,36 @@ export function isValidWebsiteUrl(website: string | null | undefined): boolean {
   return parsed.hostname.includes(".");
 }
 
+// ── CTA policy (founder, 2026-07-16): hotel website first, Stay22 relabeled ────────────────────
+// A real-browser sweep of Stay22's "Check availability" link showed it lands on the EXACT hotel
+// only ~59% of the time, ~36% on a generic city search, and ~4% on a DIFFERENT hotel entirely.
+// Founder rule: a hotel with a REAL website gets "Visit hotel website" as its ONLY booking CTA (no
+// Stay22 button); a hotel with no real website keeps the Stay22 link but relabeled "Check nearby
+// stays" (which is what it truthfully does most of the time). "Real" excludes OTA/social/aggregator
+// domains — those are not the hotel's own site even when a scrape stored one as `website`.
+const OTA_EXACT_HOST_SUFFIXES = ["booking.com", "facebook.com", "instagram.com", "hotels.com"];
+const OTA_WILDCARD_TLD_LABELS = new Set(["tripadvisor", "google", "expedia", "airbnb"]);
+
+/**
+ * True when `url` passes isValidWebsiteUrl AND its hostname is not an OTA/social/aggregator domain
+ * (booking.com, facebook.com, instagram.com, hotels.com — any subdomain too; tripadvisor.*,
+ * google.*, expedia.*, airbnb.* — any TLD). Only a URL that passes this is safe to present as the
+ * hotel's OWN website and to replace the Stay22 CTA with entirely.
+ */
+export function isRealHotelWebsite(url: string | null | undefined): boolean {
+  if (!isValidWebsiteUrl(url)) return false;
+  let host: string;
+  try {
+    host = new URL(String(url).trim()).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  if (OTA_EXACT_HOST_SUFFIXES.some((d) => host === d || host.endsWith(`.${d}`))) return false;
+  const labels = host.split(".");
+  if (labels.some((l) => OTA_WILDCARD_TLD_LABELS.has(l))) return false;
+  return true;
+}
+
 // ── List-surface exclusion ────────────────────────────────────────────────────────────────────────
 // The detail page, sitemaps and outreach check per-slug; LISTING surfaces (city guides, facet/city,
 // country hubs, regions, search, boards, collections, blog picks) render arrays and need a set. The

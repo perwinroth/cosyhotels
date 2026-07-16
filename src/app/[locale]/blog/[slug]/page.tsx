@@ -9,6 +9,7 @@ import blogPicksData from "@/data/blogPicks.json";
 // Picks are precomputed (scripts/generate-blog-picks.mts): each hotel assigned to ONE post, with a
 // bespoke grounded "why it fits this topic" line. Regenerate the JSON to refresh.
 import { picksWithLiveScores, type PickEntry } from "@/lib/blogPickScores";
+import { resolveBookingCta } from "@/lib/ctaPolicy";
 type BlogPick = PickEntry;
 const BLOG_PICKS = blogPicksData as Record<string, BlogPick[]>;
 import { cosyBadgeColor } from "@/lib/cosyColor";
@@ -73,7 +74,7 @@ function PickCard({ h, idx, locale, saveLabels }: { h: BlogPick; idx: number; lo
               <p className="mt-0.5 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.why}</p>
             </div>
           )}
-          <HotelActions href={h.cta} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref} />
+          <HotelActions stay22Href={h.cta} website={h.website} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref} />
         </div>
         {h.img && (
           <a href={detailsHref} className="flex-shrink-0 hidden sm:block">
@@ -105,6 +106,9 @@ export default async function BlogPostPage({ params }: Props) {
   // value (below-gate hotels drop out) — stored numbers went stale after the 2026-07-02 rescore.
   const storedPicks: BlogPick[] = post.pick ? (BLOG_PICKS[post.slug] || []) : [];
   const picks: BlogPick[] = await picksWithLiveScores(storedPicks);
+  // Affiliate-disclosure gate (founder, 2026-07-16): only true when a Stay22 button actually
+  // renders below; a post whose picks all have real websites carries no affiliate link.
+  const anyStay22 = picks.some((p) => resolveBookingCta(p.website, "").mode === "stay22");
   const saveLabels = await buildSaveLabels(L);
 
   // A related link to a blog post that's still draft/scheduled would 404 — drop those. Non-blog
@@ -203,7 +207,7 @@ export default async function BlogPostPage({ params }: Props) {
         </section>
       )}
 
-      <p className="mt-10 text-xs" style={{ color: "var(--muted)" }}>Got Cosy ranks hotels by cosiness using AI. Picks are drawn live from our scored dataset; bookings via partner sites may earn us a commission. Last updated {post.updated}.</p>
+      <p className="mt-10 text-xs" style={{ color: "var(--muted)" }}>Got Cosy ranks hotels by cosiness using AI. Picks are drawn live from our scored dataset{anyStay22 ? "; bookings via partner sites may earn us a commission" : ""}. Last updated {post.updated}.</p>
     </article>
   );
 }

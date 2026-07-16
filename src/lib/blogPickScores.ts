@@ -7,8 +7,10 @@
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getDelistedSlugSet } from "@/lib/delisted";
 
-/** Shape of one stored pick entry in blogPicks.json (the blog page's card model). */
-export type PickEntry = { slug: string; name: string; city: string; country: string; score: number; why: string; img: string | null; cta: string };
+/** Shape of one stored pick entry in blogPicks.json (the blog page's card model). `website` is NOT
+ *  stored in the JSON (blogPicks.json predates the CTA policy, founder 2026-07-16) — read live by
+ *  websitesBySlug below, same live-not-baked rule as the score (lesson #44). */
+export type PickEntry = { slug: string; name: string; city: string; country: string; score: number; why: string; img: string | null; cta: string; website?: string | null };
 
 /** The same public gate the sitemap + hotel pages use: below it a hotel is not surfaced. */
 const PUBLIC_GATE = 5;
@@ -51,11 +53,35 @@ export async function liveScoresBySlug(slugs: string[]): Promise<Record<string, 
   }
 }
 
-/** Convenience: picks with live scores applied, or the stored picks untouched if the lookup failed. */
+/** Fetch each pick's current hotel.website (CTA policy, founder 2026-07-16 — see
+ *  src/lib/ctaPolicy.ts). Same fail-open contract as liveScoresBySlug: null on any failure, so
+ *  callers keep every pick on the pre-existing Stay22 CTA rather than blocking the page. */
+export async function websitesBySlug(slugs: string[]): Promise<Record<string, string | null> | null> {
+  const db = getServerSupabase();
+  if (!db || slugs.length === 0) return null;
+  try {
+    const bySlug: Record<string, string | null> = {};
+    for (let i = 0; i < slugs.length; i += 100) {
+      const { data, error } = await db.from("hotels").select("slug, website").in("slug", slugs.slice(i, i + 100));
+      if (error) return null;
+      for (const row of (data ?? []) as Array<{ slug: string; website: string | null }>) bySlug[row.slug] = row.website ?? null;
+    }
+    return bySlug;
+  } catch {
+    return null;
+  }
+}
+
+/** Convenience: picks with live scores AND live website applied, or the stored picks untouched if
+ *  a lookup failed. */
 export async function picksWithLiveScores(picks: PickEntry[]): Promise<PickEntry[]> {
   const db = getServerSupabase();
   const delisted = await getDelistedSlugSet(db);
   const kept = picks.filter((p) => !delisted.has(p.slug)); // takedown excludes blog listicles too
-  const live = await liveScoresBySlug(kept.map((p) => p.slug));
-  return live ? applyLiveScores(kept, live) : kept;
+  const [live, websites] = await Promise.all([
+    liveScoresBySlug(kept.map((p) => p.slug)),
+    websitesBySlug(kept.map((p) => p.slug)),
+  ]);
+  const scored = live ? applyLiveScores(kept, live) : kept;
+  return websites ? scored.map((p) => ({ ...p, website: websites[p.slug] ?? null })) : scored;
 }

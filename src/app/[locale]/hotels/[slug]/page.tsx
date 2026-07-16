@@ -23,8 +23,8 @@ import TravellerFit from "@/components/TravellerFit";
 import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
 import { loadCityCosyHotels, loadConceptAssignments, conceptMembers } from "@/lib/seo/cityHotels";
 import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
-import { isDelisted, isValidWebsiteUrl, getDelistedSlugSet } from "@/lib/delisted";
-import { translate } from "@/lib/i18n/translate";
+import { isDelisted, getDelistedSlugSet } from "@/lib/delisted";
+import { resolveBookingCta } from "@/lib/ctaPolicy";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
 // window, never on every view. These are the top SEO landing pages, so cache them hard.
@@ -362,16 +362,11 @@ export default async function HotelDetail({ params }: Props) {
   // page's copy stays identical to every listing card that also renders the button.
   const saveLabels: SaveToTripLabels = await buildSaveLabels(params.locale);
 
-  // "Visit hotel website" (trust fix, 2026-07-16): the Stay22 "Check availability" link matches the
-  // nearest OTA-bookable property, which for small direct-booking hotels can land on a DIFFERENT
-  // hotel (the brae-lodge complaint). Purely ADDITIVE per founder spec (revenue call, 2026-07-16):
-  // Stay22 stays primary/unchanged; when we hold a sanitized website URL, add the real hotel's own
-  // site as a secondary CTA beside it. Never rendered for an empty/malformed/non-http(s) value.
-  const rawWebsite = String((hotel as { website?: string | null }).website || "").trim();
-  const websiteUrl = isValidWebsiteUrl(rawWebsite) ? rawWebsite : null;
-  const visitWebsiteLabel = websiteUrl
-    ? (params.locale === "en" ? "Visit hotel website" : await translate("Visit hotel website", params.locale))
-    : null;
+  // Booking CTA policy (founder, 2026-07-16): a real website replaces Stay22 entirely (see
+  // src/lib/ctaPolicy.ts). Used both by HotelActions (renders the button) and below (gates the
+  // affiliate disclosure line to only when a Stay22 button is actually on the page).
+  const rawWebsite = String((hotel as { website?: string | null }).website || "").trim() || null;
+  const bookingCta = resolveBookingCta(rawWebsite, bookingUrl);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -431,11 +426,14 @@ export default async function HotelDetail({ params }: Props) {
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <a className="inline-flex min-h-[44px] items-center rounded-xl px-4 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
         <div className="sm:ml-auto">
-          <HotelActions href={bookingUrl} hotelName={String(hotel.name)} city={cityName} slug={String(hotel.slug)} locale={params.locale} saveLabels={saveLabels} websiteUrl={websiteUrl} websiteLabel={visitWebsiteLabel} />
+          <HotelActions stay22Href={bookingUrl} website={rawWebsite} hotelName={String(hotel.name)} city={cityName} slug={String(hotel.slug)} locale={params.locale} saveLabels={saveLabels} />
         </div>
       </div>
-      {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not only in the footer. */}
-      <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>Booking via this link may earn us a commission; it never affects cosy scores.</p>
+      {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not
+          only in the footer. Only meaningful when a Stay22 button actually renders (founder, 2026-07-16). */}
+      {bookingCta.mode === "stay22" && (
+        <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>Booking via this link may earn us a commission; it never affects cosy scores.</p>
+      )}
 
       <HotelGraph city={cityName} cityLabel={cityName} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinks} extra={graphExtra} />
 

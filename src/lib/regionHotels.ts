@@ -9,7 +9,7 @@ import type { Region } from "@/data/regions";
 
 export { HUB_MIN, HUB_404_BELOW };
 
-type CRow = { hotel_id: string; score: number | null; score_final: number | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat?: number | null; lng?: number | null } | null };
+type CRow = { hotel_id: string; score: number | null; score_final: number | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat?: number | null; lng?: number | null; website?: string | null } | null };
 const rowScore = (r: CRow) => Number((r.score_final ?? r.score) || 0);
 
 // Top cosy hotels inside a region's bbox, ranked by displayed score, deduped by name, Latin-script only.
@@ -19,7 +19,7 @@ export async function loadRegionHotels(region: Region, limit = 60): Promise<HubH
   const [minLng, minLat, maxLng, maxLat] = region.bbox;
   const { data } = await db
     .from("cosy_scores")
-    .select("hotel_id, score, score_final, description, hotel:hotel_id!inner(slug, name, name_en, city, country, lat, lng)")
+    .select("hotel_id, score, score_final, description, hotel:hotel_id!inner(slug, name, name_en, city, country, lat, lng, website)")
     .gte("score", 5)
     .gte("hotel.lat", minLat).lte("hotel.lat", maxLat)
     .gte("hotel.lng", minLng).lte("hotel.lng", maxLng)
@@ -35,7 +35,7 @@ export async function loadRegionHotels(region: Region, limit = 60): Promise<HubH
     const name = String(h.name_en || h.name || "").trim();
     if (!name || !isLatin(name) || seenName.has(name)) continue;
     seenName.add(name);
-    out.push({ id: String(r.hotel_id), slug: h.slug, name, city: displayCity(h.city), country: region.country, score: rowScore(r), snippet: r.description || "", lat: h.lat ?? null, lng: h.lng ?? null });
+    out.push({ id: String(r.hotel_id), slug: h.slug, name, city: displayCity(h.city), country: region.country, score: rowScore(r), snippet: r.description || "", lat: h.lat ?? null, lng: h.lng ?? null, website: h.website ?? null });
     if (out.length >= limit) break;
   }
   return out;

@@ -27,7 +27,7 @@ export function generateMetadata(): Metadata {
   };
 }
 
-type TopHotel = { slug: string; name: string; name_en?: string | null; city: string; country: string; cosy: number; description: string; image?: string; lat?: number | null; lng?: number | null };
+type TopHotel = { slug: string; name: string; name_en?: string | null; city: string; country: string; cosy: number; description: string; image?: string; lat?: number | null; lng?: number | null; website?: string | null };
 type CityChip = { city: string; slug: string; count: number };
 
 // Live COSY-scored count per curated city guide — same predicate the guide page uses to decide it
@@ -41,12 +41,12 @@ async function cityChips(): Promise<CityChip[]> {
 }
 
 async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>): Promise<TopHotel[]> {
-  type Row = { score: number | null; score_final: number | null; description: string | null; imagery_warmth: number | null; hotel: { id: string; slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat: number | null; lng: number | null } | null };
+  type Row = { score: number | null; score_final: number | null; description: string | null; imagery_warmth: number | null; hotel: { id: string; slug: string; name: string; name_en: string | null; city: string | null; country: string | null; lat: number | null; lng: number | null; website: string | null } | null };
   // Only PHOTO-VERIFIED hotels (imagery_warmth set) headline the homepage — never an un-grounded
   // blind score. A 10.0 with no photo we ever looked at is not something to put at #1.
   const { data } = await db
     .from("cosy_scores")
-    .select("score, score_final, description, imagery_warmth, hotel:hotel_id (id,slug,name,name_en,city,country,lat,lng)")
+    .select("score, score_final, description, imagery_warmth, hotel:hotel_id (id,slug,name,name_en,city,country,lat,lng,website)")
     .gt("imagery_warmth", 0)
     .order("score_final", { ascending: false, nullsFirst: false })
     .order("score", { ascending: false })
@@ -82,7 +82,7 @@ async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>):
       cosy: typeof r.score_final === "number" ? r.score_final : Number(r.score) || 0,
       description: r.description || "",
       image,
-      lat: h.lat, lng: h.lng,
+      lat: h.lat, lng: h.lng, website: h.website,
     });
     if (picks.length >= 3) break;
   }
@@ -170,7 +170,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                         <div className="text-sm" style={{ color: "var(--muted)" }}>{placeLine(h.city, h.country)}</div>
                         {h.description && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>}
                         {/* Button below the text so it never overlaps a long hotel name. */}
-                        <HotelActions href={cta} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name_en || h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${locale}/hotels/${h.slug}`} />
+                        <HotelActions stay22Href={cta} website={h.website} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name_en || h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${locale}/hotels/${h.slug}`} />
                       </div>
                       {h.image && (
                         <a href={`/${locale}/hotels/${h.slug}`} className="flex-none hidden sm:block no-underline">
