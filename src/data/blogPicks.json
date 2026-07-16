@@ -1,908 +1,1030 @@
 {
-  "are-hotel-chains-ever-cosy": [
-    {
-      "slug": "va-22202-the-ritz-carlton-pentagon-city-2",
-      "name": "The Ritz-Carlton, Pentagon City",
-      "city": "Arlington",
-      "country": "USA",
-      "score": 7.1,
-      "why": "Staff excellence and thoughtful amenities like the sauna and club-level access create genuine comfort for families, though service consistency varies across different visits.",
-      "img": "https://cache.marriott.com/is/image/marriotts7prod/rz-waspc-waspc-exterior-22028-15540:Wide-Hor?wid=1336&amp;fit=constrain",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=The+Ritz-Carlton%2C+Pentagon+City&address=Arlington%2C+USA&lat=38.8625791&lng=-77.0605463"
-    },
-    {
-      "slug": "the-vagabond-club-singapore-a-tribute-portfolio-hotel",
-      "name": "The Vagabond Club, Singapore, a Tribute Portfolio Hotel",
-      "city": "Singapore",
-      "country": "Singapore",
-      "score": 7,
-      "why": "Glowing whisky walls, jewel-toned velvet seating and theatrical leopard-print carpets create an intimate members' club atmosphere that feels distinctly independent despite its chain status.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=The+Vagabond+Club%2C+Singapore%2C+a+Tribute+Portfolio+Hotel&address=Singapore%2C+Singapore&lat=1.3070191&lng=103.8583028"
-    },
-    {
-      "slug": "mama-shelter-luxembourg",
-      "name": "Mama Shelter Luxembourg",
-      "city": "R. Fort Niedergrünewald",
-      "country": "Kirchberg Luxembourg",
-      "score": 6.5,
-      "why": "Its rooftop bar and restaurant foster genuine connection among regulars, creating an unexpectedly intimate atmosphere despite the chain hotel format.",
-      "img": "https://mamashelter.com/luxembourg/wp-content/uploads/sites/17/2020/10/12017587_10153821578267214_9143207740178095488_o-e1603274229508.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=Mama+Shelter+Luxembourg&address=R.+Fort+Niedergr%C3%BCnewald%2C+Kirchberg+Luxembourg&lat=49.6211413&lng=6.1438574"
-    },
-    {
-      "slug": "villa-rothschild-autograph-collection",
-      "name": "Villa Rothschild, Autograph Collection",
-      "city": "Königstein im Taunus",
-      "country": "Germany",
-      "score": 6.3,
-      "why": "The converted villa's intimate bar and restaurant foster genuine connection despite its grand architecture, though stretched staffing occasionally disrupts the experience.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=Villa+Rothschild%2C+Autograph+Collection&address=K%C3%B6nigstein+im+Taunus%2C+Germany&lat=50.183505&lng=8.4738313"
-    },
-    {
-      "slug": "qc-j8y-6w9-ramada-plaza-by-wyndham-gatineaumanoir-du-casino-2",
-      "name": "Ramada Plaza by Wyndham Gatineau/Manoir du Casino",
-      "city": "QC",
-      "country": "Canada",
-      "score": 6,
-      "why": "A fireplace and included breakfasts create genuine warmth in this gaming-district hotel, though inconsistent housekeeping means comfort requires realistic expectations.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=Ramada+Plaza+by+Wyndham+Gatineau%2FManoir+du+Casino&address=QC%2C+Canada&lat=45.4492267&lng=-75.7295969"
-    }
-  ],
-  "cosiest-hotels-for-a-quiet-escape": [
-    {
-      "slug": "japan-kyokoyado-yasaka-yutone",
-      "name": "Kyokoyado Yasaka Yutone",
-      "city": "",
-      "country": "Japan",
-      "score": 8.8,
-      "why": "This intimate 155-guest ryokan in central Kyoto offers genuine tranquillity through its quiet rooms, beautiful library lounge, and traditional in-house dining without the bustle of larger hotels.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Kyokoyado+Yasaka+Yutone&address=Japan&lat=34.9991153&lng=135.7786314"
-    },
-    {
-      "slug": "andrassy-kuria-and-spa",
-      "name": "Andrássy Kúria & Spa",
-      "city": "",
-      "country": "Hungary",
-      "score": 8.8,
-      "why": "This rural Hungarian spa hotel earns an 8.8 cosiness score with guests praising its attentive staff and beautiful wellness facilities, though families with young children should note it may not guarantee complete quiet.",
-      "img": "https://andrassykuria.hu/wp-content/uploads/2026/02/Wellness-5-scaled.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Andr%C3%A1ssy+K%C3%BAria+%26+Spa&address=Hungary&lat=48.1280588&lng=21.3474317"
-    },
-    {
-      "slug": "boutique-hotel-glacier",
-      "name": "Boutique Hotel Glacier",
-      "city": "Grindelwald",
-      "country": "Switzerland",
-      "score": 8.8,
-      "why": "With its intimate spa and sauna, quiet Alpine setting, and consistently high guest ratings, this boutique refuge offers genuine respite from busier Swiss resorts.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Boutique+Hotel+Glacier&address=Grindelwald%2C+Switzerland&lat=46.6214798&lng=8.0303292"
-    },
-    {
-      "slug": "washiocho-motonago",
-      "name": "Motonago",
-      "city": "Washiochō",
-      "country": "",
-      "score": 8.8,
-      "why": "With intimate tatami rooms, a soaking tub, and tranquil garden, this Washiochō ryokan delivers genuine warmth and peaceful seclusion for restorative rest.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Motonago&address=Washioch%C5%8D&lat=35.0014711&lng=135.7797813"
-    },
-    {
-      "slug": "soleil-boutique-hotel",
-      "name": "Soleil Boutique Hotel",
-      "city": "Hà Nội",
-      "country": "Vietnam",
-      "score": 8.6,
-      "why": "With its rooftop pool, spa facilities, and 24-hour front desk ensuring uninterrupted peace, this intimate boutique property offers genuine respite from Hanoi's bustling streets.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Soleil+Boutique+Hotel&address=H%C3%A0+N%E1%BB%99i%2C+Vietnam&lat=21.0287952&lng=105.8444792"
-    },
-    {
-      "slug": "relais-villa-il-sasso",
-      "name": "Relais “Villa Il Sasso”",
-      "city": "Florence",
-      "country": "Italy",
-      "score": 8.5,
-      "why": "This intimate 14th-century villa with just seven rooms on the Florentine hillside offers genuine tranquillity through its remote setting, personal owner-host care, and complete absence of external disturbance.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Relais+%E2%80%9CVilla+Il+Sasso%E2%80%9D&address=Florence%2C+Italy&lat=43.7305048&lng=11.2970874"
-    },
-    {
-      "slug": "the-greenwood-guwahati-a-luxury-boutique-hotel",
-      "name": "The Greenwood, Guwahati : A Luxury Boutique Hotel",
-      "city": "Assam",
-      "country": "India",
-      "score": 8.5,
-      "why": "With impeccable service, spotless rooms, and dedicated spa and rooftop facilities, this intimate boutique retreat prioritises genuine comfort for restorative stays.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=The+Greenwood%2C+Guwahati+%3A+A+Luxury+Boutique+Hotel&address=Assam%2C+India&lat=26.1152294&lng=91.797814"
-    },
-    {
-      "slug": "boulevard-leopold",
-      "name": "Boulevard Leopold",
-      "city": "Antwerp",
-      "country": "België / Belgique / Belgien",
-      "score": 8.5,
-      "why": "Candlelit rooms lined with books and curiosities, paired with a lush garden room and tactile velvet seating, create an intimate, contemplative retreat.",
-      "img": "https://images.squarespace-cdn.com/content/v1/5fa28021ab2d5c3c9658d762/1604654381619-9E9435UL342LSTAUO9NU/BL_BreakfastRoomA_No_Destinations.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Boulevard+Leopold&address=Antwerp%2C+Belgi%C3%AB+%2F+Belgique+%2F+Belgien&lat=51.2044846&lng=4.4166497"
-    },
-    {
-      "slug": "flatflesa-fyr",
-      "name": "Flatflesa Fyr",
-      "city": "Ålesund",
-      "country": "Norway",
-      "score": 8.4,
-      "why": "A former lighthouse keeper's refuge on a rocky Norwegian islet, where a barrel sauna and complete isolation promise genuine escape from the world.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Flatflesa+Fyr&address=%C3%85lesund%2C+Norway&lat=62.838453&lng=6.688946"
-    },
-    {
-      "slug": "bali-80571-ubud-inn-and-spa",
-      "name": "Ubud Inn & Spa",
-      "city": "Bali",
-      "country": "Indonesia",
-      "score": 8.4,
-      "why": "With lush gardens, spacious rooms and a spa offering tranquility, this intimate 263-guest retreat in Bali's cultural heart delivers genuine calm for rest.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Ubud+Inn+%26+Spa&address=Bali%2C+Indonesia&lat=-8.5157318&lng=115.2605133"
-    },
-    {
-      "slug": "leons-place",
-      "name": "Leon's Place",
-      "city": "Rome",
-      "country": "Italy",
-      "score": 8.4,
-      "why": "Warmly staffed and centred around a welcoming lobby bar and spa, this Rome hotel offers the rare consistency that makes guests return for genuine rest.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Leon%27s+Place&address=Rome%2C+Italy&lat=41.9079747&lng=12.4995868"
-    },
-    {
-      "slug": "seewald-hotel-konradshof",
-      "name": "Hotel Konradshof",
-      "city": "Seewald",
-      "country": "Germany",
-      "score": 8.3,
-      "why": "This family-run Seewald hotel delivers genuine warmth through spacious, beautifully appointed rooms, a sauna, and gardens—perfect for unhurried rest.",
-      "img": "https://www.hotel-konradshof.de/de/photos/crop__370738_t1__1280.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Hotel+Konradshof&address=Seewald%2C+Germany&lat=48.5917722&lng=8.4197694"
-    }
-  ],
-  "cosiest-hotels-for-a-family-stay": [
-    {
-      "slug": "landidyll-hotel-und-restaurant-haus-hochstein",
-      "name": "Landidyll Hotel und Restaurant Haus Hochstein",
-      "city": "Eslohe (Sauerland)",
-      "country": "Germany",
-      "score": 8.8,
-      "why": "This family-run establishment in the Sauerland welcomes guests with genuine warmth, lovingly prepared food, and attentive staff who clearly care about making your stay comfortable.",
-      "img": "https://www.haus-hochstein.de/wp-content/uploads/2019/06/haus-hochstein-twitter.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Landidyll+Hotel+und+Restaurant+Haus+Hochstein&address=Eslohe+%28Sauerland%29%2C+Germany&lat=51.2884422&lng=8.178335"
-    },
-    {
-      "slug": "eden-vale-inn",
-      "name": "Eden Vale Inn",
-      "city": "Placerville",
-      "country": "USA",
-      "score": 8.3,
-      "why": "With well-maintained grounds offering countless charming spots to relax and a fireplace for gathering, it's designed for families seeking peaceful, comfortable downtime together.",
-      "img": "https://edenvaleinn.com/wp-content/uploads/2023/05/eden-exterior.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Eden+Vale+Inn&address=Placerville%2C+USA&lat=38.7513533&lng=-120.9364608"
-    },
-    {
-      "slug": "hidatakayama-futarishizuka-hakuun",
-      "name": "Hidatakayama Futarishizuka Hakuun",
-      "city": "Takayama",
-      "country": "Japan",
-      "score": 8.2,
-      "why": "This beautifully preserved ryokan offers traditional Japanese warmth with an intimate garden terrace and mountain views, though families should note that dinner timing is inflexible and room allocations may differ from photos.",
-      "img": "https://ryokan-hakuun.co.jp/img/index/0101_sp.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hidatakayama+Futarishizuka+Hakuun&address=Takayama%2C+Japan&lat=36.1399758&lng=137.2625803"
-    },
-    {
-      "slug": "prague-hotel-svatojansky-dvur",
-      "name": "Hotel Svatojánský Dvůr",
-      "city": "Praha",
-      "country": "Czechia",
-      "score": 8.2,
-      "why": "With its on-site spa, garden and restaurant, plus highly praised service and generous breakfasts, it's a place where families can truly relax without leaving the grounds.",
-      "img": "https://svdvur.cz/wp-content/uploads/2025/11/DSC09920-HDR-scaled.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hotel+Svatoj%C3%A1nsk%C3%BD+Dv%C5%AFr&address=Praha%2C+Czechia&lat=50.1250563&lng=14.4830696"
-    },
-    {
-      "slug": "reims-la-demeure-des-sacres",
-      "name": "LA DEMEURE DES SACRES",
-      "city": "Reims",
-      "country": "France",
-      "score": 8.2,
-      "why": "This family-friendly townhouse in Reims offers a tranquil garden, immaculate rooms, and warm hospitality from its owner Cèline, scoring 4.8/5 with guests.",
-      "img": "https://www.la-demeure-des-sacres.com/wp-content/uploads/2024/12/Demeure_des_sacres_salon_unique-min-1024x683.png",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=LA+DEMEURE+DES+SACRES&address=Reims%2C+France&lat=49.2521013&lng=4.0297878"
-    },
-    {
-      "slug": "crosby-street-hotel",
-      "name": "Crosby Street Hotel",
-      "city": "New York",
-      "country": "USA",
-      "score": 8.1,
-      "why": "Staff warmth and a rooftop garden offer genuine respite from Manhattan's pace, though family-specific amenities aren't clearly documented.",
-      "img": "https://www.firmdalehotels.com/media/u4xkpbrc/240910_f_cs_o_251_webresa.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Crosby+Street+Hotel&address=New+York%2C+USA&lat=40.7230126&lng=-73.997417"
-    },
-    {
-      "slug": "riad-maialou",
-      "name": "Riad Maïalou",
-      "city": "Marrakech",
-      "country": "",
-      "score": 8.1,
-      "why": "A peaceful central courtyard with candlelit orange trees and a fountain provides a secure, intimate gathering space where families feel immediately at home.",
-      "img": "https://www.riadmaialou.com/source/images/DSC06181.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Riad+Ma%C3%AFalou&address=Marrakech&lat=31.6280975&lng=-7.9919203"
-    },
-    {
-      "slug": "hotel-casa-del-capitel-nazari",
-      "name": "Hotel Casa del Capitel Nazarí",
-      "city": "Granada",
-      "country": "Spain",
-      "score": 8.1,
-      "why": "This intimate Renaissance casa offers a magical Nasrid courtyard where children can safely explore carved stone columns and trailing vines while parents relax nearby.",
-      "img": "https://www.hotelcasacapitel.com/app/uploads/sites/123/home4.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hotel+Casa+del+Capitel+Nazar%C3%AD&address=Granada%2C+Spain&lat=37.1778923&lng=-3.5945806"
-    },
-    {
-      "slug": "bali-80571-alam-shanti",
-      "name": "Alam Shanti",
-      "city": "Bali",
-      "country": "Indonesia",
-      "score": 8.1,
-      "why": "Spacious villas set within peaceful grounds offer families room to spread out, whilst the family-run estate and consistently praised staff provide the warmth that makes longer stays genuinely relaxing.",
-      "img": "https://www.alamindahbali.com/property/slider/alamindah1.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Alam+Shanti&address=Bali%2C+Indonesia&lat=-8.5217398&lng=115.256838"
-    },
-    {
-      "slug": "hotel-particulier-montmartre",
-      "name": "Hôtel Particulier Montmartre",
-      "city": "Paris",
-      "country": "France",
-      "score": 8.1,
-      "why": "A private mansion with a lush secret garden courtyard offers families an intimate Parisian base where children can safely explore while parents enjoy restaurant and bar facilities on-site.",
-      "img": "https://1e64.net/lw-hpm-48dbc2/config/index.jpg?escape=1773925800448",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=H%C3%B4tel+Particulier+Montmartre&address=Paris%2C+France&lat=48.888158&lng=2.3355125"
-    },
-    {
-      "slug": "austria-salzburg-hotel-pension-frauenschuh",
-      "name": "Hotel Pension Frauenschuh",
-      "city": "Salzburg",
-      "country": "Austria",
-      "score": 8.1,
-      "why": "This Salzburg pension charms families with its spa and garden retreat, warm staff, and quality furnishings that create genuine comfort for longer stays.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hotel+Pension+Frauenschuh&address=Salzburg%2C+Austria&lat=47.7780895&lng=13.0225903"
-    },
-    {
-      "slug": "villa-amara",
-      "name": "Villa Amara",
-      "city": "Aix-en-Provence",
-      "country": "France",
-      "score": 8.1,
-      "why": "This intimate Provençal villa offers spacious rooms and a secure, tranquil garden with pool—ideal for families seeking a peaceful base within walking distance of Aix's centre.",
-      "img": "https://www.villa-amara.fr/wp-content/uploads/2026/06/06-Villa-Amara-Suite-Photos-01.webp",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Villa+Amara&address=Aix-en-Provence%2C+France&lat=43.5308607&lng=5.4546175"
-    }
-  ],
-  "cosiest-hotels-for-a-workation": [
-    {
-      "slug": "ryokan-izuyasu",
-      "name": "Ryokan Izuyasu",
-      "city": "Kyoto",
-      "country": "Japan",
-      "score": 8.2,
-      "why": "A spacious, characterful traditional inn with peaceful Kyoto surroundings and kaiseki dining, though workspace suitability should be confirmed directly.",
-      "img": "https://izuyasu.com/en/wp-content/uploads/2022/06/top_rooom.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Ryokan+Izuyasu&address=Kyoto%2C+Japan&lat=34.9909187&lng=135.7611801"
-    },
-    {
-      "slug": "hotel-jan-luyken-amsterdam",
-      "name": "Hotel Jan Luyken Amsterdam",
-      "city": "Amsterdam",
-      "country": "Netherlands",
-      "score": 8.1,
-      "why": "This characterful townhouse offers a homely community atmosphere with a help-yourself kitchen and genuinely welcoming staff, though you'll need to confirm dedicated work space with the hotel.",
-      "img": "https://www.janluykenamsterdam.com/wp-content/uploads/2023/06/Jan-Luyken-Amsterdam-Fireplace-004.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Hotel+Jan+Luyken+Amsterdam&address=Amsterdam%2C+Netherlands&lat=52.3597441&lng=4.8807295"
-    },
-    {
-      "slug": "aurea-ana-palace-hotel",
-      "name": "Aurea Ana Palace Hotel",
-      "city": "",
-      "country": "Hungary",
-      "score": 8.1,
-      "why": "A quiet Parliament-adjacent location and stunning dining hall provide peaceful respite between work sessions, though dedicated desk space should be confirmed directly.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Aurea+Ana+Palace+Hotel&address=Hungary&lat=47.5040079&lng=19.0463852"
-    },
-    {
-      "slug": "hotel-isa",
-      "name": "Hotel Isa",
-      "city": "Rome",
-      "country": "Italy",
-      "score": 8.1,
-      "why": "With a rooftop terrace and artsy lobby perfect for breaks, this Rome hotel offers the atmospheric comfort remote workers appreciate, though you'll want to confirm desk space and daytime quiet levels beforehand.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Hotel+Isa&address=Rome%2C+Italy&lat=41.9068897&lng=12.4689672"
-    },
-    {
-      "slug": "maktub-guest-house",
-      "name": "Maktub Guest House",
-      "city": "Calheta",
-      "country": "Portugal",
-      "score": 8.1,
-      "why": "The vine-canopied courtyard and intimate scale offer peaceful daytime surroundings, though you'll need to confirm desk space and wifi availability with the property directly.",
-      "img": "https://images.squarespace-cdn.com/content/v1/5788da5837c581cbfe7ccc0d/1640433714833-ZG74NESDU11GQS8UUHP6/BJC_0767.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Maktub+Guest+House&address=Calheta%2C+Portugal&lat=32.7386608&lng=-17.2117257"
-    },
-    {
-      "slug": "pension-gimmelwald",
-      "name": "Pension Gimmelwald",
-      "city": "Gimmelwald",
-      "country": "Schweiz/Suisse/Svizzera/Svizra",
-      "score": 8.1,
-      "why": "This characterful Swiss pension offers a charming terrace and intimate village setting for focused work, though desk facilities should be confirmed directly with the hotel.",
-      "img": "https://www.hotel-pensiongimmelwald.ch/wp-content/uploads/2026/01/Pension-Gimmelwald-Hotel-%C2%A9PG.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Pension+Gimmelwald&address=Gimmelwald%2C+Schweiz%2FSuisse%2FSvizzera%2FSvizra&lat=46.5467269&lng=7.892558"
-    },
-    {
-      "slug": "novecento-boutique-hotel",
-      "name": "Novecento Boutique Hotel",
-      "city": "Venice",
-      "country": "Italy",
-      "score": 8,
-      "why": "With study spaces, antique rooms, a peaceful garden, and thoughtful staff, this intimate Venice hotel offers the quiet and comfort remote workers need.",
-      "img": "https://www.novecento.biz/wp-content/uploads/room_novecento_venezia_best_rate_guarantee_1.webp",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Novecento+Boutique+Hotel&address=Venice%2C+Italy&lat=45.4323817&lng=12.3312206"
-    },
-    {
-      "slug": "japan-kyokoyado-muromachi-yutone",
-      "name": "Kyokoyado Muromachi Yutone",
-      "city": "",
-      "country": "Japan",
-      "score": 8,
-      "why": "With spacious rooms, a peaceful garden to escape to, and attentive staff, this intimate ryokan offers the quiet and comfort needed for focused remote work.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Kyokoyado+Muromachi+Yutone&address=Japan&lat=34.998366&lng=135.7575024"
-    },
-    {
-      "slug": "asturias-hotel-rural-3-cabos-8",
-      "name": "HOTEL RURAL 3 CABOS",
-      "city": "Asturias",
-      "country": "Spain",
-      "score": 8,
-      "why": "With its quiet garden setting in Asturias and consistently praised service, it's an ideal retreat for focused work between exploring the dramatic coastal and countryside surroundings.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=HOTEL+RURAL+3+CABOS&address=Asturias%2C+Spain&lat=43.5161353&lng=-6.5881466"
-    },
-    {
-      "slug": "japan-azukiya",
-      "name": "Azukiya",
-      "city": "",
-      "country": "Japan",
-      "score": 8,
-      "why": "Authentic tatami rooms with suite space, a private garden to step outside to, and genuinely quiet surroundings make this an ideal workation base.",
-      "img": "https://staykyoto.net/images/pic01.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Azukiya&address=Japan&lat=35.0095203&lng=135.787911"
-    },
-    {
-      "slug": "riad-la-maison-nomade",
-      "name": "Riad La Maison Nomade",
-      "city": "Marrakech",
-      "country": "",
-      "score": 8,
-      "why": "A serene courtyard riad with a rooftop terrace and all-day tea service provides peaceful retreats between work sessions in the medina.",
-      "img": "https://www.lamaisonnomade.com/wp-content/uploads/2025/12/riad-marrakesch-dachterrasse-blaue-stunde-deutsch-gefuehrt.webp",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Riad+La+Maison+Nomade&address=Marrakech&lat=31.6376671&lng=-7.9928541"
-    },
-    {
-      "slug": "agriturismo-frates",
-      "name": "Agriturismo Frates",
-      "city": "Piegaro",
-      "country": "Italy",
-      "score": 8,
-      "why": "This centuries-old stone farmhouse offers a rambling kitchen garden and vine-covered pergola to retreat to between work sessions, though desk space and wifi should be confirmed directly.",
-      "img": "https://www.abbaziasettefrati-fratres.it/wp-content/uploads/2020/10/TTAP0130-2.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Agriturismo+Frates&address=Piegaro%2C+Italy&lat=42.989205&lng=12.2046272"
-    }
-  ],
-  "cosiest-hotels-for-solo-travellers": [
-    {
-      "slug": "hotel-can-cera",
-      "name": "Hotel Can Cera",
-      "city": "Illes Balears",
-      "country": "Spain",
-      "score": 8.8,
-      "why": "In Palma's centre, genuinely attentive staff and thoughtfully intimate design create a welcoming refuge where solo travellers feel genuinely looked after from arrival.",
-      "img": "https://www.cancerahotel.com/wp-content/uploads/sites/5/2025/08/suite-can-cera-hotel-768x530.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Hotel+Can+Cera&address=Illes+Balears%2C+Spain&lat=39.5687331&lng=2.6515194"
-    },
-    {
-      "slug": "ryan-s-bed-and-breakfast",
-      "name": "Ryan's Bed and Breakfast",
-      "city": "Dublin",
-      "country": "Éire / Ireland",
-      "score": 8.6,
-      "why": "Warm, attentive hosts and a hearty shared breakfast table make solitary travellers feel genuinely welcomed, whilst its city-centre location keeps exploration close and coming home easy.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Ryan%27s+Bed+and+Breakfast&address=Dublin%2C+%C3%89ire+%2F+Ireland&lat=53.3592893&lng=-6.2933035"
-    },
-    {
-      "slug": "kashiwaya-ryokan",
-      "name": "Kashiwaya Ryokan",
-      "city": "Gunma",
-      "country": "Japan",
-      "score": 8.3,
-      "why": "With attentive staff, private onsen access, and a retro atmosphere that encourages quiet reflection, this traditional ryokan provides genuine comfort for solo guests seeking intimate Japanese hospitality.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Kashiwaya+Ryokan&address=Gunma%2C+Japan&lat=36.674865&lng=138.7850788"
-    },
-    {
-      "slug": "laret-private-boutique-hotel-adults-only",
-      "name": "LARET private Boutique Hotel - Adults only",
-      "city": "Samnaun",
-      "country": "Switzerland",
-      "score": 8.2,
-      "why": "This adults-only Swiss Alps retreat earns its 4.9/5 rating through intimate warmth, attentive staff and a sauna-restaurant-bar setup ideal for solo travellers seeking genuine relaxation.",
-      "img": "https://www.laret.ch/pics/0000000701-1920x930-c.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=LARET+private+Boutique+Hotel+-+Adults+only&address=Samnaun%2C+Switzerland&lat=46.9594996&lng=10.3953109"
-    },
-    {
-      "slug": "chalet-4-etoiles-la-tete-aux-vents",
-      "name": "Chalet 4 étoiles \"La Tête aux Vents\"",
-      "city": "Chamonix",
-      "country": "France",
-      "score": 8.2,
-      "why": "Courteous owners and a well-equipped intimate chalet with easy access to Chamonix station make this a reassuring base for solo travellers who value quiet independence.",
-      "img": "https://chalet-argentiere.com/wp-content/uploads/2020/12/cropped-571352.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Chalet+4+%C3%A9toiles+%22La+T%C3%AAte+aux+Vents%22&address=Chamonix%2C+France&lat=45.9825341&lng=6.9281985"
-    },
-    {
-      "slug": "artis-boutique-hotel",
-      "name": "Artis Boutique Hotel",
-      "city": "",
-      "country": "Hungary",
-      "score": 8.2,
-      "why": "Spacious rooms and genuinely welcoming staff make this central Szombathely hotel perfect for solo travellers wanting comfort without feeling isolated.",
-      "img": "https://staticsites.previo.cz/uploads/DSC7849-scaled.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Artis+Boutique+Hotel&address=Hungary&lat=47.2296458&lng=16.6190112"
-    },
-    {
-      "slug": "babette-guldsmeden",
-      "name": "Babette Guldsmeden",
-      "city": "Copenhagen",
-      "country": "Denmark",
-      "score": 8.2,
-      "why": "With attentive staff, an intimate bar, and a convenient metro-adjacent location near the park, this compact hotel feels like a welcoming base for solo exploration.",
-      "img": "https://guldsmedenhotels.com/wp-content/uploads/2023/09/Manon-Les-Suits-Pool-Horizontal-6-scaled.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Babette+Guldsmeden&address=Copenhagen%2C+Denmark&lat=55.6874917&lng=12.593117"
-    },
-    {
-      "slug": "anantara-rasananda-koh-phangan-villas",
-      "name": "Anantara Rasananda Koh Phangan Villas",
-      "city": "Surat Thani",
-      "country": "Thailand",
-      "score": 8.2,
-      "why": "Staff attentiveness and a welcoming restaurant and bar create genuine comfort for solo travellers seeking warm hospitality without isolation.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Anantara+Rasananda+Koh+Phangan+Villas&address=Surat+Thani%2C+Thailand&lat=9.7792992&lng=100.0554169"
-    },
-    {
-      "slug": "nazuna-hakone-miyanoshita",
-      "name": "Nazuna Hakone Miyanoshita",
-      "city": "Hakone-machi",
-      "country": "Japan",
-      "score": 8.2,
-      "why": "This intimate ryokan offers the restorative solitude of a private in-room onsen and attentive staff who make solo guests feel genuinely welcomed in a serene mountain setting.",
-      "img": "https://www.nazuna.co/wp-content/uploads/2025/03/%E5%A4%B7%E5%B7%9D03-1-scaled.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Nazuna+Hakone+Miyanoshita&address=Hakone-machi%2C+Japan&lat=35.2457106&lng=139.0559959"
-    },
-    {
-      "slug": "glenella-guesthouse",
-      "name": "Glenella Guesthouse",
-      "city": "Sydney",
-      "country": "Australia",
-      "score": 8.2,
-      "why": "Step into the heritage sitting room with its fireplace and antique furnishings to find the intimate, independent character of a family home rather than a faceless hotel.",
-      "img": "https://www.glenella.com.au/wp-content/uploads/GLENELLA_LISITING_WEB_89-scaled-480x360.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Glenella+Guesthouse&address=Sydney%2C+Australia&lat=-33.6361792&lng=150.2871765"
-    },
-    {
-      "slug": "romantic-via-unica-uab",
-      "name": "ROMANTIC Via Unica, UAB",
-      "city": "Panevėžys",
-      "country": "Lithuania",
-      "score": 8.2,
-      "why": "With spacious rooms, a spa and sauna for unwinding solo, plus a welcoming bar where you can settle in with fellow guests, this Panevėžys hotel offers genuine comfort after a day exploring.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=ROMANTIC+Via+Unica%2C+UAB&address=Panev%C4%97%C5%BEys%2C+Lithuania&lat=55.7337614&lng=24.3624733"
-    },
-    {
-      "slug": "eden-roc-hotel",
-      "name": "Eden Roc Hotel",
-      "city": "Positano",
-      "country": "Italy",
-      "score": 8.2,
-      "why": "Perched above Positano's coastline with a rooftop and spa to unwind between explorations, this intimate property offers gracious hospitality and a 4.7★ rating from 444 guests.",
-      "img": "https://www.edenroc.it/wp-content/uploads/2025/03/Progetto-senza-titolo-5.png",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Eden+Roc+Hotel&address=Positano%2C+Italy&lat=40.628189&lng=14.4899491"
-    }
-  ],
-  "cosiest-hotels-for-a-romantic-occasion": [
-    {
-      "slug": "aux-augustins",
-      "name": "Aux Augustins",
-      "city": "Avignon",
-      "country": "France",
-      "score": 7.3,
-      "why": "Patrick and Sabrine's attentiveness transforms candlelit garden evenings into intimate celebrations, whilst the medieval courtyard and period rooms provide authentic historic charm for special occasions.",
-      "img": "https://www.augustins1261.com/wp-content/uploads/2026/02/les-augustins-hotel-de-luxe-avignon-cinq-etoiles-location-dappartement-de-luxe-avec-service-concierge-969a7585.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Aux+Augustins&address=Avignon%2C+France&lat=43.9499489&lng=4.8131086"
-    },
-    {
-      "slug": "belgium-bruges-hotel-bonifacius",
-      "name": "Hotel Bonifacius",
-      "city": "Bruges",
-      "country": "Belgium",
-      "score": 7.3,
-      "why": "Host Lyne's attentive service, canal-view suites with four-poster beds, and Gothic breakfast room create an intimate setting where personal touches feel genuinely celebratory.",
-      "img": "https://www.bonifacius.be/uploads/transform/_2048xAUTO_crop_center-center_none/47/2.webp",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Hotel+Bonifacius&address=Bruges%2C+Belgium&lat=51.20485&lng=3.2256764"
-    },
-    {
-      "slug": "cantabria-hotel-rural-el-bosque-de-la-anjana-11",
-      "name": "Hotel Rural El Bosque de la Anjana",
-      "city": "Cantabria",
-      "country": "Spain",
-      "score": 7.3,
-      "why": "Ana's personally run rural hotel offers individually styled rooms with four-poster beds and homemade breakfasts that create an intimate, attentively managed retreat for couples.",
-      "img": "https://elbosquedelaanjana.es/wp-content/uploads/2019/01/Zonas-Comunes-IMG_4099.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Hotel+Rural+El+Bosque+de+la+Anjana&address=Cantabria%2C+Spain&lat=43.2110502&lng=-4.3017565"
-    },
-    {
-      "slug": "bali-80571-komaneka-at-bisma-2",
-      "name": "Komaneka at Bisma",
-      "city": "Bali",
-      "country": "Indonesia",
-      "score": 7.2,
-      "why": "Staff led by Mei and Mr Ade personalise stays with handwritten cards and flower-filled baths, whilst spacious rooms overlook rice fields from private balconies with candlelit bathing.",
-      "img": "https://komaneka.com/wp-content/uploads/2023/06/5dcf7-komaneka-at-bismajpg-23-.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Komaneka+at+Bisma&address=Bali%2C+Indonesia&lat=-8.512532&lng=115.257297"
-    },
-    {
-      "slug": "maranatha-country-house",
-      "name": "Maranatha Country House",
-      "city": "Cork",
-      "country": "Éire / Ireland",
-      "score": 7.2,
-      "why": "This Victorian hilltop house offers intimate charm through its champagne canopy bed, attentive hosts Douglas and Olwen, and peaceful gardens ideal for marking special occasions.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Maranatha+Country+House&address=Cork%2C+%C3%89ire+%2F+Ireland&lat=51.9284301&lng=-8.6019001"
-    },
-    {
-      "slug": "japan-toshiharu-ryokan",
-      "name": "Toshiharu Ryokan",
-      "city": "",
-      "country": "Japan",
-      "score": 7.2,
-      "why": "This 160-year-old machiya offers intimate tatami rooms with private onsen baths and attentive personal service that transforms a stay into a cherished family memory.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Toshiharu+Ryokan&address=Japan&lat=34.998421&lng=135.758695"
-    },
-    {
-      "slug": "md-20745-private-stay-by-madlygiving-boutique-bed-and-breakfast-at-national-harbor-by-hospitalent-mariby-corpening-3",
-      "name": "Private Stay By MadlyGiving - Boutique Bed & Breakfast At National Harbor - By HospiTalent Mariby Corpening",
-      "city": "Oxon Hill",
-      "country": "USA",
-      "score": 7.2,
-      "why": "Mariby's personalised breakfasts and four-poster \"Sissy's Room\" create an intimate, thoughtfully curated atmosphere where attentive hospitality transforms a stay into something genuinely special.",
-      "img": "https://images.squarespace-cdn.com/content/v1/56277285e4b01ab7af20d656/1763036801010-JIWL5W9NHBYSPF3YFL1F/IMG-3563.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Private+Stay+By+MadlyGiving+-+Boutique+Bed+%26+Breakfast+At+National+Harbor+-+By+HospiTalent+Mariby+Corpening&address=Oxon+Hill%2C+USA&lat=38.7844565&lng=-77.0086978"
-    },
-    {
-      "slug": "hotel-inger",
-      "name": "Hotel Inger",
-      "city": "Skagen",
-      "country": "Denmark",
-      "score": 7.2,
-      "why": "A family-run 1970s retreat where the owner-chef and her daughter craft everything from scratch, creating an intimate, warmly lit atmosphere perfect for marking a milestone together.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Hotel+Inger&address=Skagen%2C+Denmark&lat=57.6583671&lng=10.4611358"
-    },
-    {
-      "slug": "nc-27954-white-doe-inn",
-      "name": "White Doe Inn",
-      "city": "Manteo",
-      "country": "USA",
-      "score": 7.2,
-      "why": "The turret suite's private balcony and Dave and Tonia's attentive, hands-on hospitality create an intimate setting perfect for marking special occasions.",
-      "img": "https://www.whitedoeinn.com/wp-content/uploads/2026/04/white-doe-inn-exterior-og-1200x630-1.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=White+Doe+Inn&address=Manteo%2C+USA&lat=35.9077187&lng=-75.6731172"
-    },
-    {
-      "slug": "belgium-bruges-number-11-exclusive-guesthouse",
-      "name": "Number 11 Exclusive Guesthouse",
-      "city": "Bruges",
-      "country": "Belgium",
-      "score": 7.2,
-      "why": "A canal-side townhouse where Astrid's attentive hospitality, fireside sitting room, and cathedral-view Chocolate Room create intimate comfort for celebrating together.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Number+11+Exclusive+Guesthouse&address=Bruges%2C+Belgium&lat=51.2094516&lng=3.2300019"
-    },
-    {
-      "slug": "maison-la-minervetta",
-      "name": "Maison la Minervetta",
-      "city": "Sorrento",
-      "country": "Italy",
-      "score": 7.2,
-      "why": "Cliffside rooms with private terraces overlooking the Bay of Naples, attentive staff who slip prosecco to anniversary guests, and included aperitivos create intimate moments without fuss.",
-      "img": "https://www.laminervetta.com/images/contents/index/welcome.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Maison+la+Minervetta&address=Sorrento%2C+Italy&lat=40.627262&lng=14.364318"
-    },
-    {
-      "slug": "no-21",
-      "name": "No 21",
-      "city": "York",
-      "country": "United Kingdom",
-      "score": 7.1,
-      "why": "Simon and Andrea's attentive hospitality—marking anniversaries with prosecco and handwritten cards—combined with thoughtfully appointed rooms and freshly prepared breakfasts, creates intimate comfort for celebrating couples.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=No+21&address=York%2C+United+Kingdom&lat=53.963492&lng=-1.0903684"
-    }
-  ],
-  "why-the-cosiest-hotels-are-run-by-their-owners": [
-    {
-      "slug": "pa-19102-the-dwight-d-hotel-5",
-      "name": "The Dwight D Hotel",
-      "city": "Philadelphia",
-      "country": "USA",
-      "score": 7.3,
-      "why": "Owners Vittoria and Ken's personal touches—greeting guests by name, staying up for late arrivals, and delivering breakfast in baskets—transform this converted townhouse into a genuinely home-run refuge.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=The+Dwight+D+Hotel&address=Philadelphia%2C+USA&lat=39.9479616&lng=-75.1681411"
-    },
-    {
-      "slug": "villach-kleines-hotel-karnten",
-      "name": "Kleines Hotel Kärnten",
-      "city": "Villach",
-      "country": "Austria",
-      "score": 7.3,
-      "why": "The Tschemernjak family's hands-on stewardship—from breeding the hens that supply breakfast to orchestrating nightly five-course dinners—creates the unhurried, attentive warmth only owner-operators deliver.",
-      "img": "https://kleineshotel.at/wordpress/wp-content/uploads/2024/02/KleinesHotelKaernten_by_CharlotteGarrousse_8W0A6700-1-scaled.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Kleines+Hotel+K%C3%A4rnten&address=Villach%2C+Austria&lat=46.5868428&lng=13.9291023"
-    },
-    {
-      "slug": "limoges-maison-durieux",
-      "name": "Maison Durieux",
-      "city": "Limoges",
-      "country": "France",
-      "score": 7.3,
-      "why": "Catherine's personally-prepared breakfasts and the attentive hosts create the warm, intimate atmosphere of staying with thoughtful friends rather than checking into a hotel.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Maison+Durieux&address=Limoges%2C+France&lat=45.8431379&lng=1.1928827"
-    },
-    {
-      "slug": "hotel-schmelzhof",
-      "name": "Hotel Schmelzhof",
-      "city": "Lech",
-      "country": "Austria",
-      "score": 7.3,
-      "why": "Gitti Strolz personally oversees every detail—from tuning your room's lighting to singing at breakfast—making this intimate Alpine hotel feel like staying with a generous, attentive relative.",
-      "img": "https://www.schmelzhof.at/wp-content/uploads/2026/02/20251204_terrasse_118.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Hotel+Schmelzhof&address=Lech%2C+Austria&lat=47.2060626&lng=10.1379672"
-    },
-    {
-      "slug": "in-lain-hotel-cadonau-5-sterne-superior-hotel",
-      "name": "IN LAIN Hotel Cadonau - 5-Sterne-Superior-Hotel",
-      "city": "Zernez",
-      "country": "Switzerland",
-      "score": 7.2,
-      "why": "Dario's personal touch—from meeting guests at the station to helping dig snow from their cars—transforms this riverside hotel into a genuinely home-run retreat.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=IN+LAIN+Hotel+Cadonau+-+5-Sterne-Superior-Hotel&address=Zernez%2C+Switzerland&lat=46.6531819&lng=10.032854"
-    },
-    {
-      "slug": "bali-moon",
-      "name": "Bali Moon",
-      "city": "Ubud",
-      "country": "Indonesia",
-      "score": 7.2,
-      "why": "Hosts Wayan, Ketut, and Made greet guests by name and serve generous homely breakfasts, creating such genuine warmth that weekly visitors often stay for nineteen days.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Bali+Moon&address=Ubud%2C+Indonesia&lat=-8.5075112&lng=115.2578361"
-    },
-    {
-      "slug": "lhotel-in-pietra",
-      "name": "L'Hotel In Pietra",
-      "city": "Matera",
-      "country": "Italy",
-      "score": 7.2,
-      "why": "Family proprietors and attentive staff create genuine warmth throughout this intimate 13th-century converted church, where cave-hewn rooms and thoughtful breakfasts reflect personal care.",
-      "img": "https://www.hotelinpietra.it/wp-content/uploads/2022/03/suite_3.jpg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=L%27Hotel+In+Pietra&address=Matera%2C+Italy&lat=40.6675186&lng=16.6093979"
-    },
-    {
-      "slug": "trullicolarossa-b-b",
-      "name": "Trullicolarossa B&B",
-      "city": "Alberobello",
-      "country": "Italy",
-      "score": 7.2,
-      "why": "Donato and his mother's attentive hospitality—from homemade breakfasts to local guidance—transforms this working masseria into a genuinely warmhearted retreat.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Trullicolarossa+B%26B&address=Alberobello%2C+Italy&lat=40.8027629&lng=17.245875"
-    },
-    {
-      "slug": "gasthof-dasser",
-      "name": "Gasthof Dasser",
-      "city": "Wengen",
-      "country": "Italy",
-      "score": 7.2,
-      "why": "Three generations of the same family serve tender goulash and wine in the cellar, treating guests as friends in their warmly lit timber farmhouse.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Gasthof+Dasser&address=Wengen%2C+Italy&lat=46.6818165&lng=11.8975"
-    },
-    {
-      "slug": "setha-about-the-world-homestay",
-      "name": "Setha About The World Homestay",
-      "city": "Krong Battambang",
-      "country": "Cambodia",
-      "score": 7.2,
-      "why": "Setha's personal touch—from collecting guests at 2am to cooking five-dollar dinners—transforms her traditional wooden cabins into a genuinely warm, owner-run refuge.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Setha+About+The+World+Homestay&address=Krong+Battambang%2C+Cambodia&lat=13.0899274&lng=103.1907751"
-    },
-    {
-      "slug": "thira-847-00-the-tsitouras-collection-2",
-      "name": "The Tsitouras Collection",
-      "city": "Thira",
-      "country": "Greece",
-      "score": 7.2,
-      "why": "Owners Eleni and George's personal attention transforms their five-suite art collection into a place where guests return year after year, treating it as a cherished second home.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=The+Tsitouras+Collection&address=Thira%2C+Greece&lat=36.4267022&lng=25.4286482"
-    },
-    {
-      "slug": "casa-vacanze-la-torre-del-bennicelli",
-      "name": "Casa Vacanze \"La Torre del Bennicelli\"",
-      "city": "Orvieto",
-      "country": "Italy",
-      "score": 7.2,
-      "why": "Andrea and Elena's hands-on hospitality—from welcoming guests warmly to sharing homegrown produce—creates the genuine comfort of staying with generous friends in rural Umbria.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Casa+Vacanze+%22La+Torre+del+Bennicelli%22&address=Orvieto%2C+Italy&lat=42.6838696&lng=12.1222608"
-    }
-  ],
-  "cosiest-hotels-for-light-sleepers": [
-    {
-      "slug": "hotel-residence-agnes",
-      "name": "Hotel Residence Agnes",
-      "city": "Prague",
-      "country": "Czechia",
-      "score": 7.2,
-      "why": "Tucked on a quiet Old Town side street with owner Frank's genuinely attentive service—from welcome drinks to personally arranged airport transport—creating the comfort of a home away from home.",
-      "img": "https://cdn.prod.website-files.com/63d376ff6ca3b4ca14ff5005/63f222888e86418fd69ad60b_agnes-prague.jpeg",
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Hotel+Residence+Agnes&address=Prague%2C+Czechia&lat=50.0914901&lng=14.4256628"
-    },
-    {
-      "slug": "hotel-copernicus",
-      "name": "Hotel Copernicus",
-      "city": "Krakow",
-      "country": "Poland",
-      "score": 7.2,
-      "why": "Its quiet old-town location and courtyard-facing rooms offer the peaceful setting light sleepers need, with guests praising the tranquil atmosphere for rest and relaxation.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Hotel+Copernicus&address=Krakow%2C+Poland&lat=50.0562705&lng=19.9375835"
-    },
-    {
-      "slug": "brae-lodge",
-      "name": "Brae Lodge",
-      "city": "Edinburgh",
-      "country": "United Kingdom",
-      "score": 7.1,
-      "why": "With just three rooms in a quiet location and a back-facing option away from street noise, plus Lesley and Neil's attentive hospitality ensuring a restful atmosphere, it offers genuine tranquility for light sleepers.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Brae+Lodge&address=Edinburgh%2C+United+Kingdom&lat=55.9176486&lng=-3.1678773"
-    },
-    {
-      "slug": "b-b-il-lago-dipinto",
-      "name": "B&B Il Lago Dipinto",
-      "city": "Lecco",
-      "country": "Italy",
-      "score": 7.1,
-      "why": "Tucked in a quiet zone away from Lecco's busier streets, this characterful B&B pairs genuinely peaceful surroundings with the attentive care of owners Patrizia and Ivano.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=B%26B+Il+Lago+Dipinto&address=Lecco%2C+Italy&lat=45.8637665&lng=9.3883081"
-    },
-    {
-      "slug": "italy-venice-corte-di-gabriela",
-      "name": "Corte di Gabriela",
-      "city": "Venice",
-      "country": "Italy",
-      "score": 7.1,
-      "why": "Positioned on a peaceful side canal away from tourist crowds, this small hotel offers canal-view rooms and attentive staff creating a genuinely restful, stress-free atmosphere.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Corte+di+Gabriela&address=Venice%2C+Italy&lat=45.4349535&lng=12.3317173"
-    },
-    {
-      "slug": "austria-salzburg-the-little-guesthouse-salzburg",
-      "name": "The Little Guesthouse Salzburg",
-      "city": "Salzburg",
-      "country": "Austria",
-      "score": 7.1,
-      "why": "Situated in a quiet neighbourhood with blackout blinds and attentive staff who accommodate individual needs, this small guesthouse prioritises the restful sleep that light sleepers require.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=The+Little+Guesthouse+Salzburg&address=Salzburg%2C+Austria&lat=47.7956932&lng=13.0652711"
-    },
-    {
-      "slug": "hotel-rural-molino-del-puente",
-      "name": "Hotel Rural Molino del Puente",
-      "city": "Ronda",
-      "country": "Spain",
-      "score": 7.1,
-      "why": "The tranquil rural setting between old bridges, away from town noise, combined with nightingales by the pool and private grounds, creates the peaceful environment light sleepers need.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Hotel+Rural+Molino+del+Puente&address=Ronda%2C+Spain&lat=36.7644757&lng=-5.1861033"
-    },
-    {
-      "slug": "chestnuts-house",
-      "name": "Chestnuts House",
-      "city": "Bath",
-      "country": "United Kingdom",
-      "score": 7.1,
-      "why": "Host Toni's attentive service—fresh milk in your room, homemade welcome cake, supremely comfortable beds—creates a peaceful, home-from-home atmosphere in a quiet location just ten minutes from Bath's centre.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Chestnuts+House&address=Bath%2C+United+Kingdom&lat=51.3873823&lng=-2.3540635"
-    },
-    {
-      "slug": "marlborough-house",
-      "name": "Marlborough House",
-      "city": "Bath",
-      "country": "United Kingdom",
-      "score": 7,
-      "why": "A Victorian townhouse on a peaceful street near Royal Crescent, where guests praise the quiet atmosphere and comfortable beds in beautifully decorated rooms.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Marlborough+House&address=Bath%2C+United+Kingdom&lat=51.3841816&lng=-2.3713119"
-    },
-    {
-      "slug": "the-well-house",
-      "name": "The Well House",
-      "city": "Pitlochry",
-      "country": "United Kingdom",
-      "score": 7,
-      "why": "Host John's personal touches—wool blankets, in-room tea service, and a welcoming sitting room—create comfort for restful evenings, though noise levels aren't detailed in guest feedback.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=The+Well+House&address=Pitlochry%2C+United+Kingdom&lat=56.7035789&lng=-3.7306649"
-    },
-    {
-      "slug": "hotel-la-gemma",
-      "name": "Hotel La Gemma",
-      "city": "Florence",
-      "country": "Italy",
-      "score": 7,
-      "why": "This family-run boutique on a quiet Florence side street offers a serene retreat where attentive staff and thoughtfully curated details create a genuine sense of home away from urban bustle.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Hotel+La+Gemma&address=Florence%2C+Italy&lat=43.7707363&lng=11.2540568"
-    },
-    {
-      "slug": "speelmansrei",
-      "name": "Speelmansrei",
-      "city": "Bruges",
-      "country": "België / Belgique / Belgien",
-      "score": 7,
-      "why": "With only two rooms on a quiet street away from Bruges' centre, guests report the peaceful garden setting and thoughtful hosts create a genuinely tranquil retreat for restful nights.",
-      "img": null,
-      "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Speelmansrei&address=Bruges%2C+Belgi%C3%AB+%2F+Belgique+%2F+Belgien&lat=51.2088717&lng=3.2190277"
-    }
-  ]
+ "are-hotel-chains-ever-cosy": [
+  {
+   "slug": "va-22202-the-ritz-carlton-pentagon-city-2",
+   "name": "The Ritz-Carlton, Pentagon City",
+   "city": "Arlington",
+   "country": "USA",
+   "score": 7.1,
+   "why": "Staff excellence and thoughtful amenities like the sauna and club-level access create genuine comfort for families, though service consistency varies across different visits.",
+   "img": "https://cache.marriott.com/is/image/marriotts7prod/rz-waspc-waspc-exterior-22028-15540:Wide-Hor?wid=1336&amp;fit=constrain",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=The+Ritz-Carlton%2C+Pentagon+City&address=Arlington%2C+USA&lat=38.8625791&lng=-77.0605463"
+  },
+  {
+   "slug": "the-vagabond-club-singapore-a-tribute-portfolio-hotel",
+   "name": "The Vagabond Club, Singapore, a Tribute Portfolio Hotel",
+   "city": "Singapore",
+   "country": "Singapore",
+   "score": 7,
+   "why": "Glowing whisky walls, jewel-toned velvet seating and theatrical leopard-print carpets create an intimate members' club atmosphere that feels distinctly independent despite its chain status.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=The+Vagabond+Club%2C+Singapore%2C+a+Tribute+Portfolio+Hotel&address=Singapore%2C+Singapore&lat=1.3070191&lng=103.8583028"
+  },
+  {
+   "slug": "mama-shelter-luxembourg",
+   "name": "Mama Shelter Luxembourg",
+   "city": "R. Fort Niedergrünewald",
+   "country": "Kirchberg Luxembourg",
+   "score": 6.5,
+   "why": "Its rooftop bar and restaurant foster genuine connection among regulars, creating an unexpectedly intimate atmosphere despite the chain hotel format.",
+   "img": "https://mamashelter.com/luxembourg/wp-content/uploads/sites/17/2020/10/12017587_10153821578267214_9143207740178095488_o-e1603274229508.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=Mama+Shelter+Luxembourg&address=R.+Fort+Niedergr%C3%BCnewald%2C+Kirchberg+Luxembourg&lat=49.6211413&lng=6.1438574"
+  },
+  {
+   "slug": "villa-rothschild-autograph-collection",
+   "name": "Villa Rothschild, Autograph Collection",
+   "city": "Königstein im Taunus",
+   "country": "Germany",
+   "score": 6.3,
+   "why": "The converted villa's intimate bar and restaurant foster genuine connection despite its grand architecture, though stretched staffing occasionally disrupts the experience.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=Villa+Rothschild%2C+Autograph+Collection&address=K%C3%B6nigstein+im+Taunus%2C+Germany&lat=50.183505&lng=8.4738313"
+  },
+  {
+   "slug": "qc-j8y-6w9-ramada-plaza-by-wyndham-gatineaumanoir-du-casino-2",
+   "name": "Ramada Plaza by Wyndham Gatineau/Manoir du Casino",
+   "city": "QC",
+   "country": "Canada",
+   "score": 6,
+   "why": "A fireplace and included breakfasts create genuine warmth in this gaming-district hotel, though inconsistent housekeeping means comfort requires realistic expectations.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-are-hotel-chains-ever-cosy&hotelname=Ramada+Plaza+by+Wyndham+Gatineau%2FManoir+du+Casino&address=QC%2C+Canada&lat=45.4492267&lng=-75.7295969"
+  }
+ ],
+ "cosiest-hotels-for-a-quiet-escape": [
+  {
+   "slug": "japan-kyokoyado-yasaka-yutone",
+   "name": "Kyokoyado Yasaka Yutone",
+   "city": "",
+   "country": "Japan",
+   "score": 8.8,
+   "why": "This intimate 155-guest ryokan in central Kyoto offers genuine tranquillity through its quiet rooms, beautiful library lounge, and traditional in-house dining without the bustle of larger hotels.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Kyokoyado+Yasaka+Yutone&address=Japan&lat=34.9991153&lng=135.7786314"
+  },
+  {
+   "slug": "andrassy-kuria-and-spa",
+   "name": "Andrássy Kúria & Spa",
+   "city": "",
+   "country": "Hungary",
+   "score": 8.8,
+   "why": "This rural Hungarian spa hotel earns an 8.8 cosiness score with guests praising its attentive staff and beautiful wellness facilities, though families with young children should note it may not guarantee complete quiet.",
+   "img": "https://andrassykuria.hu/wp-content/uploads/2026/02/Wellness-5-scaled.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Andr%C3%A1ssy+K%C3%BAria+%26+Spa&address=Hungary&lat=48.1280588&lng=21.3474317"
+  },
+  {
+   "slug": "boutique-hotel-glacier",
+   "name": "Boutique Hotel Glacier",
+   "city": "Grindelwald",
+   "country": "Switzerland",
+   "score": 8.8,
+   "why": "With its intimate spa and sauna, quiet Alpine setting, and consistently high guest ratings, this boutique refuge offers genuine respite from busier Swiss resorts.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Boutique+Hotel+Glacier&address=Grindelwald%2C+Switzerland&lat=46.6214798&lng=8.0303292"
+  },
+  {
+   "slug": "washiocho-motonago",
+   "name": "Motonago",
+   "city": "Washiochō",
+   "country": "",
+   "score": 8.8,
+   "why": "With intimate tatami rooms, a soaking tub, and tranquil garden, this Washiochō ryokan delivers genuine warmth and peaceful seclusion for restorative rest.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Motonago&address=Washioch%C5%8D&lat=35.0014711&lng=135.7797813"
+  },
+  {
+   "slug": "soleil-boutique-hotel",
+   "name": "Soleil Boutique Hotel",
+   "city": "Hà Nội",
+   "country": "Vietnam",
+   "score": 8.6,
+   "why": "With its rooftop pool, spa facilities, and 24-hour front desk ensuring uninterrupted peace, this intimate boutique property offers genuine respite from Hanoi's bustling streets.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Soleil+Boutique+Hotel&address=H%C3%A0+N%E1%BB%99i%2C+Vietnam&lat=21.0287952&lng=105.8444792"
+  },
+  {
+   "slug": "relais-villa-il-sasso",
+   "name": "Relais “Villa Il Sasso”",
+   "city": "Florence",
+   "country": "Italy",
+   "score": 8.5,
+   "why": "This intimate 14th-century villa with just seven rooms on the Florentine hillside offers genuine tranquillity through its remote setting, personal owner-host care, and complete absence of external disturbance.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Relais+%E2%80%9CVilla+Il+Sasso%E2%80%9D&address=Florence%2C+Italy&lat=43.7305048&lng=11.2970874"
+  },
+  {
+   "slug": "the-greenwood-guwahati-a-luxury-boutique-hotel",
+   "name": "The Greenwood, Guwahati : A Luxury Boutique Hotel",
+   "city": "Assam",
+   "country": "India",
+   "score": 8.5,
+   "why": "With impeccable service, spotless rooms, and dedicated spa and rooftop facilities, this intimate boutique retreat prioritises genuine comfort for restorative stays.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=The+Greenwood%2C+Guwahati+%3A+A+Luxury+Boutique+Hotel&address=Assam%2C+India&lat=26.1152294&lng=91.797814"
+  },
+  {
+   "slug": "boulevard-leopold",
+   "name": "Boulevard Leopold",
+   "city": "Antwerp",
+   "country": "België / Belgique / Belgien",
+   "score": 8.5,
+   "why": "Candlelit rooms lined with books and curiosities, paired with a lush garden room and tactile velvet seating, create an intimate, contemplative retreat.",
+   "img": "https://images.squarespace-cdn.com/content/v1/5fa28021ab2d5c3c9658d762/1604654381619-9E9435UL342LSTAUO9NU/BL_BreakfastRoomA_No_Destinations.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Boulevard+Leopold&address=Antwerp%2C+Belgi%C3%AB+%2F+Belgique+%2F+Belgien&lat=51.2044846&lng=4.4166497"
+  },
+  {
+   "slug": "flatflesa-fyr",
+   "name": "Flatflesa Fyr",
+   "city": "Ålesund",
+   "country": "Norway",
+   "score": 8.4,
+   "why": "A former lighthouse keeper's refuge on a rocky Norwegian islet, where a barrel sauna and complete isolation promise genuine escape from the world.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Flatflesa+Fyr&address=%C3%85lesund%2C+Norway&lat=62.838453&lng=6.688946"
+  },
+  {
+   "slug": "bali-80571-ubud-inn-and-spa",
+   "name": "Ubud Inn & Spa",
+   "city": "Bali",
+   "country": "Indonesia",
+   "score": 8.4,
+   "why": "With lush gardens, spacious rooms and a spa offering tranquility, this intimate 263-guest retreat in Bali's cultural heart delivers genuine calm for rest.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Ubud+Inn+%26+Spa&address=Bali%2C+Indonesia&lat=-8.5157318&lng=115.2605133"
+  },
+  {
+   "slug": "leons-place",
+   "name": "Leon's Place",
+   "city": "Rome",
+   "country": "Italy",
+   "score": 8.4,
+   "why": "Warmly staffed and centred around a welcoming lobby bar and spa, this Rome hotel offers the rare consistency that makes guests return for genuine rest.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Leon%27s+Place&address=Rome%2C+Italy&lat=41.9079747&lng=12.4995868"
+  },
+  {
+   "slug": "seewald-hotel-konradshof",
+   "name": "Hotel Konradshof",
+   "city": "Seewald",
+   "country": "Germany",
+   "score": 8.3,
+   "why": "This family-run Seewald hotel delivers genuine warmth through spacious, beautifully appointed rooms, a sauna, and gardens—perfect for unhurried rest.",
+   "img": "https://www.hotel-konradshof.de/de/photos/crop__370738_t1__1280.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-quiet-escape&hotelname=Hotel+Konradshof&address=Seewald%2C+Germany&lat=48.5917722&lng=8.4197694"
+  }
+ ],
+ "cosiest-hotels-for-a-family-stay": [
+  {
+   "slug": "landidyll-hotel-und-restaurant-haus-hochstein",
+   "name": "Landidyll Hotel und Restaurant Haus Hochstein",
+   "city": "Eslohe (Sauerland)",
+   "country": "Germany",
+   "score": 8.8,
+   "why": "This family-run establishment in the Sauerland welcomes guests with genuine warmth, lovingly prepared food, and attentive staff who clearly care about making your stay comfortable.",
+   "img": "https://www.haus-hochstein.de/wp-content/uploads/2019/06/haus-hochstein-twitter.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Landidyll+Hotel+und+Restaurant+Haus+Hochstein&address=Eslohe+%28Sauerland%29%2C+Germany&lat=51.2884422&lng=8.178335"
+  },
+  {
+   "slug": "eden-vale-inn",
+   "name": "Eden Vale Inn",
+   "city": "Placerville",
+   "country": "USA",
+   "score": 8.3,
+   "why": "With well-maintained grounds offering countless charming spots to relax and a fireplace for gathering, it's designed for families seeking peaceful, comfortable downtime together.",
+   "img": "https://edenvaleinn.com/wp-content/uploads/2023/05/eden-exterior.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Eden+Vale+Inn&address=Placerville%2C+USA&lat=38.7513533&lng=-120.9364608"
+  },
+  {
+   "slug": "hidatakayama-futarishizuka-hakuun",
+   "name": "Hidatakayama Futarishizuka Hakuun",
+   "city": "Takayama",
+   "country": "Japan",
+   "score": 8.2,
+   "why": "This beautifully preserved ryokan offers traditional Japanese warmth with an intimate garden terrace and mountain views, though families should note that dinner timing is inflexible and room allocations may differ from photos.",
+   "img": "https://ryokan-hakuun.co.jp/img/index/0101_sp.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hidatakayama+Futarishizuka+Hakuun&address=Takayama%2C+Japan&lat=36.1399758&lng=137.2625803"
+  },
+  {
+   "slug": "prague-hotel-svatojansky-dvur",
+   "name": "Hotel Svatojánský Dvůr",
+   "city": "Praha",
+   "country": "Czechia",
+   "score": 8.2,
+   "why": "With its on-site spa, garden and restaurant, plus highly praised service and generous breakfasts, it's a place where families can truly relax without leaving the grounds.",
+   "img": "https://svdvur.cz/wp-content/uploads/2025/11/DSC09920-HDR-scaled.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hotel+Svatoj%C3%A1nsk%C3%BD+Dv%C5%AFr&address=Praha%2C+Czechia&lat=50.1250563&lng=14.4830696"
+  },
+  {
+   "slug": "reims-la-demeure-des-sacres",
+   "name": "LA DEMEURE DES SACRES",
+   "city": "Reims",
+   "country": "France",
+   "score": 8.2,
+   "why": "This family-friendly townhouse in Reims offers a tranquil garden, immaculate rooms, and warm hospitality from its owner Cèline, scoring 4.8/5 with guests.",
+   "img": "https://www.la-demeure-des-sacres.com/wp-content/uploads/2024/12/Demeure_des_sacres_salon_unique-min-1024x683.png",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=LA+DEMEURE+DES+SACRES&address=Reims%2C+France&lat=49.2521013&lng=4.0297878"
+  },
+  {
+   "slug": "crosby-street-hotel",
+   "name": "Crosby Street Hotel",
+   "city": "New York",
+   "country": "USA",
+   "score": 8.1,
+   "why": "Staff warmth and a rooftop garden offer genuine respite from Manhattan's pace, though family-specific amenities aren't clearly documented.",
+   "img": "https://www.firmdalehotels.com/media/u4xkpbrc/240910_f_cs_o_251_webresa.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Crosby+Street+Hotel&address=New+York%2C+USA&lat=40.7230126&lng=-73.997417"
+  },
+  {
+   "slug": "riad-maialou",
+   "name": "Riad Maïalou",
+   "city": "Marrakech",
+   "country": "",
+   "score": 8.1,
+   "why": "A peaceful central courtyard with candlelit orange trees and a fountain provides a secure, intimate gathering space where families feel immediately at home.",
+   "img": "https://www.riadmaialou.com/source/images/DSC06181.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Riad+Ma%C3%AFalou&address=Marrakech&lat=31.6280975&lng=-7.9919203"
+  },
+  {
+   "slug": "hotel-casa-del-capitel-nazari",
+   "name": "Hotel Casa del Capitel Nazarí",
+   "city": "Granada",
+   "country": "Spain",
+   "score": 8.1,
+   "why": "This intimate Renaissance casa offers a magical Nasrid courtyard where children can safely explore carved stone columns and trailing vines while parents relax nearby.",
+   "img": "https://www.hotelcasacapitel.com/app/uploads/sites/123/home4.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hotel+Casa+del+Capitel+Nazar%C3%AD&address=Granada%2C+Spain&lat=37.1778923&lng=-3.5945806"
+  },
+  {
+   "slug": "bali-80571-alam-shanti",
+   "name": "Alam Shanti",
+   "city": "Bali",
+   "country": "Indonesia",
+   "score": 8.1,
+   "why": "Spacious villas set within peaceful grounds offer families room to spread out, whilst the family-run estate and consistently praised staff provide the warmth that makes longer stays genuinely relaxing.",
+   "img": "https://www.alamindahbali.com/property/slider/alamindah1.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Alam+Shanti&address=Bali%2C+Indonesia&lat=-8.5217398&lng=115.256838"
+  },
+  {
+   "slug": "hotel-particulier-montmartre",
+   "name": "Hôtel Particulier Montmartre",
+   "city": "Paris",
+   "country": "France",
+   "score": 8.1,
+   "why": "A private mansion with a lush secret garden courtyard offers families an intimate Parisian base where children can safely explore while parents enjoy restaurant and bar facilities on-site.",
+   "img": "https://1e64.net/lw-hpm-48dbc2/config/index.jpg?escape=1773925800448",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=H%C3%B4tel+Particulier+Montmartre&address=Paris%2C+France&lat=48.888158&lng=2.3355125"
+  },
+  {
+   "slug": "austria-salzburg-hotel-pension-frauenschuh",
+   "name": "Hotel Pension Frauenschuh",
+   "city": "Salzburg",
+   "country": "Austria",
+   "score": 8.1,
+   "why": "This Salzburg pension charms families with its spa and garden retreat, warm staff, and quality furnishings that create genuine comfort for longer stays.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Hotel+Pension+Frauenschuh&address=Salzburg%2C+Austria&lat=47.7780895&lng=13.0225903"
+  },
+  {
+   "slug": "villa-amara",
+   "name": "Villa Amara",
+   "city": "Aix-en-Provence",
+   "country": "France",
+   "score": 8.1,
+   "why": "This intimate Provençal villa offers spacious rooms and a secure, tranquil garden with pool—ideal for families seeking a peaceful base within walking distance of Aix's centre.",
+   "img": "https://www.villa-amara.fr/wp-content/uploads/2026/06/06-Villa-Amara-Suite-Photos-01.webp",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-family-stay&hotelname=Villa+Amara&address=Aix-en-Provence%2C+France&lat=43.5308607&lng=5.4546175"
+  }
+ ],
+ "cosiest-hotels-for-a-workation": [
+  {
+   "slug": "ryokan-izuyasu",
+   "name": "Ryokan Izuyasu",
+   "city": "Kyoto",
+   "country": "Japan",
+   "score": 8.2,
+   "why": "A spacious, characterful traditional inn with peaceful Kyoto surroundings and kaiseki dining, though workspace suitability should be confirmed directly.",
+   "img": "https://izuyasu.com/en/wp-content/uploads/2022/06/top_rooom.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Ryokan+Izuyasu&address=Kyoto%2C+Japan&lat=34.9909187&lng=135.7611801"
+  },
+  {
+   "slug": "hotel-jan-luyken-amsterdam",
+   "name": "Hotel Jan Luyken Amsterdam",
+   "city": "Amsterdam",
+   "country": "Netherlands",
+   "score": 8.1,
+   "why": "This characterful townhouse offers a homely community atmosphere with a help-yourself kitchen and genuinely welcoming staff, though you'll need to confirm dedicated work space with the hotel.",
+   "img": "https://www.janluykenamsterdam.com/wp-content/uploads/2023/06/Jan-Luyken-Amsterdam-Fireplace-004.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Hotel+Jan+Luyken+Amsterdam&address=Amsterdam%2C+Netherlands&lat=52.3597441&lng=4.8807295"
+  },
+  {
+   "slug": "aurea-ana-palace-hotel",
+   "name": "Aurea Ana Palace Hotel",
+   "city": "",
+   "country": "Hungary",
+   "score": 8.1,
+   "why": "A quiet Parliament-adjacent location and stunning dining hall provide peaceful respite between work sessions, though dedicated desk space should be confirmed directly.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Aurea+Ana+Palace+Hotel&address=Hungary&lat=47.5040079&lng=19.0463852"
+  },
+  {
+   "slug": "hotel-isa",
+   "name": "Hotel Isa",
+   "city": "Rome",
+   "country": "Italy",
+   "score": 8.1,
+   "why": "With a rooftop terrace and artsy lobby perfect for breaks, this Rome hotel offers the atmospheric comfort remote workers appreciate, though you'll want to confirm desk space and daytime quiet levels beforehand.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Hotel+Isa&address=Rome%2C+Italy&lat=41.9068897&lng=12.4689672"
+  },
+  {
+   "slug": "maktub-guest-house",
+   "name": "Maktub Guest House",
+   "city": "Calheta",
+   "country": "Portugal",
+   "score": 8.1,
+   "why": "The vine-canopied courtyard and intimate scale offer peaceful daytime surroundings, though you'll need to confirm desk space and wifi availability with the property directly.",
+   "img": "https://images.squarespace-cdn.com/content/v1/5788da5837c581cbfe7ccc0d/1640433714833-ZG74NESDU11GQS8UUHP6/BJC_0767.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Maktub+Guest+House&address=Calheta%2C+Portugal&lat=32.7386608&lng=-17.2117257"
+  },
+  {
+   "slug": "pension-gimmelwald",
+   "name": "Pension Gimmelwald",
+   "city": "Gimmelwald",
+   "country": "Schweiz/Suisse/Svizzera/Svizra",
+   "score": 8.1,
+   "why": "This characterful Swiss pension offers a charming terrace and intimate village setting for focused work, though desk facilities should be confirmed directly with the hotel.",
+   "img": "https://www.hotel-pensiongimmelwald.ch/wp-content/uploads/2026/01/Pension-Gimmelwald-Hotel-%C2%A9PG.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Pension+Gimmelwald&address=Gimmelwald%2C+Schweiz%2FSuisse%2FSvizzera%2FSvizra&lat=46.5467269&lng=7.892558"
+  },
+  {
+   "slug": "novecento-boutique-hotel",
+   "name": "Novecento Boutique Hotel",
+   "city": "Venice",
+   "country": "Italy",
+   "score": 8,
+   "why": "With study spaces, antique rooms, a peaceful garden, and thoughtful staff, this intimate Venice hotel offers the quiet and comfort remote workers need.",
+   "img": "https://www.novecento.biz/wp-content/uploads/room_novecento_venezia_best_rate_guarantee_1.webp",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Novecento+Boutique+Hotel&address=Venice%2C+Italy&lat=45.4323817&lng=12.3312206"
+  },
+  {
+   "slug": "japan-kyokoyado-muromachi-yutone",
+   "name": "Kyokoyado Muromachi Yutone",
+   "city": "",
+   "country": "Japan",
+   "score": 8,
+   "why": "With spacious rooms, a peaceful garden to escape to, and attentive staff, this intimate ryokan offers the quiet and comfort needed for focused remote work.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Kyokoyado+Muromachi+Yutone&address=Japan&lat=34.998366&lng=135.7575024"
+  },
+  {
+   "slug": "asturias-hotel-rural-3-cabos-8",
+   "name": "HOTEL RURAL 3 CABOS",
+   "city": "Asturias",
+   "country": "Spain",
+   "score": 8,
+   "why": "With its quiet garden setting in Asturias and consistently praised service, it's an ideal retreat for focused work between exploring the dramatic coastal and countryside surroundings.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=HOTEL+RURAL+3+CABOS&address=Asturias%2C+Spain&lat=43.5161353&lng=-6.5881466"
+  },
+  {
+   "slug": "japan-azukiya",
+   "name": "Azukiya",
+   "city": "",
+   "country": "Japan",
+   "score": 8,
+   "why": "Authentic tatami rooms with suite space, a private garden to step outside to, and genuinely quiet surroundings make this an ideal workation base.",
+   "img": "https://staykyoto.net/images/pic01.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Azukiya&address=Japan&lat=35.0095203&lng=135.787911"
+  },
+  {
+   "slug": "riad-la-maison-nomade",
+   "name": "Riad La Maison Nomade",
+   "city": "Marrakech",
+   "country": "",
+   "score": 8,
+   "why": "A serene courtyard riad with a rooftop terrace and all-day tea service provides peaceful retreats between work sessions in the medina.",
+   "img": "https://www.lamaisonnomade.com/wp-content/uploads/2025/12/riad-marrakesch-dachterrasse-blaue-stunde-deutsch-gefuehrt.webp",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Riad+La+Maison+Nomade&address=Marrakech&lat=31.6376671&lng=-7.9928541"
+  },
+  {
+   "slug": "agriturismo-frates",
+   "name": "Agriturismo Frates",
+   "city": "Piegaro",
+   "country": "Italy",
+   "score": 8,
+   "why": "This centuries-old stone farmhouse offers a rambling kitchen garden and vine-covered pergola to retreat to between work sessions, though desk space and wifi should be confirmed directly.",
+   "img": "https://www.abbaziasettefrati-fratres.it/wp-content/uploads/2020/10/TTAP0130-2.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-workation&hotelname=Agriturismo+Frates&address=Piegaro%2C+Italy&lat=42.989205&lng=12.2046272"
+  }
+ ],
+ "cosiest-hotels-for-solo-travellers": [
+  {
+   "slug": "hotel-can-cera",
+   "name": "Hotel Can Cera",
+   "city": "Illes Balears",
+   "country": "Spain",
+   "score": 8.8,
+   "why": "In Palma's centre, genuinely attentive staff and thoughtfully intimate design create a welcoming refuge where solo travellers feel genuinely looked after from arrival.",
+   "img": "https://www.cancerahotel.com/wp-content/uploads/sites/5/2025/08/suite-can-cera-hotel-768x530.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Hotel+Can+Cera&address=Illes+Balears%2C+Spain&lat=39.5687331&lng=2.6515194"
+  },
+  {
+   "slug": "ryan-s-bed-and-breakfast",
+   "name": "Ryan's Bed and Breakfast",
+   "city": "Dublin",
+   "country": "Éire / Ireland",
+   "score": 8.6,
+   "why": "Warm, attentive hosts and a hearty shared breakfast table make solitary travellers feel genuinely welcomed, whilst its city-centre location keeps exploration close and coming home easy.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Ryan%27s+Bed+and+Breakfast&address=Dublin%2C+%C3%89ire+%2F+Ireland&lat=53.3592893&lng=-6.2933035"
+  },
+  {
+   "slug": "kashiwaya-ryokan",
+   "name": "Kashiwaya Ryokan",
+   "city": "Gunma",
+   "country": "Japan",
+   "score": 8.3,
+   "why": "With attentive staff, private onsen access, and a retro atmosphere that encourages quiet reflection, this traditional ryokan provides genuine comfort for solo guests seeking intimate Japanese hospitality.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Kashiwaya+Ryokan&address=Gunma%2C+Japan&lat=36.674865&lng=138.7850788"
+  },
+  {
+   "slug": "laret-private-boutique-hotel-adults-only",
+   "name": "LARET private Boutique Hotel - Adults only",
+   "city": "Samnaun",
+   "country": "Switzerland",
+   "score": 8.2,
+   "why": "This adults-only Swiss Alps retreat earns its 4.9/5 rating through intimate warmth, attentive staff and a sauna-restaurant-bar setup ideal for solo travellers seeking genuine relaxation.",
+   "img": "https://www.laret.ch/pics/0000000701-1920x930-c.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=LARET+private+Boutique+Hotel+-+Adults+only&address=Samnaun%2C+Switzerland&lat=46.9594996&lng=10.3953109"
+  },
+  {
+   "slug": "chalet-4-etoiles-la-tete-aux-vents",
+   "name": "Chalet 4 étoiles \"La Tête aux Vents\"",
+   "city": "Chamonix",
+   "country": "France",
+   "score": 8.2,
+   "why": "Courteous owners and a well-equipped intimate chalet with easy access to Chamonix station make this a reassuring base for solo travellers who value quiet independence.",
+   "img": "https://chalet-argentiere.com/wp-content/uploads/2020/12/cropped-571352.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Chalet+4+%C3%A9toiles+%22La+T%C3%AAte+aux+Vents%22&address=Chamonix%2C+France&lat=45.9825341&lng=6.9281985"
+  },
+  {
+   "slug": "artis-boutique-hotel",
+   "name": "Artis Boutique Hotel",
+   "city": "",
+   "country": "Hungary",
+   "score": 8.2,
+   "why": "Spacious rooms and genuinely welcoming staff make this central Szombathely hotel perfect for solo travellers wanting comfort without feeling isolated.",
+   "img": "https://staticsites.previo.cz/uploads/DSC7849-scaled.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Artis+Boutique+Hotel&address=Hungary&lat=47.2296458&lng=16.6190112"
+  },
+  {
+   "slug": "babette-guldsmeden",
+   "name": "Babette Guldsmeden",
+   "city": "Copenhagen",
+   "country": "Denmark",
+   "score": 8.2,
+   "why": "With attentive staff, an intimate bar, and a convenient metro-adjacent location near the park, this compact hotel feels like a welcoming base for solo exploration.",
+   "img": "https://guldsmedenhotels.com/wp-content/uploads/2023/09/Manon-Les-Suits-Pool-Horizontal-6-scaled.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Babette+Guldsmeden&address=Copenhagen%2C+Denmark&lat=55.6874917&lng=12.593117"
+  },
+  {
+   "slug": "anantara-rasananda-koh-phangan-villas",
+   "name": "Anantara Rasananda Koh Phangan Villas",
+   "city": "Surat Thani",
+   "country": "Thailand",
+   "score": 8.2,
+   "why": "Staff attentiveness and a welcoming restaurant and bar create genuine comfort for solo travellers seeking warm hospitality without isolation.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Anantara+Rasananda+Koh+Phangan+Villas&address=Surat+Thani%2C+Thailand&lat=9.7792992&lng=100.0554169"
+  },
+  {
+   "slug": "nazuna-hakone-miyanoshita",
+   "name": "Nazuna Hakone Miyanoshita",
+   "city": "Hakone-machi",
+   "country": "Japan",
+   "score": 8.2,
+   "why": "This intimate ryokan offers the restorative solitude of a private in-room onsen and attentive staff who make solo guests feel genuinely welcomed in a serene mountain setting.",
+   "img": "https://www.nazuna.co/wp-content/uploads/2025/03/%E5%A4%B7%E5%B7%9D03-1-scaled.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Nazuna+Hakone+Miyanoshita&address=Hakone-machi%2C+Japan&lat=35.2457106&lng=139.0559959"
+  },
+  {
+   "slug": "glenella-guesthouse",
+   "name": "Glenella Guesthouse",
+   "city": "Sydney",
+   "country": "Australia",
+   "score": 8.2,
+   "why": "Step into the heritage sitting room with its fireplace and antique furnishings to find the intimate, independent character of a family home rather than a faceless hotel.",
+   "img": "https://www.glenella.com.au/wp-content/uploads/GLENELLA_LISITING_WEB_89-scaled-480x360.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Glenella+Guesthouse&address=Sydney%2C+Australia&lat=-33.6361792&lng=150.2871765"
+  },
+  {
+   "slug": "romantic-via-unica-uab",
+   "name": "ROMANTIC Via Unica, UAB",
+   "city": "Panevėžys",
+   "country": "Lithuania",
+   "score": 8.2,
+   "why": "With spacious rooms, a spa and sauna for unwinding solo, plus a welcoming bar where you can settle in with fellow guests, this Panevėžys hotel offers genuine comfort after a day exploring.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=ROMANTIC+Via+Unica%2C+UAB&address=Panev%C4%97%C5%BEys%2C+Lithuania&lat=55.7337614&lng=24.3624733"
+  },
+  {
+   "slug": "eden-roc-hotel",
+   "name": "Eden Roc Hotel",
+   "city": "Positano",
+   "country": "Italy",
+   "score": 8.2,
+   "why": "Perched above Positano's coastline with a rooftop and spa to unwind between explorations, this intimate property offers gracious hospitality and a 4.7★ rating from 444 guests.",
+   "img": "https://www.edenroc.it/wp-content/uploads/2025/03/Progetto-senza-titolo-5.png",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-solo-travellers&hotelname=Eden+Roc+Hotel&address=Positano%2C+Italy&lat=40.628189&lng=14.4899491"
+  }
+ ],
+ "cosiest-hotels-for-a-romantic-occasion": [
+  {
+   "slug": "aux-augustins",
+   "name": "Aux Augustins",
+   "city": "Avignon",
+   "country": "France",
+   "score": 7.3,
+   "why": "Patrick and Sabrine's attentiveness transforms candlelit garden evenings into intimate celebrations, whilst the medieval courtyard and period rooms provide authentic historic charm for special occasions.",
+   "img": "https://www.augustins1261.com/wp-content/uploads/2026/02/les-augustins-hotel-de-luxe-avignon-cinq-etoiles-location-dappartement-de-luxe-avec-service-concierge-969a7585.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Aux+Augustins&address=Avignon%2C+France&lat=43.9499489&lng=4.8131086"
+  },
+  {
+   "slug": "belgium-bruges-hotel-bonifacius",
+   "name": "Hotel Bonifacius",
+   "city": "Bruges",
+   "country": "Belgium",
+   "score": 7.3,
+   "why": "Host Lyne's attentive service, canal-view suites with four-poster beds, and Gothic breakfast room create an intimate setting where personal touches feel genuinely celebratory.",
+   "img": "https://www.bonifacius.be/uploads/transform/_2048xAUTO_crop_center-center_none/47/2.webp",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Hotel+Bonifacius&address=Bruges%2C+Belgium&lat=51.20485&lng=3.2256764"
+  },
+  {
+   "slug": "cantabria-hotel-rural-el-bosque-de-la-anjana-11",
+   "name": "Hotel Rural El Bosque de la Anjana",
+   "city": "Cantabria",
+   "country": "Spain",
+   "score": 7.3,
+   "why": "Ana's personally run rural hotel offers individually styled rooms with four-poster beds and homemade breakfasts that create an intimate, attentively managed retreat for couples.",
+   "img": "https://elbosquedelaanjana.es/wp-content/uploads/2019/01/Zonas-Comunes-IMG_4099.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Hotel+Rural+El+Bosque+de+la+Anjana&address=Cantabria%2C+Spain&lat=43.2110502&lng=-4.3017565"
+  },
+  {
+   "slug": "bali-80571-komaneka-at-bisma-2",
+   "name": "Komaneka at Bisma",
+   "city": "Bali",
+   "country": "Indonesia",
+   "score": 7.2,
+   "why": "Staff led by Mei and Mr Ade personalise stays with handwritten cards and flower-filled baths, whilst spacious rooms overlook rice fields from private balconies with candlelit bathing.",
+   "img": "https://komaneka.com/wp-content/uploads/2023/06/5dcf7-komaneka-at-bismajpg-23-.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Komaneka+at+Bisma&address=Bali%2C+Indonesia&lat=-8.512532&lng=115.257297"
+  },
+  {
+   "slug": "maranatha-country-house",
+   "name": "Maranatha Country House",
+   "city": "Cork",
+   "country": "Éire / Ireland",
+   "score": 7.2,
+   "why": "This Victorian hilltop house offers intimate charm through its champagne canopy bed, attentive hosts Douglas and Olwen, and peaceful gardens ideal for marking special occasions.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Maranatha+Country+House&address=Cork%2C+%C3%89ire+%2F+Ireland&lat=51.9284301&lng=-8.6019001"
+  },
+  {
+   "slug": "japan-toshiharu-ryokan",
+   "name": "Toshiharu Ryokan",
+   "city": "",
+   "country": "Japan",
+   "score": 7.2,
+   "why": "This 160-year-old machiya offers intimate tatami rooms with private onsen baths and attentive personal service that transforms a stay into a cherished family memory.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Toshiharu+Ryokan&address=Japan&lat=34.998421&lng=135.758695"
+  },
+  {
+   "slug": "md-20745-private-stay-by-madlygiving-boutique-bed-and-breakfast-at-national-harbor-by-hospitalent-mariby-corpening-3",
+   "name": "Private Stay By MadlyGiving - Boutique Bed & Breakfast At National Harbor - By HospiTalent Mariby Corpening",
+   "city": "Oxon Hill",
+   "country": "USA",
+   "score": 7.2,
+   "why": "Mariby's personalised breakfasts and four-poster \"Sissy's Room\" create an intimate, thoughtfully curated atmosphere where attentive hospitality transforms a stay into something genuinely special.",
+   "img": "https://images.squarespace-cdn.com/content/v1/56277285e4b01ab7af20d656/1763036801010-JIWL5W9NHBYSPF3YFL1F/IMG-3563.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Private+Stay+By+MadlyGiving+-+Boutique+Bed+%26+Breakfast+At+National+Harbor+-+By+HospiTalent+Mariby+Corpening&address=Oxon+Hill%2C+USA&lat=38.7844565&lng=-77.0086978"
+  },
+  {
+   "slug": "hotel-inger",
+   "name": "Hotel Inger",
+   "city": "Skagen",
+   "country": "Denmark",
+   "score": 7.2,
+   "why": "A family-run 1970s retreat where the owner-chef and her daughter craft everything from scratch, creating an intimate, warmly lit atmosphere perfect for marking a milestone together.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Hotel+Inger&address=Skagen%2C+Denmark&lat=57.6583671&lng=10.4611358"
+  },
+  {
+   "slug": "nc-27954-white-doe-inn",
+   "name": "White Doe Inn",
+   "city": "Manteo",
+   "country": "USA",
+   "score": 7.2,
+   "why": "The turret suite's private balcony and Dave and Tonia's attentive, hands-on hospitality create an intimate setting perfect for marking special occasions.",
+   "img": "https://www.whitedoeinn.com/wp-content/uploads/2026/04/white-doe-inn-exterior-og-1200x630-1.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=White+Doe+Inn&address=Manteo%2C+USA&lat=35.9077187&lng=-75.6731172"
+  },
+  {
+   "slug": "belgium-bruges-number-11-exclusive-guesthouse",
+   "name": "Number 11 Exclusive Guesthouse",
+   "city": "Bruges",
+   "country": "Belgium",
+   "score": 7.2,
+   "why": "A canal-side townhouse where Astrid's attentive hospitality, fireside sitting room, and cathedral-view Chocolate Room create intimate comfort for celebrating together.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Number+11+Exclusive+Guesthouse&address=Bruges%2C+Belgium&lat=51.2094516&lng=3.2300019"
+  },
+  {
+   "slug": "maison-la-minervetta",
+   "name": "Maison la Minervetta",
+   "city": "Sorrento",
+   "country": "Italy",
+   "score": 7.2,
+   "why": "Cliffside rooms with private terraces overlooking the Bay of Naples, attentive staff who slip prosecco to anniversary guests, and included aperitivos create intimate moments without fuss.",
+   "img": "https://www.laminervetta.com/images/contents/index/welcome.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=Maison+la+Minervetta&address=Sorrento%2C+Italy&lat=40.627262&lng=14.364318"
+  },
+  {
+   "slug": "no-21",
+   "name": "No 21",
+   "city": "York",
+   "country": "United Kingdom",
+   "score": 7.1,
+   "why": "Simon and Andrea's attentive hospitality—marking anniversaries with prosecco and handwritten cards—combined with thoughtfully appointed rooms and freshly prepared breakfasts, creates intimate comfort for celebrating couples.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-a-romantic-occasion&hotelname=No+21&address=York%2C+United+Kingdom&lat=53.963492&lng=-1.0903684"
+  }
+ ],
+ "why-the-cosiest-hotels-are-run-by-their-owners": [
+  {
+   "slug": "pa-19102-the-dwight-d-hotel-5",
+   "name": "The Dwight D Hotel",
+   "city": "Philadelphia",
+   "country": "USA",
+   "score": 7.3,
+   "why": "Owners Vittoria and Ken's personal touches—greeting guests by name, staying up for late arrivals, and delivering breakfast in baskets—transform this converted townhouse into a genuinely home-run refuge.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=The+Dwight+D+Hotel&address=Philadelphia%2C+USA&lat=39.9479616&lng=-75.1681411"
+  },
+  {
+   "slug": "villach-kleines-hotel-karnten",
+   "name": "Kleines Hotel Kärnten",
+   "city": "Villach",
+   "country": "Austria",
+   "score": 7.3,
+   "why": "The Tschemernjak family's hands-on stewardship—from breeding the hens that supply breakfast to orchestrating nightly five-course dinners—creates the unhurried, attentive warmth only owner-operators deliver.",
+   "img": "https://kleineshotel.at/wordpress/wp-content/uploads/2024/02/KleinesHotelKaernten_by_CharlotteGarrousse_8W0A6700-1-scaled.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Kleines+Hotel+K%C3%A4rnten&address=Villach%2C+Austria&lat=46.5868428&lng=13.9291023"
+  },
+  {
+   "slug": "limoges-maison-durieux",
+   "name": "Maison Durieux",
+   "city": "Limoges",
+   "country": "France",
+   "score": 7.3,
+   "why": "Catherine's personally-prepared breakfasts and the attentive hosts create the warm, intimate atmosphere of staying with thoughtful friends rather than checking into a hotel.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Maison+Durieux&address=Limoges%2C+France&lat=45.8431379&lng=1.1928827"
+  },
+  {
+   "slug": "hotel-schmelzhof",
+   "name": "Hotel Schmelzhof",
+   "city": "Lech",
+   "country": "Austria",
+   "score": 7.3,
+   "why": "Gitti Strolz personally oversees every detail—from tuning your room's lighting to singing at breakfast—making this intimate Alpine hotel feel like staying with a generous, attentive relative.",
+   "img": "https://www.schmelzhof.at/wp-content/uploads/2026/02/20251204_terrasse_118.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Hotel+Schmelzhof&address=Lech%2C+Austria&lat=47.2060626&lng=10.1379672"
+  },
+  {
+   "slug": "in-lain-hotel-cadonau-5-sterne-superior-hotel",
+   "name": "IN LAIN Hotel Cadonau - 5-Sterne-Superior-Hotel",
+   "city": "Zernez",
+   "country": "Switzerland",
+   "score": 7.2,
+   "why": "Dario's personal touch—from meeting guests at the station to helping dig snow from their cars—transforms this riverside hotel into a genuinely home-run retreat.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=IN+LAIN+Hotel+Cadonau+-+5-Sterne-Superior-Hotel&address=Zernez%2C+Switzerland&lat=46.6531819&lng=10.032854"
+  },
+  {
+   "slug": "bali-moon",
+   "name": "Bali Moon",
+   "city": "Ubud",
+   "country": "Indonesia",
+   "score": 7.2,
+   "why": "Hosts Wayan, Ketut, and Made greet guests by name and serve generous homely breakfasts, creating such genuine warmth that weekly visitors often stay for nineteen days.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Bali+Moon&address=Ubud%2C+Indonesia&lat=-8.5075112&lng=115.2578361"
+  },
+  {
+   "slug": "lhotel-in-pietra",
+   "name": "L'Hotel In Pietra",
+   "city": "Matera",
+   "country": "Italy",
+   "score": 7.2,
+   "why": "Family proprietors and attentive staff create genuine warmth throughout this intimate 13th-century converted church, where cave-hewn rooms and thoughtful breakfasts reflect personal care.",
+   "img": "https://www.hotelinpietra.it/wp-content/uploads/2022/03/suite_3.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=L%27Hotel+In+Pietra&address=Matera%2C+Italy&lat=40.6675186&lng=16.6093979"
+  },
+  {
+   "slug": "trullicolarossa-b-b",
+   "name": "Trullicolarossa B&B",
+   "city": "Alberobello",
+   "country": "Italy",
+   "score": 7.2,
+   "why": "Donato and his mother's attentive hospitality—from homemade breakfasts to local guidance—transforms this working masseria into a genuinely warmhearted retreat.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Trullicolarossa+B%26B&address=Alberobello%2C+Italy&lat=40.8027629&lng=17.245875"
+  },
+  {
+   "slug": "gasthof-dasser",
+   "name": "Gasthof Dasser",
+   "city": "Wengen",
+   "country": "Italy",
+   "score": 7.2,
+   "why": "Three generations of the same family serve tender goulash and wine in the cellar, treating guests as friends in their warmly lit timber farmhouse.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Gasthof+Dasser&address=Wengen%2C+Italy&lat=46.6818165&lng=11.8975"
+  },
+  {
+   "slug": "setha-about-the-world-homestay",
+   "name": "Setha About The World Homestay",
+   "city": "Krong Battambang",
+   "country": "Cambodia",
+   "score": 7.2,
+   "why": "Setha's personal touch—from collecting guests at 2am to cooking five-dollar dinners—transforms her traditional wooden cabins into a genuinely warm, owner-run refuge.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Setha+About+The+World+Homestay&address=Krong+Battambang%2C+Cambodia&lat=13.0899274&lng=103.1907751"
+  },
+  {
+   "slug": "thira-847-00-the-tsitouras-collection-2",
+   "name": "The Tsitouras Collection",
+   "city": "Thira",
+   "country": "Greece",
+   "score": 7.2,
+   "why": "Owners Eleni and George's personal attention transforms their five-suite art collection into a place where guests return year after year, treating it as a cherished second home.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=The+Tsitouras+Collection&address=Thira%2C+Greece&lat=36.4267022&lng=25.4286482"
+  },
+  {
+   "slug": "casa-vacanze-la-torre-del-bennicelli",
+   "name": "Casa Vacanze \"La Torre del Bennicelli\"",
+   "city": "Orvieto",
+   "country": "Italy",
+   "score": 7.2,
+   "why": "Andrea and Elena's hands-on hospitality—from welcoming guests warmly to sharing homegrown produce—creates the genuine comfort of staying with generous friends in rural Umbria.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-why-the-cosiest-hotels-are-run-by-their-owners&hotelname=Casa+Vacanze+%22La+Torre+del+Bennicelli%22&address=Orvieto%2C+Italy&lat=42.6838696&lng=12.1222608"
+  }
+ ],
+ "cosiest-hotels-for-light-sleepers": [
+  {
+   "slug": "hotel-residence-agnes",
+   "name": "Hotel Residence Agnes",
+   "city": "Prague",
+   "country": "Czechia",
+   "score": 7.2,
+   "why": "Tucked on a quiet Old Town side street with owner Frank's genuinely attentive service—from welcome drinks to personally arranged airport transport—creating the comfort of a home away from home.",
+   "img": "https://cdn.prod.website-files.com/63d376ff6ca3b4ca14ff5005/63f222888e86418fd69ad60b_agnes-prague.jpeg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Hotel+Residence+Agnes&address=Prague%2C+Czechia&lat=50.0914901&lng=14.4256628"
+  },
+  {
+   "slug": "hotel-copernicus",
+   "name": "Hotel Copernicus",
+   "city": "Krakow",
+   "country": "Poland",
+   "score": 7.2,
+   "why": "Its quiet old-town location and courtyard-facing rooms offer the peaceful setting light sleepers need, with guests praising the tranquil atmosphere for rest and relaxation.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Hotel+Copernicus&address=Krakow%2C+Poland&lat=50.0562705&lng=19.9375835"
+  },
+  {
+   "slug": "brae-lodge",
+   "name": "Brae Lodge",
+   "city": "Edinburgh",
+   "country": "United Kingdom",
+   "score": 7.1,
+   "why": "With just three rooms in a quiet location and a back-facing option away from street noise, plus Lesley and Neil's attentive hospitality ensuring a restful atmosphere, it offers genuine tranquility for light sleepers.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Brae+Lodge&address=Edinburgh%2C+United+Kingdom&lat=55.9176486&lng=-3.1678773"
+  },
+  {
+   "slug": "b-b-il-lago-dipinto",
+   "name": "B&B Il Lago Dipinto",
+   "city": "Lecco",
+   "country": "Italy",
+   "score": 7.1,
+   "why": "Tucked in a quiet zone away from Lecco's busier streets, this characterful B&B pairs genuinely peaceful surroundings with the attentive care of owners Patrizia and Ivano.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=B%26B+Il+Lago+Dipinto&address=Lecco%2C+Italy&lat=45.8637665&lng=9.3883081"
+  },
+  {
+   "slug": "italy-venice-corte-di-gabriela",
+   "name": "Corte di Gabriela",
+   "city": "Venice",
+   "country": "Italy",
+   "score": 7.1,
+   "why": "Positioned on a peaceful side canal away from tourist crowds, this small hotel offers canal-view rooms and attentive staff creating a genuinely restful, stress-free atmosphere.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Corte+di+Gabriela&address=Venice%2C+Italy&lat=45.4349535&lng=12.3317173"
+  },
+  {
+   "slug": "austria-salzburg-the-little-guesthouse-salzburg",
+   "name": "The Little Guesthouse Salzburg",
+   "city": "Salzburg",
+   "country": "Austria",
+   "score": 7.1,
+   "why": "Situated in a quiet neighbourhood with blackout blinds and attentive staff who accommodate individual needs, this small guesthouse prioritises the restful sleep that light sleepers require.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=The+Little+Guesthouse+Salzburg&address=Salzburg%2C+Austria&lat=47.7956932&lng=13.0652711"
+  },
+  {
+   "slug": "hotel-rural-molino-del-puente",
+   "name": "Hotel Rural Molino del Puente",
+   "city": "Ronda",
+   "country": "Spain",
+   "score": 7.1,
+   "why": "The tranquil rural setting between old bridges, away from town noise, combined with nightingales by the pool and private grounds, creates the peaceful environment light sleepers need.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Hotel+Rural+Molino+del+Puente&address=Ronda%2C+Spain&lat=36.7644757&lng=-5.1861033"
+  },
+  {
+   "slug": "chestnuts-house",
+   "name": "Chestnuts House",
+   "city": "Bath",
+   "country": "United Kingdom",
+   "score": 7.1,
+   "why": "Host Toni's attentive service—fresh milk in your room, homemade welcome cake, supremely comfortable beds—creates a peaceful, home-from-home atmosphere in a quiet location just ten minutes from Bath's centre.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Chestnuts+House&address=Bath%2C+United+Kingdom&lat=51.3873823&lng=-2.3540635"
+  },
+  {
+   "slug": "marlborough-house",
+   "name": "Marlborough House",
+   "city": "Bath",
+   "country": "United Kingdom",
+   "score": 7,
+   "why": "A Victorian townhouse on a peaceful street near Royal Crescent, where guests praise the quiet atmosphere and comfortable beds in beautifully decorated rooms.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Marlborough+House&address=Bath%2C+United+Kingdom&lat=51.3841816&lng=-2.3713119"
+  },
+  {
+   "slug": "the-well-house",
+   "name": "The Well House",
+   "city": "Pitlochry",
+   "country": "United Kingdom",
+   "score": 7,
+   "why": "Host John's personal touches—wool blankets, in-room tea service, and a welcoming sitting room—create comfort for restful evenings, though noise levels aren't detailed in guest feedback.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=The+Well+House&address=Pitlochry%2C+United+Kingdom&lat=56.7035789&lng=-3.7306649"
+  },
+  {
+   "slug": "hotel-la-gemma",
+   "name": "Hotel La Gemma",
+   "city": "Florence",
+   "country": "Italy",
+   "score": 7,
+   "why": "This family-run boutique on a quiet Florence side street offers a serene retreat where attentive staff and thoughtfully curated details create a genuine sense of home away from urban bustle.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Hotel+La+Gemma&address=Florence%2C+Italy&lat=43.7707363&lng=11.2540568"
+  },
+  {
+   "slug": "speelmansrei",
+   "name": "Speelmansrei",
+   "city": "Bruges",
+   "country": "België / Belgique / Belgien",
+   "score": 7,
+   "why": "With only two rooms on a quiet street away from Bruges' centre, guests report the peaceful garden setting and thoughtful hosts create a genuinely tranquil retreat for restful nights.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosiest-hotels-for-light-sleepers&hotelname=Speelmansrei&address=Bruges%2C+Belgi%C3%AB+%2F+Belgique+%2F+Belgien&lat=51.2088717&lng=3.2190277"
+  }
+ ],
+ "cosy-hotels-to-escape-the-heat": [
+  {
+   "slug": "austria-salzburg-townhouse-weisses-kreuz",
+   "name": "Townhouse Weisses Kreuz",
+   "city": "Salzburg",
+   "country": "Austria",
+   "score": 7.6,
+   "why": "A six-room townhouse of stone and plaster in Salzburg's car-free old town: dim, calm and cool at the fortress foot, with a fireside living room.",
+   "img": "https://townhouse-weisses-kreuz.at/wp-content/uploads/2021/10/151030_WeissesKreuz_HP-Bilder-scaled.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Townhouse%20Weisses%20Kreuz&address=Salzburg%2C%20Austria&lat=47.7964812&lng=13.0474484"
+  },
+  {
+   "slug": "belgium-bruges-boutique-bandb-everelmus",
+   "name": "BOUTIQUE B&B / EVERELMUS",
+   "city": "Bruges",
+   "country": "Belgium",
+   "score": 7.6,
+   "why": "A medieval Bruges townhouse of exposed oak beams and thick walls, with canal-view rooms and a quiet courtyard garden to retreat into when the streets bake.",
+   "img": "https://cdn.stardekk.com/6454ed8a-6c25-4ce1-b63b-d98600956677/5.JPG",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=BOUTIQUE%20B%26B%20%2F%20EVERELMUS&address=Bruges%2C%20Belgium&lat=51.2056692&lng=3.2254462"
+  },
+  {
+   "slug": "chantemerle-les-grignan-domaine-le-bois-des-dames",
+   "name": "Domaine le bois des dames",
+   "city": "Chantemerle-lès-Grignan",
+   "country": "France",
+   "score": 7.5,
+   "why": "Breakfast comes under acacia trees in the courtyard and dinner is the host's; the shaded grounds and unhurried welcome keep guests here far longer than planned.",
+   "img": "https://www.leboisdesdames.com/wp-content/uploads/2025/02/header-1-1.webp",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Domaine%20le%20bois%20des%20dames&address=Chantemerle-l%C3%A8s-Grignan%2C%20France&lat=44.4047087&lng=4.812962"
+  },
+  {
+   "slug": "chevannes-castle-ribourdin-luxury-guest-rooms",
+   "name": "Castle Ribourdin: Luxury Guest Rooms",
+   "city": "Chevannes",
+   "country": "France",
+   "score": 7.2,
+   "why": "A chateau in the Burgundian countryside near Chablis with a pool, gardens and petanque as church bells drift across at dusk, when the heat finally lifts.",
+   "img": "https://res.cloudinary.com/amenitiz/image/upload/w_1024,dpr_auto,f_auto,q_auto:best/v1564662104/qu7ufiecaxin1shraqua.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Castle%20Ribourdin%3A%20Luxury%20Guest%20Rooms&address=Chevannes%2C%20France&lat=47.7503002&lng=3.4978559"
+  },
+  {
+   "slug": "grossefehn-hotel-altes-dichterhaus",
+   "name": "Hotel Altes Dichterhaus",
+   "city": "Großefehn",
+   "country": "Germany",
+   "score": 7.2,
+   "why": "A five-room guesthouse in the cool East Frisian countryside, with reading nooks indoors and a garden terrace shaded by wisteria and hydrangeas for the afternoon.",
+   "img": "https://altesdichterhaus.de/images/header-slideshow/IMG_2305_1150x531.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Hotel%20Altes%20Dichterhaus&address=Gro%C3%9Fefehn%2C%20Germany&lat=53.3654713&lng=7.5244716"
+  },
+  {
+   "slug": "number-sixteen",
+   "name": "Number Sixteen",
+   "city": "London",
+   "country": "UK",
+   "score": 7.2,
+   "why": "A South Kensington townhouse whose secluded, hydrangea-filled garden and orangery are a green, shaded oasis to duck into when London turns hot and bright.",
+   "img": "https://www.firmdalehotels.com/media/as2hm4v1/180726_f_no16_0225_lowres.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Number%20Sixteen&address=London%2C%20UK&lat=51.4930772&lng=-0.1755007"
+  },
+  {
+   "slug": "hotell-s-t-clemens",
+   "name": "Hotell S:t Clemens",
+   "city": "Visby",
+   "country": "Sweden",
+   "score": 7.2,
+   "why": "On cool Gotland, a stone-town hotel with its own quiet courtyard, private garden entrances and a botanical garden alongside for a slow northern summer.",
+   "img": "https://clemenshotell.com/wp-content/uploads/2019/05/fbimage.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Hotell%20S%3At%20Clemens&address=Visby%2C%20Sweden&lat=57.643022&lng=18.2957613"
+  },
+  {
+   "slug": "ny-12777-inn-at-lake-joseph-8",
+   "name": "Inn at Lake Joseph",
+   "city": "Forestburgh",
+   "country": "USA",
+   "score": 7.1,
+   "why": "A converted farmhouse inn in the Catskill woods beside a pristine lake, with walking trails and owners who light the fires when the nights turn cool.",
+   "img": "https://media-bridge.thinkreservations.com/media-library/hotels/700699136475/ebc788c5-a29d-4b97-8e40-9d5061c04cf3/inn-at-lake-joseph-exterior.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Inn%20at%20Lake%20Joseph&address=Forestburgh%2C%20USA&lat=41.5891726&lng=-74.7131995"
+  },
+  {
+   "slug": "qc-g1r-1k8-b-and-b-at-the-augustine",
+   "name": "B & B at The Augustine",
+   "city": "QC",
+   "country": "Canada",
+   "score": 7.1,
+   "why": "A late-1700s stone house near Old Quebec, thick-walled and quiet, with a garden room and home-cooked breakfasts, cool and calm through a northern summer.",
+   "img": "https://bbvieuxquebec.com/wp-content/uploads/2020/03/14706976_1817482441822632_1282460269738280740_o.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=B%20%26%20B%20at%20The%20Augustine&address=QC%2C%20Canada&lat=46.8118685&lng=-71.2181928"
+  },
+  {
+   "slug": "ma-01238-the-lakehouse-inn-3",
+   "name": "The Lakehouse Inn",
+   "city": "Lee",
+   "country": "USA",
+   "score": 7.1,
+   "why": "A century-old New England inn on the edge of a Berkshires lake, with outdoor seating over the water and cool, letter-lined halls indoors.",
+   "img": "https://static.wixstatic.com/media/1f60ba_84b1f0fc2cea4abe848fdcea9e8f668b~mv2.jpg/v1/fill/w_2500,h_3124,al_c/1f60ba_84b1f0fc2cea4abe848fdcea9e8f668b~mv2.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=The%20Lakehouse%20Inn&address=Lee%2C%20USA&lat=42.326252&lng=-73.2624546"
+  },
+  {
+   "slug": "villa-puccini",
+   "name": "Villa Puccini",
+   "city": "Cape Town",
+   "country": "South Africa",
+   "score": 7.1,
+   "why": "Spacious rooms open onto lush gardens and a pool in quiet Rondebosch, a green retreat with breakfast served outdoors under the trees.",
+   "img": "https://static.wixstatic.com/media/662dda_60f6f37440e048458b69691911933e2b~mv2.jpg/v1/fill/w_147,h_98,al_c,q_80,usm_0.66_1.00_0.01,blur_2,enc_avif,quality_auto/662dda_60f6f37440e048458b69691911933e2b~mv2.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Villa%20Puccini&address=Cape%20Town%2C%20South%20Africa&lat=-33.9753674&lng=18.4752945"
+  },
+  {
+   "slug": "eremyten-hof",
+   "name": "Eremyten Hof",
+   "city": "Ghent",
+   "country": "Belgium",
+   "score": 7.1,
+   "why": "A historic Ghent bed and breakfast set apart from the bustle, with a shaded garden of ancient trees, wandering geese and honey from the owner's bees.",
+   "img": "https://eremytenhof.com/media/pages/home/753b7302d9-1698913914/img-20221111-121337-1900x-q90.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Eremyten%20Hof&address=Ghent%2C%20Belgium&lat=51.1086804&lng=3.7106318"
+  }
+ ]
 }

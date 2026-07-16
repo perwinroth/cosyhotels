@@ -882,6 +882,63 @@ export const BLOG_POSTS: BlogPost[] = [
       { label: "How to choose a hotel for one night", to: "blog/how-to-choose-a-hotel-for-one-night" },
     ],
   },
+  // ── 14. ESCAPE THE HEAT (seasonal) ───────────────────────────────────────────────────────────
+  {
+    slug: "cosy-hotels-to-escape-the-heat",
+    title: "The cosiest hotels to escape the heat, and how to pick one",
+    dek: "Cosy sounds like the last thing you want in a heatwave. It is not. The cosiest summer hotels are the cool, dim, thick-walled ones you retreat into. Here is how to find them, with real cosy-scored picks.",
+    eyebrow: "Summer escapes",
+    h1: "Cosy hotels to escape the heat",
+    lead: "Cosy usually means a fire and a blanket, which is the last thing you want in August. But the real meaning of cosy is refuge: a small, enclosing, restful place that keeps the outside where it belongs. In a heatwave that is a room with thick stone walls and closed shutters, a shaded courtyard, a breeze off the water, or air thin and cool enough that you sleep. Here is how to find a hotel that is a genuine escape from the heat, with real cosy-scored picks.",
+    updated: "2026-07-16",
+    intro: [
+      {
+        h2: "What actually keeps a hotel cool when it is hot out",
+        paras: [
+          "Air conditioning is the obvious answer and the least interesting one. A unit humming in a thin-walled new build cools the air and nothing else: step out of the room and the heat is back. The places that stay genuinely comfortable in summer were built to, long before AC existed.",
+          "Three things do the real work. Altitude: every few hundred metres up drops the temperature and, more importantly, cools the nights, so you sleep. Mass: old buildings with thick stone or rammed-earth walls hold the night's cool through the afternoon, which is why a medieval townhouse or a riad stays dim and quiet while the street bakes. And water: a lake or a coast pulls an evening breeze that no inland city gets.",
+          "Shade and aspect matter more than a star rating. A north-facing room with shutters and a courtyard to retreat into beats a west-facing suite that turns into an oven by four.",
+        ],
+        tip: "In reviews, look for the words guests use in summer: \"cool even in August\", \"thick walls\", \"breeze\", \"shady courtyard\", \"slept well\". Those are worth more than any advertised amenity.",
+      },
+      {
+        h2: "Why cosy still applies in a heatwave",
+        paras: [
+          "It sounds like a contradiction to want somewhere cosy in July. It is not. Cosiness is not really about warmth; it is about enclosure and calm, a small space that holds you and keeps the world at a distance. In winter the thing held at bay is the cold. In a heatwave it is the glare, the crowds and the exhausting brightness.",
+          "So the cosiest summer hotels do the same job as the cosiest winter ones: intimate scale, character, a dim and restful room, a host who tells you where to swim at six when the light softens. The setting flips from fireside to shaded courtyard, but the feeling is identical.",
+        ],
+      },
+    ],
+    pick: {
+      re: /\b(mountain|alpine|highland|hillside|hilltop|lake|sea|coast|forest|woodland|stone|courtyard|shad|cellar|riad|valley|garden|breeze|terrace|castle|monaster|convent)\b/i,
+      minScore: 6, limit: 12,
+      theme: "escaping the heat: cool by design (altitude, thick stone or old walls, a courtyard or shade, or a breeze off water), dim and restful, somewhere you sleep well on a hot night",
+      priority: 9,
+      heading: "Cosy hotels built to beat the heat",
+      blurb: "We took the hotels our AI scores highest for cosiness and surfaced the ones built to stay cool: high up, thick-walled, shaded, or by the water. Each carries its live Cosy Score.",
+    },
+    outro: [
+      {
+        h2: "How to check a room will actually stay cool",
+        paras: [
+          "Ask how the room is cooled, not just whether it has AC. Fans and cross-ventilation in a thick-walled old building often beat a struggling unit in a glass one. If it matters to you, ask directly; good small hotels will tell you.",
+          "Aspect and floor decide a lot. A north or east-facing room stays cooler through the afternoon; a top floor under a flat roof is the hottest in the building. Ask for shutters or heavy curtains, and somewhere shaded to sit outside.",
+          "When the heat is the point of the trip, choose the setting first: up a mountain, by a lake or the sea, or inside a thick-walled old town. The hotel matters, but the geography cools you before the hotel does.",
+        ],
+      },
+    ],
+    faqs: [
+      { q: "Can a cosy hotel really be a good choice in a heatwave?", a: "Yes. Cosiness is about an intimate, restful, enclosing space, not about warmth. In summer the cosiest hotels are the cool, dim, shaded ones with thick walls or a courtyard, exactly where you want to retreat from the heat and glare." },
+      { q: "What keeps a hotel cool without relying on air conditioning?", a: "Old buildings with thick stone or earth walls hold the night's cool through the day; altitude drops the temperature and cools the nights so you sleep; and a lake or coast brings an evening breeze. Shade, shutters and a north-facing aspect do the rest." },
+      { q: "Where in Europe can you escape the summer heat in a cosy hotel?", a: "The mountains (the Alps, the Pyrenees, the Dolomites), the cooler northern coasts, and thick-walled old towns whose stone stays cool inside all stay far more comfortable than a hot city. Our picks span all three." },
+    ],
+    related: [
+      { label: "The cosiest hotels for a quiet escape", to: "blog/cosiest-hotels-for-a-quiet-escape" },
+      { label: "Cosy hotels you can reach by train", to: "blog/cosy-hotels-you-can-reach-by-train" },
+      { label: "The cosiest hotel towns: the data", to: "data/cosiest-hotel-towns" },
+      { label: "Browse cosy hotels by country", to: "cosy-hotels" },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
