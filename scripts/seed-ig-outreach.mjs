@@ -35,6 +35,21 @@ export function isIgControlCity(city) {
   return IG_CONTROL_CITIES.includes(norm);
 }
 
+// Takedown mechanism (trust fix, 2026-07-16): mirrors src/lib/delisted.ts DELISTED_SLUGS — a hotel
+// that asked for removal (brae-lodge) must never be seeded into ANY outreach lane. Duplicated here
+// (same convention as IG_CONTROL_CITIES/controlMarkets.ts above) because these scripts are plain
+// node .mjs, not compiled from src/lib.
+export const DELISTED_SLUGS = new Set(["brae-lodge"]);
+
+// True if the hotel embed (id/slug/…/delisted_at) is delisted — Set match, or a truthy delisted_at
+// when the caller's select included that column (it's read defensively by callers: the column may
+// not exist yet, pre-migration, in which case delisted_at is simply absent/undefined here).
+export function isDelistedHotel(hotel) {
+  if (!hotel) return false;
+  if (DELISTED_SLUGS.has(String(hotel.slug || ""))) return true;
+  return !!hotel.delisted_at;
+}
+
 // "top {pct}%" for one hotel: share of scored hotels at-or-above its score_final, rounded UP
 // (mirrors roundPctUp in src/lib/badgePitch.ts — the claim may only ever understate).
 // sortedAsc: ALL score_final values, ascending. Binary search for the first index >= score.
@@ -91,6 +106,20 @@ async function main() {
     }
   }
 
+  // Same as fetchAll but returns null (instead of exiting) on the FIRST failed request — used only
+  // for the defensive delisted_at probe below, so a pre-migration "column does not exist" error
+  // falls back to the Set-only exclusion rather than aborting the whole seed run.
+  async function fetchAllOrNull(pathAndQuery) {
+    const out = [];
+    for (let from = 0; ; from += PAGE) {
+      const r = await fetch(`${url}/rest/v1/${pathAndQuery}`, { headers: { ...headers, Range: `${from}-${from + PAGE - 1}` } });
+      if (!r.ok) return null;
+      const rows = await r.json();
+      out.push(...rows);
+      if (rows.length < PAGE) return out;
+    }
+  }
+
   // 1. Existing statuses (informs the founder-SQL constraint note; best-effort discovery).
   const statusRows = await fetchAll("hotel_outreach?select=status");
   const distinctStatuses = [...new Set(statusRows.map((r) => r.status))].sort();
@@ -104,8 +133,14 @@ async function main() {
   console.log(`scored universe (score_final not null): ${totalScored}`);
 
   // 3. Candidates: instagram present, NO email (email-reachable hotels stay in the email lane),
-  //    score_final >= 6.0. Embedded !inner join filters on the hotels side.
-  const candidates = await fetchAll(
+  //    score_final >= 6.0. Embedded !inner join filters on the hotels side. Also probes delisted_at
+  //    (takedown mechanism, trust fix 2026-07-16) — falls back without it if the column doesn't
+  //    exist yet, so a pre-migration run never aborts (DELISTED_SLUGS still excludes brae-lodge).
+  const candidatesWithDelisted = await fetchAllOrNull(
+    "cosy_scores?select=hotel_id,score_final,hotel:hotel_id!inner(id,slug,city,instagram,email,delisted_at)" +
+    "&score_final=gte.6&hotel.instagram=not.is.null&hotel.email=is.null",
+  );
+  const candidates = candidatesWithDelisted !== null ? candidatesWithDelisted : await fetchAll(
     "cosy_scores?select=hotel_id,score_final,hotel:hotel_id!inner(id,slug,city,instagram,email)" +
     "&score_final=gte.6&hotel.instagram=not.is.null&hotel.email=is.null",
   );
@@ -116,10 +151,12 @@ async function main() {
 
   let excludedControl = 0;
   let excludedAlready = 0;
+  let excludedDelisted = 0;
   const rows = [];
   for (const c of candidates) {
     const h = c.hotel;
     if (!h) continue;
+    if (isDelistedHotel(h)) { excludedDelisted++; continue; }
     if (isIgControlCity(h.city)) { excludedControl++; continue; }
     if (already.has(String(c.hotel_id))) { excludedAlready++; continue; }
     const scoreFinal = Number(c.score_final);
@@ -134,6 +171,7 @@ async function main() {
   }
 
   console.log(`eligible (instagram, no email, score_final >= 6.0): ${candidates.length}`);
+  console.log(`excluded — delisted (takedown Set/delisted_at): ${excludedDelisted}`);
   console.log(`excluded — control market (${IG_CONTROL_CITIES.join("/")}, exact match): ${excludedControl}`);
   console.log(`excluded — already in hotel_outreach (any channel/status): ${excludedAlready}`);
   console.log(`to insert: ${rows.length}`);

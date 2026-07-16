@@ -22,6 +22,8 @@ import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/compone
 import TravellerFit from "@/components/TravellerFit";
 import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
 import { loadCityCosyHotels, loadConceptAssignments, conceptMembers } from "@/lib/seo/cityHotels";
+import { isDelisted, isValidWebsiteUrl } from "@/lib/delisted";
+import { translate } from "@/lib/i18n/translate";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
 // window, never on every view. These are the top SEO landing pages, so cache them hard.
@@ -45,6 +47,9 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
   // Malformed/placeholder slugs (e.g. %7Bsearch_term_string%7D, undefined) must never render an
   // indexable page — the body 404s them, so metadata stays noindex and skips the DB round-trip.
   if (isMalformedSlug(params.slug)) return { robots: { index: false, follow: false } };
+  // Delisted hotels (takedown mechanism): never indexable, even before the 404 body renders.
+  const delistDb = getServerSupabase();
+  if (await isDelisted(params.slug, delistDb)) return { robots: { index: false, follow: false } };
   const canonical = `/en/hotels/${params.slug}`;
   const db = getServerSupabase();
   if (db) {
@@ -134,6 +139,8 @@ export default async function HotelDetail({ params }: Props) {
 
   const db = getServerSupabase();
   if (!db) return notFound();
+  // Takedown mechanism: a delisted hotel (Set or hotels.delisted_at) never renders.
+  if (await isDelisted(params.slug, db)) return notFound();
 
   const { data: hotel } = await db
     .from("hotels")
@@ -344,6 +351,17 @@ export default async function HotelDetail({ params }: Props) {
   // page's copy stays identical to every listing card that also renders the button.
   const saveLabels: SaveToTripLabels = await buildSaveLabels(params.locale);
 
+  // "Visit hotel website" (trust fix, 2026-07-16): the Stay22 "Check availability" link matches the
+  // nearest OTA-bookable property, which for small direct-booking hotels can land on a DIFFERENT
+  // hotel (the brae-lodge complaint). Purely ADDITIVE per founder spec (revenue call, 2026-07-16):
+  // Stay22 stays primary/unchanged; when we hold a sanitized website URL, add the real hotel's own
+  // site as a secondary CTA beside it. Never rendered for an empty/malformed/non-http(s) value.
+  const rawWebsite = String((hotel as { website?: string | null }).website || "").trim();
+  const websiteUrl = isValidWebsiteUrl(rawWebsite) ? rawWebsite : null;
+  const visitWebsiteLabel = websiteUrl
+    ? (params.locale === "en" ? "Visit hotel website" : await translate("Visit hotel website", params.locale))
+    : null;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(hotelJsonLd) }} />
@@ -402,7 +420,7 @@ export default async function HotelDetail({ params }: Props) {
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <a className="inline-flex min-h-[44px] items-center rounded-xl px-4 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
         <div className="sm:ml-auto">
-          <HotelActions href={bookingUrl} hotelName={String(hotel.name)} city={cityName} slug={String(hotel.slug)} locale={params.locale} saveLabels={saveLabels} />
+          <HotelActions href={bookingUrl} hotelName={String(hotel.name)} city={cityName} slug={String(hotel.slug)} locale={params.locale} saveLabels={saveLabels} websiteUrl={websiteUrl} websiteLabel={visitWebsiteLabel} />
         </div>
       </div>
       {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not only in the footer. */}
