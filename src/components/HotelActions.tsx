@@ -7,18 +7,27 @@
 //               one consistent column (founder, 2026-07-15).
 //   • >= sm   → a single inline row (wrap allowed) so it never overflows the card or the viewport.
 // Every control is >= 44px tall and shares the rounded-xl radius family, so the row reads as one
-// system. This is a server component: it merely composes the client SaveToTripButton + ShareButton.
+// system. This is a server component: it composes the client SaveToTripButton + ShareButton and
+// awaits translate() itself, so callers only ever pass English source data.
 //
-// "Check availability" (Stay22) is ALWAYS primary — per founder spec (revenue call, 2026-07-16) it
-// is never demoted or reordered, affiliate revenue depends on it. "Visit hotel website" is purely
-// additive: a secondary/outline button shown BESIDE it only when the hotel row carries a
-// sanitized website URL (src/lib/delisted.ts isValidWebsiteUrl).
+// Booking CTA policy (founder FINAL rule, 2026-07-16 — supersedes an earlier same-day draft that
+// made the website primary everywhere): Stay22 "Check availability" is the DEFAULT primary CTA on
+// every surface, exactly as it was before this branch, UNLESS the hotel's Stay22 landing has been
+// VERIFIED wrong by the real-browser sweep (isVerifiedWrong — see src/lib/ctaPolicy.ts
+// getStay22WrongSlugs), in which case the decision swaps per resolveBookingCta. Separately, and
+// unconditionally of the sweep, PR #120's ADDITIVE "Visit hotel website" secondary button (revenue
+// call, 2026-07-16: Stay22 never demoted, website purely additive beside it) is preserved — opt in
+// per call site via showWebsiteSecondary, which today only the hotel detail page sets.
 import ShareButton from "@/components/ShareButton";
 import SaveToTripButton, { type SaveToTripLabels } from "@/components/SaveToTripButton";
+import { resolveBookingCta } from "@/lib/ctaPolicy";
+import { isRealHotelWebsite } from "@/lib/delisted";
+import { translate } from "@/lib/i18n/translate";
 
 type Props = {
-  /** Affiliate / check-availability URL. Tracking + rel are applied here, unchanged. */
-  href: string;
+  /** Stay22 "Check availability" deep link — the default CTA, and the fallback CTA (relabelled)
+   *  for a verified-wrong hotel with no real website. */
+  stay22Href: string;
   hotelName: string;
   city?: string;
   slug: string;
@@ -27,38 +36,43 @@ type Props = {
   /** When omitted, the Share control is not rendered (e.g. the detail page shares from its header). */
   shareTitle?: string;
   shareUrl?: string;
-  /**
-   * Trust fix (2026-07-16): the hotel's own website, already validated http(s) by the caller
-   * (src/lib/delisted.ts isValidWebsiteUrl) — Stay22's "roam" link matches the NEAREST OTA-bookable
-   * property, which for small direct-booking hotels can land on a DIFFERENT hotel. Purely ADDITIVE
-   * per founder spec (revenue call, 2026-07-16): "Check availability" stays PRIMARY, unchanged, in
-   * its original position; when present, this renders BESIDE it as a secondary/outline button so
-   * direct-booking hotels always have their true link visible without touching affiliate revenue.
-   * When absent, the row is byte-for-byte what it was before this fix.
-   */
-  websiteUrl?: string | null;
-  websiteLabel?: string | null;
+  /** Raw stored hotel.website value, unsanitized — resolveBookingCta/isRealHotelWebsite validate +
+   *  OTA-filter it. */
+  website?: string | null;
+  /** True only for a hotel whose Stay22 landing has been VERIFIED wrong by the real-browser sweep
+   *  (verdict WRONG_PROPERTY, CITY_SEARCH or UNMATCHED_SEARCH). Defaults to false: a hotel with no
+   *  verdict row, or verdict PENDING/EXACT/SELECTED, always renders the untouched default CTA. */
+  isVerifiedWrong?: boolean;
+  /** Detail-page-only (PR #120): when true, and this hotel is NOT verified-wrong, and it has a real
+   *  website, also render that website as an ADDITIVE secondary button beside the primary Stay22
+   *  button. Listing cards never set this — the additive button only ever shipped on the detail page. */
+  showWebsiteSecondary?: boolean;
 };
 
-export default function HotelActions({ href, hotelName, city, slug, locale, saveLabels, shareTitle, shareUrl, websiteUrl, websiteLabel }: Props) {
-  const hasWebsite = !!websiteUrl && !!websiteLabel;
+export default async function HotelActions({ stay22Href, hotelName, city, slug, locale, saveLabels, shareTitle, shareUrl, website, isVerifiedWrong, showWebsiteSecondary }: Props) {
+  const cta = resolveBookingCta(website, stay22Href, !!isVerifiedWrong);
+  const label = locale === "en" ? cta.label : await translate(cta.label, locale);
+  // Additive secondary (PR #120, preserved): only beside the untouched default primary, only where
+  // the caller opted in, and only when the hotel genuinely has a real, non-OTA website.
+  const showSecondary = !!showWebsiteSecondary && cta.dataCta === "check_availability" && isRealHotelWebsite(website);
+  const secondaryLabel = showSecondary ? (locale === "en" ? "Visit hotel website" : await translate("Visit hotel website", locale)) : null;
   return (
     <div className="mt-3 flex w-full max-w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
       <a
-        href={href}
+        href={cta.href}
         target="_blank"
-        rel="noopener nofollow sponsored"
-        data-cta="check_availability"
+        rel={cta.rel}
+        data-cta={cta.dataCta}
         data-hotel={hotelName}
         data-city={city}
         className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl px-5 text-sm font-medium text-white no-underline sm:w-auto"
         style={{ background: "var(--ember)" }}
       >
-        Check availability
+        {label}
       </a>
-      {hasWebsite && (
+      {showSecondary && (
         <a
-          href={websiteUrl as string}
+          href={String(website).trim()}
           target="_blank"
           rel="noopener nofollow"
           data-cta="hotel_website"
@@ -67,7 +81,7 @@ export default function HotelActions({ href, hotelName, city, slug, locale, save
           className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl px-5 text-sm font-medium no-underline sm:w-auto"
           style={{ border: "1px solid var(--line)", color: "var(--foreground)" }}
         >
-          {websiteLabel}
+          {secondaryLabel}
         </a>
       )}
       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">

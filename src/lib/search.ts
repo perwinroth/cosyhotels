@@ -22,6 +22,7 @@ export type HotelHit = {
   country: string;
   score: number;
   description?: string;
+  website?: string | null;
 };
 export type CityHit = { name: string; slug: string };
 export type CountryHit = { name: string; slug: string; count: number };
@@ -46,7 +47,7 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
   // generous slice for the score filter/sort below to fill `limit`.
   const { data: rows, error } = await db
     .from("hotels")
-    .select("id,slug,name,name_en,city,country")
+    .select("id,slug,name,name_en,city,country,website")
     .or(`name.ilike.%${escaped}%,name_en.ilike.%${escaped}%,city.ilike.%${escaped}%`)
     // Big cap: a city can hold hundreds of hotels, most NOT live — fetch enough that the live ones
     // (filtered below) always fall inside the candidate window, so autocomplete ranks by true score.
@@ -79,6 +80,7 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
         country: (r.country as string | null) || "",
         score: hit.score,
         description: hit.description ?? undefined,
+        website: (r.website as string | null) ?? null,
       };
     })
     // Site convention: only show Latin-script names on the English site.

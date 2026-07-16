@@ -18,6 +18,7 @@ import {
   conceptMembers, orderConceptMembers, conceptLabelPhrase,
 } from "@/lib/seo/cityHotels";
 import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
+import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
 
 export const revalidate = 3600;
 
@@ -63,6 +64,8 @@ export default async function FacetPage({ params }: { params: { locale: string; 
 
   // Vetted photos.
   const db = getServerSupabase()!;
+  // Verdict-gated CTA swap (founder FINAL rule, 2026-07-16): fail-safe empty set by default.
+  const wrongSlugs = await getStay22WrongSlugs(db);
   const photo = new Map<string, string>();
   const ids = hotels.map((h) => h.id);
   for (let i = 0; i < ids.length; i += 150) {
@@ -109,7 +112,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
                   <div className="flex flex-wrap items-center gap-2"><span className="sm:hidden inline-flex items-center justify-center rounded-lg px-2 py-0.5 text-sm font-semibold text-white" style={{ background: cosyBadgeColor(h.score), fontFamily: "Fraunces, serif" }}>{h.score.toFixed(1)}</span><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
                   <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>
                   {snippets[idx] && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{snippets[idx]}</p>}
-                  <HotelActions href={cta} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${params.locale}/hotels/${h.slug}`} />
+                  <HotelActions stay22Href={cta} website={h.website} isVerifiedWrong={wrongSlugs.has(h.slug)} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${params.locale}/hotels/${h.slug}`} />
                 </div>
                 {ph && <a href={`/${params.locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
               </div>

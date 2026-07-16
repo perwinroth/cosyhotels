@@ -56,6 +56,38 @@ export function isValidWebsiteUrl(website: string | null | undefined): boolean {
   return parsed.hostname.includes(".");
 }
 
+// ── CTA policy support (founder FINAL rule, 2026-07-16): verdict-gated CTA swap ─────────────────
+// A real-browser sweep of Stay22's "Check availability" link (data/stay22-verdicts.json in the
+// die-validation repo) is classifying each hotel's landing page. The founder's rule (see
+// src/lib/ctaPolicy.ts resolveBookingCta for the full decision) is: Stay22 stays the default
+// primary CTA everywhere, unchanged, UNLESS a hotel has been actually VERIFIED WRONG by the sweep
+// (WRONG_PROPERTY / CITY_SEARCH / UNMATCHED_SEARCH) — only then does its own real website replace
+// Stay22, or (if it has no real website) does Stay22 get relabelled "Check nearby stays". isRealHotelWebsite
+// below is the "real, non-OTA site" test both branches share. "Real" excludes OTA/social/aggregator
+// domains — those are not the hotel's own site even when a scrape stored one as `website`.
+const OTA_EXACT_HOST_SUFFIXES = ["booking.com", "facebook.com", "instagram.com", "hotels.com"];
+const OTA_WILDCARD_TLD_LABELS = new Set(["tripadvisor", "google", "expedia", "airbnb"]);
+
+/**
+ * True when `url` passes isValidWebsiteUrl AND its hostname is not an OTA/social/aggregator domain
+ * (booking.com, facebook.com, instagram.com, hotels.com — any subdomain too; tripadvisor.*,
+ * google.*, expedia.*, airbnb.* — any TLD). Only a URL that passes this is safe to present as the
+ * hotel's OWN website and to replace the Stay22 CTA with entirely.
+ */
+export function isRealHotelWebsite(url: string | null | undefined): boolean {
+  if (!isValidWebsiteUrl(url)) return false;
+  let host: string;
+  try {
+    host = new URL(String(url).trim()).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  if (OTA_EXACT_HOST_SUFFIXES.some((d) => host === d || host.endsWith(`.${d}`))) return false;
+  const labels = host.split(".");
+  if (labels.some((l) => OTA_WILDCARD_TLD_LABELS.has(l))) return false;
+  return true;
+}
+
 // ── List-surface exclusion ────────────────────────────────────────────────────────────────────────
 // The detail page, sitemaps and outreach check per-slug; LISTING surfaces (city guides, facet/city,
 // country hubs, regions, search, boards, collections, blog picks) render arrays and need a set. The
