@@ -110,10 +110,16 @@ export async function translate(text: string, targetLocale: string): Promise<str
     } catch {}
   }
 
+  // Did any engine actually translate? `translated` only diverges from `protectedText` when an
+  // engine succeeded. If none did (API 4xx/timeout, e.g. exhausted credits), we return the English
+  // source as a graceful fallback but MUST NOT cache it \u2014 caching the source poisons the row so it
+  // serves English forever and never retries (2026-07-16: an out-of-credits run cached 4,044 sv
+  // descriptions as English this way). Only real translations get written.
+  const produced = translated !== protectedText;
   translated = unprotect(translated);
   translated = translated.replace(/\s*[\u2014\u2013]\s*/g, ", "); // hard-strip em/en dashes (site rule)
   try {
-    if (db) await db.from('translations').upsert({ lang: target, src_hash: key, src_text: text, translated_text: translated }, { onConflict: 'lang,src_hash' });
+    if (db && produced) await db.from('translations').upsert({ lang: target, src_hash: key, src_text: text, translated_text: translated }, { onConflict: 'lang,src_hash' });
   } catch {}
   return translated;
 }
