@@ -32,6 +32,13 @@ function sha256(s: string) {
 export async function translate(text: string, targetLocale: string): Promise<string> {
   const target = (targetLocale || 'en').split('-')[0].toLowerCase();
   if (!text || target === 'en') return text;
+  // AUTHORIZED LOCALES ONLY (founder, 2026-07-16): only Swedish was green-lit as the first
+  // translation test. fr/de/es/it/pt were translated WITHOUT authorization (~29k Opus calls); every
+  // unauthorized locale AND any non-locale target from bot-scanner probes (.env, xmlrpc.php, random
+  // .php) now return the English source with NO API call. This stops the Opus bleed. Add a locale
+  // here ONLY when the founder authorizes it (native-quality verified).
+  const AUTHORIZED_LOCALES = new Set(['sv']);
+  if (!AUTHORIZED_LOCALES.has(target)) return text;
   // KILL SWITCH (founder, 2026-07-14): machine translation quality was rejected by a native
   // speaker ("absolutely bad Swedish"). Serve the SOURCE (English) on every locale until a
   // native-quality path ships (native-written templates + a review pass). The wiring stays
