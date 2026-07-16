@@ -5,6 +5,7 @@
 // shown as 8.8 that actually scores 6.9). blogPicks.json remains the EDITORIAL source (which
 // hotels, why-texts, images); the score column of record is cosy_scores, read at render time.
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getDelistedSlugSet } from "@/lib/delisted";
 
 /** Shape of one stored pick entry in blogPicks.json (the blog page's card model). */
 export type PickEntry = { slug: string; name: string; city: string; country: string; score: number; why: string; img: string | null; cta: string };
@@ -52,6 +53,9 @@ export async function liveScoresBySlug(slugs: string[]): Promise<Record<string, 
 
 /** Convenience: picks with live scores applied, or the stored picks untouched if the lookup failed. */
 export async function picksWithLiveScores(picks: PickEntry[]): Promise<PickEntry[]> {
-  const live = await liveScoresBySlug(picks.map((p) => p.slug));
-  return live ? applyLiveScores(picks, live) : picks;
+  const db = getServerSupabase();
+  const delisted = await getDelistedSlugSet(db);
+  const kept = picks.filter((p) => !delisted.has(p.slug)); // takedown excludes blog listicles too
+  const live = await liveScoresBySlug(kept.map((p) => p.slug));
+  return live ? applyLiveScores(kept, live) : kept;
 }

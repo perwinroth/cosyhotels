@@ -5,6 +5,7 @@
 // predicate (cityMembers) — the page fetches its rows via ilike, the sitemap filters an in-memory
 // scan — so their counts can never disagree, and neither needs a per-city round-trip.
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getDelistedSlugSet, isDelistedSync } from "@/lib/delisted";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { EXONYMS } from "@/lib/exonyms";
 import { cityFromSlug, cityToSlug } from "@/lib/citySlug";
@@ -81,6 +82,7 @@ export function cityMembers(cityName: string, rows: ScoreHotelRow[]): CityCosyHo
   for (const r of rows) {
     const h = r.hotel;
     if (!h || !r.hotel_id) continue;
+    if (isDelistedSync(h.slug)) continue; // takedown (owner request) excludes listing surfaces too
     if (!foldCity(h.city || "").includes(needle)) continue;
     const name = String(h.name_en || h.name || "").trim();
     if (!name || !isLatin(name) || seen.has(name)) continue;
@@ -106,6 +108,7 @@ export async function loadCityCosyHotels(citySlug: string): Promise<{ cityName: 
   // Accent-insensitive city match via the cosy_city_hotels RPC (Postgres unaccent) + exonym alias,
   // so hotels stored with diacritics ("Málaga", "Montréal", "Brașov") or a local name ("Luzern" for
   // Lucerne) are found. Plain ilike is accent-SENSITIVE, so those cities' pages used to 404.
+  await getDelistedSlugSet(db); // warm the delisted cache for cityMembers' sync check
   const { data, error } = await db.rpc("cosy_city_hotels", { q: aliasCity(cityName) });
   if (error) return null;
   const rows: ScoreHotelRow[] = ((data || []) as Array<Record<string, unknown>>).map((r) => ({
