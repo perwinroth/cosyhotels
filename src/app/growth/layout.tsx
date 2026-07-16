@@ -12,10 +12,11 @@ export const metadata: Metadata = { title: "Growth", robots: { index: false, fol
 
 export default async function GrowthLayout({ children }: { children: React.ReactNode }) {
   const db = getServerSupabase();
-  const counts = db ? await getBoardCounts(db) : { pr: 0, badges: 0, reddit: 0, blog: 0 };
+  const counts = db ? await getBoardCounts(db) : { pr: 0, badges: 0, reddit: 0, blog: 0, verify: 0 };
 
   const boards: NavItem[] = [
     { href: "/growth", label: "Today" },
+    { href: "/growth/verify", label: "Link verification", count: counts.verify },
     { href: "/growth/pr", label: "PR outreach", count: counts.pr },
     { href: "/growth/data-brief", label: "Data brief" },
     { href: "/growth/journo", label: "Journo queries" },

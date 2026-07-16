@@ -17,6 +17,7 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getAccessToken, wasDeliveredTo, gotReplyFrom, GmailScopeError } from "@/lib/gmail";
+import { fetchVerifiedHotelIds } from "@/lib/verificationGate";
 import { PR_ACTIONS } from "@/data/prActions";
 import { DELISTED_SLUGS } from "@/lib/delisted";
 
@@ -72,6 +73,19 @@ export async function GET(req: Request) {
     await alertFailure("Supabase not configured", dry);
     return NextResponse.json({ from: "outreach-sync", ok: false, error: "Supabase not configured" }, { status: 500 });
   }
+
+  // Founder eyeball-verification gate (2026-07-16): a hotel may only be advanced by this cron once
+  // a human has confirmed its stored website via /growth/verify (hotel_verifications.founder_status
+  // = 'verified'). FAIL-CLOSED: if the check itself fails (table missing, query error), process
+  // NOTHING and alert loudly. This must never silently fall back to "couldn't check, so advance
+  // everything". This is deliberate: the founder demands only-verified outreach.
+  const verifyGate = await fetchVerifiedHotelIds(db);
+  if (!verifyGate.ok) {
+    const error = `Founder verification gate unavailable (${verifyGate.error || "unknown error"}). Refusing to advance ANY hotel. Run sql/hotel-verifications.sql then scripts/import-link-verdicts.mjs --execute.`;
+    await alertFailure(error, dry);
+    return NextResponse.json({ from: "outreach-sync", ok: false, error }, { status: 500 });
+  }
+  const verifiedHotelIds = verifyGate.ids;
 
   // Refresh the Gmail access token up front. A missing-env or insufficient-scope failure returns a
   // graceful 200 so a broken/unconfigured token never crashes the cron (and Per sees the fix hint).
@@ -142,8 +156,11 @@ export async function GET(req: Request) {
     }
   }
 
-  // Only rows whose hotel has an email (and isn't delisted) are actionable; cap the batch for quota/time.
-  const actionable = outreach.filter((r) => emailByHotel.has(r.hotel_id) && !delistedHotelIds.has(r.hotel_id));
+  // Only rows whose hotel has an email, isn't delisted, AND has passed founder eyeball-verification
+  // are actionable; cap the batch for quota/time.
+  const actionable = outreach.filter(
+    (r) => emailByHotel.has(r.hotel_id) && !delistedHotelIds.has(r.hotel_id) && verifiedHotelIds.has(r.hotel_id),
+  );
   const capped = actionable.length > MAX_ROWS_PER_RUN;
   const batch = actionable.slice(0, MAX_ROWS_PER_RUN);
 
