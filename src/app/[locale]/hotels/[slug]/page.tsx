@@ -22,7 +22,7 @@ import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/compone
 import TravellerFit from "@/components/TravellerFit";
 import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
 import { loadCityCosyHotels, loadConceptAssignments, conceptMembers } from "@/lib/seo/cityHotels";
-import { isDelisted, isValidWebsiteUrl } from "@/lib/delisted";
+import { isDelisted, isValidWebsiteUrl, getDelistedSlugSet } from "@/lib/delisted";
 import { translate } from "@/lib/i18n/translate";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
@@ -190,7 +190,8 @@ export default async function HotelDetail({ params }: Props) {
       .order("score", { ascending: false })
       .limit(40);
     type Peer = { hotel_id: string; score: number | null; score_final: number | null; signals: string[] | null; description: string | null; hotel: { slug: string; name: string; name_en: string | null } | null };
-    const rows = (peers || []) as unknown as Peer[];
+    const delistedPeers = await getDelistedSlugSet(db);
+    const rows = ((peers || []) as unknown as Peer[]).filter((r) => !delistedPeers.has(String(r.hotel?.slug))); // takedown excludes the same-city peer list
     // Fetched in raw-`score` order, but the peer card shows `score_final ?? score` (±0.2 apart), so
     // sort by the DISPLAYED score before slicing so the 6 shown are the 6 cosiest, in order.
     rows.sort((a, b) => Number((b.score_final ?? b.score) || 0) - Number((a.score_final ?? a.score) || 0));

@@ -17,6 +17,7 @@ import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { translate } from "@/lib/i18n/translate";
 import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import { getDelistedSlugSet } from "@/lib/delisted";
 
 export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
@@ -62,6 +63,7 @@ const loadHotels = cache(async (): Promise<Hotel[]> => {
   if (!db) return [];
   const groupBySlug = new Map(CURATED.map((c) => [c.slug, c.group]));
   const slugs = [...groupBySlug.keys()];
+  const delisted = await getDelistedSlugSet(db);
   const bySlug = new Map<string, HotelRow>();
   for (let i = 0; i < slugs.length; i += 100) {
     const { data } = await db
@@ -74,6 +76,7 @@ const loadHotels = cache(async (): Promise<Hotel[]> => {
   for (const c of CURATED) {
     const r = bySlug.get(c.slug);
     if (!r) continue;
+    if (delisted.has(c.slug)) continue; // takedown excludes listing surfaces
     const cs = Array.isArray(r.cosy_scores) ? r.cosy_scores[0] : r.cosy_scores;
     if (!cs) continue;
     const score = typeof cs.score_final === "number" ? cs.score_final : typeof cs.score === "number" ? cs.score : null;

@@ -14,6 +14,7 @@ import { FACETS, matchesFacet } from "@/lib/facets";
 import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked } from "@/lib/travellerFit";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { liveCosyCountForCityName, aliasCity } from "@/lib/seo/cityHotels";
+import { getDelistedSlugSet } from "@/lib/delisted";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
@@ -240,6 +241,7 @@ export default async function GuidePage({ params }: Props) {
     }
   } catch { /* RPC failure is non-fatal — the ilike/bbox pool still renders */ }
   const bad = await badLinkHotelIds(db);
+  const delisted = await getDelistedSlugSet(db);
   const ids = hotels.map((h) => String(h.id));
   const scoreMap = new Map<string, number>();
   const signalsMap = new Map<string, string[]>();
@@ -276,6 +278,7 @@ export default async function GuidePage({ params }: Props) {
   const seenId = new Set<string>();
   const scored = hotels.filter((h) => {
     if (bad.has(String(h.id))) return false;
+    if (delisted.has(String(h.slug))) return false; // takedown excludes listing surfaces
     if (seenId.has(String(h.id))) return false;
     seenId.add(String(h.id));
     // TRUST: drop hotels whose named city differs from this guide's city (e.g. an Oxford

@@ -11,10 +11,12 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { tierForScore, roundPctUp } from "@/lib/badgePitch";
 import { pitchExcerpt } from "@/lib/badgePitch";
 import { displayCity } from "@/lib/placeText";
+import { isDelisted } from "@/lib/delisted";
 import BadgeEmbed from "@/components/BadgeEmbed";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +64,7 @@ export default async function AssetPackPage({ params }: { params: Promise<{ loca
   const { slug } = await params;
   const db = getServerSupabase();
   if (!db) return <PitchOnly />;
+  if (await isDelisted(slug, db)) notFound(); // takedown: no asset pack for a delisted hotel
 
   const { data: hotel } = await db.from("hotels").select("id, slug, name, name_en, city").eq("slug", slug).maybeSingle();
   if (!hotel) return <PitchOnly />;
