@@ -11,6 +11,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { displayCity, displayCountry } from "@/lib/placeText";
 import { isValidWebsiteUrl } from "@/lib/delisted";
+import { stay22AllezUrl } from "@/lib/affiliates";
 
 type DbLike = Pick<SupabaseClient, "from">;
 
@@ -50,6 +51,7 @@ export type VerifyRow = {
   score: number | null;
   hotelHref: string;
   website: string | null;
+  stay22: string; // the LIVE Check-availability destination for founder eyeball checks
   autoVerdict: string | null;
   autoConfidence: number | null;
   autoEvidence: string | null;
@@ -120,11 +122,11 @@ export async function getVerificationPage(db: DbLike, filters: VerifyFilters, pa
   if (!pageIds.length) return { rows: [], total };
 
   type VRow = { hotel_id: string; slug: string | null; auto_verdict: string | null; auto_confidence: number | null; auto_evidence: string | null; founder_status: string };
-  type HRow = { id: string; slug: string; name: string; name_en: string | null; city: string | null; country: string | null; website: string | null };
+  type HRow = { id: string; slug: string; name: string; name_en: string | null; city: string | null; country: string | null; website: string | null; lat: number | null; lng: number | null };
   type SRow = { hotel_id: string; score: number | null; score_final: number | null };
   const [{ data: vData }, { data: hData }, { data: sData }] = await Promise.all([
     db.from("hotel_verifications").select("hotel_id, slug, auto_verdict, auto_confidence, auto_evidence, founder_status").in("hotel_id", pageIds),
-    db.from("hotels").select("id, slug, name, name_en, city, country, website").in("id", pageIds),
+    db.from("hotels").select("id, slug, name, name_en, city, country, website, lat, lng").in("id", pageIds),
     db.from("cosy_scores").select("hotel_id, score, score_final").in("hotel_id", pageIds),
   ]);
   const vById = new Map(((vData || []) as VRow[]).map((r) => [String(r.hotel_id), r]));
@@ -145,6 +147,7 @@ export async function getVerificationPage(db: DbLike, filters: VerifyFilters, pa
       score: s ? Number((s.score_final ?? s.score) || 0) : null,
       hotelHref: slug ? `${base}/en/hotels/${slug}` : "",
       website,
+      stay22: stay22AllezUrl({ name: String(h?.name_en || h?.name || ""), city: h?.city, country: h?.country, lat: h?.lat, lng: h?.lng, campaign: "verify-board" }),
       autoVerdict: v?.auto_verdict ?? p.autoVerdict,
       autoConfidence: v?.auto_confidence ?? null,
       autoEvidence: v?.auto_evidence ?? null,

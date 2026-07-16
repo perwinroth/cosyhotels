@@ -106,6 +106,7 @@ function Row({ row, onDecide }: { row: VerifyRow; onDecide: (hotelId: string, de
             {row.hotelHref && (
               <a href={row.hotelHref} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "var(--ember-ink)", fontWeight: 600 }}>Our page ↗</a>
             )}
+            <a href={row.stay22} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "var(--ember-ink)", fontWeight: 600 }}>Check availability ↗</a>
             {row.website ? (
               <a href={row.website} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "var(--ember-ink)", fontWeight: 600 }}>Stored website ↗</a>
             ) : (
