@@ -192,7 +192,7 @@ export function mkCount(db: DB) {
 // by name or filter to contactable hotels the way /growth/badges does, so it slightly over-counts.
 export async function getBoardCounts(db: DB) {
   const c = mkCount(db);
-  const [pr, hi, worked, reddit, schedule] = await Promise.all([
+  const [pr, hi, worked, reddit, schedule, verify] = await Promise.all([
     c("outreach", (q) => q.eq("status", "queued")),
     c("cosy_scores", (q) => q.gte("score", 7)),
     c("hotel_outreach", (q) => q.neq("status", "queued")),
@@ -201,9 +201,12 @@ export async function getBoardCounts(db: DB) {
     // to "draft" with no blog_schedule row, so a table-only count under-reports drafts. Count the
     // same set the board shows: everything not yet live (draft + scheduled).
     getScheduleForPanel().catch(() => []),
+    // Founder eyeball-verification (2026-07-16): hotels still needing a human look before outreach
+    // can touch them. mkCount fails soft to 0 pre-migration (hotel_verifications not created yet).
+    c("hotel_verifications", (q) => q.eq("founder_status", "pending")),
   ]);
   const blog = schedule.filter((s) => s.status !== "live").length;
-  return { pr, badges: Math.max(0, hi - worked), reddit, blog };
+  return { pr, badges: Math.max(0, hi - worked), reddit, blog, verify };
 }
 
 export type Funnel = {

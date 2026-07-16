@@ -50,6 +50,11 @@ export function isDelistedHotel(hotel) {
   return !!hotel.delisted_at;
 }
 
+// Founder eyeball-verification gate (2026-07-16): shared fail-closed fetch of every hotel_id with
+// founder_status='verified', re-exported here so scripts/seed-email-outreach.mjs (which already
+// imports from this module) gets it for free without a second import line.
+export { fetchVerifiedHotelIds } from "./verification-gate.mjs";
+
 // "top {pct}%" for one hotel: share of scored hotels at-or-above its score_final, rounded UP
 // (mirrors roundPctUp in src/lib/badgePitch.ts — the claim may only ever understate).
 // sortedAsc: ALL score_final values, ascending. Binary search for the first index >= score.
@@ -93,6 +98,22 @@ async function main() {
   }
   const EXECUTE = process.argv.includes("--execute");
   const headers = { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json" };
+
+  // Founder eyeball-verification gate (2026-07-16): only hotels a human has confirmed via
+  // /growth/verify may be seeded into outreach. FAIL-CLOSED: if the gate itself is unavailable
+  // (hotel_verifications missing/erroring), treat it as ZERO verified hotels and refuse to write
+  // anything. Never fall back to "couldn't check, so seed everyone".
+  const verifyGate = await fetchVerifiedHotelIds(url, headers);
+  if (!verifyGate.ok) {
+    console.error("═".repeat(72));
+    console.error("✗ FAIL-CLOSED: founder verification gate unavailable. hotel_verifications is");
+    console.error("  missing or errored. Refusing to seed ANY hotel (deliberate: the founder demands");
+    console.error("  only-verified outreach). Run sql/hotel-verifications.sql, then");
+    console.error("  node --env-file=.env.local scripts/import-link-verdicts.mjs --execute, then retry.");
+    console.error("═".repeat(72));
+    if (EXECUTE) process.exit(1);
+  }
+  const verifiedIds = verifyGate.ids;
 
   // Paged GET against PostgREST. Uses Range headers so we never silently truncate at 1000.
   async function fetchAll(pathAndQuery) {
@@ -152,6 +173,7 @@ async function main() {
   let excludedControl = 0;
   let excludedAlready = 0;
   let excludedDelisted = 0;
+  let excludedUnverified = 0;
   const rows = [];
   for (const c of candidates) {
     const h = c.hotel;
@@ -159,6 +181,10 @@ async function main() {
     if (isDelistedHotel(h)) { excludedDelisted++; continue; }
     if (isIgControlCity(h.city)) { excludedControl++; continue; }
     if (already.has(String(c.hotel_id))) { excludedAlready++; continue; }
+    // Founder eyeball-verification gate (2026-07-16): never seed a hotel that hasn't been human-
+    // confirmed at /growth/verify. verifiedIds is EMPTY (never "everyone") when the gate itself
+    // failed above.
+    if (!verifiedIds.has(String(c.hotel_id))) { excludedUnverified++; continue; }
     const scoreFinal = Number(c.score_final);
     rows.push({
       hotel_id: String(c.hotel_id),
@@ -174,6 +200,7 @@ async function main() {
   console.log(`excluded — delisted (takedown Set/delisted_at): ${excludedDelisted}`);
   console.log(`excluded — control market (${IG_CONTROL_CITIES.join("/")}, exact match): ${excludedControl}`);
   console.log(`excluded — already in hotel_outreach (any channel/status): ${excludedAlready}`);
+  console.log(`excluded: not founder-verified yet (/growth/verify): ${excludedUnverified}`);
   console.log(`to insert: ${rows.length}`);
   if (rows.length) console.log(`sample row: ${JSON.stringify(rows[0])}`);
 
