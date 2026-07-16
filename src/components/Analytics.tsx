@@ -1,6 +1,7 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { hasAnalyticsConsent, onConsentChange } from "@/lib/consent";
 
 type GtagFn = (command: string, target: string, params?: Record<string, unknown>) => void;
 declare global {
@@ -10,8 +11,10 @@ declare global {
   }
 }
 
-// Stable anonymous first-party id for unique-visitor counts (no PII).
+// Stable anonymous first-party id for unique-visitor counts (no PII). Non-essential: gated on
+// consent so no gc_vid is ever written before the visitor opts in.
 function visitorId(): string {
+  if (!hasAnalyticsConsent()) return "";
   try {
     let v = localStorage.getItem("gc_vid");
     if (!v) { v = crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2); localStorage.setItem("gc_vid", v); }
@@ -21,7 +24,9 @@ function visitorId(): string {
 
 // Capture the ENTRY source once per session (utm_source, else referrer) and reuse it for every
 // event — so a Pinterest visitor who clicks through 3 pages still attributes to pinterest.
+// Non-essential: gated on consent so no gc_src sessionStorage write happens before opt-in.
 function sessionSource(): { source: string | null; medium: string | null; campaign: string | null } {
+  if (!hasAnalyticsConsent()) return { source: null, medium: null, campaign: null };
   try {
     const saved = sessionStorage.getItem("gc_src");
     if (saved) return JSON.parse(saved);
@@ -34,6 +39,7 @@ function sessionSource(): { source: string | null; medium: string | null; campai
 }
 
 function track(payload: Record<string, unknown>) {
+  if (!hasAnalyticsConsent()) return;
   try {
     const body = JSON.stringify(payload);
     if (navigator.sendBeacon) { navigator.sendBeacon("/api/track", new Blob([body], { type: "application/json" })); return; }
@@ -44,12 +50,22 @@ function track(payload: Record<string, unknown>) {
 export default function Analytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // Tracks consent so every effect below re-runs (and starts tracking, with no reload) the
+  // moment the visitor accepts, and stops re-running once they reject.
+  const [consented, setConsented] = useState(false);
+
+  useEffect(() => {
+    setConsented(hasAnalyticsConsent());
+    return onConsentChange(() => setConsented(hasAnalyticsConsent()));
+  }, []);
 
   // Outreach-visit counter (pre-registered v3 outcome): a landing with utm_source=outreach is
   // logged ONCE per session to /api/track/outreach → outreach_visits, because GSC can't see
   // email-driven visits and Vercel log retention is 1h. Guard set before the POST so a StrictMode
-  // double-mount can't double-count. Fire-and-forget; must never break the page.
+  // double-mount can't double-count. Fire-and-forget; must never break the page. Non-essential:
+  // skipped entirely (no sessionStorage touch, no beacon) until consent is accepted.
   useEffect(() => {
+    if (!consented) return;
     try {
       if (sessionStorage.getItem("outreach-tracked")) return;
       const sp = new URLSearchParams(window.location.search);
@@ -64,20 +80,24 @@ export default function Analytics() {
       if (navigator.sendBeacon) navigator.sendBeacon("/api/track/outreach", new Blob([body], { type: "application/json" }));
       else fetch("/api/track/outreach", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true });
     } catch { /* analytics must never break the page */ }
-  }, []);
+  }, [consented]);
 
-  // Pageview → GA (existing) + first-party log.
+  // Pageview → GA (existing) + first-party log. Re-runs when consent flips to accepted, so
+  // tracking starts immediately without a page reload.
   useEffect(() => {
+    if (!consented) return;
     const gaId = (typeof window !== "undefined" && window.GA_MEASUREMENT_ID) || process.env.NEXT_PUBLIC_GA_ID;
     if (gaId && typeof window !== "undefined" && window.gtag) {
       window.gtag("config", gaId, { page_path: pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "") });
     }
     track({ type: "pageview", path: pathname, ...sessionSource(), visitor: visitorId(), referrer: typeof document !== "undefined" ? document.referrer : null });
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, consented]);
 
-  // CTA click → GA + Vercel Analytics (existing) + first-party log.
+  // CTA click → GA + Vercel Analytics (existing) + first-party log. Consent is re-checked live on
+  // every click (not just at mount), so a click right after Accept is tracked without a reload.
   useEffect(() => {
     function onClick(e: MouseEvent) {
+      if (!hasAnalyticsConsent()) return;
       const el = (e.target as HTMLElement)?.closest?.("[data-cta]") as HTMLElement | null;
       if (!el) return;
       const cta = el.getAttribute("data-cta") || "cta";

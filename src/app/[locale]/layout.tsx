@@ -6,6 +6,8 @@ import { locales } from "@/i18n/locales";
 import "../globals.css";
 import Analytics from "@/components/Analytics";
 import SiteHeader from "@/components/SiteHeader";
+import CookieConsent from "@/components/CookieConsent";
+import { translate } from "@/lib/i18n/translate";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -46,6 +48,16 @@ export default async function LocaleLayout({
   // /xx/hotels/…) rendered a real 200 page, self-canonical to the junk URL — a canonical-confusion
   // factory in Google Search Console. Only the 6 known locales render; everything else 404s.
   if (!(locales as readonly string[]).includes(locale)) notFound();
+  // Cookie-consent banner copy, translated per the site's standard pattern. Rendered once here so
+  // every /[locale]/* page gets it; the root "/" homepage (which bypasses this layout) renders its
+  // own English-only copy of the same banner in src/app/page.tsx instead.
+  const t = (s: string) => (locale === "en" ? Promise.resolve(s) : translate(s, locale));
+  const [consentMessage, consentAccept, consentReject, consentPrivacy] = await Promise.all([
+    t("We use cookies for analytics and affiliate links. You choose."),
+    t("Accept"),
+    t("Reject"),
+    t("Privacy policy"),
+  ]);
   // NB: do NOT render <html>/<body> here — the ROOT layout (src/app/layout.tsx) owns them, along
   // with data-theme="light" and the no-flash script. A second <html> in this nested layout dropped
   // the theme attribute on client navigation (logo click flipped the site to dark). This is a
@@ -61,6 +73,9 @@ export default async function LocaleLayout({
       <Suspense fallback={null}>
         <Analytics />
       </Suspense>
+      <CookieConsent
+        labels={{ message: consentMessage, accept: consentAccept, reject: consentReject, privacy: consentPrivacy }}
+      />
     </>
   );
 }

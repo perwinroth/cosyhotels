@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Home from "./[locale]/page";
 import SiteHeader from "@/components/SiteHeader";
+import CookieConsent from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
   alternates: {
@@ -24,6 +25,17 @@ export default function RootHome() {
     <>
       <SiteHeader locale="en" />
       <main><Home params={{ locale: 'en' }} /></main>
+      {/* English source copy, no translate() needed on the root (English) homepage. The
+          [locale] layout renders the same banner (translated) for every /[locale]/* page; the
+          gc_consent cookie makes it show at most once regardless of which one rendered it. */}
+      <CookieConsent
+        labels={{
+          message: "We use cookies for analytics and affiliate links. You choose.",
+          accept: "Accept",
+          reject: "Reject",
+          privacy: "Privacy policy",
+        }}
+      />
     </>
   );
 }
