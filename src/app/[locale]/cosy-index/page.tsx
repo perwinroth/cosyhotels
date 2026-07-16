@@ -6,6 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { cityToSlug } from "@/lib/citySlug";
 import { getDelistedSlugSet } from "@/lib/delisted";
+import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
 
 export const revalidate = 3600;
 
@@ -47,7 +48,17 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
     const ci = displayCity(r.hotel?.city || "");
     if (ci) cityCount[ci] = (cityCount[ci] || 0) + 1;
   }
-  const cosiestCities = Object.entries(cityCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  // Pull a wider candidate pool than the 8 shown, then verify each through guideCityHasLivePick,
+  // the guide page's OWN pick-determination, before linking it. `displayCity()` cleans obvious
+  // postcode noise, but `cityCount` is keyed on hotels that individually clear INDEX_MIN (7.0), not
+  // on whether the guide page's stricter exact-match TRUST filter accepts THAT hotel's raw city
+  // value; a hotel driving a city's count here can still be the only one the guide rejects
+  // (2026-07-16 link audit, see guidePicks.ts). Never link an unverified city.
+  const cosiestCityCandidates = Object.entries(cityCount).sort((a, b) => b[1] - a[1]).slice(0, 24);
+  const cosiestCityChecks = await Promise.all(
+    cosiestCityCandidates.map(async ([city, n]) => ((await guideCityHasLivePick(db, city)) ? ([city, n] as [string, number]) : null)),
+  );
+  const cosiestCities = cosiestCityChecks.filter((c): c is [string, number] => c != null).slice(0, 8);
 
   const { data } = await db
     .from("cosy_scores")
@@ -83,6 +94,14 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
     }
   }
   const list = picked.filter((p) => photo.has(p.id)).slice(0, 50);
+
+  // Verify each distinct city named in the list before linking its guide (same reasoning as
+  // cosiestCities above): a plain hotel-city string is exactly as likely to carry OSM postcode
+  // noise as the aggregated ones. Deduped so one DB round-trip per unique city, not per hotel.
+  const listCityNames = Array.from(new Set(list.map((p) => p.city).filter(Boolean)));
+  const listCityLive = new Map<string, boolean>(
+    await Promise.all(listCityNames.map(async (city): Promise<[string, boolean]> => [city, await guideCityHasLivePick(db, city)])),
+  );
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
   const jsonLd = {
@@ -153,7 +172,7 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
               <div className="flex-shrink-0 flex flex-col items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyColor(p.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 21, fontWeight: 600 }}>{p.score.toFixed(1)}</div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${p.slug}`} className="hover:underline">{p.name}</a></h2>
-                {(p.city || p.country) && <div className="text-sm" style={{ color: "var(--muted)" }}>{p.city && <a href={`/${params.locale}/guides/${cityToSlug(p.city)}`} className="hover:underline">{p.city}</a>}{p.city && p.country ? ", " : ""}{p.country}</div>}
+                {(p.city || p.country) && <div className="text-sm" style={{ color: "var(--muted)" }}>{p.city && (listCityLive.get(p.city) ? <a href={`/${params.locale}/guides/${cityToSlug(p.city)}`} className="hover:underline">{p.city}</a> : <span>{p.city}</span>)}{p.city && p.country ? ", " : ""}{p.country}</div>}
               </div>
               {photo.get(p.id) && (
                 <a href={`/${params.locale}/hotels/${p.slug}`} className="flex-shrink-0 hidden sm:block">

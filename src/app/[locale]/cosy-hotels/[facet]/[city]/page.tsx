@@ -17,6 +17,7 @@ import {
   loadCityCosyHotels, resolveCity, loadConceptAssignments,
   conceptMembers, orderConceptMembers, conceptLabelPhrase,
 } from "@/lib/seo/cityHotels";
+import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
 
 export const revalidate = 3600;
 
@@ -81,6 +82,10 @@ export default async function FacetPage({ params }: { params: { locale: string; 
   const intro = isEn ? introEn : await translate(introEn, params.locale);
   const snippets = isEn ? hotels.map((h) => h.snippet) : await translateMany(hotels.map((h) => h.snippet || ""), params.locale);
   const saveLabels = await buildSaveLabels(params.locale);
+  // The city guide's TRUST filter is a stricter exact-match than this facet page's own
+  // `loadCityCosyHotels` (substring match), so this page rendering does NOT guarantee the guide
+  // renders (2026-07-16 link audit). Verify before linking it.
+  const cityGuideLive = await guideCityHasLivePick(db, cityName);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
   const jsonLd = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${phrase} in ${cityName}`, numberOfItems: hotels.length,
@@ -112,7 +117,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
           );
         })}
       </ol>
-      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>See all <a href={`/${params.locale}/guides/${cityToSlug(cityName)}`} className="underline">cosy hotels in {cityName}</a>, or cosy hotels {phrase} <a href={`/${params.locale}/cosy-hotels/${concept.slug}`} className="underline">worldwide</a>.</p>
+      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>{cityGuideLive ? <>See all <a href={`/${params.locale}/guides/${cityToSlug(cityName)}`} className="underline">cosy hotels in {cityName}</a>, or cosy hotels {phrase} </> : <>See cosy hotels {phrase} </>}<a href={`/${params.locale}/cosy-hotels/${concept.slug}`} className="underline">worldwide</a>.</p>
     </div>
   );
 }

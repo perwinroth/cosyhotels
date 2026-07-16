@@ -3,8 +3,6 @@ import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { CITY_TITLE, CITY_INTRO_LEAD, CITY_EXTRA_FAQS } from "@/data/discoveryOverrides";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { badLinkHotelIds } from "@/lib/linkQuality";
-import { sameHotel } from "@/lib/hotelIdentity";
 import ShareButton from "@/components/ShareButton";
 import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
@@ -13,17 +11,15 @@ import { populatedCities } from "@/lib/social";
 import { FACETS, matchesFacet } from "@/lib/facets";
 import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked } from "@/lib/travellerFit";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
-import { liveCosyCountForCityName, aliasCity } from "@/lib/seo/cityHotels";
-import { getDelistedSlugSet } from "@/lib/delisted";
+import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
+import { computeGuidePicks, guideCityHasLivePick, COSY_FLOOR } from "@/lib/seo/guidePicks";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate } from "@/lib/i18n/translate";
-import { bboxFor } from "@/data/cityCoords";
-import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
-import { cityExonymVariants } from "@/lib/exonyms";
+import { displayCity, displayCountry } from "@/lib/placeText";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 
@@ -148,189 +144,15 @@ export default async function GuidePage({ params }: Props) {
   }
   const cityName = String((cg as { city: string }).city);
 
-  // Source guide hotels from Supabase with robust city matching and diversity
+  // Source guide hotels from Supabase with robust city matching and diversity. The fetch/rank/gate
+  // logic lives in the shared computeGuidePicks (src/lib/seo/guidePicks.ts), extracted so any link
+  // generator can verify "does this guide exist" with the IDENTICAL predicate this page renders
+  // with (2026-07-16 internal-link audit: 12 guide links pointed at cities whose raw `hotels.city`
+  // value didn't survive this page's exact-match TRUST filter, e.g. postcode-suffixed or
+  // differently-punctuated OSM city strings; see guidePicks.ts's module comment).
   const db = getServerSupabase();
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
-  type HB = { id: string; slug: string; name: string; name_en?: string | null; city: string | null; country: string | null; rating: number | null; address?: string | null; reviews_count?: number | null; source?: string | null; source_id?: string | null; lat?: number | null; lng?: number | null };
-  type CS = { hotel_id: string; score: number | null; score_final: number | null };
-  // Build robust variants for the city (handles common local names)
-  const base = cityName.trim();
-  const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-  const vset = new Set<string>([base]);
-  // The slug→city fallback prettifies "aix-en-provence" to "Aix En Provence" (spaces), but
-  // hotels store "Aix-en-Provence" (hyphens), so `city.ilike.%Aix En Provence%` matches nothing
-  // and the page falsely shows "still scoring". Add hyphen/space variants (ilike is
-  // case-insensitive) so the hyphenated stored value matches. Fixes every multi-word city not
-  // in the cities data file.
-  vset.add(base.replace(/\s+/g, '-'));
-  vset.add(base.replace(/-/g, ' '));
-  const localSynonyms: Record<string, string[]> = {
-    'New York': ['New York City','NYC','Manhattan'],
-    'New York City': ['New York','NYC','Manhattan'],
-    'San Francisco': ['San Fransisco','Bay Area'],
-    'Prague': ['Praha'],
-    'Florence': ['Firenze'],
-    'Venice': ['Venezia'],
-    'Copenhagen': ['København'],
-    'Reykjavik': ['Reykjavík'],
-    'Quebec City': ['Québec','Quebec'],
-    'Lucerne': ['Luzern'],
-    'Porto': ['Oporto'],
-    'Rome': ['Roma'],
-    'Milan': ['Milano'],
-    'Turin': ['Torino'],
-    'Naples': ['Napoli'],
-    'Genoa': ['Genova'],
-    'Cologne': ['Köln'],
-    'Munich': ['München'],
-    'Vienna': ['Wien'],
-    'Seville': ['Sevilla'],
-    'Brussels': ['Bruxelles','Brussel'],
-    'Bruges': ['Brugge'],
-    'Athens': ['Athína','Athina'],
-    'Kyoto': ['京都市','京都'],
-    'Tokyo': ['東京','Tōkyō'],
-  };
-  for (const alt of (localSynonyms[base] || [])) vset.add(alt);
-  // Merge the SHARED exonym spellings (src/lib/exonyms.ts) so an English/Swedish slug finds hotels
-  // stored under the local name — e.g. "goteborg" → "Gothenburg", "bruges" → "Brugge". One source of
-  // truth with placeText display + the cityHotels RPC alias, so the three never drift apart.
-  for (const v of cityExonymVariants(base)) vset.add(v);
-  // Query by city or address containing any variant
-  const orCity = Array.from(vset).map((v) => `city.ilike.%${v}%`).join(',');
-  const orAddr = Array.from(vset).map((v) => `address.ilike.%${v}%`).join(',');
-  const { data: hRows } = await db
-    .from('hotels')
-    .select('id,slug,name,name_en,city,country,rating,address,reviews_count,source,source_id,lat,lng')
-    .or(`${orCity},${orAddr}`)
-    .limit(800);
-  let hotels = ((hRows || []) as HB[]).filter(Boolean);
-  // If the text match pool is small, widen with a lat/lng bounding box around the city center
-  if (hotels.length < 100) {
-    const bb = bboxFor(cityName);
-    if (bb) {
-      const { data: geoRows } = await db
-        .from('hotels')
-        .select('id,slug,name,name_en,city,country,rating,address,reviews_count,source,source_id,lat,lng')
-        .gte('lat', bb.minLat)
-        .lte('lat', bb.maxLat)
-        .gte('lng', bb.minLng)
-        .lte('lng', bb.maxLng)
-        .limit(1200);
-      const geoHotels = ((geoRows || []) as HB[]).filter(Boolean);
-      hotels = [...hotels, ...geoHotels];
-    }
-  }
-  // Accent-insensitive top-up. The `city.ilike.%variant%` query above is accent-SENSITIVE (Postgres
-  // ilike doesn't fold diacritics), so guides for accented-name cities not in the cities data file
-  // (Cadaqués, Hà Nội, Mürren, …) matched nothing and 404'd despite having cosy hotels. The
-  // cosy_city_hotels RPC folds via Postgres unaccent, so it finds them. Merge its rows into the pool —
-  // purely ADDITIVE (a strict superset): the norm()-based city filter + dedup-by-id below keep only
-  // real matches and drop overlaps, so no guide that renders today can stop rendering.
-  try {
-    const { data: rpcRows } = await db.rpc('cosy_city_hotels', { q: aliasCity(cityName) });
-    for (const r of ((rpcRows || []) as Array<Record<string, unknown>>)) {
-      if (!r.hotel_id || !r.slug) continue;
-      hotels.push({
-        id: String(r.hotel_id), slug: String(r.slug), name: String(r.name || ''),
-        name_en: (r.name_en as string | null) ?? null, city: (r.city as string | null) ?? null,
-        country: (r.country as string | null) ?? null, rating: null, address: null,
-        reviews_count: null, source: null, source_id: null,
-        lat: (r.lat as number | null) ?? null, lng: (r.lng as number | null) ?? null,
-      });
-    }
-  } catch { /* RPC failure is non-fatal — the ilike/bbox pool still renders */ }
-  const bad = await badLinkHotelIds(db);
-  const delisted = await getDelistedSlugSet(db);
-  const ids = hotels.map((h) => String(h.id));
-  const scoreMap = new Map<string, number>();
-  const signalsMap = new Map<string, string[]>();
-  const descMap = new Map<string, string>();
-  // Chunk the .in() — a single query with hundreds of UUIDs makes a too-long URL that 400s,
-  // which silently dropped ALL scores for big cities (e.g. Edinburgh → empty "still scoring").
-  // Capture errors too: a real query failure must NOT masquerade as "still scoring".
-  let scoreQueryFailed = false;
-  for (let i = 0; i < ids.length; i += 150) {
-    const { data: sRows, error: sErr } = await db
-      .from('cosy_scores')
-      .select('hotel_id,score,score_final,signals,description')
-      .in('hotel_id', ids.slice(i, i + 150));
-    if (sErr) { scoreQueryFailed = true; console.error('cosy_scores query failed (chunk):', sErr.message); }
-    for (const r of ((sRows || []) as Array<CS & { signals: string[] | null; description: string | null }>)) {
-      const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
-      if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), Number(v));
-      if (r.hotel_id && Array.isArray(r.signals)) signalsMap.set(String(r.hotel_id), r.signals);
-      if (r.hotel_id && typeof r.description === 'string' && r.description.trim()) descMap.set(String(r.hotel_id), r.description.trim());
-    }
-  }
-  // Score and prioritize exact city matches, apply basic chain diversity to avoid duplicates
-  const chains = [
-    'marriott','hilton','hyatt','accor','radisson','kempinski','four seasons','ritz-carlton','intercontinental','sheraton','ibis','novotel','mercure','holiday inn','best western','wyndham','premier inn','travelodge',
-  ];
-  const brandOf = (name: string) => {
-    const hay = name.toLowerCase();
-    for (const c of chains) if (hay.includes(c)) return c; return 'independent';
-  };
-  const variants = Array.from(vset).map((v) => norm(v));
-  // Drop the SAME ROW if both the text-match and bbox queries returned it (dedup by row id — the
-  // correct, non-fuzzy way; same physical hotel under two DIFFERENT rows is handled below by the
-  // one canonical identity check, sameHotel()).
-  const seenId = new Set<string>();
-  const scored = hotels.filter((h) => {
-    if (bad.has(String(h.id))) return false;
-    if (delisted.has(String(h.slug))) return false; // takedown excludes listing surfaces
-    if (seenId.has(String(h.id))) return false;
-    seenId.add(String(h.id));
-    // TRUST: drop hotels whose named city differs from this guide's city (e.g. an Oxford
-    // hotel on a 'Sunderland' street matched by address/bbox). Keep no-city-field hotels.
-    const hc = norm(String(h.city || ''));
-    if (hc && !variants.includes(hc)) return false;
-    return true;
-  }).map((h) => {
-    const s = scoreMap.get(String(h.id)) ?? 0;
-    const city = norm(String(h.city || ''));
-    const addr = norm(String(h.address || ''));
-    const exact = variants.includes(city) ? 2 : 0;
-    const mention = variants.some((v) => addr.includes(v)) ? 1 : 0;
-    const tie = typeof h.reviews_count === 'number' ? Math.min(1, Number(h.reviews_count) / 1000) : 0;
-    // Cosiness LEADS the ranking. City confirmation is a GATE, not a re-ordering signal: a hotel
-    // confirmed in this city (its city field matches, or its address names the city) sorts on PURE
-    // cosy score, so genuinely-cosier hotels always sit above duller ones. Only a geo/bbox match
-    // with NO textual confirmation is demoted, so a mis-geocoded hotel can't top the list on score
-    // alone (the Istanbul 5.0-over-7.3 case). Previously `s + 0.75·exact + 0.25·mention` folded
-    // those boosts into the sort, which flipped cosier same-city hotels below duller ones whenever
-    // one lacked an address string (Stockholm: Lydmar 6.7 sank below two 6.6s) — scores out of order.
-    const confirmed = exact === 2 || mention === 1;
-    const rank = confirmed ? s : s - 1.0;
-    return { h, s, exact, mention, tie, rank, brand: brandOf(h.name) };
-  });
-  const sorted = scored
-    .sort((a, b) => (b.rank - a.rank) || (b.s - a.s) || (b.tie - a.tie));
-  // PUBLIC GATE (two-score model): the secret 0–100 Claude score lives in cosy_scores.score_100
-  // (never surfaced). Anything below 50/100 (= 5.0/10) is "hidden" — kept in the DB for later
-  // re-review/upgrade, but never shown. Survivors surface their public /10 score (5.0–10.0),
-  // cosiest first; the homepage/top-of-list naturally features the highest. Never pad with 0.0.
-  const COSY_FLOOR = 5.0; // = 50/100 public gate
-  // DEFENCE-IN-DEPTH SAME-PROPERTY COLLAPSE: the one-time geo merge cleans the catalogue and the
-  // ingest gate stops new dupes, but a borderline pair may still be pending review — so the render
-  // path keeps a final safety net. It uses the SINGLE canonical identity (sameHotel from
-  // @/lib/hotelIdentity) — NOT a bespoke copy — so there is exactly one definition of "same hotel".
-  const perBrand: Record<string, number> = {};
-  const seen = new Set<string>();
-  const picks: typeof sorted = [];
-  for (const x of sorted) {
-    if (x.s < COSY_FLOOR) continue;
-    if (!isLatin(String(x.h.name_en || x.h.name))) continue; // skip only if no Latin/romanized name yet
-    const key = String(x.h.slug);
-    if (seen.has(key)) continue;
-    if (picks.some((p) => sameHotel(p.h, x.h).same)) continue; // collapse same-property rows (one identity source)
-    const bc = perBrand[x.brand] || 0;
-    if (bc >= 2 && x.brand !== 'independent') continue;
-    seen.add(key);
-    perBrand[x.brand] = bc + 1;
-    picks.push(x);
-    if (picks.length >= 12) break;
-  }
+  const { sorted, picks, scoreQueryFailed, signalsMap, descMap } = await computeGuidePicks(db, cityName);
   const take = picks;
   // Render gate: a guide with at least ONE live cosy hotel is worth showing (1–2 stay noindex via the
   // metadata thin-gate below). Only a genuinely EMPTY city 404s — into the friendly not-found.tsx —
@@ -433,10 +255,21 @@ export default async function GuidePage({ params }: Props) {
   // (conceptCityBlocked: a NEW rising-intent facet's control-market city page does not exist.)
   const availableFacets = FACETS.filter((f) => !conceptCityBlocked(CONCEPT_BY_SLUG[f.slug], cityName) && chosen.filter((h) => matchesFacet(f, h._signals, h.snippet)).length >= cityCollectionMin(CONCEPT_BY_SLUG[f.slug]));
   // Internal linking: other cosy city guides (crawl depth + link equity + keeps users on site).
-  const otherCities = (await populatedCities(db))
+  // `populate_state.hotels_scored` counts every hotel the pipeline scored for that city, NOT how
+  // many clear the public 5.0 bar, and the city string there can carry the same OSM pollution the
+  // guide page's own TRUST filter rejects (2026-07-16 link audit). Verify each candidate through
+  // guideCityHasLivePick, the SAME predicate this page renders with, before linking it, so this
+  // list never points at a city whose guide 404s. Pull a wider candidate pool than the 18 shown
+  // since some will fail verification (mirrors the theme-hub city-link pattern in
+  // src/app/[locale]/cosy-hotels/[facet]/page.tsx).
+  const otherCityCandidates = (await populatedCities(db))
     .filter((c) => c.city.toLowerCase() !== cityName.toLowerCase())
     .sort((a, b) => b.hotels_scored - a.hotels_scored)
-    .slice(0, 18);
+    .slice(0, 40);
+  const otherCityChecks = await Promise.all(
+    otherCityCandidates.map(async (c) => ((await guideCityHasLivePick(db, c.city)) ? c : null)),
+  );
+  const otherCities = otherCityChecks.filter((c): c is NonNullable<typeof c> => c != null).slice(0, 18);
   const saveLabels = await buildSaveLabels(params.locale);
   const faqJsonLd = {
     '@context': 'https://schema.org',

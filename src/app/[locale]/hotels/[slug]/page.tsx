@@ -22,6 +22,7 @@ import { Breadcrumb, HotelGraph, type MiniHotel, type LinkItem } from "@/compone
 import TravellerFit from "@/components/TravellerFit";
 import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked, displayFits, type TravellerFitAssignment } from "@/lib/travellerFit";
 import { loadCityCosyHotels, loadConceptAssignments, conceptMembers } from "@/lib/seo/cityHotels";
+import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
 import { isDelisted, isValidWebsiteUrl, getDelistedSlugSet } from "@/lib/delisted";
 import { translate } from "@/lib/i18n/translate";
 
@@ -132,9 +133,17 @@ function hotelFaqs(o: { name: string; city: string; country: string; cosy: numbe
 }
 
 export default async function HotelDetail({ params }: Props) {
-  // Live OSM/Amadeus detail paths are retired — they served junk, scored per-visitor (cost),
-  // and broke consistency. Only persisted, pre-scored Supabase hotels are served now.
-  if (params.slug.startsWith('osm-') || params.slug.startsWith('am-')) return notFound();
+  // NB (2026-07-16 link audit): a blind `slug.startsWith('osm-'|'am-')` guard used to live here,
+  // added when the live per-visitor OSM/Amadeus lookup path was retired (f5292aa, 2026-06-18). At
+  // the time those prefixes were the SYNTHETIC id namespace for that ephemeral, never-persisted
+  // path ("am-<amadeusId>"). It was removed because it collided with real, persisted, scored
+  // hotels whose slug legitimately starts with "am-" (German "Am ..." names: Am Rathaus, Am
+  // Blumenhaus, Am Goldberg, ...); those hotels 404'd here while their generateMetadata (which
+  // never had the guard) still reported them indexable, and 3 of them were live in
+  // sitemap-hotels.xml, so Google was crawling a real, scored, sitemap-listed URL into a 404. The
+  // retired live-lookup CODE no longer exists on this page at all (verified: no other am-/osm-
+  // branch remains), so the guard was fully redundant with the plain "not found in `hotels`" path
+  // below: a truly-synthetic, never-persisted "am-<id>" slug still 404s there exactly as before.
   if (isMalformedSlug(params.slug)) return notFound();
 
   const db = getServerSupabase();
@@ -315,13 +324,14 @@ export default async function HotelDetail({ params }: Props) {
     ...(amenityFeature.length ? { amenityFeature } : {}),
     url: `${site.url}/${params.locale}/hotels/${hotel.slug}`,
   };
-  // The city guide 404s at 0 live cosy picks. This hotel may be unrated / in a thin city (or its
-  // only cosy peers may carry polluted city fields), so gate every city-guide link. loadCityCosyHotels
-  // mirrors the guide's isLatin + city-name filtering far better than a raw cosy_city_count (which
-  // over-counts non-Latin/aliased matches the guide then drops). When it wouldn't render, drop the
-  // city crumb/link and fall back to /cosy-hotels (always 200) for the non-optional HotelGraph prop.
-  const cityGuide = citySlugBase ? await loadCityCosyHotels(citySlugBase) : null;
-  const cityGuideRenders = !!cityGuide && cityGuide.hotels.length >= 1;
+  // The city guide 404s at 0 live cosy picks, gated by the page's own exact-match TRUST filter,
+  // stricter than loadCityCosyHotels' substring match (2026-07-16 link audit: a hotel whose raw
+  // `city` field carries OSM postcode noise, e.g. "Bali 80571", can satisfy the substring check
+  // while the guide itself finds zero exact matches and 404s). Verify with guideCityHasLivePick,
+  // the SAME predicate the guide page renders with, so this crumb/link can never point at a 404.
+  // When it wouldn't render, drop the city crumb/link and fall back to /cosy-hotels (always 200)
+  // for the non-optional HotelGraph prop.
+  const cityGuideRenders = citySlugBase ? await guideCityHasLivePick(db, cityName) : false;
   const cityGuideHref = cityGuideRenders
     ? `/${params.locale}/guides/${cityToSlug(cityName)}`
     : `/${params.locale}/cosy-hotels`;
