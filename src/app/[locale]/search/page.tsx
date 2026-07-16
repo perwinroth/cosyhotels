@@ -5,7 +5,8 @@ import { logSearch } from "@/lib/searchLog";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { cityGuides } from "@/data/cityGuides";
 import { stay22AllezUrl } from "@/lib/affiliates";
-import { resolveBookingCta } from "@/lib/ctaPolicy";
+import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
+import { getServerSupabase } from "@/lib/supabase/server";
 import SaveToTripButton from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import ShareButton from "@/components/ShareButton";
@@ -39,6 +40,8 @@ export default async function SearchPage({ params, searchParams }: Props) {
   // Search is a high-intent surface; give each hotel the same book/save/share actions as our other
   // listing cards. The page is noindex, so these carry no SEO cost, only UX and affiliate upside.
   const saveLabels = hotels.length > 0 ? await buildSaveLabels(locale) : null;
+  // Verdict-gated CTA swap (founder FINAL rule, 2026-07-16): fail-safe empty set by default.
+  const wrongSlugs = hotels.length > 0 ? await getStay22WrongSlugs(getServerSupabase()) : new Set<string>();
   // Fire-and-forget: record real on-site demand (esp. zero-result queries). Never blocks this render.
   if (q.length >= 2) logSearch(q, { hotels: hotels.length, cities: cities.length, countries: countries.length, regions: regions.length, locale });
 
@@ -82,7 +85,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
                     </div>
                   )}
                   {(() => {
-                    const cta = resolveBookingCta(h.website, stay22AllezUrl({ name: h.name, city: h.city, country: h.country, campaign: "search" }));
+                    const cta = resolveBookingCta(h.website, stay22AllezUrl({ name: h.name, city: h.city, country: h.country, campaign: "search" }), wrongSlugs.has(h.slug));
                     return (
                       <div className="mt-3 flex items-center gap-2">
                         <a href={cta.href} target="_blank" rel={cta.rel} data-cta={cta.dataCta} data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>{cta.label}</a>

@@ -13,6 +13,7 @@ import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked } from "@/lib/tr
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
 import { computeGuidePicks, guideCityHasLivePick, COSY_FLOOR } from "@/lib/seo/guidePicks";
+import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import Image from "next/image";
 import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
@@ -154,6 +155,8 @@ export default async function GuidePage({ params }: Props) {
   if (!db) return <div className="mx-auto max-w-6xl px-4 py-8">Server not configured.</div>;
   const { sorted, picks, scoreQueryFailed, signalsMap, descMap } = await computeGuidePicks(db, cityName);
   const take = picks;
+  // Verdict-gated CTA swap (founder FINAL rule, 2026-07-16): fail-safe empty set by default.
+  const wrongSlugs = await getStay22WrongSlugs(db);
   // Render gate: a guide with at least ONE live cosy hotel is worth showing (1–2 stay noindex via the
   // metadata thin-gate below). Only a genuinely EMPTY city 404s — into the friendly not-found.tsx —
   // which also keeps the junk-URL space finite (e.g. the old SearchAction "{search_term_string}"
@@ -318,7 +321,7 @@ export default async function GuidePage({ params }: Props) {
                       <p className="mt-0.5 text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{h.snippet}</p>
                     </div>
                   )}
-                  <HotelActions stay22Href={h.cta} website={h.website} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref(h.slug)} />
+                  <HotelActions stay22Href={h.cta} website={h.website} isVerifiedWrong={wrongSlugs.has(h.slug)} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref(h.slug)} />
                 </div>
                 {h._img && (
                   <a href={detailsHref(h.slug)} className="flex-shrink-0 hidden sm:block">

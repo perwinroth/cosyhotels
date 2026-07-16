@@ -9,7 +9,8 @@ import blogPicksData from "@/data/blogPicks.json";
 // Picks are precomputed (scripts/generate-blog-picks.mts): each hotel assigned to ONE post, with a
 // bespoke grounded "why it fits this topic" line. Regenerate the JSON to refresh.
 import { picksWithLiveScores, type PickEntry } from "@/lib/blogPickScores";
-import { resolveBookingCta } from "@/lib/ctaPolicy";
+import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
+import { getServerSupabase } from "@/lib/supabase/server";
 type BlogPick = PickEntry;
 const BLOG_PICKS = blogPicksData as Record<string, BlogPick[]>;
 import { cosyBadgeColor } from "@/lib/cosyColor";
@@ -55,7 +56,7 @@ function Section({ s }: { s: BlogSection }) {
   );
 }
 
-function PickCard({ h, idx, locale, saveLabels }: { h: BlogPick; idx: number; locale: string; saveLabels: SaveToTripLabels }) {
+function PickCard({ h, idx, locale, saveLabels, isVerifiedWrong }: { h: BlogPick; idx: number; locale: string; saveLabels: SaveToTripLabels; isVerifiedWrong: boolean }) {
   const detailsHref = `/${locale}/hotels/${h.slug}`;
   return (
     <li className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -74,7 +75,7 @@ function PickCard({ h, idx, locale, saveLabels }: { h: BlogPick; idx: number; lo
               <p className="mt-0.5 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.why}</p>
             </div>
           )}
-          <HotelActions stay22Href={h.cta} website={h.website} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref} />
+          <HotelActions stay22Href={h.cta} website={h.website} isVerifiedWrong={isVerifiedWrong} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref} />
         </div>
         {h.img && (
           <a href={detailsHref} className="flex-shrink-0 hidden sm:block">
@@ -106,9 +107,12 @@ export default async function BlogPostPage({ params }: Props) {
   // value (below-gate hotels drop out) — stored numbers went stale after the 2026-07-02 rescore.
   const storedPicks: BlogPick[] = post.pick ? (BLOG_PICKS[post.slug] || []) : [];
   const picks: BlogPick[] = await picksWithLiveScores(storedPicks);
-  // Affiliate-disclosure gate (founder, 2026-07-16): only true when a Stay22 button actually
-  // renders below; a post whose picks all have real websites carries no affiliate link.
-  const anyStay22 = picks.some((p) => resolveBookingCta(p.website, "").mode === "stay22");
+  // Verdict-gated CTA swap (founder FINAL rule, 2026-07-16): only picks the real-browser sweep has
+  // actually VERIFIED wrong get the swap; fail-safe empty set otherwise.
+  const wrongSlugs = await getStay22WrongSlugs(getServerSupabase());
+  // Affiliate-disclosure gate: only true when a Stay22 button actually renders below; a post whose
+  // picks are all verified-wrong hotels with real websites carries no affiliate link.
+  const anyStay22 = picks.some((p) => resolveBookingCta(p.website, "", wrongSlugs.has(p.slug)).mode === "stay22");
   const saveLabels = await buildSaveLabels(L);
 
   // A related link to a blog post that's still draft/scheduled would 404 — drop those. Non-blog
@@ -174,7 +178,7 @@ export default async function BlogPostPage({ params }: Props) {
           <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>{post.pick.blurb}</p>
           {picks.length > 0 ? (
             <ol className="mt-5 space-y-3">
-              {picks.map((h, i) => <PickCard key={h.slug} h={h} idx={i} locale={L} saveLabels={saveLabels} />)}
+              {picks.map((h, i) => <PickCard key={h.slug} h={h} idx={i} locale={L} saveLabels={saveLabels} isVerifiedWrong={wrongSlugs.has(h.slug)} />)}
             </ol>
           ) : (
             <p className="mt-5 text-sm" style={{ color: "var(--muted)" }}>We&apos;re refreshing this list; check back shortly, or browse <a href={`/${L}/cosy-index`} className="underline">the Cosy Index</a>.</p>

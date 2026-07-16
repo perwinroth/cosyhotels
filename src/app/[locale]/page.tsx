@@ -14,6 +14,7 @@ import { SearchBar } from "@/components/HomeSections";
 import { placeLine, isLatin } from "@/lib/placeText";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { getDelistedSlugSet } from "@/lib/delisted";
+import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
 
 export const revalidate = 3600;
 
@@ -99,6 +100,8 @@ export default async function Home({ params }: { params: { locale: string } }) {
     [chips, top] = await Promise.all([cityChips(), topHotels(db)]);
     top = top.filter((h) => isLatin(h.name_en || h.name)); // English site: skip non-Latin-named hotels
   }
+  // Verdict-gated CTA swap (founder FINAL rule, 2026-07-16): fail-safe empty set by default.
+  const wrongSlugs = await getStay22WrongSlugs(db);
   const saveLabels = await buildSaveLabels(locale);
   // Fallback chips from the curated list if the DB is unavailable.
   const heroChips = (chips.length ? chips : cityGuides.map((g) => ({ city: g.city, slug: g.slug, count: 0 }))).slice(0, 6);
@@ -170,7 +173,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                         <div className="text-sm" style={{ color: "var(--muted)" }}>{placeLine(h.city, h.country)}</div>
                         {h.description && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>}
                         {/* Button below the text so it never overlaps a long hotel name. */}
-                        <HotelActions stay22Href={cta} website={h.website} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name_en || h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${locale}/hotels/${h.slug}`} />
+                        <HotelActions stay22Href={cta} website={h.website} isVerifiedWrong={wrongSlugs.has(h.slug)} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name_en || h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${locale}/hotels/${h.slug}`} />
                       </div>
                       {h.image && (
                         <a href={`/${locale}/hotels/${h.slug}`} className="flex-none hidden sm:block no-underline">

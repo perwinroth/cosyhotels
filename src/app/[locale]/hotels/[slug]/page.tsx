@@ -24,7 +24,7 @@ import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked, displayFits, ty
 import { loadCityCosyHotels, loadConceptAssignments, conceptMembers } from "@/lib/seo/cityHotels";
 import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
 import { isDelisted, getDelistedSlugSet } from "@/lib/delisted";
-import { resolveBookingCta } from "@/lib/ctaPolicy";
+import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
 
 // Rendered on-demand then cached (ISR): Supabase is hit at most once per hotel per revalidate
 // window, never on every view. These are the top SEO landing pages, so cache them hard.
@@ -362,11 +362,13 @@ export default async function HotelDetail({ params }: Props) {
   // page's copy stays identical to every listing card that also renders the button.
   const saveLabels: SaveToTripLabels = await buildSaveLabels(params.locale);
 
-  // Booking CTA policy (founder, 2026-07-16): a real website replaces Stay22 entirely (see
-  // src/lib/ctaPolicy.ts). Used both by HotelActions (renders the button) and below (gates the
-  // affiliate disclosure line to only when a Stay22 button is actually on the page).
+  // Booking CTA policy (founder FINAL rule, 2026-07-16): the website only replaces Stay22 for a
+  // hotel the real-browser sweep has actually VERIFIED wrong (see src/lib/ctaPolicy.ts). Used both
+  // by HotelActions (renders the button) and below (gates the affiliate disclosure line to only
+  // when a Stay22 button is actually on the page).
   const rawWebsite = String((hotel as { website?: string | null }).website || "").trim() || null;
-  const bookingCta = resolveBookingCta(rawWebsite, bookingUrl);
+  const isVerifiedWrong = (await getStay22WrongSlugs(db)).has(String(hotel.slug));
+  const bookingCta = resolveBookingCta(rawWebsite, bookingUrl, isVerifiedWrong);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -426,7 +428,7 @@ export default async function HotelDetail({ params }: Props) {
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <a className="inline-flex min-h-[44px] items-center rounded-xl px-4 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
         <div className="sm:ml-auto">
-          <HotelActions stay22Href={bookingUrl} website={rawWebsite} hotelName={String(hotel.name)} city={cityName} slug={String(hotel.slug)} locale={params.locale} saveLabels={saveLabels} />
+          <HotelActions stay22Href={bookingUrl} website={rawWebsite} isVerifiedWrong={isVerifiedWrong} showWebsiteSecondary hotelName={String(hotel.name)} city={cityName} slug={String(hotel.slug)} locale={params.locale} saveLabels={saveLabels} />
         </div>
       </div>
       {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not

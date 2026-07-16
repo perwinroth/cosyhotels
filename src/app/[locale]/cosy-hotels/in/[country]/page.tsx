@@ -13,6 +13,7 @@ import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { translate, translateMany } from "@/lib/i18n/translate";
 import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
 
 export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
@@ -55,6 +56,8 @@ export default async function CountryHub({ params }: { params: { locale: string;
 
   // Vetted photos for the ranked hotels.
   const db = getServerSupabase()!;
+  // Verdict-gated CTA swap (founder FINAL rule, 2026-07-16): fail-safe empty set by default.
+  const wrongSlugs = await getStay22WrongSlugs(db);
   const photo = new Map<string, string>();
   const ids = hotels.map((h) => h.id);
   for (let i = 0; i < ids.length; i += 150) {
@@ -116,7 +119,7 @@ export default async function CountryHub({ params }: { params: { locale: string;
                   <div className="flex flex-wrap items-center gap-2"><span className="sm:hidden inline-flex items-center justify-center rounded-lg px-2 py-0.5 text-sm font-semibold text-white" style={{ background: cosyBadgeColor(h.score), fontFamily: "Fraunces, serif" }}>{h.score.toFixed(1)}</span><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
                   <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, country.name].filter(Boolean).join(", ")}</div>
                   {snippets[idx] && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{snippets[idx]}</p>}
-                  <HotelActions stay22Href={cta} website={h.website} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${country.name}`} shareUrl={`/${params.locale}/hotels/${h.slug}`} />
+                  <HotelActions stay22Href={cta} website={h.website} isVerifiedWrong={wrongSlugs.has(h.slug)} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${country.name}`} shareUrl={`/${params.locale}/hotels/${h.slug}`} />
                 </div>
                 {ph && <a href={`/${params.locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
               </div>

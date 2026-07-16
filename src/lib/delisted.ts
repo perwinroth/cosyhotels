@@ -56,12 +56,14 @@ export function isValidWebsiteUrl(website: string | null | undefined): boolean {
   return parsed.hostname.includes(".");
 }
 
-// ── CTA policy (founder, 2026-07-16): hotel website first, Stay22 relabeled ────────────────────
-// A real-browser sweep of Stay22's "Check availability" link showed it lands on the EXACT hotel
-// only ~59% of the time, ~36% on a generic city search, and ~4% on a DIFFERENT hotel entirely.
-// Founder rule: a hotel with a REAL website gets "Visit hotel website" as its ONLY booking CTA (no
-// Stay22 button); a hotel with no real website keeps the Stay22 link but relabeled "Check nearby
-// stays" (which is what it truthfully does most of the time). "Real" excludes OTA/social/aggregator
+// ── CTA policy support (founder FINAL rule, 2026-07-16): verdict-gated CTA swap ─────────────────
+// A real-browser sweep of Stay22's "Check availability" link (data/stay22-verdicts.json in the
+// die-validation repo) is classifying each hotel's landing page. The founder's rule (see
+// src/lib/ctaPolicy.ts resolveBookingCta for the full decision) is: Stay22 stays the default
+// primary CTA everywhere, unchanged, UNLESS a hotel has been actually VERIFIED WRONG by the sweep
+// (WRONG_PROPERTY / CITY_SEARCH / UNMATCHED_SEARCH) — only then does its own real website replace
+// Stay22, or (if it has no real website) does Stay22 get relabelled "Check nearby stays". isRealHotelWebsite
+// below is the "real, non-OTA site" test both branches share. "Real" excludes OTA/social/aggregator
 // domains — those are not the hotel's own site even when a scrape stored one as `website`.
 const OTA_EXACT_HOST_SUFFIXES = ["booking.com", "facebook.com", "instagram.com", "hotels.com"];
 const OTA_WILDCARD_TLD_LABELS = new Set(["tripadvisor", "google", "expedia", "airbnb"]);

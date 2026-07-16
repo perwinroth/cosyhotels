@@ -6,7 +6,7 @@ import { resolveSavedListPicks } from "@/lib/tripsLive";
 import { translate } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { stay22AllezUrl } from "@/lib/affiliates";
-import { resolveBookingCta } from "@/lib/ctaPolicy";
+import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import TripListRemoveControl from "@/components/TripListRemoveControl";
 import PlanOwnerControls from "@/components/PlanOwnerControls";
 import ShareButton from "@/components/ShareButton";
@@ -67,7 +67,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
 
   const t = tx(params.locale);
   const [
-    lDefaultTitle, lYourCollection, lNoPicks, lRemove, lRemoving, lMethod, lDisclosureBase, lDisclosureAffiliate, lShareCollection, lIntro, lVisitWebsite, lCheckNearby,
+    lDefaultTitle, lYourCollection, lNoPicks, lRemove, lRemoving, lMethod, lDisclosureBase, lDisclosureAffiliate, lShareCollection, lIntro, lCheckAvailability, lVisitWebsite, lCheckNearby,
   ] = await Promise.all([
     t("Your Got Cosy collection"),
     t("Hotels in this collection"),
@@ -79,6 +79,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
     t("Links to book are affiliate links."),
     t("Share collection"),
     t("A collection of cosy hotels on Got Cosy, each scored 0 to 10 for warmth and character."),
+    t("Check availability"),
     t("Visit hotel website"),
     t("Check nearby stays"),
   ]);
@@ -97,9 +98,11 @@ export default async function SavedListPage({ params, searchParams }: Props) {
   }
 
   const picks = await resolveSavedListPicks(list.items);
-  // Affiliate-disclosure gate (founder, 2026-07-16): only meaningful when a Stay22 button actually
-  // renders somewhere on this list; a list made entirely of real-website hotels has no affiliate link.
-  const anyStay22 = picks.some((p) => resolveBookingCta(p.website, "").mode === "stay22");
+  // Verdict-gated CTA swap (founder FINAL rule, 2026-07-16): fail-safe empty set by default.
+  const wrongSlugs = await getStay22WrongSlugs(getServerSupabase());
+  // Affiliate-disclosure gate: only meaningful when a Stay22 button actually renders somewhere on
+  // this list; a list made entirely of verified-wrong hotels with real websites has no affiliate link.
+  const anyStay22 = picks.some((p) => resolveBookingCta(p.website, "", wrongSlugs.has(p.slug)).mode === "stay22");
   const displayTitle = (list.title || "").trim() || lDefaultTitle;
   const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
   // CLEAN public URL only, never the ?token= edit link — ShareButton takes `url` explicitly so this
@@ -170,8 +173,8 @@ export default async function SavedListPage({ params, searchParams }: Props) {
           <ul className="mt-4 space-y-3">
             {picks.map((p) => {
               const stay22Href = stay22AllezUrl({ name: p.name, city: p.city, country: p.country, lat: p.lat, lng: p.lng, campaign: "collection" });
-              const cta = resolveBookingCta(p.website, stay22Href);
-              const ctaLabel = cta.mode === "website" ? lVisitWebsite : lCheckNearby;
+              const cta = resolveBookingCta(p.website, stay22Href, wrongSlugs.has(p.slug));
+              const ctaLabel = cta.dataCta === "hotel_website" ? lVisitWebsite : cta.dataCta === "check_nearby" ? lCheckNearby : lCheckAvailability;
               const ph = photo.get(p.id);
               return (
                 <li key={p.slug} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
