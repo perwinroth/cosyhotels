@@ -47,18 +47,39 @@ export function rawMessage({ to, subject, body }: { to: string; subject: string;
   return Buffer.from(`${headers}\r\n\r\n${body}`, "utf8").toString("base64url");
 }
 
-// Create a draft in the connected account (see ACCOUNT above) from per@gotcosy.com. Returns the draft id + a link to Drafts.
-export async function createGmailDraft(msg: { to: string; subject: string; body: string }): Promise<{ id: string; link: string } | null> {
+// Discriminated result so callers can tell WHY a draft failed instead of getting a bare null:
+//  - no-recipient : msg.to is empty/whitespace (nothing to draft to)
+//  - not-configured: a GMAIL_* env var is missing in this environment
+//  - auth-failed  : the OAuth refresh→access token exchange returned no access_token (bad/expired token)
+//  - gmail-error  : the drafts POST returned no id — `detail` carries the Gmail JSON error message
+export type GmailDraftResult =
+  | { ok: true; id: string; link: string }
+  | { ok: false; reason: "no-recipient" | "not-configured" | "auth-failed" | "gmail-error"; detail?: string };
+
+// Create a draft in the connected account (see ACCOUNT above) from per@gotcosy.com. Returns a
+// discriminated result: the draft id + link on success, or a specific failure reason.
+export async function createGmailDraftResult(msg: { to: string; subject: string; body: string }): Promise<GmailDraftResult> {
+  if (!msg.to || !msg.to.trim()) return { ok: false, reason: "no-recipient" };
+  if (!gmailConfigured()) return { ok: false, reason: "not-configured" };
   const token = await accessToken();
-  if (!token) return null;
+  if (!token) return { ok: false, reason: "auth-failed" };
   try {
-    const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/drafts", {
+    const r = (await fetch("https://gmail.googleapis.com/gmail/v1/users/me/drafts", {
       method: "POST", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
       body: JSON.stringify({ message: { raw: rawMessage(msg) } }),
-    }).then((x) => x.json());
-    if (!r.id) return null;
-    return { id: r.id, link: `https://mail.google.com/mail/?authuser=${encodeURIComponent(ACCOUNT)}#drafts` };
-  } catch { return null; }
+    }).then((x) => x.json())) as { id?: string; error?: { message?: string } };
+    if (!r.id) return { ok: false, reason: "gmail-error", detail: r.error?.message };
+    return { ok: true, id: r.id, link: `https://mail.google.com/mail/?authuser=${encodeURIComponent(ACCOUNT)}#drafts` };
+  } catch (e) {
+    return { ok: false, reason: "gmail-error", detail: e instanceof Error ? e.message : undefined };
+  }
+}
+
+// Backward-compatible thin wrapper: existing callers (journo, data-brief) keep the { id, link } | null
+// contract and are unaffected by the richer result type above.
+export async function createGmailDraft(msg: { to: string; subject: string; body: string }): Promise<{ id: string; link: string } | null> {
+  const r = await createGmailDraftResult(msg);
+  return r.ok ? { id: r.id, link: r.link } : null;
 }
 
 // Delete a draft (used only by the setup self-test).

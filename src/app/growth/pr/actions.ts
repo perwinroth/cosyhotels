@@ -4,16 +4,20 @@
 // trust boundary as the data-brief and journo boards (middleware panel-cookie gate on /growth/*).
 // Only usable for pitches with a verified direct email; form routes stay copy-paste, and HOLD
 // pitches (Byway) refuse until the hold lifts.
-import { createGmailDraft } from "@/lib/gmail";
+import { createGmailDraftResult, type GmailDraftResult } from "@/lib/gmail";
 import { PR_ACTIONS } from "@/data/prActions";
 
-export async function createPrDraft(id: string): Promise<{ link?: string; error?: string }> {
+// `reason`/`detail` come straight from createGmailDraftResult so the board can show a SPECIFIC cause
+// (missing email vs bad token vs Gmail rejection) instead of one generic message. `error` still covers
+// the pre-flight guards below (no pitch / on hold / no address).
+type DraftFailReason = Extract<GmailDraftResult, { ok: false }>["reason"];
+export async function createPrDraft(id: string): Promise<{ link?: string; error?: string; reason?: DraftFailReason; detail?: string }> {
   const action = PR_ACTIONS[id];
   const pitch = action?.pitch;
   if (!pitch) return { error: "no stored pitch for this row" };
   if (pitch.hold) return { error: `on hold: ${pitch.hold}` };
   if (!pitch.to) return { error: "no verified email; use the listed route and the copy buttons" };
-  const created = await createGmailDraft({ to: pitch.to, subject: pitch.subject, body: pitch.body });
-  if (!created) return { error: "Gmail draft failed: check GMAIL_* env or per@gotcosy.com Send-As setup" };
-  return { link: created.link };
+  const r = await createGmailDraftResult({ to: pitch.to, subject: pitch.subject, body: pitch.body });
+  if (!r.ok) return { reason: r.reason, detail: r.detail };
+  return { link: r.link };
 }
