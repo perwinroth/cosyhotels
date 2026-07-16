@@ -6,6 +6,7 @@
 // arbitrary set of hotel slugs a visitor picked, rather than a curated board's stops.
 import { loadCityCosyHotels, cityBaseSlug } from "@/lib/seo/cityHotels";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { isDelistedSync } from "@/lib/delisted";
 import { displayCity, displayCountry } from "@/lib/placeText";
 import type { TripBoard, TripStop } from "@/data/tripBoards";
 import { stopCities, gateAndRankPicks, boardIsIndexable, PUBLIC_GATE, type StopPick } from "@/lib/trips";
@@ -89,6 +90,7 @@ export async function resolveSavedListPicks(slugs: string[]): Promise<SavedListP
       const cs = Array.isArray(row.cosy_scores) ? row.cosy_scores[0] : row.cosy_scores;
       const score = cs ? (typeof cs.score_final === "number" ? cs.score_final : cs.score) : null;
       if (typeof score !== "number" || score < PUBLIC_GATE) continue;
+      if (isDelistedSync(row.slug)) continue; // takedown excludes collection renders too
       const name = String(row.name_en || row.name || row.slug).trim();
       const description = cs?.description?.trim() || undefined;
       bySlug.set(row.slug, {

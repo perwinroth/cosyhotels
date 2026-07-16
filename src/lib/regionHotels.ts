@@ -2,6 +2,7 @@
 // cosy hotels (score ≥ 5) whose lat/lng fall inside its bounding box: a plain bounded query, no RPC and
 // no migration. Reuses HubHotel + the hub thresholds so region pages behave exactly like country hubs.
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getDelistedSlugSet } from "@/lib/delisted";
 import { displayCity, isLatin } from "@/lib/placeText";
 import { type HubHotel, HUB_MIN, HUB_404_BELOW } from "@/lib/countryHub";
 import type { Region } from "@/data/regions";
@@ -24,11 +25,13 @@ export async function loadRegionHotels(region: Region, limit = 60): Promise<HubH
     .gte("hotel.lng", minLng).lte("hotel.lng", maxLng)
     .order("score", { ascending: false })
     .limit(300);
+  const delisted = await getDelistedSlugSet(db);
   const seenName = new Set<string>();
   const out: HubHotel[] = [];
   for (const r of ((data || []) as unknown as CRow[]).sort((a, b) => rowScore(b) - rowScore(a))) {
     const h = r.hotel;
     if (!h) continue;
+    if (delisted.has(h.slug)) continue; // takedown excludes listing surfaces
     const name = String(h.name_en || h.name || "").trim();
     if (!name || !isLatin(name) || seenName.has(name)) continue;
     seenName.add(name);

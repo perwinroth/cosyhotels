@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getDelistedSlugSet } from "@/lib/delisted";
 import { isLatin } from "@/lib/placeText";
 import { cityToSlug } from "@/lib/citySlug";
 import { cities } from "@/data/cities";
@@ -51,6 +52,7 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
     // (filtered below) always fall inside the candidate window, so autocomplete ranks by true score.
     .limit(500);
   if (error || !rows?.length) return [];
+  const delisted = await getDelistedSlugSet(db);
 
   // Step 2: keep only hotels with a live score (>=5); attach displayed score + description.
   const ids = rows.map((r) => r.id);
@@ -66,7 +68,7 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
   }
 
   return rows
-    .filter((r) => byId.has(r.id) && r.slug)
+    .filter((r) => byId.has(r.id) && r.slug && !delisted.has(r.slug as string))
     .map((r) => {
       const hit = byId.get(r.id)!;
       const name = (r.name_en as string | null) || (r.name as string);

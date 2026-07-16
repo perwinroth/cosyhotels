@@ -1,6 +1,7 @@
 // DB helpers for country hubs (WP3). Kept out of country.ts so that stays a pure, testable lib.
 import { cache } from "react";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getDelistedSlugSet } from "@/lib/delisted";
 import { canonicalCountry, type CanonCountry } from "@/lib/country";
 import { displayCity, isLatin } from "@/lib/placeText";
 
@@ -49,6 +50,7 @@ export async function loadCountryHotels(country: CanonCountry, limit = 60): Prom
     ...country.words.map((w) => (w.length <= 4 && !w.includes(" ") ? w : `%${w}%`)), // ≤4 chars → exact (no %)
     ...(country.aliases || []),                                                       // native/composite → exact
   ];
+  const delisted = await getDelistedSlugSet(db);
   const byId = new Map<string, CRow>();
   for (const pat of patterns) {
     const { data } = await db
@@ -64,6 +66,7 @@ export async function loadCountryHotels(country: CanonCountry, limit = 60): Prom
   const out: HubHotel[] = [];
   for (const r of [...byId.values()].sort((a, b) => rowScore(b) - rowScore(a))) {
     const h = r.hotel!;
+    if (delisted.has(h.slug)) continue; // takedown excludes listing surfaces
     if (canonicalCountry(h.country)?.slug !== country.slug) continue; // correctness guard
     const name = String(h.name_en || h.name || "").trim();
     if (!name || !isLatin(name) || seenName.has(name)) continue;

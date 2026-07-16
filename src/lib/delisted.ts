@@ -55,3 +55,35 @@ export function isValidWebsiteUrl(website: string | null | undefined): boolean {
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
   return parsed.hostname.includes(".");
 }
+
+// ── List-surface exclusion ────────────────────────────────────────────────────────────────────────
+// The detail page, sitemaps and outreach check per-slug; LISTING surfaces (city guides, facet/city,
+// country hubs, regions, search, boards, collections, blog picks) render arrays and need a set. The
+// DB-backed set is cached ~10 min per server process; the static DELISTED_SLUGS above always applies
+// (so a code-level takedown works even before sql/hotel-delist.sql runs, and if the DB is down).
+let dbDelistedCache: { at: number; slugs: Set<string> } = { at: 0, slugs: new Set() };
+const DELIST_CACHE_MS = 10 * 60 * 1000;
+
+/** Merged static + DB delisted slugs. Refreshes the DB part at most every 10 minutes; fail-open to
+ *  the static set (a takedown must never break a page render). Also warms the sync check below. */
+export async function getDelistedSlugSet(db?: DbLike | null): Promise<Set<string>> {
+  const now = Date.now();
+  if (db && now - dbDelistedCache.at > DELIST_CACHE_MS) {
+    try {
+      const { data } = await db.from("hotels").select("slug").not("delisted_at", "is", null);
+      dbDelistedCache = { at: now, slugs: new Set(((data || []) as Array<{ slug: string | null }>).map((r) => r.slug || "").filter(Boolean)) };
+    } catch {
+      dbDelistedCache = { at: now, slugs: dbDelistedCache.slugs }; // keep last known, retry after TTL
+    }
+  }
+  const merged = new Set(DELISTED_SLUGS);
+  for (const s of dbDelistedCache.slugs) merged.add(s);
+  return merged;
+}
+
+/** Sync check for hot loops (uses the static set + whatever the cache last saw). Callers on async
+ *  paths should await getDelistedSlugSet first so the cache is warm. */
+export function isDelistedSync(slug: string | null | undefined): boolean {
+  if (!slug) return false;
+  return DELISTED_SLUGS.has(slug) || dbDelistedCache.slugs.has(slug);
+}
