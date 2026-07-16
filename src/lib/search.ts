@@ -6,7 +6,7 @@ import { cityToSlug } from "@/lib/citySlug";
 import { cities } from "@/data/cities";
 import { citiesLarge } from "@/data/cities_large";
 import { cityGuides } from "@/data/cityGuides";
-import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
+import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
 import { COUNTRIES } from "@/lib/country";
 import { loadCountryCounts, loadCountryHotels, HUB_404_BELOW } from "@/lib/countryHub";
 import { REGIONS } from "@/data/regions";
@@ -94,8 +94,12 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
     .slice(0, limit);
 }
 
-// Match cities against the site's city set and VERIFY each has a live guide (>=1 live hotel) via
-// the existing unaccent cosy_city_count RPC, so returned city links always resolve (guides 404 at 0).
+// Match cities against the site's city set and VERIFY each has a live guide via guideCityHasLivePick,
+// the SAME pick-determination the guide page renders with, so returned city links always resolve.
+// A plain substring-based live count (the former `cosy_city_count` RPC check) can be true while
+// the guide's stricter exact-match TRUST filter still finds zero picks (2026-07-16 link audit:
+// OSM postcode-suffixed or differently-punctuated raw `hotels.city` values), so it is not a safe
+// existence check on its own; see guidePicks.ts's module comment.
 export async function searchCities(q: string, limit = 5): Promise<CityHit[]> {
   const lower = q.toLowerCase();
   const starts = ALL_CITIES.filter((c) => c.toLowerCase().startsWith(lower));
@@ -103,8 +107,9 @@ export async function searchCities(q: string, limit = 5): Promise<CityHit[]> {
     (c) => !c.toLowerCase().startsWith(lower) && c.toLowerCase().includes(lower),
   );
   const candidates = [...starts, ...contains].slice(0, 8);
+  const db = getServerSupabase();
   const verified = await Promise.all(
-    candidates.map(async (name) => ((await liveCosyCountForCityName(name)) > 0 ? name : null)),
+    candidates.map(async (name) => ((await guideCityHasLivePick(db, name)) ? name : null)),
   );
   return verified
     .filter((c): c is string => c !== null)

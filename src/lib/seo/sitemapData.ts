@@ -12,6 +12,7 @@ import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
 import { REGIONS } from "@/data/regions";
 import { cityMembers, cityBaseSlug, resolveCity, liveCosyCountForCityName, CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, collectionConcepts, conceptMembers, loadConceptAssignments, rpcCityUniverse, type ScoreHotelRow } from "@/lib/seo/cityHotels";
 import { DELISTED_SLUGS } from "@/lib/delisted";
+import { isMalformedSlug } from "@/lib/seo/slugGuard";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
 export type Url = { loc: string; lastmod?: string; changefreq?: string; priority?: number };
@@ -91,6 +92,11 @@ export async function hotelUrls(): Promise<Url[]> {
       if (eff == null || eff < 5) continue;
       const slug = (row.hotel?.slug || "").trim();
       if (!slug) continue;
+      // Defense-in-depth (2026-07-16 link audit): reuse the page's own malformed-slug guard so a
+      // future page-side gate can never drift from the sitemap without this list also changing.
+      // This is the failure mode that let 3 real, scored, sitemap-listed hotels 404 (see the
+      // removed slug.startsWith('am-') guard in src/app/[locale]/hotels/[slug]/page.tsx).
+      if (isMalformedSlug(slug)) continue;
       if (DELISTED_SLUGS.has(slug) || delistedFromDb.has(slug)) continue;
       out.push({ loc: `${SITE}/en/hotels/${slug}`, lastmod: (row.hotel?.updated_at || nowIso()), changefreq: "weekly", priority: 0.6 });
     }
