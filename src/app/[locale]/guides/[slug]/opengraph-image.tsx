@@ -8,6 +8,7 @@ import sharp from "sharp";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityFromSlug } from "@/lib/citySlug";
 import { displayCity } from "@/lib/placeText";
+import { getDelistedSlugSet } from "@/lib/delisted";
 
 export const runtime = "nodejs";
 export const alt = "Got Cosy? The cosiest hotels, AI-ranked";
@@ -54,14 +55,16 @@ export default async function OG({ params }: { params: { slug: string } }) {
     const db = getServerSupabase();
     if (db) {
       const cityMatch = cityName.replace(/\s+/g, "-");
+      const delisted = await getDelistedSlugSet(db);
       const { data } = await db
         .from("cosy_scores")
-        .select("score, score_final, hotel:hotel_id!inner(id, name, name_en, city)")
+        .select("score, score_final, hotel:hotel_id!inner(id, slug, name, name_en, city)")
         .gte("score", 5)
         .ilike("hotel.city", `%${cityMatch}%`)
         .order("score", { ascending: false })
-        .limit(1);
-      const row = (data || [])[0] as unknown as { score: number | null; score_final: number | null; hotel: { id: string; name: string; name_en: string | null } | null } | undefined;
+        .limit(10);
+      const rows = (data || []) as unknown as Array<{ score: number | null; score_final: number | null; hotel: { id: string; slug: string; name: string; name_en: string | null } | null }>;
+      const row = rows.find((r) => r.hotel && !delisted.has(r.hotel.slug)); // takedown excludes the OG hero pick
       if (row?.hotel) {
         topName = String(row.hotel.name_en || row.hotel.name || "").trim();
         topScore = Number((row.score_final ?? row.score) || 0);

@@ -23,6 +23,7 @@ import {
   CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, conceptLabelPhrase,
   loadConceptAssignments, conceptCityMembersLive, type ScoreHotelRow,
 } from "@/lib/seo/cityHotels";
+import { getDelistedSlugSet } from "@/lib/delisted";
 
 export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
@@ -62,6 +63,7 @@ const loadConcept = cache(async (conceptSlug: string): Promise<{ hotels: Match[]
 
   // Stored assignments (empty map when hotel_traveller_fit is empty).
   const assignments = await loadConceptAssignments([concept.slug]);
+  const delisted = await getDelistedSlugSet(db);
 
   // ── Live regex source (regex facets: the original 5 + rising-intent): scan the cosiest 4k live
   //    hotels in score order and keep real-signal/description matches — same ordering + tally. ──
@@ -74,6 +76,7 @@ const loadConcept = cache(async (conceptSlug: string): Promise<{ hotels: Match[]
       .limit(4000); // the cosiest 4k live hotels — deep enough to surface every strong theme match
     for (const r of (data || []) as unknown as ScoreHotelRow[]) {
       const h = r.hotel; if (!h || !r.hotel_id) continue;
+      if (delisted.has(h.slug)) continue; // takedown excludes listing surfaces
       if (!concept.re.test(`${(r.signals || []).join(" ")} ${r.description || ""}`)) continue; // == matchesFacet
       const name = String(h.name_en || h.name || "").trim();
       if (!name || !isLatin(name) || seen.has(name)) continue;
@@ -102,6 +105,7 @@ const loadConcept = cache(async (conceptSlug: string): Promise<{ hotels: Match[]
     for (const e of storedEntries) {
       const r = byId.get(e.id); if (!r) continue;
       const h = r.hotel; if (!h) continue;
+      if (delisted.has(h.slug)) continue; // takedown excludes listing surfaces
       const name = String(h.name_en || h.name || "").trim();
       if (!name || !isLatin(name) || seen.has(name)) continue;
       seen.add(name); seenIds.add(e.id);

@@ -13,6 +13,7 @@ import { stay22AllezUrl } from "@/lib/affiliates";
 import { SearchBar } from "@/components/HomeSections";
 import { placeLine, isLatin } from "@/lib/placeText";
 import { cosyBadgeColor } from "@/lib/cosyColor";
+import { getDelistedSlugSet } from "@/lib/delisted";
 
 export const revalidate = 3600;
 
@@ -51,7 +52,8 @@ async function topHotels(db: NonNullable<ReturnType<typeof getServerSupabase>>):
     .order("score", { ascending: false })
     .limit(120);
   const bad = await badLinkHotelIds(db);
-  const list = ((data || []) as unknown as Row[]).filter((r) => !!r.hotel?.slug && !bad.has(String(r.hotel!.id)));
+  const delisted = await getDelistedSlugSet(db);
+  const list = ((data || []) as unknown as Row[]).filter((r) => !!r.hotel?.slug && !bad.has(String(r.hotel!.id)) && !delisted.has(r.hotel!.slug));
   // The top three must SHOW a real, vision-approved photo (vision_ok=true) — a high score with no
   // displayable image doesn't belong at #1. Pull the approved photo for the candidates first, then
   // pick the highest-scoring ones that actually have one.

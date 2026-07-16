@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { cityToSlug } from "@/lib/citySlug";
+import { getDelistedSlugSet } from "@/lib/delisted";
 
 export const revalidate = 3600;
 
@@ -56,10 +57,12 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
     .limit(150);
 
   const rows = (data || []) as unknown as Row[];
+  const delisted = await getDelistedSlugSet(db);
   const seen = new Set<string>();
   const picked: Array<{ id: string; slug: string; name: string; city: string; country: string; score: number }> = [];
   for (const r of rows) {
     const h = r.hotel; if (!h || !r.hotel_id) continue;
+    if (delisted.has(h.slug)) continue; // takedown excludes listing surfaces
     const name = String(h.name_en || h.name || "").trim();
     if (!name || !isLatin(name) || seen.has(name)) continue;
     seen.add(name);
