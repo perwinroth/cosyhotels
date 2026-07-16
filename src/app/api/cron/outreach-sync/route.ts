@@ -18,6 +18,7 @@ import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getAccessToken, wasDeliveredTo, gotReplyFrom, GmailScopeError } from "@/lib/gmail";
 import { PR_ACTIONS } from "@/data/prActions";
+import { DELISTED_SLUGS } from "@/lib/delisted";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -106,30 +107,43 @@ export async function GET(req: Request) {
   const outreach = (rows || []) as OutreachRow[];
   const hotelIds = outreach.map((r) => r.hotel_id);
 
-  // Map hotel_id → email (only hotels with a usable email are processable).
+  // Map hotel_id → email (only hotels with a usable email are processable). Also collect delisted
+  // hotel_ids (takedown mechanism, trust fix 2026-07-16) so a delisted hotel is never advanced or
+  // mailed by this cron — belt and braces: the DELISTED_SLUGS Set works unconditionally; the
+  // hotels.delisted_at column is read defensively (select falls back without it if the column
+  // doesn't exist yet — sql/hotel-delist.sql is a separate founder-run migration).
   const emailByHotel = new Map<string, string>();
+  const delistedHotelIds = new Set<string>();
   if (hotelIds.length) {
     // Chunked defensively: .in() with hundreds of UUIDs overflows the request URL (400).
-    const hotels: Array<{ id: string; email: string | null }> = [];
+    type HotelRow = { id: string; email: string | null; slug: string | null; delisted_at?: string | null };
+    const hotels: HotelRow[] = [];
     for (let i = 0; i < hotelIds.length; i += 150) {
-      const { data: chunk, error: hotelsErr } = await db
-        .from("hotels")
-        .select("id, email")
-        .in("id", hotelIds.slice(i, i + 150));
-      if (hotelsErr) {
-        await alertFailure(hotelsErr.message, dry);
-        return NextResponse.json({ from: "outreach-sync", ok: false, error: hotelsErr.message }, { status: 500 });
+      const idsChunk = hotelIds.slice(i, i + 150);
+      let chunk: HotelRow[] | null = null;
+      const withDelisted = await db.from("hotels").select("id, email, slug, delisted_at").in("id", idsChunk);
+      if (!withDelisted.error) {
+        chunk = withDelisted.data as HotelRow[];
+      } else {
+        // delisted_at may not exist yet (pre-migration) — retry without it rather than failing the cron.
+        const { data: fallback, error: fallbackErr } = await db.from("hotels").select("id, email, slug").in("id", idsChunk);
+        if (fallbackErr) {
+          await alertFailure(fallbackErr.message, dry);
+          return NextResponse.json({ from: "outreach-sync", ok: false, error: fallbackErr.message }, { status: 500 });
+        }
+        chunk = (fallback || []) as HotelRow[];
       }
-      hotels.push(...((chunk || []) as Array<{ id: string; email: string | null }>));
+      hotels.push(...(chunk || []));
     }
     for (const h of hotels) {
+      if (DELISTED_SLUGS.has(String(h.slug || "")) || h.delisted_at) { delistedHotelIds.add(String(h.id)); continue; }
       const email = (h.email || "").trim();
       if (email) emailByHotel.set(String(h.id), email);
     }
   }
 
-  // Only rows whose hotel has an email are actionable; cap the batch for quota/time.
-  const actionable = outreach.filter((r) => emailByHotel.has(r.hotel_id));
+  // Only rows whose hotel has an email (and isn't delisted) are actionable; cap the batch for quota/time.
+  const actionable = outreach.filter((r) => emailByHotel.has(r.hotel_id) && !delistedHotelIds.has(r.hotel_id));
   const capped = actionable.length > MAX_ROWS_PER_RUN;
   const batch = actionable.slice(0, MAX_ROWS_PER_RUN);
 

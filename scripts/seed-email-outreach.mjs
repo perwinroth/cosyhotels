@@ -14,7 +14,7 @@
 //   no upsert (a conflict means the exclusion missed one — abort loudly). Reviewed by data-migration-guard.
 //
 // The stamped_* columns already exist (added by the IG seed's founder SQL, #66) — no founder SQL needed.
-import { pctTopFor, isIgControlCity } from "./seed-ig-outreach.mjs";
+import { pctTopFor, isIgControlCity, isDelistedHotel } from "./seed-ig-outreach.mjs";
 import { writeFileSync, mkdirSync } from "node:fs";
 
 const BATCH = 500;
@@ -32,6 +32,20 @@ async function fetchAll(pathAndQuery) {
   for (let from = 0; ; from += PAGE) {
     const r = await fetch(`${url}/rest/v1/${pathAndQuery}`, { headers: { ...headers, Range: `${from}-${from + PAGE - 1}` } });
     if (!r.ok) { console.error(`✗ GET ${pathAndQuery} → ${r.status}: ${await r.text()}`); process.exit(1); }
+    const rows = await r.json();
+    out.push(...rows);
+    if (rows.length < PAGE) return out;
+  }
+}
+
+// Same as fetchAll but returns null (instead of exiting) on a failed request — used only for the
+// defensive delisted_at probe below (takedown mechanism, trust fix 2026-07-16), so a pre-migration
+// "column does not exist" error falls back to the Set-only exclusion rather than aborting the run.
+async function fetchAllOrNull(pathAndQuery) {
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const r = await fetch(`${url}/rest/v1/${pathAndQuery}`, { headers: { ...headers, Range: `${from}-${from + PAGE - 1}` } });
+    if (!r.ok) return null;
     const rows = await r.json();
     out.push(...rows);
     if (rows.length < PAGE) return out;
@@ -59,15 +73,22 @@ console.log(`PHASE 1 — backfill: ${unstampedIds.length} unstamped queued email
 if (backfill[0]) { const b = backfill[0]; console.log(`  sample: hotel ${b.hotel_id} score ${b.sf} → stamped_pct ${pctTopFor(b.sf, allScores)}`); }
 
 // ── PHASE 2: seed never-contacted, email-reachable, score_final >= 6.0 ─────────────────────────────
-const candidates = await fetchAll(
+// Also probes delisted_at (takedown mechanism, trust fix 2026-07-16) — falls back without it if the
+// column doesn't exist yet, so a pre-migration run never aborts (DELISTED_SLUGS still excludes
+// brae-lodge regardless).
+const candidatesWithDelisted = await fetchAllOrNull(
+  `cosy_scores?select=hotel_id,score_final,hotel:hotel_id!inner(id,slug,city,email,delisted_at)&score_final=gte.${FLOOR}&hotel.email=not.is.null`,
+);
+const candidates = candidatesWithDelisted !== null ? candidatesWithDelisted : await fetchAll(
   `cosy_scores?select=hotel_id,score_final,hotel:hotel_id!inner(id,slug,city,email)&score_final=gte.${FLOOR}&hotel.email=not.is.null`,
 );
 const already = new Set((await fetchAll("hotel_outreach?select=hotel_id")).map((r) => String(r.hotel_id)));
-let exControl = 0, exAlready = 0, exNoEmail = 0;
+let exControl = 0, exAlready = 0, exNoEmail = 0, exDelisted = 0;
 const seed = [];
 for (const c of candidates) {
   const h = c.hotel;
   if (!h) continue;
+  if (isDelistedHotel(h)) { exDelisted++; continue; }
   if (!(h.email && String(h.email).includes("@"))) { exNoEmail++; continue; }
   if (isIgControlCity(h.city)) { exControl++; continue; }
   if (already.has(String(c.hotel_id))) { exAlready++; continue; }
@@ -75,6 +96,7 @@ for (const c of candidates) {
   seed.push({ hotel_id: String(c.hotel_id), status: "queued", channel: "email", stamped_score: sf, stamped_pct: pctTopFor(sf, allScores), stamped_total: totalScored });
 }
 console.log(`\nPHASE 2 — seed: ${candidates.length} scored+email candidates ≥${FLOOR}`);
+console.log(`  excluded delisted (takedown Set/delisted_at): ${exDelisted}`);
 console.log(`  excluded control market (exact): ${exControl} · already in outreach (any channel): ${exAlready} · malformed email: ${exNoEmail}`);
 console.log(`  to insert (never-contacted, email, ≥${FLOOR}): ${seed.length}`);
 if (seed[0]) console.log(`  sample: ${JSON.stringify(seed[0])}`);

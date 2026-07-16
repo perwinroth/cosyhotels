@@ -11,6 +11,7 @@ import { cityFromSlug } from "@/lib/citySlug";
 import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
 import { REGIONS } from "@/data/regions";
 import { cityMembers, cityBaseSlug, resolveCity, liveCosyCountForCityName, CITY_HOTEL_SELECT, THEME_HUB_INDEX_MIN, collectionConcepts, conceptMembers, loadConceptAssignments, rpcCityUniverse, type ScoreHotelRow } from "@/lib/seo/cityHotels";
+import { DELISTED_SLUGS } from "@/lib/delisted";
 
 export const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
 export type Url = { loc: string; lastmod?: string; changefreq?: string; priority?: number };
@@ -62,6 +63,17 @@ export async function blogUrls(): Promise<Url[]> {
 export async function hotelUrls(): Promise<Url[]> {
   const db = getServerSupabase();
   if (!db) return [];
+  // Takedown mechanism (trust fix, 2026-07-16): a delisted hotel must never appear in the sitemap.
+  // Layer 1 (DELISTED_SLUGS) works immediately with no DB dependency. Layer 2 (hotels.delisted_at)
+  // is fetched defensively — if the column doesn't exist yet (pre-migration, sql/hotel-delist.sql),
+  // this silently yields an empty set rather than breaking the whole sitemap query.
+  const delistedFromDb = new Set<string>();
+  try {
+    const { data: delistedRows, error: delistedErr } = await db.from("hotels").select("slug").not("delisted_at", "is", null);
+    if (!delistedErr && delistedRows) {
+      for (const r of delistedRows as Array<{ slug: string | null }>) if (r.slug) delistedFromDb.add(r.slug);
+    }
+  } catch {}
   const out: Url[] = [];
   const pageSize = 1000;
   for (let from = 0; from < 60000; from += pageSize) {
@@ -79,6 +91,7 @@ export async function hotelUrls(): Promise<Url[]> {
       if (eff == null || eff < 5) continue;
       const slug = (row.hotel?.slug || "").trim();
       if (!slug) continue;
+      if (DELISTED_SLUGS.has(slug) || delistedFromDb.has(slug)) continue;
       out.push({ loc: `${SITE}/en/hotels/${slug}`, lastmod: (row.hotel?.updated_at || nowIso()), changefreq: "weekly", priority: 0.6 });
     }
     if (data.length < pageSize) break;
