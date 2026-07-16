@@ -46,6 +46,14 @@ const STATUS_LABEL: Record<string, string> = {
 };
 const DONE = new Set(["contacted", "replied", "won", "won_confirmed", "declined"]);
 
+// Human text for each specific Gmail-draft failure reason returned by createPrDraft. "gmail-error"
+// is handled separately because it carries a detail string from the Gmail API.
+const DRAFT_ERROR_TEXT: Record<string, string> = {
+  "no-recipient": "No email on this card — add/verify the address first.",
+  "not-configured": "Gmail not configured in this environment (GMAIL_REFRESH_TOKEN missing).",
+  "auth-failed": "Gmail token rejected — the GMAIL_REFRESH_TOKEN is invalid/expired; re-check Vercel env.",
+};
+
 const SECTION_PLAYBOOK: Partial<Record<PrActionType, { title: string; text: string }>> = {
   register: { title: "Register playbook (applies to every row here)", text: REGISTER_PLAYBOOK },
   hashtag: { title: "Weekly hashtag routine (applies to every row here)", text: HASHTAG_PLAYBOOK },
@@ -53,14 +61,24 @@ const SECTION_PLAYBOOK: Partial<Record<PrActionType, { title: string; text: stri
   "directory-submit": { title: "Directory submission text (reuse for every row here)", text: DIRECTORY_PLAYBOOK },
 };
 
-function priorityChip(p: number) {
+function priorityChip(p: number, why?: string) {
   const bg = p >= 5 ? "var(--sage)" : p === 4 ? "color-mix(in oklab, var(--sage) 70%, transparent)" : p === 3 ? "var(--gold)" : "var(--muted)";
   return (
-    <span className="rounded-md px-1.5 py-0.5 text-[11px] font-bold" style={{ background: bg, color: p >= 4 ? "#fff" : "#16201C" }}>
+    <span className="rounded-md px-1.5 py-0.5 text-[11px] font-bold" style={{ background: bg, color: p >= 4 ? "#fff" : "#16201C" }} title={why}>
       P{p}
     </span>
   );
 }
+
+// P5 is the TOP tier (the board sorts priority descending, colours P5 strongest, and leads with it);
+// P1 is the lowest. Wording distilled from the priorityWhy strings across the plan.
+const PRIORITY_LEGEND: { p: number; text: string }[] = [
+  { p: 5, text: "best-fit, verified route, highest hit-probability" },
+  { p: 4, text: "verified contact, strong angle" },
+  { p: 3, text: "workable but caveated (niche or silence likely)" },
+  { p: 2, text: "no clear route / address needs verifying" },
+  { p: 1, text: "lowest priority / unclassified" },
+];
 
 function CopyBtn({ text, label }: { text: string; label: string }) {
   const [done, setDone] = useState(false);
@@ -102,6 +120,8 @@ function GmailDraftBtn({ id }: { id: string }) {
           startTransition(async () => {
             const r = await createPrDraft(id);
             if (r.link) setLink(r.link);
+            else if (r.reason === "gmail-error") setError(`Gmail rejected the draft${r.detail ? `: ${r.detail}` : "."}`);
+            else if (r.reason) setError(DRAFT_ERROR_TEXT[r.reason] ?? "Gmail draft failed.");
             else setError(r.error || "failed");
           });
         }}
@@ -142,7 +162,7 @@ function Card({ row, status, gmailOn, onSet }: { row: PrBoardRow; status: string
   return (
     <div className="rounded-2xl border p-4 mb-3" style={{ borderColor: DONE.has(status) ? "var(--sage)" : "var(--line)", background: "var(--card)", opacity: dimmed ? 0.55 : 1 }}>
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-        {priorityChip(row.priority)}
+        {priorityChip(row.priority, row.priorityWhy)}
         <span className="font-semibold">{row.outlet}</span>
         <span className="text-[11px]" style={{ color: "var(--muted)" }}>{row.actionType}</span>
         <StatusPills row={row} status={status} onSet={onSet} />
@@ -197,6 +217,9 @@ export default function PrBoard({ rows, gmailOn }: { rows: PrBoardRow[]; gmailOn
   // Optimistic local status; falls back to the server value. Same POST path the kanban used.
   const [statuses, setStatuses] = useState<Record<string, string>>({});
   const statusOf = (r: PrBoardRow) => statuses[r.id] ?? (r.status || "queued");
+  // Status filter for the visible cards (best-3 summary stays as-is — it's the next-action panel).
+  const [filter, setFilter] = useState<string>("all");
+  const matchesFilter = (r: PrBoardRow) => filter === "all" || statusOf(r) === filter;
   async function onSet(id: string, status: string) {
     const prev = statuses[id];
     setStatuses((s) => ({ ...s, [id]: status }));
@@ -223,7 +246,7 @@ export default function PrBoard({ rows, gmailOn }: { rows: PrBoardRow[]; gmailOn
         {best3.map((r, i) => (
           <div key={r.id} className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 mb-1.5">
             <span className="text-sm font-bold" style={{ color: "var(--muted)" }}>{i + 1}.</span>
-            {priorityChip(r.priority)}
+            {priorityChip(r.priority, r.priorityWhy)}
             <span className="text-sm font-semibold">{r.outlet}</span>
             <span className="text-xs" style={{ color: "var(--muted)" }}>{r.actionType}</span>
             <span className="text-xs" style={{ color: "var(--muted)" }}>{r.priorityWhy}</span>
@@ -231,8 +254,31 @@ export default function PrBoard({ rows, gmailOn }: { rows: PrBoardRow[]; gmailOn
         ))}
       </div>
 
+      <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs" style={{ color: "var(--muted)" }}>
+        <span className="font-bold" style={{ color: "var(--foreground)" }}>Priority</span>
+        {PRIORITY_LEGEND.map(({ p, text }) => (
+          <span key={p} className="inline-flex items-center gap-1.5">{priorityChip(p)} {text}</span>
+        ))}
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter cards by status">
+        <span className="mr-1 text-xs font-bold" style={{ color: "var(--foreground)" }}>Filter</span>
+        {(["all", ...STATUSES] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            aria-pressed={filter === s}
+            onClick={() => setFilter(s)}
+            className="rounded-md px-2.5 py-1 text-xs font-semibold"
+            style={{ border: "1px solid var(--line)", background: filter === s ? "var(--ember)" : "transparent", color: filter === s ? "#16201C" : "var(--muted)", cursor: "pointer" }}
+          >
+            {s === "all" ? "All" : STATUS_LABEL[s]}
+          </button>
+        ))}
+      </div>
+
       {SECTION_ORDER.map(({ type, title }) => {
-        const sectionRows = active.filter((r) => r.actionType === type);
+        const sectionRows = active.filter((r) => r.actionType === type && matchesFilter(r));
         if (sectionRows.length === 0) return null;
         const playbook = SECTION_PLAYBOOK[type];
         return (
@@ -257,7 +303,7 @@ export default function PrBoard({ rows, gmailOn }: { rows: PrBoardRow[]; gmailOn
             Skips and holds <span className="text-sm font-normal" style={{ color: "var(--muted)" }}>({parked.length})</span>
           </summary>
           <div className="mt-3">
-            {parked.map((r) => <Card key={r.id} row={r} status={statusOf(r)} gmailOn={gmailOn} onSet={onSet} />)}
+            {parked.filter(matchesFilter).map((r) => <Card key={r.id} row={r} status={statusOf(r)} gmailOn={gmailOn} onSet={onSet} />)}
           </div>
         </details>
       )}
