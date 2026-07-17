@@ -170,8 +170,10 @@ export default async function Home({ params }: { params: { locale: string } }) {
               { n: "3", t: L.card3t, d: L.card3d },
             ].map((s) => (
               <div key={s.n} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
-                <div className="flex items-center justify-center rounded-xl font-display font-semibold text-lg" style={{ background: "var(--sage)", color: "#fff", width: 42, height: 42 }}>{s.n}</div>
-                <h3 className="mt-3.5 font-display text-lg font-medium">{s.t}</h3>
+                <div className="flex items-center gap-3">
+                  <div className="flex-none flex items-center justify-center rounded-xl font-display font-semibold text-lg" style={{ background: "var(--sage)", color: "#fff", width: 42, height: 42 }}>{s.n}</div>
+                  <h3 className="font-display text-lg font-medium">{s.t}</h3>
+                </div>
                 <p className="mt-1.5 text-sm" style={{ color: "var(--muted)" }}>{s.d}</p>
               </div>
             ))}
