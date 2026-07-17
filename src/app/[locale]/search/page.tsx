@@ -66,11 +66,12 @@ export default async function SearchPage({ params, searchParams }: Props) {
           {hotels.map((h, idx) => (
             <li key={h.slug} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>
+                <div className="flex-shrink-0 hidden sm:flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>
                   {h.score.toFixed(1)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="sm:hidden inline-flex items-center justify-center rounded-lg px-2 py-0.5 text-sm font-semibold text-white" style={{ background: cosyBadgeColor(h.score), fontFamily: "Fraunces, serif" }}>{h.score.toFixed(1)}</span>
                     <span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span>
                     <h2 className="text-lg font-semibold leading-tight">
                       <a href={`/${locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a>
