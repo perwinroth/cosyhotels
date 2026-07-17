@@ -4,16 +4,16 @@
 
 // R11 — per-city guide-page title (guides/[slug] generateMetadata).
 export const CITY_TITLE: Record<string, string> = {
-  Bruges: "Cosy Boutique Hotels & B&Bs in Bruges — AI-ranked",
-  Charleston: "Cosy Boutique Hotels & Historic Inns in Charleston — AI-ranked",
+  Bruges: "Cosy Boutique Hotels & B&Bs in Bruges, AI-ranked",
+  Charleston: "Cosy Boutique Hotels & Historic Inns in Charleston, AI-ranked",
 };
 
 // R9 — per-city lead sentence, prepended to the data-derived intro (which stays, for honesty).
 export const CITY_INTRO_LEAD: Record<string, string> = {
   Bruges:
-    "Bruges does cosy its own way: 17th-century townhouses, canal-side B&Bs and small family-run guesthouses inside the old walls — not chain hotels.",
+    "Bruges does cosy its own way: 17th-century townhouses, canal-side B&Bs and small family-run guesthouses inside the old walls, not chain hotels.",
   Charleston:
-    "Charleston does cosy as historic inns and B&Bs — 19th-century single houses, courtyard inns and harbor-view guesthouses in the walkable historic core, not chain hotels.",
+    "Charleston does cosy as historic inns and B&Bs: 19th-century single houses, courtyard inns and harbor-view guesthouses in the walkable historic core, not chain hotels.",
 };
 
 // R4 + R6 — per-city extra FAQs, appended to the templated cityFaqs() (rendered + FAQPage JSON-LD).
@@ -21,11 +21,11 @@ export const CITY_EXTRA_FAQS: Record<string, Array<{ q: string; a: string }>> = 
   Bruges: [
     {
       q: "Where should I stay for the Bruges Christmas Market?",
-      a: "The market is held on the Grote Markt in the heart of the old centre. Stay anywhere inside the 'egg' of Bruges and you can walk over in minutes — we've scored 51 cosy hotels within 600 m of the square. See our guide to cosy hotels near the Bruges Christmas Market for the full ranked list.",
+      a: "The market is held on the Grote Markt in the heart of the old centre. Stay anywhere inside the 'egg' of Bruges and you can walk over in minutes; we've scored 51 cosy hotels within 600 m of the square. See our guide to cosy hotels near the Bruges Christmas Market for the full ranked list.",
     },
     {
       q: "Is Bruges or Brussels better for Christmas markets?",
-      a: "They're different trips. Bruges is compact and atmospheric — a small market on a medieval square, canals and cobbles, everything walkable from a cosy hotel. Brussels is bigger: a larger market plus the Grand-Place light show, with more big-city hotels. For a cosy weekend built around the market itself, Bruges is the stronger pick.",
+      a: "They're different trips. Bruges is compact and atmospheric: a small market on a medieval square, canals and cobbles, everything walkable from a cosy hotel. Brussels is bigger: a larger market plus the Grand-Place light show, with more big-city hotels. For a cosy weekend built around the market itself, Bruges is the stronger pick.",
     },
     {
       q: "Is one night in Bruges enough?",
@@ -34,8 +34,8 @@ export const CITY_EXTRA_FAQS: Record<string, Array<{ q: string; a: string }>> = 
   ],
   Charleston: [
     {
-      q: "Historic District or Mount Pleasant — where should I stay in Charleston?",
-      a: "For a cosy, walkable stay, the Historic District (downtown) is the pick — King Street, the City Market, the French Quarter and the waterfront are all on foot, so you won't need a car in the city. Mount Pleasant is a quieter suburb across the Cooper River, better if you have a car and want more space. Our curated cosy hotels are in the walkable historic core.",
+      q: "Historic District or Mount Pleasant, where should I stay in Charleston?",
+      a: "For a cosy, walkable stay, the Historic District (downtown) is the pick: King Street, the City Market, the French Quarter and the waterfront are all on foot, so you won't need a car in the city. Mount Pleasant is a quieter suburb across the Cooper River, better if you have a car and want more space. Our curated cosy hotels are in the walkable historic core.",
     },
     {
       q: "Where should I stay in Charleston for a romantic weekend?",
@@ -49,8 +49,8 @@ export const CITY_EXTRA_FAQS: Record<string, Array<{ q: string; a: string }>> = 
 // to be nice and quiet" — promise night-noise relief + micro-location, never "soundproofed".
 export const FACET_CITY_COPY: Record<string, { title?: string; intro?: string }> = {
   "quiet/bruges": {
-    title: "Quiet Hotels near the Centre of Bruges — sleep well, steps from the Markt",
+    title: "Quiet Hotels near the Centre of Bruges, sleep well, steps from the Markt",
     intro:
-      "Travellers asking about Bruges keep wanting the same thing: near the centre, but quiet at night. These hotels sit inside the old town within walking distance of the Grote Markt, on the quieter streets — guests consistently mention peaceful sleep and low street noise. Ranked by cosy score.",
+      "Travellers asking about Bruges keep wanting the same thing: near the centre, but quiet at night. These hotels sit inside the old town within walking distance of the Grote Markt, on the quieter streets. Guests consistently mention peaceful sleep and low street noise. Ranked by cosy score.",
   },
 };

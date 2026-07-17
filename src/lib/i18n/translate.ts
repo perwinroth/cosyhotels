@@ -124,11 +124,92 @@ export async function translate(text: string, targetLocale: string): Promise<str
   // descriptions as English this way). Only real translations get written.
   const produced = translated !== protectedText;
   translated = unprotect(translated);
-  translated = translated.replace(/\s*[\u2014\u2013]\s*/g, ", "); // hard-strip em/en dashes (site rule)
+  // Hard-strip em dashes always (site rule); en dashes too EXCEPT between digits, where they are
+  // legitimate numeric ranges (0\u201310 scale) and stripping produced nonsense like "0, 10".
+  translated = translated.replace(/\s*\u2014\s*/g, ", ").replace(/(?<!\d)\s*\u2013\s*|\s*\u2013\s*(?!\d)/g, ", ");
   try {
     if (db && produced) await db.from('translations').upsert({ lang: target, src_hash: key, src_text: text, translated_text: translated }, { onConflict: 'lang,src_hash' });
   } catch {}
   return translated;
+}
+
+// Reader-facing HTML body translation for curated guides (src/data/guides.ts). translate()'s Claude
+// call caps output at max_tokens=1024 (~700-900 English words); a curated guide body runs several
+// KB (the Bruges guide's 51-hotel <ol> alone is ~6.9k chars), so translating it as one string would
+// silently truncate mid-tag and cache the broken fragment forever. Split into top-level block chunks
+// instead (p/h2/ol/ul boundaries, each capped at maxChunkChars), further exploding any single
+// oversized ol/ul by its <li> items (continuing <ol> numbering via `start`), then translate each
+// chunk through the same cached translate() path and rejoin. en short-circuits with zero awaits so
+// English output stays byte-identical.
+export async function translateHtml(html: string, targetLocale: string, maxChunkChars = 1500): Promise<string> {
+  const target = (targetLocale || 'en').split('-')[0].toLowerCase();
+  if (!html || target === 'en') return html;
+  const chunks = splitHtmlBlocks(html, maxChunkChars);
+  const translated = await Promise.all(chunks.map((c) => translate(c, target)));
+  return translated.join('');
+}
+
+function splitHtmlBlocks(html: string, maxChars: number): string[] {
+  // 1. Break the body into its top-level block elements (guide bodies only ever use these four).
+  const blockRe = /<(h2|p|ol|ul)\b[^>]*>[\s\S]*?<\/\1>/g;
+  const rawBlocks: string[] = [];
+  let lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = blockRe.exec(html))) {
+    if (m.index > lastIndex) rawBlocks.push(html.slice(lastIndex, m.index));
+    rawBlocks.push(m[0]);
+    lastIndex = blockRe.lastIndex;
+  }
+  if (lastIndex < html.length) rawBlocks.push(html.slice(lastIndex));
+
+  // 2. Explode any block that alone exceeds the limit: lists split by whole <li> items (never mid-tag).
+  const atoms: string[] = [];
+  for (const block of rawBlocks) {
+    if (!block) continue;
+    if (block.length <= maxChars) { atoms.push(block); continue; }
+    const listMatch = /^<(ol|ul)>([\s\S]*)<\/\1>$/.exec(block);
+    if (listMatch) {
+      const [, tag, inner] = listMatch;
+      const items = inner.match(/<li\b[\s\S]*?<\/li>/g) || [inner];
+      let cur = '';
+      let startAt = 1;
+      let seen = 0;
+      for (const item of items) {
+        if (cur && cur.length + item.length > maxChars) {
+          atoms.push(`<${tag}${tag === 'ol' ? ` start="${startAt}"` : ''}>${cur}</${tag}>`);
+          startAt += seen;
+          cur = '';
+          seen = 0;
+        }
+        cur += item;
+        seen += 1;
+      }
+      if (cur) atoms.push(`<${tag}${tag === 'ol' ? ` start="${startAt}"` : ''}>${cur}</${tag}>`);
+    } else {
+      // Last resort (no oversized p/h2 exists in practice today): chop on whitespace near the limit.
+      let rest = block;
+      while (rest.length > maxChars) {
+        let cut = rest.lastIndexOf(' ', maxChars);
+        if (cut <= 0) cut = maxChars;
+        atoms.push(rest.slice(0, cut));
+        rest = rest.slice(cut);
+      }
+      if (rest) atoms.push(rest);
+    }
+  }
+
+  // 3. Re-group consecutive small atoms up to the limit, so we don't fire one Claude call per <p>.
+  const chunks: string[] = [];
+  let cur = '';
+  for (const atom of atoms) {
+    if (cur && cur.length + atom.length > maxChars) {
+      chunks.push(cur);
+      cur = '';
+    }
+    cur += atom;
+  }
+  if (cur) chunks.push(cur);
+  return chunks;
 }
 
 // Batch-translate a list of strings with bounded concurrency. Each string is cached individually by
