@@ -193,7 +193,6 @@ export default async function Home({ params }: { params: { locale: string } }) {
                 return (
                   <li key={h.slug} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
                     <div className="flex items-start gap-5">
-                      <span className="text-sm tabular-nums mt-1" style={{ color: "var(--muted)", width: 16 }}>{i + 1}</span>
                       <div className="flex-none hidden sm:flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 64, height: 64, background: cosyBadgeColor(h.cosy), color: "#fff", fontSize: 23 }}>
                         {h.cosy.toFixed(1)}<span style={{ fontFamily: "Inter", fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", opacity: 0.8 }}>COSY</span>
                       </div>
