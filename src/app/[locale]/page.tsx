@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import { translate, translateMany } from "@/lib/i18n/translate";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { badLinkHotelIds } from "@/lib/linkQuality";
 import { cityGuides } from "@/data/cityGuides";
@@ -106,6 +107,37 @@ export default async function Home({ params }: { params: { locale: string } }) {
   // Fallback chips from the curated list if the DB is unavailable.
   const heroChips = (chips.length ? chips : cityGuides.map((g) => ({ city: g.city, slug: g.slug, count: 0 }))).slice(0, 6);
 
+  // Reader-facing chrome routes through translate() for non-en locales; en short-circuits before any
+  // await (English pays zero translation cost). Source strings are British English, no em/en dashes.
+  const isEn = locale === "en";
+  const CHROME = {
+    heroSub: "Sure we do: our AI ranks hotels on cosiness, not stars.",
+    card1t: "AI reads every hotel",
+    card1d: "Photos, reviews, amenities, room count and setting, all judged together, not in isolation.",
+    card2t: "Cosiness signals are weighted",
+    card2d: "Fireplaces, warm light, soft textiles, intimate scale, scored on one 0–10 cosy scale.",
+    card3t: "You book one with soul",
+    card3d: "We surface the cosiest, explain why, and link you straight to availability.",
+    staysLove: "Cosy stays we love",
+    staysSub: "High cosy scores, with a real photo to match",
+    exploreGuides: "Explore all city guides",
+    searchPlaceholder: "Search a hotel or city…",
+    searchBtn: "Search",
+    searching: "Searching…",
+    areas: "Areas",
+    countries: "Countries",
+    cities: "Cities",
+    cosyHotelsIn: "Cosy hotels in",
+  };
+  let L = CHROME;
+  if (!isEn) {
+    const keys = Object.keys(CHROME) as (keyof typeof CHROME)[];
+    const vals = await Promise.all(keys.map((k) => translate(CHROME[k], locale)));
+    L = Object.fromEntries(keys.map((k, i) => [k, vals[i]])) as typeof CHROME;
+  }
+  // Homepage hotel descriptions render in the target language too (pure sv cache hit; en untouched).
+  const topDescs = isEn ? top.map((h) => h.description) : await translateMany(top.map((h) => h.description), locale);
+
   return (
     <div>
       {/* HERO */}
@@ -114,11 +146,11 @@ export default async function Home({ params }: { params: { locale: string } }) {
           Got <span style={{ fontStyle: "italic", fontWeight: 500, color: "var(--ember)" }}>cosy?</span>
         </h1>
         <p className="mt-4 mx-auto text-lg" style={{ color: "var(--muted)", maxWidth: 560, lineHeight: 1.5 }}>
-          Sure we do: our AI ranks hotels on cosiness, not stars.
+          {L.heroSub}
         </p>
         <div className="mt-7 mx-auto" style={{ maxWidth: 580 }}>
           <Suspense fallback={<div className="h-12 rounded-2xl border" style={{ borderColor: "var(--line)", background: "var(--card)" }} />}>
-            <SearchBar locale={locale} />
+            <SearchBar locale={locale} labels={{ placeholder: L.searchPlaceholder, searchBtn: L.searchBtn, searching: L.searching, areas: L.areas, countries: L.countries, cities: L.cities, cosyHotelsIn: L.cosyHotelsIn }} />
           </Suspense>
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -135,9 +167,9 @@ export default async function Home({ params }: { params: { locale: string } }) {
         <section className="mt-4">
           <div className="grid md:grid-cols-3 gap-4">
             {[
-              { n: "1", t: "AI reads every hotel", d: "Photos, reviews, amenities, room count and setting, all judged together, not in isolation." },
-              { n: "2", t: "Cosiness signals are weighted", d: "Fireplaces, warm light, soft textiles, intimate scale, scored on one 0–10 cosy scale." },
-              { n: "3", t: "You book one with soul", d: "We surface the cosiest, explain why, and link you straight to availability." },
+              { n: "1", t: L.card1t, d: L.card1d },
+              { n: "2", t: L.card2t, d: L.card2d },
+              { n: "3", t: L.card3t, d: L.card3d },
             ].map((s) => (
               <div key={s.n} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
                 <div className="flex items-center justify-center rounded-xl font-display font-semibold text-lg" style={{ background: "var(--sage)", color: "#fff", width: 42, height: 42 }}>{s.n}</div>
@@ -152,8 +184,8 @@ export default async function Home({ params }: { params: { locale: string } }) {
         {top.length > 0 && (
           <section className="mt-14">
             <div className="flex items-baseline justify-between mb-5">
-              <h2 className="font-display text-2xl font-semibold">Cosy stays we love</h2>
-              <span className="text-sm" style={{ color: "var(--muted)" }}>High cosy scores, with a real photo to match</span>
+              <h2 className="font-display text-2xl font-semibold">{L.staysLove}</h2>
+              <span className="text-sm" style={{ color: "var(--muted)" }}>{L.staysSub}</span>
             </div>
             <ol className="space-y-3">
               {top.map((h, i) => {
@@ -171,7 +203,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                           <h3 className="font-display text-xl font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="no-underline hover:underline">{h.name_en || h.name}</a></h3>
                         </div>
                         <div className="text-sm" style={{ color: "var(--muted)" }}>{placeLine(h.city, h.country)}</div>
-                        {h.description && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>}
+                        {topDescs[i] && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{topDescs[i]}</p>}
                         {/* Button below the text so it never overlaps a long hotel name. */}
                         <HotelActions stay22Href={cta} website={h.website} isVerifiedWrong={wrongSlugs.has(h.slug)} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name_en || h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${locale}/hotels/${h.slug}`} />
                       </div>
@@ -188,7 +220,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
               })}
             </ol>
             <div className="text-center mt-6">
-              <Link href={`/${locale}/guides`} prefetch={false} className="inline-block rounded-xl px-7 py-3 font-medium no-underline" style={{ color: "var(--ember)", border: "1px solid color-mix(in srgb, var(--ember) 35%, transparent)" }}>Explore all city guides →</Link>
+              <Link href={`/${locale}/guides`} prefetch={false} className="inline-block rounded-xl px-7 py-3 font-medium no-underline" style={{ color: "var(--ember)", border: "1px solid color-mix(in srgb, var(--ember) 35%, transparent)" }}>{L.exploreGuides} →</Link>
             </div>
           </section>
         )}

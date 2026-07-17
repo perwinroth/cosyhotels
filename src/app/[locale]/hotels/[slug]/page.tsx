@@ -11,6 +11,7 @@ import BadgeEmbed from "@/components/BadgeEmbed";
 import HotelActions from "@/components/HotelActions";
 import { type SaveToTripLabels } from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import { translate } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
@@ -340,14 +341,49 @@ export default async function HotelDetail({ params }: Props) {
     ...(cityName && cityGuideRenders ? [{ name: cityName, url: `/${params.locale}/guides/${cityToSlug(cityName)}` }] : []),
     { name: String(hotel.name), url: `/${params.locale}/hotels/${hotel.slug}` },
   ]);
+  // Reader-facing chrome routes through translate() for non-en locales; en short-circuits before any
+  // await (English pays zero cost). Hotel names, city/country, scores, review signals and FAQ answers
+  // stay as DATA. The description body is a pure sv cache hit (pre-translated). British English, no
+  // em/en dashes in source. generateMetadata/canonical/title are NOT touched here (other branch owns).
+  const isEn = params.locale === "en";
+  const CH = {
+    guides: "Guides",
+    cosyIndex: "The Cosy Index",
+    browseGuides: "Browse guides",
+    howScore: "How the cosy score works",
+    faqHeading: "Frequently asked questions",
+    disclosure: "Booking via this link may earn us a commission; it never affects cosy scores.",
+    reviewed: "Reviewed",
+    belowBar: "below our cosy bar",
+    notRated: "Not yet rated",
+    awaiting: "awaiting evidence",
+    notEnough: "We haven't gathered enough guest evidence to score this hotel for cosiness yet. It will earn a score once we have real reviews or vetted photos.",
+  };
+  let LC = CH;
+  const rawDesc = cosyDescription ?? cosySnippet;
+  let descBody = rawDesc;
+  let whyScores = cosyDisplay != null ? `Why it scores ${cosyDisplay.toFixed(1)}, from guest reviews` : "";
+  let cosyHotelsInCity = cityName ? `Cosy hotels in ${cityName}` : "";
+  if (!isEn) {
+    const keys = Object.keys(CH) as (keyof typeof CH)[];
+    const [chromeVals, dsc, why, chic] = await Promise.all([
+      Promise.all(keys.map((k) => translate(CH[k], params.locale))),
+      rawDesc ? translate(rawDesc, params.locale) : Promise.resolve(rawDesc),
+      whyScores ? translate(whyScores, params.locale) : Promise.resolve(whyScores),
+      cosyHotelsInCity ? translate(cosyHotelsInCity, params.locale) : Promise.resolve(cosyHotelsInCity),
+    ]);
+    LC = Object.fromEntries(keys.map((k, i) => [k, chromeVals[i]])) as typeof CH;
+    descBody = dsc; whyScores = why; cosyHotelsInCity = chic;
+  }
+
   const crumbItems: LinkItem[] = [
-    { href: `/${params.locale}/guides`, label: "Guides" },
+    { href: `/${params.locale}/guides`, label: LC.guides },
     ...(cityName && cityGuideRenders ? [{ href: cityGuideHref, label: cityName }] : []),
     { href: `/${params.locale}/hotels/${hotel.slug}`, label: String(hotel.name) },
   ];
   const graphExtra: LinkItem[] = [
-    { href: `/${params.locale}/cosy-index`, label: "The Cosy Index" },
-    ...(cityName && cityGuideRenders ? [{ href: cityGuideHref, label: `Cosy hotels in ${cityName}` }] : []),
+    { href: `/${params.locale}/cosy-index`, label: LC.cosyIndex },
+    ...(cityName && cityGuideRenders ? [{ href: cityGuideHref, label: cosyHotelsInCity }] : []),
   ];
   // Bespoke, review-grounded FAQ when we have one for this hotel; else the data-tailored template.
   const bespoke = (hotelFaqData as Record<string, { q: string; a: string }[]>)[String(hotel.id)];
@@ -396,22 +432,22 @@ export default async function HotelDetail({ params }: Props) {
           </div>
         ) : (
           <div className="flex-none rounded-2xl border px-4 py-3 text-sm font-medium" style={{ borderColor: 'var(--line)', color: 'var(--muted)' }} aria-label={scoredBelowBar ? 'Reviewed: below our cosy bar' : 'Not yet rated'}>
-            {scoredBelowBar ? <>Reviewed<br /><span className="text-xs font-normal">below our cosy bar</span></> : <>Not yet rated<br /><span className="text-xs font-normal">awaiting evidence</span></>}
+            {scoredBelowBar ? <>{LC.reviewed}<br /><span className="text-xs font-normal">{LC.belowBar}</span></> : <>{LC.notRated}<br /><span className="text-xs font-normal">{LC.awaiting}</span></>}
           </div>
         )}
         <div className="flex-1 min-w-0">
           {cosyDisplay != null && (cosyDescription ?? cosySnippet)
-            ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{cosyDescription ?? cosySnippet}</p>
+            ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{descBody}</p>
             : cosyDisplay == null && (scoredBelowBar
               ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We reviewed {String(hotel.name)} for cosiness (warmth, character, intimacy) and it didn&apos;t clear the bar for our shortlist. That&apos;s a verdict on cosiness, not on cleanliness or service{cityName && cityGuideRenders ? <>; the {cityName} hotels that did clear it are <a href={cityGuideHref}>ranked here</a></> : null}.</p>
-              : <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We haven&apos;t gathered enough guest evidence to score this hotel for cosiness yet. It will earn a score once we have real reviews or vetted photos.</p>)}
-          <a href={`/${params.locale}/about`} className="mt-2 inline-block text-xs no-underline" style={{ color: 'var(--muted)', borderBottom: '1px dotted var(--line)' }}>How the cosy score works →</a>
+              : <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>{LC.notEnough}</p>)}
+          <a href={`/${params.locale}/about`} className="mt-2 inline-block text-xs no-underline" style={{ color: 'var(--muted)', borderBottom: '1px dotted var(--line)' }}>{LC.howScore} →</a>
         </div>
       </div>
 
       {cosyDisplay != null && cosySignals.length > 0 && (
         <section className="mt-4 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
-          <h2 className="text-sm font-semibold tracking-wide" style={{ color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Why it scores {cosyDisplay.toFixed(1)}, from guest reviews</h2>
+          <h2 className="text-sm font-semibold tracking-wide" style={{ color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{whyScores}</h2>
           <ul className="mt-3 space-y-2">
             {cosySignals.map((s) => (
               <li key={s.slice(0, 40)} className="flex gap-2.5 text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>
@@ -426,7 +462,7 @@ export default async function HotelDetail({ params }: Props) {
       <TravellerFit displayed={displayedFits} hrefBySlug={hrefBySlug} />
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <a className="inline-flex min-h-[44px] items-center rounded-xl px-4 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? `Cosy hotels in ${cityName}` : 'Browse guides'}</a>
+        <a className="inline-flex min-h-[44px] items-center rounded-xl px-4 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? cosyHotelsInCity : LC.browseGuides}</a>
         <div className="sm:ml-auto">
           <HotelActions stay22Href={bookingUrl} website={rawWebsite} isVerifiedWrong={isVerifiedWrong} showWebsiteSecondary hotelName={String(hotel.name)} city={cityName} slug={String(hotel.slug)} locale={params.locale} saveLabels={saveLabels} />
         </div>
@@ -434,14 +470,14 @@ export default async function HotelDetail({ params }: Props) {
       {/* Adjacent affiliate disclosure (audit finding #4) — clear and conspicuous, next to the CTA, not
           only in the footer. Only meaningful when a Stay22 button actually renders (founder, 2026-07-16). */}
       {bookingCta.mode === "stay22" && (
-        <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>Booking via this link may earn us a commission; it never affects cosy scores.</p>
+        <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>{LC.disclosure}</p>
       )}
 
       <HotelGraph city={cityName} cityLabel={cityName} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinks} extra={graphExtra} />
 
       <section className="mt-12">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
-        <h2 className="font-display text-2xl font-semibold">Frequently asked questions</h2>
+        <h2 className="font-display text-2xl font-semibold">{LC.faqHeading}</h2>
         <dl className="mt-4 space-y-3">
           {faqs.map((f) => (
             <div key={f.q} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>

@@ -9,7 +9,12 @@ type CityHit = { name: string; slug: string };
 type CountryHit = { name: string; slug: string; count: number };
 type RegionHit = { name: string; slug: string; the: boolean };
 
-export function SearchBar({ locale = "en" }: { locale?: string }) {
+// Reader-facing labels are translated by the server parent (homepage) and passed in, since this is a
+// client component and cannot call translate(). English defaults keep every other caller unchanged.
+type SearchLabels = { placeholder: string; searchBtn: string; searching: string; areas: string; countries: string; cities: string; cosyHotelsIn: string };
+const EN_LABELS: SearchLabels = { placeholder: "Search a hotel or city…", searchBtn: "Search", searching: "Searching…", areas: "Areas", countries: "Countries", cities: "Cities", cosyHotelsIn: "Cosy hotels in" };
+
+export function SearchBar({ locale = "en", labels = EN_LABELS }: { locale?: string; labels?: SearchLabels }) {
   const [q, setQ] = useState("");
   const [hotels, setHotels] = useState<HotelHit[]>([]);
   const [cities, setCities] = useState<CityHit[]>([]);
@@ -63,7 +68,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
       <input
         className="w-full rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2"
         style={{ border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--foreground)' }}
-        placeholder="Search a hotel or city…"
+        placeholder={labels.placeholder}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onFocus={() => setShowSuggest(true)}
@@ -87,7 +92,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
               </li>
             ))}
             {regions.length > 0 && hotels.length > 0 && (
-              <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>Areas</li>
+              <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>{labels.areas}</li>
             )}
             {regions.map((r) => (
               <li key={`r-${r.slug}`}>
@@ -97,12 +102,12 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => go(`/${locale}/cosy-hotels/region/${r.slug}`)}
                 >
-                  Cosy hotels in {r.the ? "the " : ""}{r.name}
+                  {labels.cosyHotelsIn} {r.the ? "the " : ""}{r.name}
                 </button>
               </li>
             ))}
             {countries.length > 0 && (hotels.length > 0 || regions.length > 0) && (
-              <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>Countries</li>
+              <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>{labels.countries}</li>
             )}
             {countries.map((c) => (
               <li key={`co-${c.slug}`}>
@@ -112,12 +117,12 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => go(`/${locale}/cosy-hotels/in/${c.slug}`)}
                 >
-                  Cosy hotels in {c.name}
+                  {labels.cosyHotelsIn} {c.name}
                 </button>
               </li>
             ))}
             {cities.length > 0 && (hotels.length > 0 || regions.length > 0 || countries.length > 0) && (
-              <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>Cities</li>
+              <li className="px-3 pt-2 pb-1 text-xs uppercase" style={{ color: "var(--muted)", letterSpacing: "0.06em" }}>{labels.cities}</li>
             )}
             {cities.map((c) => (
               <li key={`c-${c.slug}`}>
@@ -141,7 +146,7 @@ export function SearchBar({ locale = "en" }: { locale?: string }) {
         style={{ background: 'var(--ember)' }}
         disabled={submitting}
       >
-        {submitting ? "Searching…" : "Search"}
+        {submitting ? labels.searching : labels.searchBtn}
       </button>
     </form>
   );
