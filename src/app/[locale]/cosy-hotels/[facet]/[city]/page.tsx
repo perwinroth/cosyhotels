@@ -2,17 +2,15 @@
 // Only hotels whose REAL cosy signals/description support the facet are shown; pages with <2
 // matches 404 (no thin/AI-filler pages). Copy is data-led (counts, names, scores) on purpose.
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { cityToSlug } from "@/lib/citySlug";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { CONCEPT_BY_SLUG, cityCollectionMin, LEGACY_FACET_SLUGS, conceptCityBlocked } from "@/lib/travellerFit";
 import { FACET_CITY_COPY } from "@/data/discoveryOverrides";
-import { cosyBadgeColor } from "@/lib/cosyColor";
 import { translate, translateMany } from "@/lib/i18n/translate";
 import { localeSeo } from "@/lib/i18n/seoLocale";
-import HotelActions from "@/components/HotelActions";
+import HotelCard from "@/components/HotelCard";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import {
   loadCityCosyHotels, resolveCity, loadConceptAssignments,
@@ -105,20 +103,25 @@ export default async function FacetPage({ params }: { params: { locale: string; 
       <ol className="mt-6 space-y-3">
         {hotels.map((h, idx) => {
           const cta = stay22AllezUrl({ name: h.name, city: h.city, country: h.country, lat: h.lat, lng: h.lng, campaign: `facet-${concept.slug}` });
-          const ph = photo.get(h.id);
           return (
-            <li key={h.id} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 hidden sm:flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>{h.score.toFixed(1)}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2"><span className="sm:hidden inline-flex items-center justify-center rounded-lg px-2 py-0.5 text-sm font-semibold text-white" style={{ background: cosyBadgeColor(h.score), fontFamily: "Fraunces, serif" }}>{h.score.toFixed(1)}</span><span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span><h2 className="text-lg font-semibold leading-tight"><a href={`/${params.locale}/hotels/${h.slug}`} className="hover:underline">{h.name}</a></h2></div>
-                  <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>
-                  {snippets[idx] && <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{snippets[idx]}</p>}
-                  <HotelActions stay22Href={cta} website={h.website} isVerifiedWrong={wrongSlugs.has(h.slug)} hotelName={h.name} city={h.city} slug={h.slug} locale={params.locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${params.locale}/hotels/${h.slug}`} />
-                </div>
-                {ph && <a href={`/${params.locale}/hotels/${h.slug}`} className="flex-shrink-0 hidden sm:block"><div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}><Image src={ph} alt={h.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} /></div></a>}
-              </div>
-            </li>
+            <HotelCard
+              key={h.id}
+              slug={h.slug}
+              name={h.name}
+              city={h.city}
+              country={h.country}
+              score={h.score}
+              rank={idx + 1}
+              snippet={snippets[idx]}
+              photo={photo.get(h.id)}
+              locale={params.locale}
+              saveLabels={saveLabels}
+              stay22Href={cta}
+              website={h.website}
+              isVerifiedWrong={wrongSlugs.has(h.slug)}
+              shareTitle={`${h.name}, a cosy hotel in ${h.city}`}
+              shareUrl={`/${params.locale}/hotels/${h.slug}`}
+            />
           );
         })}
       </ol>

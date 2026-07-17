@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import Image from "next/image";
 import { getBlogPost, type BlogSection, type BlogRelated } from "@/data/blogPosts";
 import { isBlogPostVisible } from "@/lib/blogSchedule";
 import blogPicksData from "@/data/blogPicks.json";
@@ -13,9 +12,8 @@ import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import { getServerSupabase } from "@/lib/supabase/server";
 type BlogPick = PickEntry;
 const BLOG_PICKS = blogPicksData as Record<string, BlogPick[]>;
-import { cosyBadgeColor } from "@/lib/cosyColor";
 import ShareButton from "@/components/ShareButton";
-import HotelActions from "@/components/HotelActions";
+import HotelCard from "@/components/HotelCard";
 import { type SaveToTripLabels } from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { site } from "@/config/site";
@@ -59,33 +57,24 @@ function Section({ s }: { s: BlogSection }) {
 function PickCard({ h, idx, locale, saveLabels, isVerifiedWrong }: { h: BlogPick; idx: number; locale: string; saveLabels: SaveToTripLabels; isVerifiedWrong: boolean }) {
   const detailsHref = `/${locale}/hotels/${h.slug}`;
   return (
-    <li className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 hidden sm:flex items-center justify-center rounded-2xl text-white shadow" style={{ background: cosyBadgeColor(h.score), width: 56, height: 56, fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600 }}>{h.score.toFixed(1)}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="sm:hidden inline-flex items-center justify-center rounded-lg px-2 py-0.5 text-sm font-semibold text-white" style={{ background: cosyBadgeColor(h.score), fontFamily: "Fraunces, serif" }}>{h.score.toFixed(1)}</span>
-            <span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>#{idx + 1}</span>
-            <h3 className="text-lg font-semibold leading-tight"><a href={detailsHref} className="hover:underline">{h.name}</a></h3>
-          </div>
-          <div className="text-sm" style={{ color: "var(--muted)" }}>{[h.city, h.country].filter(Boolean).join(", ")}</div>
-          {h.why && (
-            <div className="mt-2">
-              <span className="text-[11px] font-semibold uppercase" style={{ color: "var(--ember)", letterSpacing: "0.07em" }}>Why it&apos;s here</span>
-              <p className="mt-0.5 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{h.why}</p>
-            </div>
-          )}
-          <HotelActions stay22Href={h.cta} website={h.website} isVerifiedWrong={isVerifiedWrong} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name}, a cosy hotel in ${h.city}`} shareUrl={detailsHref} />
-        </div>
-        {h.img && (
-          <a href={detailsHref} className="flex-shrink-0 hidden sm:block">
-            <div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}>
-              <Image src={h.img} alt={`${h.name} – ${h.city}`} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(h.img)} />
-            </div>
-          </a>
-        )}
-      </div>
-    </li>
+    <HotelCard
+      slug={h.slug}
+      name={h.name}
+      city={h.city}
+      country={h.country}
+      score={h.score}
+      rank={idx + 1}
+      snippet={h.why}
+      snippetEyebrow="Why it's here"
+      photo={h.img}
+      locale={locale}
+      saveLabels={saveLabels}
+      stay22Href={h.cta}
+      website={h.website}
+      isVerifiedWrong={isVerifiedWrong}
+      shareTitle={`${h.name}, a cosy hotel in ${h.city}`}
+      shareUrl={detailsHref}
+    />
   );
 }
 

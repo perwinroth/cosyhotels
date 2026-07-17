@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { resolveSavedListPicks } from "@/lib/tripsLive";
 import { translate } from "@/lib/i18n/translate";
-import { cosyBadgeColor } from "@/lib/cosyColor";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
+import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import HotelCard from "@/components/HotelCard";
 import TripListRemoveControl from "@/components/TripListRemoveControl";
 import PlanOwnerControls from "@/components/PlanOwnerControls";
 import ShareButton from "@/components/ShareButton";
@@ -67,7 +67,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
 
   const t = tx(params.locale);
   const [
-    lDefaultTitle, lYourCollection, lNoPicks, lRemove, lRemoving, lMethod, lDisclosureBase, lDisclosureAffiliate, lShareCollection, lIntro, lCheckAvailability, lVisitWebsite, lCheckNearby,
+    lDefaultTitle, lYourCollection, lNoPicks, lRemove, lRemoving, lMethod, lDisclosureBase, lDisclosureAffiliate, lShareCollection, lIntro,
   ] = await Promise.all([
     t("Your Got Cosy collection"),
     t("Hotels in this collection"),
@@ -79,10 +79,8 @@ export default async function SavedListPage({ params, searchParams }: Props) {
     t("Links to book are affiliate links."),
     t("Share collection"),
     t("A collection of cosy hotels on Got Cosy, each scored 0 to 10 for warmth and character."),
-    t("Check availability"),
-    t("Visit hotel website"),
-    t("Check nearby stays"),
   ]);
+  const saveLabels = await buildSaveLabels(params.locale);
 
   // Edit affordance: only when the visitor's own ?token= matches this row's edit_token. The token
   // value is never fetched or rendered unless it already equals what the URL gave us, so nothing
@@ -170,47 +168,36 @@ export default async function SavedListPage({ params, searchParams }: Props) {
       <section className="mt-8">
         <h2 className="text-xl font-semibold">{lYourCollection}</h2>
         {picks.length > 0 ? (
-          <ul className="mt-4 space-y-3">
+          <ol className="mt-4 space-y-3">
             {picks.map((p) => {
               const stay22Href = stay22AllezUrl({ name: p.name, city: p.city, country: p.country, lat: p.lat, lng: p.lng, campaign: "collection" });
-              const cta = resolveBookingCta(p.website, stay22Href, wrongSlugs.has(p.slug));
-              const ctaLabel = cta.dataCta === "hotel_website" ? lVisitWebsite : cta.dataCta === "check_nearby" ? lCheckNearby : lCheckAvailability;
-              const ph = photo.get(p.id);
               return (
-                <li key={p.slug} className="rounded-xl border p-3" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-                  <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 flex items-center justify-center rounded-2xl text-white" style={{ background: cosyBadgeColor(p.score), width: 44, height: 44, fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600 }}>
-                      {p.score.toFixed(1)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <a href={detailsHref(p.slug)} className="font-medium hover:underline">{p.name}</a>
-                      <div className="text-xs" style={{ color: "var(--muted)" }}>{[p.city, p.country].filter(Boolean).join(", ")}</div>
-                      {/* Hotel descriptions are DATA, never translated per locale (same rule as the hotel
-                          detail page) — rendered as-is, JSX-escaped. This is what makes each collection a
-                          content-rich, indexable page instead of a bare name/score list. */}
-                      {p.description && (
-                        <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{p.description}</p>
-                      )}
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <a href={cta.href} target="_blank" rel={cta.rel} data-cta={cta.dataCta} data-hotel={p.name} data-city={p.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>{ctaLabel}</a>
-                        <ShareButton variant="icon" title={`${p.name}, a cosy hotel in ${p.city}`} url={detailsHref(p.slug)} />
-                        {canEdit && suppliedToken && (
-                          <TripListRemoveControl slug={list.slug} token={suppliedToken} hotelSlug={p.slug} label={lRemove} removingLabel={lRemoving} />
-                        )}
-                      </div>
-                    </div>
-                    {ph && (
-                      <a href={detailsHref(p.slug)} className="flex-shrink-0 hidden sm:block">
-                        <div className="relative rounded-lg overflow-hidden" style={{ width: 120, height: 90 }}>
-                          <Image src={ph} alt={p.name} fill className="object-cover" sizes="120px" quality={60} unoptimized={/^https?:\/\//.test(ph)} />
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                </li>
+                <HotelCard
+                  key={p.slug}
+                  slug={p.slug}
+                  name={p.name}
+                  city={p.city}
+                  country={p.country}
+                  score={p.score}
+                  // The full live description is deliberate SEO content on a collection page, never
+                  // clamped (this is what makes the page content-rich and indexable, not a bare list).
+                  snippet={p.description}
+                  clampSnippet={false}
+                  photo={photo.get(p.id)}
+                  locale={params.locale}
+                  saveLabels={saveLabels}
+                  stay22Href={stay22Href}
+                  website={p.website}
+                  isVerifiedWrong={wrongSlugs.has(p.slug)}
+                  shareTitle={`${p.name}, a cosy hotel in ${p.city}`}
+                  shareUrl={detailsHref(p.slug)}
+                  extraActions={canEdit && suppliedToken ? (
+                    <TripListRemoveControl slug={list.slug} token={suppliedToken} hotelSlug={p.slug} label={lRemove} removingLabel={lRemoving} />
+                  ) : undefined}
+                />
               );
             })}
-          </ul>
+          </ol>
         ) : (
           <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>{lNoPicks}</p>
         )}

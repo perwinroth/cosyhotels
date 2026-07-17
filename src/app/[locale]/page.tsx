@@ -2,8 +2,7 @@ import { site } from "@/config/site";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import HotelActions from "@/components/HotelActions";
+import HotelCard from "@/components/HotelCard";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { translate, translateMany } from "@/lib/i18n/translate";
 import { getServerSupabase } from "@/lib/supabase/server";
@@ -12,8 +11,7 @@ import { cityGuides } from "@/data/cityGuides";
 import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { SearchBar } from "@/components/HomeSections";
-import { placeLine, isLatin } from "@/lib/placeText";
-import { cosyBadgeColor } from "@/lib/cosyColor";
+import { isLatin } from "@/lib/placeText";
 import { getDelistedSlugSet } from "@/lib/delisted";
 import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
 
@@ -191,30 +189,24 @@ export default async function Home({ params }: { params: { locale: string } }) {
               {top.map((h, i) => {
                 const cta = stay22AllezUrl({ name: h.name, city: h.city, country: h.country, lat: h.lat ?? null, lng: h.lng ?? null, campaign: `home-${locale}` });
                 return (
-                  <li key={h.slug} className="rounded-2xl border p-5" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
-                    <div className="flex items-start gap-5">
-                      <div className="flex-none hidden sm:flex flex-col items-center justify-center rounded-2xl font-display font-bold" style={{ width: 64, height: 64, background: cosyBadgeColor(h.cosy), color: "#fff", fontSize: 23 }}>
-                        {h.cosy.toFixed(1)}<span style={{ fontFamily: "Inter", fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", opacity: 0.8 }}>COSY</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="sm:hidden inline-flex items-center rounded-lg px-2 py-0.5 text-sm font-display font-bold text-white" style={{ background: cosyBadgeColor(h.cosy) }}>{h.cosy.toFixed(1)}<span style={{ fontFamily: "Inter", fontSize: 8, fontWeight: 600, letterSpacing: "0.12em", opacity: 0.8, marginLeft: 3 }}>COSY</span></span>
-                          <h3 className="font-display text-xl font-semibold leading-tight"><a href={`/${locale}/hotels/${h.slug}`} className="no-underline hover:underline">{h.name_en || h.name}</a></h3>
-                        </div>
-                        <div className="text-sm" style={{ color: "var(--muted)" }}>{placeLine(h.city, h.country)}</div>
-                        {topDescs[i] && <p className="mt-2 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{topDescs[i]}</p>}
-                        {/* Button below the text so it never overlaps a long hotel name. */}
-                        <HotelActions stay22Href={cta} website={h.website} isVerifiedWrong={wrongSlugs.has(h.slug)} hotelName={h.name} city={h.city} slug={h.slug} locale={locale} saveLabels={saveLabels} shareTitle={`${h.name_en || h.name}, a cosy hotel in ${h.city}`} shareUrl={`/${locale}/hotels/${h.slug}`} />
-                      </div>
-                      {h.image && (
-                        <a href={`/${locale}/hotels/${h.slug}`} className="flex-none hidden sm:block no-underline">
-                          <div className="relative rounded-xl overflow-hidden" style={{ width: 150, height: 112, border: "1px solid var(--line)" }}>
-                            <Image src={h.image} alt={`${h.name_en || h.name}, ${h.city}`} fill className="object-cover" sizes="150px" quality={65} unoptimized={/^https?:\/\//.test(h.image)} />
-                          </div>
-                        </a>
-                      )}
-                    </div>
-                  </li>
+                  <HotelCard
+                    key={h.slug}
+                    slug={h.slug}
+                    name={h.name_en || h.name}
+                    city={h.city}
+                    country={h.country}
+                    score={h.cosy}
+                    snippet={topDescs[i]}
+                    clampSnippet
+                    photo={h.image}
+                    locale={locale}
+                    saveLabels={saveLabels}
+                    stay22Href={cta}
+                    website={h.website}
+                    isVerifiedWrong={wrongSlugs.has(h.slug)}
+                    shareTitle={`${h.name_en || h.name}, a cosy hotel in ${h.city}`}
+                    shareUrl={`/${locale}/hotels/${h.slug}`}
+                  />
                 );
               })}
             </ol>

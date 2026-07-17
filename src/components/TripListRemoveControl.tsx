@@ -29,7 +29,7 @@ export default function TripListRemoveControl({ slug, token, hotelSlug, label, r
       type="button"
       onClick={onRemove}
       disabled={busy}
-      className="ml-auto flex-none rounded-lg border px-2.5 py-1 text-xs"
+      className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border px-5 text-sm font-medium sm:w-auto"
       style={{ borderColor: "var(--line)", color: "var(--muted)" }}
     >
       {busy ? removingLabel : label}
