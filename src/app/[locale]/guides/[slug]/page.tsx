@@ -18,7 +18,7 @@ import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
-import { translate, translateMany } from "@/lib/i18n/translate";
+import { translate, translateMany, translateHtml } from "@/lib/i18n/translate";
 import { buildShareLabels } from "@/lib/i18n/shareLabels";
 import { displayCity, displayCountry } from "@/lib/placeText";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
@@ -106,13 +106,18 @@ export default async function GuidePage({ params }: Props) {
   if (isMalformedSlug(params.slug)) notFound();
   const g = getGuide(params.slug);
   if (g) {
-    const title = params.locale === 'en' ? g.title : await translate(g.title, params.locale);
-    const excerpt = params.locale === 'en' ? g.excerpt : await translate(g.excerpt, params.locale);
+    // en short-circuits before any await so English output stays byte-identical; sv (the only
+    // authorized locale, see translate.ts) translates title/excerpt as short strings and the body
+    // as chunked HTML (translateHtml), all cached forever per string/chunk after the first render.
+    const isEnGuide = params.locale === 'en';
+    const title = isEnGuide ? g.title : await translate(g.title, params.locale);
+    const excerpt = isEnGuide ? g.excerpt : await translate(g.excerpt, params.locale);
+    const body = isEnGuide ? g.body : await translateHtml(g.body, params.locale);
     return (
-      <article className="prose prose-zinc mx-auto max-w-3xl px-4 py-8">
-        <h1 className="mb-2">{title}</h1>
-        <p className="text-zinc-600">{excerpt}</p>
-        <div className="mt-6" dangerouslySetInnerHTML={{ __html: g.body }} />
+      <article className="longform mx-auto max-w-3xl px-4 py-8">
+        <h1 className="mb-2 text-2xl font-semibold sm:text-3xl" style={{ color: 'var(--foreground)' }}>{title}</h1>
+        <p className="text-lg" style={{ color: 'var(--muted)' }}>{excerpt}</p>
+        <div className="mt-6" dangerouslySetInnerHTML={{ __html: body }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
