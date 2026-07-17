@@ -5,11 +5,10 @@ import { logSearch } from "@/lib/searchLog";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { cityGuides } from "@/data/cityGuides";
 import { stay22AllezUrl } from "@/lib/affiliates";
-import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
+import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import { getServerSupabase } from "@/lib/supabase/server";
-import SaveToTripButton from "@/components/SaveToTripButton";
+import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
-import ShareButton from "@/components/ShareButton";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -84,16 +83,20 @@ export default async function SearchPage({ params, searchParams }: Props) {
                       <p className="mt-0.5 text-sm leading-relaxed line-clamp-2" style={{ color: "var(--foreground)" }}>{h.description}</p>
                     </div>
                   )}
-                  {(() => {
-                    const cta = resolveBookingCta(h.website, stay22AllezUrl({ name: h.name, city: h.city, country: h.country, campaign: "search" }), wrongSlugs.has(h.slug));
-                    return (
-                      <div className="mt-3 flex items-center gap-2">
-                        <a href={cta.href} target="_blank" rel={cta.rel} data-cta={cta.dataCta} data-hotel={h.name} data-city={h.city} className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>{cta.label}</a>
-                        {saveLabels && <SaveToTripButton variant="compact" hotelSlug={h.slug} locale={locale} labels={saveLabels} />}
-                        <ShareButton variant="icon" title={`${h.name}, a cosy hotel${h.city ? ` in ${h.city}` : ""}`} url={`/${locale}/hotels/${h.slug}`} />
-                      </div>
-                    );
-                  })()}
+                  {saveLabels && (
+                    <HotelActions
+                      stay22Href={stay22AllezUrl({ name: h.name, city: h.city, country: h.country, campaign: "search" })}
+                      website={h.website}
+                      isVerifiedWrong={wrongSlugs.has(h.slug)}
+                      hotelName={h.name}
+                      city={h.city}
+                      slug={h.slug}
+                      locale={locale}
+                      saveLabels={saveLabels}
+                      shareTitle={`${h.name}, a cosy hotel${h.city ? ` in ${h.city}` : ""}`}
+                      shareUrl={`/${locale}/hotels/${h.slug}`}
+                    />
+                  )}
                 </div>
               </div>
             </li>

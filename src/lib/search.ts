@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getDelistedSlugSet } from "@/lib/delisted";
-import { isLatin } from "@/lib/placeText";
+import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { cityToSlug } from "@/lib/citySlug";
 import { cities } from "@/data/cities";
 import { citiesLarge } from "@/data/cities_large";
@@ -76,8 +76,8 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
       return {
         slug: r.slug as string,
         name,
-        city: (r.city as string | null) || "",
-        country: (r.country as string | null) || "",
+        rawCity: (r.city as string | null) || "",
+        rawCountry: (r.country as string | null) || "",
         score: hit.score,
         description: hit.description ?? undefined,
         website: (r.website as string | null) ?? null,
@@ -87,13 +87,23 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
     .filter((h) => isLatin(h.name))
     // Hotels whose CITY matches the query rank above pure name-substring matches, then by score —
     // so "new york" leads with real NYC hotels, not a Budapest hotel named "New York Palace".
+    // Matching uses the raw stored city (pre-normalization) so it stays byte-consistent with the
+    // `.ilike` DB query above.
     .sort((a, b) => {
-      const ac = a.city.toLowerCase().includes(lower) ? 1 : 0;
-      const bc = b.city.toLowerCase().includes(lower) ? 1 : 0;
+      const ac = a.rawCity.toLowerCase().includes(lower) ? 1 : 0;
+      const bc = b.rawCity.toLowerCase().includes(lower) ? 1 : 0;
       if (ac !== bc) return bc - ac;
       return b.score - a.score;
     })
-    .slice(0, limit);
+    .slice(0, limit)
+    // Display fields only: normalize city/country the same way every other listing surface does
+    // (countryHub.ts, seo/cityHotels.ts) so adjacent cards never show raw variants like "Sverige"
+    // next to "Sweden".
+    .map(({ rawCity, rawCountry, ...h }) => ({
+      ...h,
+      city: displayCity(rawCity),
+      country: displayCountry(rawCountry),
+    }));
 }
 
 // Match cities against the site's city set and VERIFY each has a live guide via guideCityHasLivePick,
