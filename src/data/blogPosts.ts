@@ -936,7 +936,64 @@ export const BLOG_POSTS: BlogPost[] = [
       { label: "The cosiest hotels for a quiet escape", to: "blog/cosiest-hotels-for-a-quiet-escape" },
       { label: "Cosy hotels you can reach by train", to: "blog/cosy-hotels-you-can-reach-by-train" },
       { label: "The cosiest hotel towns: the data", to: "data/cosiest-hotel-towns" },
+      { label: "Cosy hotels for a coolcation", to: "blog/coolcation-cosy-hotels" },
       { label: "Browse cosy hotels by country", to: "cosy-hotels" },
+    ],
+  },
+  // ── 15. COOLCATION (trend/seasonal) ──────────────────────────────────────────────────────────
+  {
+    slug: "coolcation-cosy-hotels",
+    title: "What is a coolcation, and where to have a cosy one",
+    dek: "A coolcation is the media's name for booking a trip around cooler weather instead of despite it. Cosiness is what turns \"somewhere cold\" into a place worth going: here's how to pick one, with real cosy-scored picks, heavy on Scandinavia.",
+    eyebrow: "Coolcations",
+    h1: "The cosiest hotels for a coolcation",
+    lead: "A coolcation is a trip planned around cool weather rather than a beach and a heatwave: the Nordics, the mountains, a cool northern coast, somewhere the evenings are for a jumper, not a fan. Cold alone isn't the draw. Refuge is: a small, warm, well-run hotel that makes the cool outside feel like a good decision rather than a compromise. Here's what actually makes a coolcation work, with real cosy-scored picks, mostly in Scandinavia and the Alps.",
+    updated: "2026-07-18",
+    intro: [
+      {
+        h2: "What a coolcation actually is",
+        paras: [
+          "The word is new; the instinct isn't. As summers in southern Europe get hotter and more crowded, travellers are booking the opposite: Scandinavia, the Alps, Scotland, the cooler coasts, somewhere the daytime high is a relief rather than a hazard. Search interest in \"coolcation\" has climbed fastest in Germany and Sweden, which tells you who's already living the idea, not just reading about it.",
+          "A coolcation isn't only about temperature. The best ones trade the heat for something better: long bright evenings, quiet trails, water cold enough to actually wake you up, and a hotel small enough that arriving feels like being expected rather than checked in.",
+        ],
+        tip: "Northern Europe in June and July has genuinely long daylight, sometimes near-midnight sun the further north you go. Ask for blackout curtains if you want a proper night's sleep; ask for a room with a view if you don't.",
+      },
+      {
+        h2: "Why cosiness is the missing ingredient",
+        paras: [
+          "A cold, characterless hotel is just uncomfortable. What makes a coolcation feel like a treat rather than an endurance test is the same thing that makes any hotel cosy: a small scale, a host who remembers your name, a room built for lingering in. A fire is optional; the Nordic hotels on this list mostly don't need one in summer. Calm is not optional.",
+          "That's why the cosiest coolcation hotels tend to be family-run guesthouses, farm cabins and small lodges rather than big resort hotels. They're built around a fireside lounge, a sauna, a shared breakfast table, exactly the things that make a cool evening feel deliberate instead of just cold.",
+        ],
+      },
+    ],
+    pick: {
+      re: /\b(nordic|scandi|fjord|lake|mountain|alpine|highland|hillside|hilltop|coast|forest|woodland|stone|island|archipelago|glacier|midnight sun|summer house|lakeside|seaside|shore|cabin|cottage|wilderness|cool|breeze|turf|farm|valley|garden)\b/i,
+      minScore: 6, limit: 12,
+      theme: "a coolcation: cool northern or high-altitude places with calm, character and good sleep in bright summer nights",
+      priority: 10,
+      heading: "Cosy hotels built for a coolcation",
+      blurb: "We took the hotels our AI scores highest for cosiness and surfaced the cool, northern and high-altitude ones: Nordic farmsteads, Alpine chalets and cool coastal guesthouses. Each carries its live Cosy Score.",
+    },
+    outro: [
+      {
+        h2: "How to choose where to go",
+        paras: [
+          "Start with the Nordics if you want the trend at its purest: Iceland, Denmark and Sweden all offer genuine cool-summer relief with real character, and Scandinavia is the single most-named destination in coolcation coverage. Add altitude (the Alps, the Scottish Highlands) if you want mountains and forest rather than fjords and islands.",
+          "Check what the room is actually built for. A working farm or a turf-roofed cabin with a hot pool or sauna is doing the coolcation properly: cool days, a warm ritual at the end of them. A city hotel with air conditioning is just a hotel that happens to be somewhere cooler.",
+          "Bright nights cut both ways. If you sleep lightly, ask about blackout curtains before you book; if you love long light evenings, ask for a room facing the view instead.",
+        ],
+      },
+    ],
+    faqs: [
+      { q: "What is a coolcation?", a: "A coolcation is a trip planned around cooler weather instead of a conventional summer beach holiday: typically the Nordics, the Alps, Scotland or another cool-summer destination, chosen deliberately to avoid heat and crowds elsewhere in Europe." },
+      { q: "Where in Scandinavia is best for a coolcation?", a: "Iceland and Denmark currently have the deepest bench of cosy, characterful small hotels in our data, from turf-roofed retreats to coastal guesthouses, with Sweden's west coast adding genuine cool-coast character. All three combine reliably cool summer weather with real hospitality." },
+      { q: "Is a coolcation cheaper than a conventional summer holiday?", a: "Often, yes, relative to the crowded Mediterranean peak. Small independent hotels in the Nordics and the Alps are frequently better value than a beach resort at the same star level, though flights and on-the-ground costs in Scandinavia and Switzerland can run higher, so price the whole trip, not just the room." },
+    ],
+    related: [
+      { label: "Cosy hotels to escape the heat", to: "blog/cosy-hotels-to-escape-the-heat" },
+      { label: "Cosy hotels you can reach by train", to: "blog/cosy-hotels-you-can-reach-by-train" },
+      { label: "The cosiest hotels for a quiet escape", to: "blog/cosiest-hotels-for-a-quiet-escape" },
+      { label: "Cosy hotels in Sweden", to: "cosy-hotels/in/sweden" },
     ],
   },
 ];
