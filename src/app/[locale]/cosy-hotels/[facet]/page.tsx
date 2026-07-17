@@ -185,6 +185,15 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
   const intro = isEn ? introEn : await translate(introEn, params.locale);
   const byCityLabel = isEn ? "By city" : await translate("By city", params.locale);
   const snippets = isEn ? hotels.map((h) => h.snippet) : await translateMany(hotels.map((h) => h.snippet || ""), params.locale);
+  const crumbLabel = isEn ? "Cosy hotels" : await translate("Cosy hotels", params.locale);
+  const browseLine = isEn
+    ? { pre: "Browse cosy hotels by", themeCountry: "theme and country", mid: "or explore our", cityGuides: "city guides" }
+    : {
+        pre: await translate("Browse cosy hotels by", params.locale),
+        themeCountry: await translate("theme and country", params.locale),
+        mid: await translate("or explore our", params.locale),
+        cityGuides: await translate("city guides", params.locale),
+      };
   const saveLabels = await buildSaveLabels(params.locale);
   const itemList = {
     "@context": "https://schema.org", "@type": "ItemList", name: `Cosy hotels ${phrase}`, numberOfItems: hotels.length,
@@ -204,7 +213,7 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
     <div className="mx-auto max-w-5xl px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(itemList)} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(crumbs)} />
-      <nav className="text-sm" style={{ color: "var(--muted)" }}><a href={`/${params.locale}/cosy-hotels`} className="hover:underline">Cosy hotels</a> / {phrase}</nav>
+      <nav className="text-sm" style={{ color: "var(--muted)" }}><a href={`/${params.locale}/cosy-hotels`} className="hover:underline">{crumbLabel}</a> / {phrase}</nav>
       <h1 className="mt-2 text-2xl font-semibold">{isEn ? <>Cosy hotels {phrase}</> : h1}</h1>
       <p className="mt-2" style={{ color: "var(--muted)" }}>{intro}</p>
 
@@ -246,7 +255,7 @@ export default async function ThemeHub({ params }: { params: { locale: string; f
           );
         })}
       </ol>
-      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>Browse cosy hotels by <a href={`/${params.locale}/cosy-hotels`} className="underline">theme and country</a>, or explore our <a href={`/${params.locale}/guides`} className="underline">city guides</a>.</p>
+      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>{browseLine.pre} <a href={`/${params.locale}/cosy-hotels`} className="underline">{browseLine.themeCountry}</a>, {browseLine.mid} <a href={`/${params.locale}/guides`} className="underline">{browseLine.cityGuides}</a>.</p>
     </div>
   );
 }

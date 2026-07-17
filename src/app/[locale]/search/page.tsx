@@ -8,6 +8,7 @@ import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import { getServerSupabase } from "@/lib/supabase/server";
 import HotelCard from "@/components/HotelCard";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import { translate, translateMany } from "@/lib/i18n/translate";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -43,19 +44,65 @@ export default async function SearchPage({ params, searchParams }: Props) {
   // Fire-and-forget: record real on-site demand (esp. zero-result queries). Never blocks this render.
   if (q.length >= 2) logSearch(q, { hotels: hotels.length, cities: cities.length, countries: countries.length, regions: regions.length, locale });
 
+  // Reader-facing chrome routes through translate() for non-en locales; en short-circuits before
+  // any await (founder, 2026-07-17: /sv/search rendered wholly in English). The pluralized count
+  // words are translated as {n}-placeholder TEMPLATES (8 fixed strings) so the cache never explodes
+  // per distinct count; region/country/city facet-link labels are assembled per-item sentences,
+  // the same pattern as the guide page's "Cosy hotels in {city}" (city/country/region NAMES stay
+  // DATA, never translated).
+  const isEn = locale === "en";
+  const CH = {
+    h1Default: "Search cosy hotels",
+    forQuery: "Cosy hotels for",
+    byArea: "Cosy hotels by area",
+    byCountry: "Cosy hotels by country",
+    cityGuides: "Cosy city guides",
+    snippetEyebrow: "Why it's cosy",
+    noMatches: "No cosy matches for",
+    noMatchesSuffix: "yet.",
+    searchPrompt: "Search for a cosy hotel or city.",
+    tryDifferent: "We haven't scored a hotel by that name yet. Try a city, or a different spelling.",
+    typeHint: "Type a hotel name or a city to see AI-scored cosy stays.",
+    addHotel: "Add your hotel",
+    nHotel: "{n} hotel", nHotels: "{n} hotels",
+    nArea: "{n} area", nAreas: "{n} areas",
+    nCountry: "{n} country", nCountries: "{n} countries",
+    nCity: "{n} city", nCities: "{n} cities",
+  };
+  let LC = CH;
+  let regionLabels = regions.map((r) => `Cosy hotels in ${r.the ? "the " : ""}${r.name}`);
+  let countryLabels = countries.map((c) => `Cosy hotels in ${c.name}`);
+  let cityLabels = cities.map((c) => `Cosy hotels in ${c.name}`);
+  // Hotel review-description snippets are review-grounded content, translated like every other
+  // listing surface (guide/facet/hotel pages).
+  let hotelSnippetsT = hotels.map((h) => h.description || "");
+  if (!isEn) {
+    const keys = Object.keys(CH) as (keyof typeof CH)[];
+    const [chromeVals, regionRes, countryRes, cityRes, snippetsRes] = await Promise.all([
+      Promise.all(keys.map((k) => translate(CH[k], locale))),
+      translateMany(regionLabels, locale),
+      translateMany(countryLabels, locale),
+      translateMany(cityLabels, locale),
+      hotelSnippetsT.length ? translateMany(hotelSnippetsT, locale) : Promise.resolve(hotelSnippetsT),
+    ]);
+    LC = Object.fromEntries(keys.map((k, i) => [k, chromeVals[i]])) as typeof CH;
+    regionLabels = regionRes; countryLabels = countryRes; cityLabels = cityRes; hotelSnippetsT = snippetsRes;
+  }
+  const countWord = (n: number, one: string, many: string) => (n === 1 ? LC[one as keyof typeof LC] : LC[many as keyof typeof LC]).replace("{n}", String(n));
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-semibold">
-        {q ? <>Cosy hotels for &ldquo;{q}&rdquo;</> : "Search cosy hotels"}
+        {q ? <>{LC.forQuery} &ldquo;{q}&rdquo;</> : LC.h1Default}
       </h1>
 
       {hasResults && (
         <p className="mt-2" style={{ color: "var(--muted)" }}>
           {[
-            hotels.length > 0 && `${hotels.length} hotel${hotels.length === 1 ? "" : "s"}`,
-            regions.length > 0 && `${regions.length} area${regions.length === 1 ? "" : "s"}`,
-            countries.length > 0 && `${countries.length} countr${countries.length === 1 ? "y" : "ies"}`,
-            cities.length > 0 && `${cities.length} cit${cities.length === 1 ? "y" : "ies"}`,
+            hotels.length > 0 && countWord(hotels.length, "nHotel", "nHotels"),
+            regions.length > 0 && countWord(regions.length, "nArea", "nAreas"),
+            countries.length > 0 && countWord(countries.length, "nCountry", "nCountries"),
+            cities.length > 0 && countWord(cities.length, "nCity", "nCities"),
           ].filter(Boolean).join(" · ")}
         </p>
       )}
@@ -71,9 +118,9 @@ export default async function SearchPage({ params, searchParams }: Props) {
               country={h.country}
               score={h.score}
               rank={idx + 1}
-              snippet={h.description}
+              snippet={hotelSnippetsT[idx]}
               clampSnippet
-              snippetEyebrow="Why it's cosy"
+              snippetEyebrow={LC.snippetEyebrow}
               locale={locale}
               saveLabels={saveLabels}
               stay22Href={stay22AllezUrl({ name: h.name, city: h.city, country: h.country, campaign: "search" })}
@@ -88,11 +135,11 @@ export default async function SearchPage({ params, searchParams }: Props) {
 
       {regions.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl font-semibold">Cosy hotels by area</h2>
+          <h2 className="text-xl font-semibold">{LC.byArea}</h2>
           <div className="mt-4 flex flex-wrap gap-2">
-            {regions.map((r) => (
+            {regions.map((r, i) => (
               <a key={r.slug} href={`/${locale}/cosy-hotels/region/${r.slug}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: "var(--line)", color: "var(--foreground)" }}>
-                Cosy hotels in {r.the ? "the " : ""}{r.name}
+                {regionLabels[i]}
               </a>
             ))}
           </div>
@@ -101,11 +148,11 @@ export default async function SearchPage({ params, searchParams }: Props) {
 
       {countries.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl font-semibold">Cosy hotels by country</h2>
+          <h2 className="text-xl font-semibold">{LC.byCountry}</h2>
           <div className="mt-4 flex flex-wrap gap-2">
-            {countries.map((c) => (
+            {countries.map((c, i) => (
               <a key={c.slug} href={`/${locale}/cosy-hotels/in/${c.slug}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: "var(--line)", color: "var(--foreground)" }}>
-                Cosy hotels in {c.name}
+                {countryLabels[i]}
               </a>
             ))}
           </div>
@@ -114,11 +161,11 @@ export default async function SearchPage({ params, searchParams }: Props) {
 
       {cities.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl font-semibold">Cosy city guides</h2>
+          <h2 className="text-xl font-semibold">{LC.cityGuides}</h2>
           <div className="mt-4 flex flex-wrap gap-2">
-            {cities.map((c) => (
+            {cities.map((c, i) => (
               <a key={c.slug} href={`/${locale}/guides/${c.slug}-cosy-hotel`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: "var(--line)", color: "var(--foreground)" }}>
-                Cosy hotels in {c.name}
+                {cityLabels[i]}
               </a>
             ))}
           </div>
@@ -129,12 +176,10 @@ export default async function SearchPage({ params, searchParams }: Props) {
         <div className="mx-auto max-w-2xl px-4 py-16">
           <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--line)", background: "var(--card)", boxShadow: "var(--shadow)" }}>
             <h2 className="font-display text-2xl font-semibold" style={{ color: "var(--foreground)" }}>
-              {q ? <>No cosy matches for &ldquo;{q}&rdquo; yet.</> : "Search for a cosy hotel or city."}
+              {q ? <>{LC.noMatches} &ldquo;{q}&rdquo; {LC.noMatchesSuffix}</> : LC.searchPrompt}
             </h2>
             <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
-              {q
-                ? "We haven't scored a hotel by that name yet. Try a city, or a different spelling."
-                : "Type a hotel name or a city to see AI-scored cosy stays."}
+              {q ? LC.tryDifferent : LC.typeHint}
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               {POPULAR.map((city) => {
@@ -149,7 +194,7 @@ export default async function SearchPage({ params, searchParams }: Props) {
             </div>
             <div className="mt-6">
               <Link href="/en/for-hotels" className="inline-flex items-center justify-center rounded-lg text-white px-4 py-2 text-sm font-medium no-underline" style={{ background: "var(--ember)" }}>
-                Add your hotel
+                {LC.addHotel}
               </Link>
             </div>
           </div>

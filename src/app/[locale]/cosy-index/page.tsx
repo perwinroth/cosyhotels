@@ -7,6 +7,7 @@ import { displayCity, displayCountry, isLatin } from "@/lib/placeText";
 import { cityToSlug } from "@/lib/citySlug";
 import { getDelistedSlugSet } from "@/lib/delisted";
 import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
+import { translate } from "@/lib/i18n/translate";
 
 export const revalidate = 3600;
 
@@ -103,6 +104,40 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
     await Promise.all(listCityNames.map(async (city): Promise<[string, boolean]> => [city, await guideCityHasLivePick(db, city)])),
   );
 
+  // Reader-facing chrome routes through translate() for non-en locales; en short-circuits before
+  // any await (founder, 2026-07-17: /sv/cosy-index rendered wholly in English). Stat sentences with
+  // interpolated numbers are translated as {n}-placeholder TEMPLATES so the cache never explodes
+  // per distinct count (numbers change hourly via revalidate).
+  const isEn = params.locale === "en";
+  const CH = {
+    h1: "The Cosy Index",
+    heroPre: "We've AI-scored",
+    heroMid: "hotels for cosiness: warmth, character and intimacy, not stars.",
+    heroBar: "clear the cosy bar; only",
+    heroIndex: "make the Index.",
+    statScored: "hotels scored for cosiness",
+    statClear: "clear the cosy bar ({n})",
+    statIndex: "made the Index ({n}+)",
+    citiesH2: "The world's cosiest cities",
+    citiesIntro: "Ranked by how many hotels reach the Index ({n}+ cosy score).",
+    listH2: "The {n} cosiest hotels in the world",
+    howH2: "How the Cosy Index works",
+    howBody: "Every hotel is scored by AI on the signals that actually make a stay cosy: small room counts, fireplaces and soaking tubs, natural materials, intimate design, and reviews where guests feel genuinely welcomed rather than processed. Scores run 0-10, calibrated against hundreds of hand-graded hotels; the very cosiest top out around 7.8, and clearing {n} puts a hotel in the Index. Browse the full rankings by city in our",
+    cityGuidesLink: "cosy hotel guides",
+    howTail: "Americans spell it cozy; the Index scores the feeling, not the spelling.",
+  };
+  let LC = CH;
+  if (!isEn) {
+    const keys = Object.keys(CH) as (keyof typeof CH)[];
+    const vals = await Promise.all(keys.map((k) => translate(CH[k], params.locale)));
+    LC = Object.fromEntries(keys.map((k, i) => [k, vals[i]])) as typeof CH;
+  }
+  const statClear = LC.statClear.replace("{n}", clearBar.toLocaleString());
+  const statIndex = LC.statIndex.replace("{n}", INDEX_MIN.toFixed(1));
+  const citiesIntro = LC.citiesIntro.replace("{n}", INDEX_MIN.toFixed(1));
+  const listH2 = LC.listH2.replace("{n}", String(list.length));
+  const howBody = LC.howBody.replace("{n}", INDEX_MIN.toFixed(1));
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
   const jsonLd = {
     "@context": "https://schema.org", "@type": "ItemList", name: TITLE, numberOfItems: list.length,
@@ -131,15 +166,15 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
     <div className="mx-auto max-w-5xl px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetLd) }} />
-      <h1 className="text-3xl font-semibold tracking-tight">The Cosy Index</h1>
-      <p className="mt-3 text-lg" style={{ color: "var(--muted)" }}>We&apos;ve AI-scored <strong style={{ color: "var(--foreground)" }}>{totalScored.toLocaleString()}</strong> hotels for cosiness: warmth, character and intimacy, not stars. {clearBar.toLocaleString()} ({pctClear}%) clear the cosy bar; only <strong style={{ color: "var(--foreground)" }}>{inIndex.toLocaleString()}</strong> ({pctIndex}%) make the Index.</p>
+      <h1 className="text-3xl font-semibold tracking-tight">{LC.h1}</h1>
+      <p className="mt-3 text-lg" style={{ color: "var(--muted)" }}>{LC.heroPre} <strong style={{ color: "var(--foreground)" }}>{totalScored.toLocaleString()}</strong> {LC.heroMid} {clearBar.toLocaleString()} ({pctClear}%) {LC.heroBar} <strong style={{ color: "var(--foreground)" }}>{inIndex.toLocaleString()}</strong> ({pctIndex}%) {LC.heroIndex}</p>
 
       {/* Headline stats — answer-first, citable facts for press + AI answer engines. */}
       <div className="mt-6 grid grid-cols-3 gap-3">
         {[
-          { n: totalScored.toLocaleString(), l: "hotels scored for cosiness" },
-          { n: `${pctClear}%`, l: `clear the cosy bar (${clearBar.toLocaleString()})` },
-          { n: inIndex.toLocaleString(), l: `made the Index (${INDEX_MIN.toFixed(1)}+)` },
+          { n: totalScored.toLocaleString(), l: LC.statScored },
+          { n: `${pctClear}%`, l: statClear },
+          { n: inIndex.toLocaleString(), l: statIndex },
         ].map((s) => (
           <div key={s.l} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
             <div className="font-display text-2xl font-bold" style={{ color: "var(--ember)" }}>{s.n}</div>
@@ -150,8 +185,8 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
 
       {cosiestCities.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-xl font-semibold">The world&apos;s cosiest cities</h2>
-          <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>Ranked by how many hotels reach the Index ({INDEX_MIN.toFixed(1)}+ cosy score).</p>
+          <h2 className="text-xl font-semibold">{LC.citiesH2}</h2>
+          <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>{citiesIntro}</p>
           <ol className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
             {cosiestCities.map(([city, n], i) => (
               <li key={city} className="rounded-lg border px-3 py-2 text-sm flex items-center justify-between gap-2" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -163,7 +198,7 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
         </section>
       )}
 
-      <h2 className="mt-12 text-xl font-semibold">The {list.length} cosiest hotels in the world</h2>
+      <h2 className="mt-12 text-xl font-semibold">{listH2}</h2>
       <ol className="mt-4 space-y-3">
         {list.map((p, i) => (
           <li key={p.id} className="rounded-xl border p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -187,8 +222,8 @@ export default async function CosyIndexPage({ params }: { params: { locale: stri
       </ol>
 
       <section className="mt-12">
-        <h2 className="text-xl font-semibold">How the Cosy Index works</h2>
-        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>Every hotel is scored by AI on the signals that actually make a stay cosy: small room counts, fireplaces and soaking tubs, natural materials, intimate design, and reviews where guests feel genuinely welcomed rather than processed. Scores run 0–10, calibrated against hundreds of hand-graded hotels; the very cosiest top out around 7.8, and clearing {INDEX_MIN.toFixed(1)} puts a hotel in the Index. Browse the full rankings by city in our <a href={`/${params.locale}`} className="underline">cosy hotel guides</a>. Americans spell it cozy; the Index scores the feeling, not the spelling.</p>
+        <h2 className="text-xl font-semibold">{LC.howH2}</h2>
+        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>{howBody} <a href={`/${params.locale}`} className="underline">{LC.cityGuidesLink}</a>. {LC.howTail}</p>
       </section>
     </div>
   );

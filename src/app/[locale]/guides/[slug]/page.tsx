@@ -18,7 +18,8 @@ import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
-import { translate } from "@/lib/i18n/translate";
+import { translate, translateMany } from "@/lib/i18n/translate";
+import { buildShareLabels } from "@/lib/i18n/shareLabels";
 import { displayCity, displayCountry } from "@/lib/placeText";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 
@@ -272,6 +273,42 @@ export default async function GuidePage({ params }: Props) {
   );
   const otherCities = otherCityChecks.filter((c): c is NonNullable<typeof c> => c != null).slice(0, 18);
   const saveLabels = await buildSaveLabels(params.locale);
+  const shareLabels = await buildShareLabels(params.locale);
+  // Reader-facing chrome routes through translate() for non-en locales; en short-circuits before
+  // any await (founder, 2026-07-17: the /sv guide page rendered a Swedish H1 over an English
+  // computed intro, English FAQ/section headings and English facet/city link labels). Assembled
+  // per-city/per-facet sentences are translated as whole strings (cache is per-string; city and
+  // facet counts here are bounded, ~28 cities), matching the pattern already used for the hotel
+  // page's "Cosy hotels in {city}" string. Hotel names/cities/scores stay DATA, never translated.
+  const isEn = params.locale === 'en';
+  const CH = {
+    faqHeading: 'Frequently asked questions',
+    browseBy: `Browse ${cityName} by what makes a stay cosy`,
+    moreGuides: 'More cosy city guides',
+    snippetEyebrow: "Why it's cosy",
+  };
+  let LC = CH;
+  let introT = intro;
+  let faqsT = faqs;
+  let facetLabels = availableFacets.map((f) => `Cosy hotels ${f.label} in ${cityName}`);
+  let otherCityLabels = otherCities.map((c) => `Cosy hotels in ${c.city}`);
+  // Hotel review-description snippets are review-grounded content, translated like the hotel and
+  // facet pages' snippets (founder, 2026-07-17: the guide page was the one surface still showing
+  // English snippets under a Swedish H1/intro).
+  let snippetsT = chosen.map((h) => h.snippet);
+  if (!isEn) {
+    const keys = Object.keys(CH) as (keyof typeof CH)[];
+    const [chromeVals, introRes, faqsRes, facetRes, otherCityRes, snippetsRes] = await Promise.all([
+      Promise.all(keys.map((k) => translate(CH[k], params.locale))),
+      translate(intro, params.locale),
+      Promise.all(faqs.map(async (f) => ({ q: await translate(f.q, params.locale), a: await translate(f.a, params.locale) }))),
+      translateMany(facetLabels, params.locale),
+      translateMany(otherCityLabels, params.locale),
+      snippetsT.length ? translateMany(snippetsT, params.locale) : Promise.resolve(snippetsT),
+    ]);
+    LC = Object.fromEntries(keys.map((k, i) => [k, chromeVals[i]])) as typeof CH;
+    introT = introRes; faqsT = faqsRes; facetLabels = facetRes; otherCityLabels = otherCityRes; snippetsT = snippetsRes;
+  }
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -290,9 +327,9 @@ export default async function GuidePage({ params }: Props) {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex items-start justify-between gap-4">
         <h1 className="text-2xl font-semibold">{h1}</h1>
-        <div className="flex-none"><ShareButton title={`Cosy hotels in ${cityName}`} /></div>
+        <div className="flex-none"><ShareButton title={`Cosy hotels in ${cityName}`} label={shareLabels.toggle} labels={shareLabels} /></div>
       </div>
-      <p className="mt-2" style={{ color: 'var(--muted)' }}>{intro}</p>
+      <p className="mt-2" style={{ color: 'var(--muted)' }}>{introT}</p>
       {chosen.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(breadcrumbJsonLd)} />
@@ -307,8 +344,8 @@ export default async function GuidePage({ params }: Props) {
               country={h.country}
               score={h._cosy}
               rank={idx + 1}
-              snippet={h.snippet}
-              snippetEyebrow="Why it's cosy"
+              snippet={snippetsT[idx]}
+              snippetEyebrow={LC.snippetEyebrow}
               photo={h._img}
               locale={params.locale}
               saveLabels={saveLabels}
@@ -322,10 +359,10 @@ export default async function GuidePage({ params }: Props) {
         </ol>
       )}
       <section className="mt-12">
-        <h2 className="text-xl font-semibold">Frequently asked questions</h2>
+        <h2 className="text-xl font-semibold">{LC.faqHeading}</h2>
         <dl className="mt-4 space-y-4">
-          {faqs.map((f) => (
-            <div key={f.q} className="border rounded-lg p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+          {faqsT.map((f, i) => (
+            <div key={faqs[i].q} className="border rounded-lg p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
               <dt className="font-medium" style={{ color: 'var(--foreground)' }}>{f.q}</dt>
               <dd className="mt-1.5 text-sm" style={{ color: 'var(--muted)' }}>{f.a}</dd>
             </div>
@@ -334,11 +371,11 @@ export default async function GuidePage({ params }: Props) {
       </section>
       {availableFacets.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl font-semibold">Browse {cityName} by what makes a stay cosy</h2>
+          <h2 className="text-xl font-semibold">{LC.browseBy}</h2>
           <div className="mt-4 flex flex-wrap gap-2">
-            {availableFacets.map((f) => (
+            {availableFacets.map((f, i) => (
               <a key={f.slug} href={`/${params.locale}/cosy-hotels/${f.slug}/${citySlugBase}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: 'var(--line)', color: 'var(--foreground)' }}>
-                Cosy hotels {f.label} in {cityName}
+                {facetLabels[i]}
               </a>
             ))}
           </div>
@@ -346,11 +383,11 @@ export default async function GuidePage({ params }: Props) {
       )}
       {otherCities.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl font-semibold">More cosy city guides</h2>
+          <h2 className="text-xl font-semibold">{LC.moreGuides}</h2>
           <div className="mt-4 flex flex-wrap gap-2">
-            {otherCities.map((c) => (
+            {otherCities.map((c, i) => (
               <a key={c.city} href={`/${params.locale}/guides/${cityToSlug(c.city)}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: 'var(--line)', color: 'var(--foreground)' }}>
-                Cosy hotels in {c.city}
+                {otherCityLabels[i]}
               </a>
             ))}
           </div>

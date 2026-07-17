@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Footer from "@/components/Footer";
 import Toaster from "@/components/Toaster";
 import ConsentedScripts from "@/components/ConsentedScripts";
 import ConsentedSpeedInsights from "@/components/ConsentedSpeedInsights";
@@ -45,9 +44,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(websiteSchema())} />
         {/* Theme toggle now lives IN the site header (SiteHeader), in-flow next to search, so it can
             never overlap the Search button again. It was a position:fixed overlay here before. */}
+        {/* Footer is NOT rendered here: this root layout wraps both the bare "/en" homepage
+            (src/app/page.tsx, which renders its own English Footer) and every /[locale]/* route
+            (src/app/[locale]/layout.tsx, which renders Footer with the real locale so it goes
+            through translate() like the rest of that layout's chrome). A single hardcoded
+            `<Footer locale="en" />` here meant EVERY locale's footer silently rendered in English
+            forever, since this root layout sits above the [locale] segment and can't read its
+            params (the same constraint documented in HtmlLang.tsx), found 2026-07-17 while
+            auditing /sv for leftover English strings. */}
         {children}
         <Toaster />
-        <Footer locale="en" />
         <ConsentedScripts />
         <ConsentedSpeedInsights />
       </body>
