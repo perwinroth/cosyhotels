@@ -1,0 +1,23 @@
+{
+  "src/app/[locale]/about/page.tsx": 0,
+  "src/app/[locale]/adaptive-reuse-hotels/page.tsx": 1,
+  "src/app/[locale]/blog/[slug]/page.tsx": 0,
+  "src/app/[locale]/blog/page.tsx": 0,
+  "src/app/[locale]/collections/find/page.tsx": 0,
+  "src/app/[locale]/collections/unsubscribe/page.tsx": 0,
+  "src/app/[locale]/collections/view/page.tsx": 0,
+  "src/app/[locale]/cosy-hotels/[facet]/[city]/page.tsx": 0,
+  "src/app/[locale]/cosy-hotels/[facet]/page.tsx": 0,
+  "src/app/[locale]/cosy-hotels/in/[country]/page.tsx": 0,
+  "src/app/[locale]/cosy-hotels/page.tsx": 0,
+  "src/app/[locale]/cosy-hotels/region/[slug]/page.tsx": 0,
+  "src/app/[locale]/cosy-index/page.tsx": 1,
+  "src/app/[locale]/guides/[slug]/page.tsx": 1,
+  "src/app/[locale]/hotels/[slug]/page.tsx": 0,
+  "src/app/[locale]/page.tsx": 0,
+  "src/app/[locale]/plan/page.tsx": 0,
+  "src/app/[locale]/privacy/page.tsx": 0,
+  "src/app/[locale]/search/page.tsx": 0,
+  "src/app/[locale]/trips/[slug]/page.tsx": 0,
+  "src/app/[locale]/trips/lists/[slug]/page.tsx": 0
+}

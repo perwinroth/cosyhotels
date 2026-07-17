@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!g) {
     const cg = getCityGuide(params.slug);
     if (cg) {
-      const titleBase = CITY_TITLE[cg.city] ?? `Cosy & Boutique Hotels in ${cg.city} – AI-Scored for Cosiness`;
+      const titleBase = CITY_TITLE[cg.city] ?? `Cosy & Boutique Hotels in ${cg.city} | AI-Scored for Cosiness`;
       const descBase = `The cosiest boutique hotels in ${cg.city}, each AI-scored from 0 to 10 for warmth, character and intimacy, ranked best first. Cosy, romantic and independent stays, not corporate chains.`;
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);

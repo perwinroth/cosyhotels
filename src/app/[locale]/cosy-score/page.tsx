@@ -23,10 +23,10 @@ export default function CosyScorePage() {
 
         <h2>What goes into the score</h2>
         <ul>
-          <li><strong>Overall rating</strong> (out of 10) – normalized and weighted.</li>
-          <li><strong>Amenities warmth</strong> – amenities associated with cosiness (e.g., fireplace, bathtub, spa/sauna, garden).</li>
-          <li><strong>Language</strong> – descriptive text mentioning cosy/cozy, warm, intimate, quiet, romantic, character, etc.</li>
-          <li><strong>Scale</strong> – small/boutique places tend to feel cosier than very large hotels.</li>
+          <li><strong>Overall rating</strong> (out of 10): normalized and weighted.</li>
+          <li><strong>Amenities warmth</strong>: amenities associated with cosiness (e.g., fireplace, bathtub, spa/sauna, garden).</li>
+          <li><strong>Language</strong>: descriptive text mentioning cosy/cozy, warm, intimate, quiet, romantic, character, etc.</li>
+          <li><strong>Scale</strong>: small/boutique places tend to feel cosier than very large hotels.</li>
         </ul>
 
         <h2>How we blend it</h2>

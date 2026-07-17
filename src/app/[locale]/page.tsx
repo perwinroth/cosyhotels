@@ -22,7 +22,7 @@ export function generateMetadata(): Metadata {
   // locale homepage canonicalizes to "/" (and drops hreflang, valid only for real translations).
   return {
     alternates: { canonical: `/` },
-    title: `${site.name} – ${site.tagline}`,
+    title: `${site.name} | ${site.tagline}`,
     description: site.description,
   };
 }

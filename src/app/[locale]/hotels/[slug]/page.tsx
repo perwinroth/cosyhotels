@@ -143,7 +143,7 @@ function hotelFaqs(o: { name: string; city: string; country: string; cosy: numbe
   });
   faqs.push({
     q: `How is ${name}'s cosy score calculated?`,
-    a: `Got Cosy's AI assesses a hotel's photos, guest reviews, amenities, room count and setting, scoring cosiness signals (fireplaces, warm lighting, soft textiles, intimate human scale) on one 0–10 scale. ${name} currently scores ${s != null ? s.toFixed(1) : "–"}.`,
+    a: `Got Cosy's AI assesses a hotel's photos, guest reviews, amenities, room count and setting, scoring cosiness signals (fireplaces, warm lighting, soft textiles, intimate human scale) on one 0–10 scale.${s != null ? ` ${name} currently scores ${s.toFixed(1)}.` : ""}`,
   });
   if (s != null && s >= 7) faqs.push({
     q: `Is ${name} good for a romantic getaway?`,
