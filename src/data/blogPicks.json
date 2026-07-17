@@ -1026,5 +1026,127 @@
    "img": "https://eremytenhof.com/media/pages/home/753b7302d9-1698913914/img-20221111-121337-1900x-q90.jpg",
    "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-cosy-hotels-to-escape-the-heat&hotelname=Eremyten%20Hof&address=Ghent%2C%20Belgium&lat=51.1086804&lng=3.7106318"
   }
+ ],
+ "coolcation-cosy-hotels": [
+  {
+   "slug": "torfhus-retreat",
+   "name": "Torfhús Retreat",
+   "city": "Selfoss",
+   "country": "Iceland",
+   "score": 6.9,
+   "why": "Turf-roofed chalets built to Icelandic vernacular sit among lava fields and roaming horses, with private basalt hot pools you can soak in whatever the weather does.",
+   "img": "https://lirp.cdn-website.com/c4aac19a/dms3rep/multi/opt/Torfhu-s+Retreat+Selfoss+2025+%281%29-1920w.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Torfh%C3%BAs+Retreat&address=Selfoss%2C+Iceland&lat=64.2487729&lng=-20.3031667"
+  },
+  {
+   "slug": "dalahyttur-lodge",
+   "name": "Dalahyttur Lodge",
+   "city": "West Iceland",
+   "country": "Iceland",
+   "score": 7,
+   "why": "Three cabins on a working farm at a gravel valley's end, each with a balcony over open hills and a kitchenette for slow mornings.",
+   "img": "https://media.xmlcal.com/pic/p0004/8480/47.png",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Dalahyttur+Lodge&address=West+Iceland%2C+Iceland&lat=64.9724485&lng=-21.7238943"
+  },
+  {
+   "slug": "midgard-base-camp",
+   "name": "Midgard Base Camp",
+   "city": "Hvolsvöllur",
+   "country": "Iceland",
+   "score": 6.7,
+   "why": "Evenings here mean hot tubs, board games in a convivial lobby and Icelandic foals grazing in the fields behind, run with real family warmth.",
+   "img": "https://midgardbasecamp.is/wp-content/uploads/2017/12/base-camp_photo_RozleBregar-1-WEBsize.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Midgard+Base+Camp&address=Hvolsv%C3%B6llur%2C+Iceland&lat=63.7457265&lng=-20.2280255"
+  },
+  {
+   "slug": "glashytterne-the-glass-huts",
+   "name": "Glashytterne / The Glass Huts",
+   "city": "Lolland",
+   "country": "Denmark",
+   "score": 7.2,
+   "why": "Glass-walled huts in quiet Lolland countryside let you watch deer graze from bed and fall asleep under open sky, with a local breakfast each morning.",
+   "img": "https://glashytterne.dk/wp-content/uploads/2026/06/IMG_2704-scaled.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Glashytterne+%2F+The+Glass+Huts&address=Lolland%2C+Denmark&lat=54.8819953&lng=11.2973608"
+  },
+  {
+   "slug": "hotel-villa-brinkly",
+   "name": "Hotel Villa Brinkly",
+   "city": "Snekkersten",
+   "country": "Denmark",
+   "score": 6.9,
+   "why": "A snug maritime villa on the Danish coast, with sea-view rooms, forest terraces and a cook who once worked for the royal household setting the table.",
+   "img": "https://brinkly.dk/wp-content/uploads/elementor/thumbs/forside-ordw3b14g7ocg9f3lr2vlbuzclcbdjh8z4k8lmwlq8.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Hotel+Villa+Brinkly&address=Snekkersten%2C+Denmark&lat=56.0018928&lng=12.5727224"
+  },
+  {
+   "slug": "hvidegaard-mon",
+   "name": "Hvidegaard Møn",
+   "city": "Stege",
+   "country": "Denmark",
+   "score": 7,
+   "why": "On the island of Møn, host Tim cooks dinner on request and bakes the breakfast rolls, with a jacuzzi under open stars after a quiet day.",
+   "img": "https://images.squarespace-cdn.com/content/v1/658d1d13e4978573ed149b60/3115b995-976b-4bb1-a612-bebb67a5ac90/IMG_3127+4.JPG",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Hvidegaard+M%C3%B8n&address=Stege%2C+Denmark&lat=54.9763982&lng=12.3103902"
+  },
+  {
+   "slug": "adults-only-hotel-unterlechner",
+   "name": "Adults only Hotel Unterlechner",
+   "city": "St. Jakob in Haus",
+   "country": "Austria",
+   "score": 7.3,
+   "why": "A converted mountain guesthouse in a Tyrolean valley village, with panoramic alpine views, an understated wellness pool and a kitchen turning out a serious tasting menu.",
+   "img": "https://www.unterlechner.com/wp-content/uploads/2024/11/unser-natur-living-pool-mit-wundervollem-ausblick-auf-st-jakob-in-haus.webp",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Adults+only+Hotel+Unterlechner&address=St.+Jakob+in+Haus%2C+Austria&lat=47.4987216&lng=12.5696877"
+  },
+  {
+   "slug": "das-bleibt",
+   "name": "das bleibt",
+   "city": "Schladming",
+   "country": "Austria",
+   "score": 7.1,
+   "why": "Wood-clad rooms with private balcony saunas scented with stone pine, and a daily ritual of fresh cake at three from Opa Manfred, in Schladming's centre.",
+   "img": "https://www.dasbleibt.at/wp-content/uploads/2020/06/1200x628_dasbleibt_ogimage.png",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=das+bleibt&address=Schladming%2C+Austria&lat=47.3934367&lng=13.68623"
+  },
+  {
+   "slug": "cortisen-am-see",
+   "name": "Cortisen am See",
+   "city": "St. Wolfgang im Salzkammergut",
+   "country": "Austria",
+   "score": 7,
+   "why": "Rooms overlook the Wolfgangsee from a private lakeside lawn, the owner greets guests personally, and the kitchen is good enough that few guests eat elsewhere.",
+   "img": "https://www.cortisen.at/files/cortisen/Uploads/Bilder/cortisen-og-default-1200x630.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Cortisen+am+See&address=St.+Wolfgang+im+Salzkammergut%2C+Austria&lat=47.740071&lng=13.444545"
+  },
+  {
+   "slug": "lysekil-strandflickornas-havshotell",
+   "name": "Strandflickornas Havshotell",
+   "city": "Lysekil",
+   "country": "Sweden",
+   "score": 6.6,
+   "why": "A small seafront hotel on Sweden's granite Bohuslän coast, personally run and charmingly decorated, with a breakfast guests single out as the best part of staying.",
+   "img": "https://strandflickorna.com/data/media/2025/12/lowres-web-5347.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Strandflickornas+Havshotell&address=Lysekil%2C+Sweden&lat=58.2685706&lng=11.4294844"
+  },
+  {
+   "slug": "birchwood-pitlochry",
+   "name": "Birchwood Pitlochry",
+   "city": "Pitlochry",
+   "country": "United Kingdom",
+   "score": 7.4,
+   "why": "An immaculately kept Victorian house in Highland Perthshire, with a well-stocked library, homemade caramel popcorn on the landing and breakfasts cooked to order each unhurried morning.",
+   "img": null,
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=Birchwood+Pitlochry&address=Pitlochry%2C+United+Kingdom&lat=56.7013562&lng=-3.724422"
+  },
+  {
+   "slug": "the-manor-house-oban",
+   "name": "The Manor House Oban",
+   "city": "Oban",
+   "country": "United Kingdom",
+   "score": 6.8,
+   "why": "Tartan-suited staff pack your lunch and mail your post without asking, a crackling fireside lounge below a curated whisky bar, and sea views over Oban Bay.",
+   "img": "https://obanmanorhouse.com/wp-content/uploads/2021/02/Featurd-Image-Homepage.jpg",
+   "cta": "https://www.stay22.com/allez/roam?aid=6a346ecbb0b5e9d8d1e48a12&campaign=blog-coolcation-cosy-hotels&hotelname=The+Manor+House+Oban&address=Oban%2C+United+Kingdom&lat=56.4111429&lng=-5.4828021"
+  }
  ]
 }
