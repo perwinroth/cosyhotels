@@ -7,6 +7,7 @@ import "../globals.css";
 import Analytics from "@/components/Analytics";
 import SiteHeader from "@/components/SiteHeader";
 import CookieConsent from "@/components/CookieConsent";
+import HtmlLang from "@/components/HtmlLang";
 import { translate } from "@/lib/i18n/translate";
 
 export const metadata: Metadata = {
@@ -64,6 +65,7 @@ export default async function LocaleLayout({
   // normal nested layout: just the header + page content.
   return (
     <>
+      <HtmlLang locale={locale} />
       <SiteHeader locale={locale} />
       <main className="min-h-[75vh]">{children}</main>
       {/* Footer + ThemeToggle are rendered globally in the root layout to avoid duplicates */}

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { site } from "@/config/site";
 import HotelScoreForm from "@/components/HotelScoreForm";
 
 export function generateMetadata(): Metadata {
   // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
   const url = `/en/for-hotels`;
-  const title = `For hotels: get your cosy score | ${site.name}`;
+  // No manual "| Got Cosy?" suffix: the [locale] layout's title.template already appends it.
+  const title = `For hotels: get your cosy score`;
   const description = "Hoteliers: submit your hotel and our AI scores it for cosiness (warmth, character, intimacy), with the signals it found.";
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };
 }

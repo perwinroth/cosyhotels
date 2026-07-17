@@ -45,6 +45,11 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
   // duplicate English. Point every locale's canonical at the /en page (and drop hreflang, which is
   // only valid for genuinely translated pages) so Google consolidates ranking on /en. Reversible —
   // restore self-canonical + hreflang if/when the content is actually localized.
+  // EXPLICIT EXCEPTION (2026-07-17 sv locale-aware canonical work): this page deliberately does
+  // NOT use src/lib/i18n/seoLocale.ts's localeSeo(), even though "sv" is in TRANSLATED_LOCALES.
+  // localeSeo() is only correct for pages whose visible BODY branches on locale and renders
+  // translated copy; hotel description/FAQ here stays English for every locale, so a self-canonical
+  // /sv/hotels/... would just be a duplicate-English page competing with /en for the same content.
   // Malformed/placeholder slugs (e.g. %7Bsearch_term_string%7D, undefined) must never render an
   // indexable page — the body 404s them, so metadata stays noindex and skips the DB round-trip.
   if (isMalformedSlug(params.slug)) return { robots: { index: false, follow: false } };
@@ -60,7 +65,9 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
       .eq("slug", params.slug)
       .maybeSingle();
     if (h) {
-      const title = `${h.name} | ${site.name}`;
+      // No manual "| Got Cosy?" suffix: the [locale] layout's title.template already appends it
+      // (%s | ${site.name}); adding it here too produced "Robyn's Inn | Got Cosy? | Got Cosy?".
+      const title = h.name;
       // Unique, review-grounded meta description per hotel (SEO/AEO) — the same one-sentence
       // description shown on the page; falls back to location only if the hotel has none.
       let description = [displayCity(h.city as string | null, ""), displayCountry(h.country as string | null)].filter(Boolean).join(", ") || "Cosy boutique stay.";
