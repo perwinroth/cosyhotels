@@ -11,6 +11,7 @@ import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { translate, translateMany } from "@/lib/i18n/translate";
+import { localeSeo } from "@/lib/i18n/seoLocale";
 import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
@@ -26,8 +27,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: { locale: string; slug: string } }): Promise<Metadata> {
   const region = regionBySlug(params.slug);
   if (!region) return {};
-  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
-  const url = `/en/cosy-hotels/region/${region.slug}`;
+  // Body copy below is genuinely translated for TRANSLATED_LOCALES (isEn ? ... : translate(...)),
+  // so canonical/hreflang are locale-aware; every other locale still points at the /en twin.
+  const { canonical: url, languages } = localeSeo(params.locale, `/cosy-hotels/region/${region.slug}`);
   const place = regionLabel(region);
   const titleBase = `Cosy hotels in ${place}, AI-ranked for cosiness`;
   const descBase = `The cosiest boutique and independent hotels across ${place}, each AI-scored from 0 to 10 for warmth, character and intimacy; ranked best first, not by stars.`;
@@ -36,7 +38,7 @@ export async function generateMetadata({ params }: { params: { locale: string; s
   const thin = (await loadRegionCount(region)) < HUB_MIN;
   return {
     title, description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, ...(languages ? { languages } : {}) },
     openGraph: { title, description, type: "website", url },
     twitter: { card: "summary", title, description },
     ...(thin ? { robots: { index: false, follow: true } } : {}),

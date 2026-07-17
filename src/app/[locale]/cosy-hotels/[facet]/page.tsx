@@ -17,6 +17,7 @@ import { stay22AllezUrl } from "@/lib/affiliates";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
 import { translate, translateMany } from "@/lib/i18n/translate";
+import { localeSeo } from "@/lib/i18n/seoLocale";
 import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
@@ -138,15 +139,16 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   const res = await loadConcept(params.facet);
   const n = res?.hotels.length ?? 0;
   const phrase = conceptLabelPhrase(concept);
-  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
-  const url = `/en/cosy-hotels/${concept.slug}`;
+  // Body copy below is genuinely translated for TRANSLATED_LOCALES (isEn ? ... : translate(...)),
+  // so canonical/hreflang are locale-aware; every other locale still points at the /en twin.
+  const { canonical: url, languages } = localeSeo(params.locale, `/cosy-hotels/${concept.slug}`);
   const titleBase = `Cosy hotels ${phrase}, AI-ranked worldwide`;
   const descBase = `The cosiest hotels ${phrase}, from around the world, each AI-scored from 0 to 10 for warmth and character, ranked best first.`;
   const title = params.locale === "en" ? titleBase : await translate(titleBase, params.locale);
   const description = params.locale === "en" ? descBase : await translate(descBase, params.locale);
   return {
     title, description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, ...(languages ? { languages } : {}) },
     openGraph: { title, description, type: "website", url },
     twitter: { card: "summary", title, description },
     ...(n < INDEX_MIN ? { robots: { index: false, follow: true } } : {}),

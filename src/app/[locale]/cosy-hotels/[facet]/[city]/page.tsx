@@ -11,6 +11,7 @@ import { CONCEPT_BY_SLUG, cityCollectionMin, LEGACY_FACET_SLUGS, conceptCityBloc
 import { FACET_CITY_COPY } from "@/data/discoveryOverrides";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import { translate, translateMany } from "@/lib/i18n/translate";
+import { localeSeo } from "@/lib/i18n/seoLocale";
 import HotelActions from "@/components/HotelActions";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import {
@@ -50,9 +51,10 @@ export async function generateMetadata({ params }: { params: { locale: string; f
     : `${concept.description} The cosiest hotels ${phrase} in ${cityName}, AI-scored from 0 to 10 for warmth and character.`;
   const title = params.locale === "en" ? titleBase : await translate(titleBase, params.locale);
   const description = params.locale === "en" ? descBase : await translate(descBase, params.locale);
-  // Untranslated pages: only /en is indexed, so canonical (and og:url) point at the /en twin.
-  const url = `/en/cosy-hotels/${params.facet}/${params.city}`;
-  return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };
+  // Body copy below is genuinely translated for TRANSLATED_LOCALES (isEn ? ... : translate(...)),
+  // so canonical/hreflang are locale-aware; every other locale still points at the /en twin.
+  const { canonical: url, languages } = localeSeo(params.locale, `/cosy-hotels/${params.facet}/${params.city}`);
+  return { title, description, alternates: { canonical: url, ...(languages ? { languages } : {}) }, openGraph: { title, description, type: "website", url } };
 }
 
 export default async function FacetPage({ params }: { params: { locale: string; facet: string; city: string } }) {

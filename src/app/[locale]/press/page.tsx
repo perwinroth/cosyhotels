@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/config/site";
 
 export function generateMetadata(): Metadata {
   const url = `/en/press`;
-  const title = `Press kit | ${site.name}`;
+  // No manual "| Got Cosy?" suffix: the [locale] layout's title.template already appends it.
+  const title = `Press kit`;
   const description = "Boilerplate, facts, logos and contact for writing about Got Cosy.";
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "website", url } };
 }
