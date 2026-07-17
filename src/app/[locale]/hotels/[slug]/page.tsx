@@ -11,7 +11,7 @@ import BadgeEmbed from "@/components/BadgeEmbed";
 import HotelActions from "@/components/HotelActions";
 import { type SaveToTripLabels } from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
-import { translate } from "@/lib/i18n/translate";
+import { translate, translateMany } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
@@ -365,22 +365,30 @@ export default async function HotelDetail({ params }: Props) {
     notRated: "Not yet rated",
     awaiting: "awaiting evidence",
     notEnough: "We haven't gathered enough guest evidence to score this hotel for cosiness yet. It will earn a score once we have real reviews or vetted photos.",
+    ownTitle: "Own this hotel? Add your cosy badge",
+    ownBlurb: "Show off your AI cosy score: paste this on your site and it links back to your ranking.",
+    copyEmbed: "Copy embed code",
+    copiedWord: "Copied",
   };
   let LC = CH;
   const rawDesc = cosyDescription ?? cosySnippet;
   let descBody = rawDesc;
   let whyScores = cosyDisplay != null ? `Why it scores ${cosyDisplay.toFixed(1)}, from guest reviews` : "";
   let cosyHotelsInCity = cityName ? `Cosy hotels in ${cityName}` : "";
+  // Review signals ('Why it scores' bullets) are review-grounded content, translated like the
+  // description body (founder, 2026-07-17: the /sv hotel page must read Swedish end to end).
+  let signalsT = cosySignals;
   if (!isEn) {
     const keys = Object.keys(CH) as (keyof typeof CH)[];
-    const [chromeVals, dsc, why, chic] = await Promise.all([
+    const [chromeVals, dsc, why, chic, sigs] = await Promise.all([
       Promise.all(keys.map((k) => translate(CH[k], params.locale))),
       rawDesc ? translate(rawDesc, params.locale) : Promise.resolve(rawDesc),
       whyScores ? translate(whyScores, params.locale) : Promise.resolve(whyScores),
       cosyHotelsInCity ? translate(cosyHotelsInCity, params.locale) : Promise.resolve(cosyHotelsInCity),
+      cosySignals.length ? translateMany(cosySignals, params.locale) : Promise.resolve(cosySignals),
     ]);
     LC = Object.fromEntries(keys.map((k, i) => [k, chromeVals[i]])) as typeof CH;
-    descBody = dsc; whyScores = why; cosyHotelsInCity = chic;
+    descBody = dsc; whyScores = why; cosyHotelsInCity = chic; signalsT = sigs;
   }
 
   const crumbItems: LinkItem[] = [
@@ -398,6 +406,9 @@ export default async function HotelDetail({ params }: Props) {
     ? bespoke
     : hotelFaqs({ name: String(hotel.name), city: cityName, country: displayCountry(String(hotel.country || '')), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null, amenities: Array.isArray(hotel.amenities) ? (hotel.amenities as string[]) : [] });
   const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
+  // FAQ answers are translated for DISPLAY on non-en; the JSON-LD above keeps the English source so
+  // structured data stays aligned with the /en canonical.
+  const faqsT = isEn ? faqs : await Promise.all(faqs.map(async (f) => ({ q: await translate(f.q, params.locale), a: await translate(f.a, params.locale) })));
 
   // "Save to your plan" (saved lists) — every reader-facing string routes through translate() for
   // non-en locales (standing rule); the button itself is a client component and receives only
@@ -456,8 +467,8 @@ export default async function HotelDetail({ params }: Props) {
         <section className="mt-4 rounded-2xl border p-5" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
           <h2 className="text-sm font-semibold tracking-wide" style={{ color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{whyScores}</h2>
           <ul className="mt-3 space-y-2">
-            {cosySignals.map((s) => (
-              <li key={s.slice(0, 40)} className="flex gap-2.5 text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>
+            {signalsT.map((s, i) => (
+              <li key={i} className="flex gap-2.5 text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>
                 <span aria-hidden="true" style={{ color: 'var(--ember)', flex: 'none' }}>·</span>
                 <span>{s}</span>
               </li>
@@ -466,7 +477,7 @@ export default async function HotelDetail({ params }: Props) {
         </section>
       )}
 
-      <TravellerFit displayed={displayedFits} hrefBySlug={hrefBySlug} />
+      <TravellerFit displayed={displayedFits} hrefBySlug={hrefBySlug} locale={params.locale} />
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <a className="inline-flex min-h-[44px] items-center rounded-xl px-4 no-underline text-sm" style={{ border: '1px solid var(--line)', color: 'var(--foreground)' }} href={cityName && cityGuideRenders ? cityGuideHref : `/${params.locale}/guides`}>← {cityName && cityGuideRenders ? cosyHotelsInCity : LC.browseGuides}</a>
@@ -486,8 +497,8 @@ export default async function HotelDetail({ params }: Props) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         <h2 className="font-display text-2xl font-semibold">{LC.faqHeading}</h2>
         <dl className="mt-4 space-y-3">
-          {faqs.map((f) => (
-            <div key={f.q} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
+          {faqsT.map((f, i) => (
+            <div key={i} className="rounded-xl border p-4" style={{ borderColor: 'var(--line)', background: 'var(--card)' }}>
               <dt className="font-medium" style={{ color: 'var(--foreground)' }}>{f.q}</dt>
               <dd className="mt-1.5 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>{f.a}</dd>
             </div>
@@ -495,7 +506,7 @@ export default async function HotelDetail({ params }: Props) {
         </dl>
       </section>
 
-      {cosyDisplay != null && <BadgeEmbed slug={String(hotel.slug)} score={cosyDisplay} name={String(hotel.name)} />}
+      {cosyDisplay != null && <BadgeEmbed slug={String(hotel.slug)} score={cosyDisplay} name={String(hotel.name)} title={LC.ownTitle} blurb={LC.ownBlurb} copyLabel={LC.copyEmbed} copiedLabel={LC.copiedWord} />}
     </div>
   );
 }

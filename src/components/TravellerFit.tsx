@@ -4,6 +4,7 @@
 // scores, AI, weights or any internal machinery, only what a traveller would search for.
 import Link from "next/link";
 import { CONCEPT_BY_SLUG, type TravellerFitAssignment } from "@/lib/travellerFit";
+import { translate } from "@/lib/i18n/translate";
 
 // Short chip labels for the "Best for" pills (the concept.label headings are too long for a chip).
 const CHIP_LABEL: Record<string, string> = {
@@ -87,23 +88,44 @@ export function buildWhyParagraph(displayed: TravellerFitAssignment[]): string |
   return out;
 }
 
-export default function TravellerFit({
+export default async function TravellerFit({
   displayed,
   hrefBySlug,
+  locale = "en",
 }: {
   displayed: TravellerFitAssignment[];
   /** Resolved collection href per concept slug, or null to render a non-link chip. */
   hrefBySlug: Record<string, string | null>;
+  locale?: string;
 }) {
   if (!displayed.length) return null;
-  const why = buildWhyParagraph(displayed);
+  // Reader-facing copy (heading, chip labels, the "why" paragraph) renders in the target language for
+  // non-en (founder, 2026-07-17). Chip labels are a bounded taxonomy; the paragraph is grounded in
+  // English guest evidence and translated as a whole. en short-circuits before any await (zero cost).
+  const isEn = locale === "en";
+  const whyEn = buildWhyParagraph(displayed);
+  const labelBySlug: Record<string, string> = {};
+  for (const a of displayed) labelBySlug[a.concept_id] = chipLabel(a.concept_id);
+  let bestFor = "Best for";
+  let why = whyEn;
+  if (!isEn) {
+    const slugs = displayed.map((a) => a.concept_id);
+    const [bf, w, ...lbls] = await Promise.all([
+      translate("Best for", locale),
+      whyEn ? translate(whyEn, locale) : Promise.resolve(whyEn),
+      ...slugs.map((s) => translate(labelBySlug[s], locale)),
+    ]);
+    bestFor = bf;
+    why = w;
+    slugs.forEach((s, i) => { labelBySlug[s] = lbls[i]; });
+  }
   const chipClass = "rounded-full border px-3 py-1.5 text-sm no-underline";
   return (
     <section className="mt-8">
-      <h2 className="font-display text-2xl font-semibold">Best for</h2>
+      <h2 className="font-display text-2xl font-semibold">{bestFor}</h2>
       <div className="mt-3 flex flex-wrap gap-2">
         {displayed.map((a) => {
-          const label = chipLabel(a.concept_id);
+          const label = labelBySlug[a.concept_id];
           const href = hrefBySlug[a.concept_id] ?? null;
           const style = {
             borderColor: "var(--line)",
