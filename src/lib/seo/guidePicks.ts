@@ -225,3 +225,96 @@ export async function guideCityHasLivePick(db: DB | null, cityName: string): Pro
   const { picks, scoreQueryFailed } = await computeGuidePicks(db, cityName);
   return picks.length > 0 || scoreQueryFailed;
 }
+
+// --- Curated (hand-picked, by hotel slug) guide picks --------------------------------------
+//
+// Editorial curated guides (src/data/guides.ts) name SPECIFIC hotels, not "everything in a city",
+// so they resolve picks by slug rather than by city membership. The class problem this fixes
+// (founder, 2026-07-18): guides.ts used to bake hotel name + cosy SCORE + distance straight into
+// the `body` HTML string. That is the #44 stale-score hazard (src/lib/blogPickScores.ts's module
+// comment) applied to a third surface (blog picks, city guides, now curated guides): a rescore
+// changes the true number but the baked HTML keeps showing the old one forever. The fix mirrors
+// blogPickScores.ts exactly: guides.ts keeps ONLY the slug + an editorial `note` (a fact that isn't
+// a score, e.g. "320 m from the Grote Markt"); every other field — name, city, country, score,
+// image, review-grounded description, website — is read live at render time, same tables and same
+// PUBLIC gate (COSY_FLOOR) as every other listing surface. A hotel that drops below the gate, gets
+// delisted, or gets a bad-link flag is dropped SILENTLY (never a broken card), same contract as
+// computeGuidePicks above.
+
+export type CuratedPickInput = { slug: string; note?: string };
+
+export type CuratedPick = {
+  slug: string; name: string; city: string; country: string; score: number;
+  lat: number | null; lng: number | null;
+  img: string | null; snippet: string; website: string | null; note?: string;
+};
+
+export async function resolveCuratedPicks(db: DB, input: CuratedPickInput[]): Promise<CuratedPick[]> {
+  if (input.length === 0) return [];
+  const slugs = input.map((p) => p.slug);
+  const [{ data: hRows }, bad, delisted] = await Promise.all([
+    db.from('hotels').select('id,slug,name,name_en,city,country,lat,lng,website').in('slug', slugs),
+    badLinkHotelIds(db),
+    getDelistedSlugSet(db),
+  ]);
+  const bySlug = new Map<string, GuideHotelRow>();
+  for (const h of ((hRows || []) as GuideHotelRow[])) bySlug.set(h.slug, h);
+  const ids = Array.from(bySlug.values()).map((h) => String(h.id));
+
+  const scoreMap = new Map<string, number>();
+  const descMap = new Map<string, string>();
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data: sRows } = await db
+      .from('cosy_scores')
+      .select('hotel_id,score,score_final,description')
+      .in('hotel_id', ids.slice(i, i + 150));
+    for (const r of ((sRows || []) as Array<{ hotel_id: string; score: number | null; score_final: number | null; description: string | null }>)) {
+      const v = typeof r.score_final === 'number' ? r.score_final : (typeof r.score === 'number' ? r.score : null);
+      if (r.hotel_id && typeof v === 'number') scoreMap.set(String(r.hotel_id), v);
+      if (r.hotel_id && typeof r.description === 'string' && r.description.trim()) descMap.set(String(r.hotel_id), r.description.trim());
+    }
+  }
+
+  const imgMap = new Map<string, string>();
+  if (ids.length) {
+    const { data: imgRows } = await db
+      .from('hotel_images')
+      .select('hotel_id,url,created_at,vision_ok')
+      .in('hotel_id', ids)
+      .eq('vision_ok', true)
+      .order('created_at', { ascending: false });
+    for (const row of ((imgRows || []) as Array<{ hotel_id: string | null; url: string | null }>)) {
+      const hid = row.hotel_id ? String(row.hotel_id) : '';
+      const url = row.url ? String(row.url) : '';
+      if (!hid || !url || url.includes('placehold.co')) continue;
+      if (!imgMap.has(hid)) imgMap.set(hid, url);
+    }
+  }
+
+  const out: CuratedPick[] = [];
+  for (const p of input) {
+    const h = bySlug.get(p.slug);
+    if (!h) continue; // hotel gone/renamed since the guide was written — drop silently
+    if (delisted.has(p.slug)) continue; // takedown excludes listing surfaces
+    if (bad.has(String(h.id))) continue;
+    const s = scoreMap.get(String(h.id));
+    if (typeof s !== 'number' || s < COSY_FLOOR) continue; // PUBLIC gate, same as every surface
+    const displayName = String(h.name_en || h.name);
+    if (!isLatin(displayName)) continue;
+    const img = imgMap.get(String(h.id)) ?? null;
+    out.push({
+      slug: p.slug,
+      name: displayName,
+      city: String(h.city || ''),
+      country: String(h.country || ''),
+      score: s,
+      lat: h.lat ?? null,
+      lng: h.lng ?? null,
+      img,
+      snippet: descMap.get(String(h.id)) || '',
+      website: h.website ?? null,
+      note: p.note,
+    });
+  }
+  return out;
+}

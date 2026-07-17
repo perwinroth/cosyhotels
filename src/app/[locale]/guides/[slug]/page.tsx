@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import { getGuide } from "@/data/guides";
 import { getCityGuide } from "@/data/cityGuides";
 import { CITY_TITLE, CITY_INTRO_LEAD, CITY_EXTRA_FAQS } from "@/data/discoveryOverrides";
@@ -12,7 +13,7 @@ import { FACETS, matchesFacet } from "@/lib/facets";
 import { CONCEPT_BY_SLUG, cityCollectionMin, conceptCityBlocked } from "@/lib/travellerFit";
 import { isMalformedSlug } from "@/lib/seo/slugGuard";
 import { liveCosyCountForCityName } from "@/lib/seo/cityHotels";
-import { computeGuidePicks, guideCityHasLivePick, COSY_FLOOR } from "@/lib/seo/guidePicks";
+import { computeGuidePicks, guideCityHasLivePick, resolveCuratedPicks, COSY_FLOOR } from "@/lib/seo/guidePicks";
 import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import { messages as i18n } from "@/i18n/messages";
 import { stay22AllezUrl } from "@/lib/affiliates";
@@ -104,6 +105,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GuidePage({ params }: Props) {
   if (isMalformedSlug(params.slug)) notFound();
+  const dbForCurated = getServerSupabase();
   const g = getGuide(params.slug);
   if (g) {
     // en short-circuits before any await so English output stays byte-identical; sv (the only
@@ -113,11 +115,107 @@ export default async function GuidePage({ params }: Props) {
     const title = isEnGuide ? g.title : await translate(g.title, params.locale);
     const excerpt = isEnGuide ? g.excerpt : await translate(g.excerpt, params.locale);
     const body = isEnGuide ? g.body : await translateHtml(g.body, params.locale);
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gotcosy.com';
+    const detailsHref = (slug: string) => `/${params.locale}/hotels/${slug}`;
+
+    // Hotels are resolved LIVE by slug (never a baked score) — resolveCuratedPicks reads
+    // name/city/country/score/image/description/website fresh from cosy_scores/hotels at request
+    // time and drops any pick that falls below the PUBLIC gate, is delisted, or is bad-link
+    // flagged, silently (the #44 stale-score rule, see guidePicks.ts's module comment). `g.picks`
+    // itself carries only the slug and an optional editorial `note` (a non-score fact, e.g. a
+    // measured distance) — no name, no score is ever baked into guides.ts.
+    const resolved = dbForCurated ? await resolveCuratedPicks(dbForCurated, g.picks) : [];
+    const wrongSlugs = await getStay22WrongSlugs(dbForCurated);
+    const cardPicks = resolved.map((h) => ({
+      ...h,
+      cta: stay22AllezUrl({ name: h.name, city: h.city, country: h.country, lat: h.lat, lng: h.lng, campaign: `guide-${params.locale}` }),
+    }));
+    const saveLabels = await buildSaveLabels(params.locale);
+    const shareLabels = await buildShareLabels(params.locale);
+
+    const CH = { picksHeading: g.picksHeading, snippetEyebrow: "Why it's cosy" };
+    let LC = CH;
+    let snippetsT = cardPicks.map((h) => h.snippet);
+    let notesT = cardPicks.map((h) => h.note || '');
+    if (!isEnGuide) {
+      const keys = Object.keys(CH) as (keyof typeof CH)[];
+      const [chromeVals, snippetsRes, notesRes] = await Promise.all([
+        Promise.all(keys.map((k) => translate(CH[k], params.locale))),
+        cardPicks.length ? translateMany(snippetsT, params.locale) : Promise.resolve(snippetsT),
+        cardPicks.length ? translateMany(notesT, params.locale) : Promise.resolve(notesT),
+      ]);
+      LC = Object.fromEntries(keys.map((k, i) => [k, chromeVals[i]])) as typeof CH;
+      snippetsT = snippetsRes; notesT = notesRes;
+    }
+
+    // ItemList, same pattern as the fabricated city-guide branch and the blog picks — our
+    // editorial cosy score rendered as a Review (author: Got Cosy), machine-readable for AI
+    // answer engines, not a self-ranked AggregateRating.
+    const listJsonLd = cardPicks.length > 0 ? {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: g.picksHeading,
+      numberOfItems: cardPicks.length,
+      itemListElement: cardPicks.map((h, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: {
+          '@type': 'Hotel',
+          name: h.name,
+          url: `${siteUrl}${detailsHref(h.slug)}`,
+          ...(h.img && /^https?:\/\//.test(h.img) ? { image: h.img } : {}),
+          ...(h.city || h.country ? { address: { '@type': 'PostalAddress', ...(h.city ? { addressLocality: h.city } : {}), ...(h.country ? { addressCountry: h.country } : {}) } } : {}),
+          review: {
+            '@type': 'Review',
+            author: { '@type': 'Organization', name: 'Got Cosy' },
+            reviewRating: { '@type': 'Rating', ratingValue: Number(h.score.toFixed(1)), bestRating: 10, worstRating: 0, name: 'Cosy score' },
+            ...(h.snippet ? { reviewBody: h.snippet } : {}),
+          },
+        },
+      })),
+    } : null;
+
     return (
       <article className="longform mx-auto max-w-3xl px-4 py-8">
-        <h1 className="mb-2 text-2xl font-semibold sm:text-3xl" style={{ color: 'var(--foreground)' }}>{title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="mb-2 text-2xl font-semibold sm:text-3xl" style={{ color: 'var(--foreground)' }}>{title}</h1>
+          <div className="flex-none"><ShareButton title={title} label={shareLabels.toggle} labels={shareLabels} /></div>
+        </div>
         <p className="text-lg" style={{ color: 'var(--muted)' }}>{excerpt}</p>
         <div className="mt-6" dangerouslySetInnerHTML={{ __html: body }} />
+        {cardPicks.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-xl font-semibold">{LC.picksHeading}</h2>
+            <ol className="mt-4 space-y-3">
+              {cardPicks.map((h, idx) => (
+                <Fragment key={h.slug}>
+                  <HotelCard
+                    slug={h.slug}
+                    name={h.name}
+                    city={h.city}
+                    country={h.country}
+                    score={h.score}
+                    rank={idx + 1}
+                    snippet={snippetsT[idx] || null}
+                    snippetEyebrow={LC.snippetEyebrow}
+                    photo={h.img}
+                    locale={params.locale}
+                    saveLabels={saveLabels}
+                    stay22Href={h.cta}
+                    website={h.website}
+                    isVerifiedWrong={wrongSlugs.has(h.slug)}
+                    shareTitle={`${h.name}, a cosy hotel in ${h.city}`}
+                    shareUrl={detailsHref(h.slug)}
+                  />
+                  {notesT[idx] && (
+                    <li className="-mt-2 list-none pl-4 text-sm sm:pl-[4.5rem]" style={{ color: 'var(--muted)' }}>{notesT[idx]}</li>
+                  )}
+                </Fragment>
+              ))}
+            </ol>
+          </section>
+        )}
+        {listJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd) }} />}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
