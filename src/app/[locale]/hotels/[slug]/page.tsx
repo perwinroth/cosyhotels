@@ -87,6 +87,17 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
   return { alternates: { canonical } };
 }
 
+// Overwrite any cosy-score mention in a string with the current live score, so a number baked into
+// stored copy (bespoke FAQ answers) can never contradict the live cosy_scores value. Matches the
+// cosy 0-10 scale only: "<n> out of 10" and "<n>/10" (guest ratings are "/5" and never match). The
+// number is replaced; surrounding prose is untouched.
+function withLiveScore(text: string, live: number): string {
+  const n = live.toFixed(1);
+  return text
+    .replace(/\b\d+(?:\.\d+)?\s+out of 10\b/g, `${n} out of 10`)
+    .replace(/\b\d+(?:\.\d+)?\s*\/\s*10\b/g, `${n}/10`);
+}
+
 // Per-hotel FAQ — natural-language Q&A for SEO rich results + GEO/AEO (answer engines lift these).
 // Every answer is GROUNDED in real data (cosy score, our description, guest rating, location) — no
 // invented facts, in keeping with the trustworthy-score promise.
@@ -418,9 +429,17 @@ export default async function HotelDetail({ params }: Props) {
   ];
   // Bespoke, review-grounded FAQ when we have one for this hotel; else the data-tailored template.
   const bespoke = (hotelFaqData as Record<string, { q: string; a: string }[]>)[String(hotel.id)];
-  const faqs = bespoke?.length
+  const faqsRaw = bespoke?.length
     ? bespoke
     : hotelFaqs({ name: String(hotel.name), city: cityName, country: displayCountry(String(hotel.country || '')), cosy: cosyDisplay ?? null, description: cosyDescription, rating5: rating5 ?? null, reviews: typeof hotel.reviews_count === 'number' ? hotel.reviews_count : null, amenities: Array.isArray(hotel.amenities) ? (hotel.amenities as string[]) : [] });
+  // LIVE-SCORE INVARIANT (founder, 2026-07-17): a cosy score shown anywhere must equal the current
+  // cosy_scores value, never a number baked at generation time. Bespoke FAQ answers in hotelFaqs.json
+  // embed the score as it was WHEN THE FAQ WAS WRITTEN, so a later rescore left them stale (e.g.
+  // Hiiragiya FAQ said 8.0 while the page badge read 7.6). We overwrite any "<n> out of 10" / "<n>/10"
+  // in the FAQ text with the live cosyDisplay at render time, so the source of truth is always the
+  // live score and this can never drift again. "/5" guest-rating mentions are untouched (only /10 is
+  // the cosy scale). If the hotel is unrated (cosyDisplay null) we leave the text as-is.
+  const faqs = cosyDisplay == null ? faqsRaw : faqsRaw.map((f) => ({ q: withLiveScore(f.q, cosyDisplay), a: withLiveScore(f.a, cosyDisplay) }));
   const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) };
   // FAQ answers are translated for DISPLAY on non-en; the JSON-LD above keeps the English source so
   // structured data stays aligned with the /en canonical.
