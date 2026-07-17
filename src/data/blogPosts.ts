@@ -863,7 +863,7 @@ export const BLOG_POSTS: BlogPost[] = [
     faqs: [
       {
         q: "Can you really travel from London to Transylvania entirely by train?",
-        a: "Yes: every leg of this route runs on scheduled rail services: Eurostar to Brussels, Belgian domestic trains to Bruges and Antwerp, Alpine trains to Como, Italian trains to Siena and (via the separate Ferrovie Appulo Lucane line from Bari) Matera, then trains north and east via Vienna and Budapest to Sighișoara, where the Dacia sleeper calls on the Budapest–Bucharest main line. The only caveats are pacing (the eastern legs take two to three days done comfortably) and checking current timetables, since night-train routes change seasonally.",
+        a: "Yes: every leg of this route runs on scheduled rail services: Eurostar to Brussels, Belgian domestic trains to Bruges and Antwerp, Alpine trains to Como, Italian trains to Siena and (via the separate Ferrovie Appulo Lucane line from Bari) Matera, then trains north and east via Vienna and Budapest to Sighișoara, where the Dacia sleeper calls on the Budapest-Bucharest main line. The only caveats are pacing (the eastern legs take two to three days done comfortably) and checking current timetables, since night-train routes change seasonally.",
       },
       {
         q: "How long does the whole route take?",
