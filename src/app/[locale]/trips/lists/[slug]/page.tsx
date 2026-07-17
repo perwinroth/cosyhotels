@@ -6,6 +6,7 @@ import { translate } from "@/lib/i18n/translate";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import { buildShareLabels } from "@/lib/i18n/shareLabels";
 import HotelCard from "@/components/HotelCard";
 import TripListRemoveControl from "@/components/TripListRemoveControl";
 import PlanOwnerControls from "@/components/PlanOwnerControls";
@@ -81,6 +82,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
     t("A collection of cosy hotels on Got Cosy, each scored 0 to 10 for warmth and character."),
   ]);
   const saveLabels = await buildSaveLabels(params.locale);
+  const shareLabels = await buildShareLabels(params.locale);
 
   // Edit affordance: only when the visitor's own ?token= matches this row's edit_token. The token
   // value is never fetched or rendered unless it already equals what the URL gave us, so nothing
@@ -160,7 +162,7 @@ export default async function SavedListPage({ params, searchParams }: Props) {
       <div className="flex items-start justify-between gap-4">
         <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight">{displayTitle}</h1>
         <div className="flex-none pt-1">
-          <ShareButton variant="pill" label={lShareCollection} title={displayTitle} url={publicListUrl} />
+          <ShareButton variant="pill" label={lShareCollection} labels={shareLabels} title={displayTitle} url={publicListUrl} />
         </div>
       </div>
       <p className="mt-3 text-base" style={{ color: "var(--muted)" }}>{lIntro}</p>

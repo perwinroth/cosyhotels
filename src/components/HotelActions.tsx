@@ -23,6 +23,7 @@ import SaveToTripButton, { type SaveToTripLabels } from "@/components/SaveToTrip
 import { resolveBookingCta } from "@/lib/ctaPolicy";
 import { isRealHotelWebsite } from "@/lib/delisted";
 import { translate } from "@/lib/i18n/translate";
+import { buildShareLabels } from "@/lib/i18n/shareLabels";
 
 type Props = {
   /** Stay22 "Check availability" deep link — the default CTA, and the fallback CTA (relabelled)
@@ -56,6 +57,7 @@ export default async function HotelActions({ stay22Href, hotelName, city, slug, 
   // the caller opted in, and only when the hotel genuinely has a real, non-OTA website.
   const showSecondary = !!showWebsiteSecondary && cta.dataCta === "check_availability" && isRealHotelWebsite(website);
   const secondaryLabel = showSecondary ? (locale === "en" ? "Visit hotel website" : await translate("Visit hotel website", locale)) : null;
+  const shareLabels = shareTitle ? await buildShareLabels(locale) : null;
   return (
     <div className="mt-3 flex w-full max-w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
       <a
@@ -86,7 +88,7 @@ export default async function HotelActions({ stay22Href, hotelName, city, slug, 
       )}
       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
         <SaveToTripButton variant="compact" block hotelSlug={slug} locale={locale} labels={saveLabels} />
-        {shareTitle ? <ShareButton variant="icon" block title={shareTitle} url={shareUrl} /> : null}
+        {shareTitle && shareLabels ? <ShareButton variant="icon" block title={shareTitle} url={shareUrl} label={shareLabels.toggle} labels={shareLabels} /> : null}
       </div>
     </div>
   );

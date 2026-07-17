@@ -6,6 +6,7 @@ import { locales } from "@/i18n/locales";
 import "../globals.css";
 import Analytics from "@/components/Analytics";
 import SiteHeader from "@/components/SiteHeader";
+import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import HtmlLang from "@/components/HtmlLang";
 import { translate } from "@/lib/i18n/translate";
@@ -68,7 +69,13 @@ export default async function LocaleLayout({
       <HtmlLang locale={locale} />
       <SiteHeader locale={locale} />
       <main className="min-h-[75vh]">{children}</main>
-      {/* Footer + ThemeToggle are rendered globally in the root layout to avoid duplicates */}
+      {/* Footer rendered HERE (not in the root layout) so it gets the real locale and goes through
+          translate() like the rest of this layout's chrome (2026-07-17: the root layout previously
+          hardcoded `<Footer locale="en" />`, which silently kept every locale's footer in English
+          forever, since the root layout sits above this [locale] segment and can't read its
+          params (same constraint HtmlLang.tsx documents for <html lang>). The root "/" and "/en"
+          homepage bypasses this layout and renders its own English Footer in src/app/page.tsx. */}
+      <Footer locale={locale} />
       {/* Suspense is REQUIRED: Analytics calls useSearchParams(), and on static/ISR pages
           (hotels/[slug]) an unsuspended CSR bailout is a hard 500 at on-demand render time.
           Local builds don't catch it — no hotel page prerenders at build. */}

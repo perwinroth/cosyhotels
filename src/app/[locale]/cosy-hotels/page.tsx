@@ -5,6 +5,7 @@ import { loadCountryCounts, HUB_MIN } from "@/lib/countryHub";
 import { REGIONS } from "@/data/regions";
 import { listedThemeConcepts, conceptLabelPhrase } from "@/lib/seo/cityHotels";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
+import { translate, translateMany } from "@/lib/i18n/translate";
 
 export const revalidate = 3600;
 
@@ -25,26 +26,56 @@ export default async function CosyHotelsHub({ params }: { params: { locale: stri
     { name: "Cosy hotels", url: `/${l}/cosy-hotels` },
   ]);
 
+  // Reader-facing chrome routes through translate() for non-en locales; en short-circuits before
+  // any await (founder, 2026-07-17: /sv/cosy-hotels rendered wholly in English). Theme phrases are
+  // a finite, reused set (translateMany), so the cache saturates quickly. Region/country NAMES stay
+  // DATA, never translated.
+  const isEn = l === "en";
+  const CH = {
+    h1: "Cosy hotels",
+    intro: "Browse genuinely cosy places to stay by what makes them cosy, or by country. Every hotel is AI-scored from 0 to 10 for warmth, character and intimacy, not stars.",
+    byTheme: "By theme",
+    byArea: "By area",
+    areaIntro: "Famous regions and coastlines, from the Amalfi Coast to the Cotswolds.",
+    byCountry: "By country",
+    countriesCount: "countries, ranked by how many cosy hotels we've scored.",
+    lookingFor: "Looking for a specific city? Explore our",
+    cityGuidesLink: "cosy hotel city guides",
+    orThe: "or the",
+    cosyIndexLink: "Cosy Index",
+  };
+  let LC = CH;
+  let themeLabels = themes.map((c) => `Cosy hotels ${conceptLabelPhrase(c)}`);
+  if (!isEn) {
+    const keys = Object.keys(CH) as (keyof typeof CH)[];
+    const [chromeVals, themeRes] = await Promise.all([
+      Promise.all(keys.map((k) => translate(CH[k], l))),
+      translateMany(themeLabels, l),
+    ]);
+    LC = Object.fromEntries(keys.map((k, i) => [k, chromeVals[i]])) as typeof CH;
+    themeLabels = themeRes;
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(crumbs)} />
-      <h1 className="font-display text-3xl font-semibold">Cosy hotels</h1>
-      <p className="mt-2 max-w-2xl" style={{ color: "var(--muted)" }}>Browse genuinely cosy places to stay by what makes them cosy, or by country. Every hotel is AI-scored from 0 to 10 for warmth, character and intimacy, not stars.</p>
+      <h1 className="font-display text-3xl font-semibold">{LC.h1}</h1>
+      <p className="mt-2 max-w-2xl" style={{ color: "var(--muted)" }}>{LC.intro}</p>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">By theme</h2>
+        <h2 className="text-lg font-medium">{LC.byTheme}</h2>
         <div className="mt-3 grid sm:grid-cols-2 gap-3">
-          {themes.map((c) => (
+          {themes.map((c, i) => (
             <a key={c.slug} href={`/${l}/cosy-hotels/${c.slug}`} className="block rounded-xl border p-4 hover:underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
-              <span className="font-medium">Cosy hotels {conceptLabelPhrase(c)}</span>
+              <span className="font-medium">{themeLabels[i]}</span>
             </a>
           ))}
         </div>
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-medium">By area</h2>
-        <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>Famous regions and coastlines, from the Amalfi Coast to the Cotswolds.</p>
+        <h2 className="text-lg font-medium">{LC.byArea}</h2>
+        <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>{LC.areaIntro}</p>
         <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
           {REGIONS.map((r) => (
             <a key={r.slug} href={`/${l}/cosy-hotels/region/${r.slug}`} className="rounded-lg border px-3 py-2 text-sm hover:underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -56,8 +87,8 @@ export default async function CosyHotelsHub({ params }: { params: { locale: stri
 
       {countries.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-lg font-medium">By country</h2>
-          <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>{countries.length} countries, ranked by how many cosy hotels we&apos;ve scored.</p>
+          <h2 className="text-lg font-medium">{LC.byCountry}</h2>
+          <p className="mt-1 text-sm" style={{ color: "var(--muted)" }}>{countries.length} {LC.countriesCount}</p>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
             {countries.map((c) => (
               <a key={c.country.slug} href={`/${l}/cosy-hotels/in/${c.country.slug}`} className="flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm hover:underline" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -69,7 +100,7 @@ export default async function CosyHotelsHub({ params }: { params: { locale: stri
         </section>
       )}
 
-      <p className="mt-10 text-sm" style={{ color: "var(--muted)" }}>Looking for a specific city? Explore our <a href={`/${l}/guides`} className="underline">cosy hotel city guides</a> or the <a href={`/${l}/cosy-index`} className="underline">Cosy Index</a>.</p>
+      <p className="mt-10 text-sm" style={{ color: "var(--muted)" }}>{LC.lookingFor} <a href={`/${l}/guides`} className="underline">{LC.cityGuidesLink}</a> {LC.orThe} <a href={`/${l}/cosy-index`} className="underline">{LC.cosyIndexLink}</a>.</p>
     </div>
   );
 }

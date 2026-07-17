@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Home from "./[locale]/page";
 import SiteHeader from "@/components/SiteHeader";
+import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
@@ -25,9 +26,10 @@ export default function RootHome() {
     <>
       <SiteHeader locale="en" />
       <main><Home params={{ locale: 'en' }} /></main>
-      {/* English source copy, no translate() needed on the root (English) homepage. The
-          [locale] layout renders the same banner (translated) for every /[locale]/* page; the
-          gc_consent cookie makes it show at most once regardless of which one rendered it. */}
+      {/* English source copy, no translate() needed here: this root "/" and "/en" homepage bypasses
+          the [locale] layout, which renders its own (locale-aware) Footer for every /[locale]/*
+          page instead. */}
+      <Footer locale="en" />
       <CookieConsent
         labels={{
           message: "We use cookies for analytics and affiliate links. You choose.",

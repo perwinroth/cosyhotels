@@ -16,8 +16,10 @@ import ShareButton from "@/components/ShareButton";
 import HotelCard from "@/components/HotelCard";
 import { type SaveToTripLabels } from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import { buildShareLabels } from "@/lib/i18n/shareLabels";
 import { site } from "@/config/site";
 import { jsonLd } from "@/lib/schema";
+import { translate, translateMany } from "@/lib/i18n/translate";
 
 // Dynamic: the page reads the gc_panel cookie (for preview), which opts out of static caching — so a
 // preview can never leak publicly, and a scheduled post goes live the instant its publish time passes.
@@ -54,7 +56,7 @@ function Section({ s }: { s: BlogSection }) {
   );
 }
 
-function PickCard({ h, idx, locale, saveLabels, isVerifiedWrong }: { h: BlogPick; idx: number; locale: string; saveLabels: SaveToTripLabels; isVerifiedWrong: boolean }) {
+function PickCard({ h, idx, locale, saveLabels, isVerifiedWrong, snippetEyebrow, why }: { h: BlogPick; idx: number; locale: string; saveLabels: SaveToTripLabels; isVerifiedWrong: boolean; snippetEyebrow: string; why: string }) {
   const detailsHref = `/${locale}/hotels/${h.slug}`;
   return (
     <HotelCard
@@ -64,8 +66,8 @@ function PickCard({ h, idx, locale, saveLabels, isVerifiedWrong }: { h: BlogPick
       country={h.country}
       score={h.score}
       rank={idx + 1}
-      snippet={h.why}
-      snippetEyebrow="Why it's here"
+      snippet={why}
+      snippetEyebrow={snippetEyebrow}
       photo={h.img}
       locale={locale}
       saveLabels={saveLabels}
@@ -102,6 +104,42 @@ export default async function BlogPostPage({ params }: Props) {
   // Affiliate-disclosure gate: only true when a Stay22 button actually renders below; a post whose
   // picks are all verified-wrong hotels with real websites carries no affiliate link.
   const anyStay22 = picks.some((p) => resolveBookingCta(p.website, "", wrongSlugs.has(p.slug)).mode === "stay22");
+  // Reader-facing PAGE CHROME (not the editorial post body, which stays English source per the
+  // standing rule) routes through translate() for non-en locales. This mirrors the guide/hotel
+  // page CH pattern: en short-circuits before any await.
+  const isEn = L === "en";
+  const CH = {
+    faqHeading: "Frequently asked questions",
+    readNext: "Read next",
+    refreshing: "We're refreshing this list; check back shortly, or browse",
+    cosyIndexLink: "the Cosy Index",
+    snippetEyebrow: "Why it's here",
+    disclosureBase: "Got Cosy ranks hotels by cosiness using AI. Picks are drawn live from our scored dataset",
+    disclosureCommission: "; bookings via partner sites may earn us a commission",
+    disclosureLastUpdated: ". Last updated",
+  };
+  let LC = CH;
+  let pickHeading = post.pick?.heading ?? "";
+  let pickBlurb = post.pick?.blurb ?? "";
+  // Each pick's "why it fits this topic" line is review-grounded snippet content, translated like
+  // every other listing surface's hotel snippet (guide/facet/hotel/search pages).
+  let pickWhys = picks.map((p) => p.why || "");
+  const relatedLabelMap = new Map<string, string>();
+  if (!isEn) {
+    const keys = Object.keys(CH) as (keyof typeof CH)[];
+    const uniqueRelatedLabels = Array.from(new Set(post.related.map((r) => r.label)));
+    const [chromeVals, ph, pb, relatedT, whysT] = await Promise.all([
+      Promise.all(keys.map((k) => translate(CH[k], L))),
+      post.pick ? translate(post.pick.heading, L) : Promise.resolve(""),
+      post.pick ? translate(post.pick.blurb, L) : Promise.resolve(""),
+      translateMany(uniqueRelatedLabels, L),
+      pickWhys.length ? translateMany(pickWhys, L) : Promise.resolve(pickWhys),
+    ]);
+    LC = Object.fromEntries(keys.map((k, i) => [k, chromeVals[i]])) as typeof CH;
+    pickHeading = ph; pickBlurb = pb; pickWhys = whysT;
+    uniqueRelatedLabels.forEach((label, i) => relatedLabelMap.set(label, relatedT[i]));
+  }
+  const shareLabels = await buildShareLabels(L);
   const saveLabels = await buildSaveLabels(L);
 
   // A related link to a blog post that's still draft/scheduled would 404 — drop those. Non-blog
@@ -154,7 +192,7 @@ export default async function BlogPostPage({ params }: Props) {
 
       <div className="flex items-start justify-between gap-4">
         <p className="text-sm font-medium tracking-wide uppercase" style={{ color: "var(--ember)", letterSpacing: "0.08em" }}>{post.eyebrow}</p>
-        <div className="flex-none"><ShareButton title={post.title} url={`/${L}/blog/${post.slug}`} label="Share" /></div>
+        <div className="flex-none"><ShareButton title={post.title} url={`/${L}/blog/${post.slug}`} label={shareLabels.toggle} labels={shareLabels} /></div>
       </div>
       <h1 className="mt-2 font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">{post.h1}</h1>
       <p className="mt-5 text-xl leading-relaxed" style={{ color: "var(--muted)" }}>{post.lead}</p>
@@ -163,14 +201,14 @@ export default async function BlogPostPage({ params }: Props) {
 
       {post.pick && (
         <section className="mt-12">
-          <h2 className="font-display text-2xl font-semibold tracking-tight">{post.pick.heading}</h2>
-          <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>{post.pick.blurb}</p>
+          <h2 className="font-display text-2xl font-semibold tracking-tight">{pickHeading}</h2>
+          <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>{pickBlurb}</p>
           {picks.length > 0 ? (
             <ol className="mt-5 space-y-3">
-              {picks.map((h, i) => <PickCard key={h.slug} h={h} idx={i} locale={L} saveLabels={saveLabels} isVerifiedWrong={wrongSlugs.has(h.slug)} />)}
+              {picks.map((h, i) => <PickCard key={h.slug} h={h} idx={i} locale={L} saveLabels={saveLabels} isVerifiedWrong={wrongSlugs.has(h.slug)} snippetEyebrow={LC.snippetEyebrow} why={pickWhys[i]} />)}
             </ol>
           ) : (
-            <p className="mt-5 text-sm" style={{ color: "var(--muted)" }}>We&apos;re refreshing this list; check back shortly, or browse <a href={`/${L}/cosy-index`} className="underline">the Cosy Index</a>.</p>
+            <p className="mt-5 text-sm" style={{ color: "var(--muted)" }}>{LC.refreshing} <a href={`/${L}/cosy-index`} className="underline">{LC.cosyIndexLink}</a>.</p>
           )}
         </section>
       )}
@@ -178,7 +216,7 @@ export default async function BlogPostPage({ params }: Props) {
       {post.outro.map((s, i) => <Section key={i} s={s} />)}
 
       <section className="mt-12">
-        <h2 className="font-display text-2xl font-semibold tracking-tight">Frequently asked questions</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight">{LC.faqHeading}</h2>
         <dl className="mt-4 space-y-4">
           {post.faqs.map((f) => (
             <div key={f.q} className="border rounded-lg p-4" style={{ borderColor: "var(--line)", background: "var(--card)" }}>
@@ -191,16 +229,16 @@ export default async function BlogPostPage({ params }: Props) {
 
       {relatedVisible.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl font-semibold">Read next</h2>
+          <h2 className="text-xl font-semibold">{LC.readNext}</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {relatedVisible.map((r) => (
-              <a key={r.to} href={`/${L}/${r.to}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: "var(--line)", color: "var(--foreground)" }}>{r.label}</a>
+              <a key={r.to} href={`/${L}/${r.to}`} className="rounded-full border px-3 py-1.5 text-sm no-underline hover:underline" style={{ borderColor: "var(--line)", color: "var(--foreground)" }}>{relatedLabelMap.get(r.label) ?? r.label}</a>
             ))}
           </div>
         </section>
       )}
 
-      <p className="mt-10 text-xs" style={{ color: "var(--muted)" }}>Got Cosy ranks hotels by cosiness using AI. Picks are drawn live from our scored dataset{anyStay22 ? "; bookings via partner sites may earn us a commission" : ""}. Last updated {post.updated}.</p>
+      <p className="mt-10 text-xs" style={{ color: "var(--muted)" }}>{LC.disclosureBase}{anyStay22 ? LC.disclosureCommission : ""}{LC.disclosureLastUpdated} {post.updated}.</p>
     </article>
   );
 }

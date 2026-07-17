@@ -11,6 +11,7 @@ import BadgeEmbed from "@/components/BadgeEmbed";
 import HotelActions from "@/components/HotelActions";
 import { type SaveToTripLabels } from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
+import { buildShareLabels } from "@/lib/i18n/shareLabels";
 import { translate, translateMany } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
@@ -369,27 +370,42 @@ export default async function HotelDetail({ params }: Props) {
     ownBlurb: "Show off your AI cosy score: paste this on your site and it links back to your ranking.",
     copyEmbed: "Copy embed code",
     copiedWord: "Copied",
+    belowBarPre: "We reviewed",
+    belowBarMid: "for cosiness (warmth, character, intimacy) and it didn't clear the bar for our shortlist. That's a verdict on cosiness, not on cleanliness or service",
+    belowBarCityClause: "the {city} hotels that did clear it are",
+    belowBarRankedHere: "ranked here",
   };
   let LC = CH;
   const rawDesc = cosyDescription ?? cosySnippet;
   let descBody = rawDesc;
   let whyScores = cosyDisplay != null ? `Why it scores ${cosyDisplay.toFixed(1)}, from guest reviews` : "";
   let cosyHotelsInCity = cityName ? `Cosy hotels in ${cityName}` : "";
+  let moreCosyHotelsIn = cityName ? `More cosy hotels in ${cityName}` : "";
+  let seeCityGuide = cityName ? `See the ${cityName} guide` : "";
+  let exploreByStyle = `Explore cosy hotels ${cityName ? `in ${cityName} ` : ""}by style`;
+  let collectionLabels = collectionLinks.map((l) => l.label);
   // Review signals ('Why it scores' bullets) are review-grounded content, translated like the
   // description body (founder, 2026-07-17: the /sv hotel page must read Swedish end to end).
   let signalsT = cosySignals;
   if (!isEn) {
     const keys = Object.keys(CH) as (keyof typeof CH)[];
-    const [chromeVals, dsc, why, chic, sigs] = await Promise.all([
+    const [chromeVals, dsc, why, chic, sigs, moreCity, seeGuide, byStyle, collLabels] = await Promise.all([
       Promise.all(keys.map((k) => translate(CH[k], params.locale))),
       rawDesc ? translate(rawDesc, params.locale) : Promise.resolve(rawDesc),
       whyScores ? translate(whyScores, params.locale) : Promise.resolve(whyScores),
       cosyHotelsInCity ? translate(cosyHotelsInCity, params.locale) : Promise.resolve(cosyHotelsInCity),
       cosySignals.length ? translateMany(cosySignals, params.locale) : Promise.resolve(cosySignals),
+      moreCosyHotelsIn ? translate(moreCosyHotelsIn, params.locale) : Promise.resolve(moreCosyHotelsIn),
+      seeCityGuide ? translate(seeCityGuide, params.locale) : Promise.resolve(seeCityGuide),
+      translate(exploreByStyle, params.locale),
+      collectionLabels.length ? translateMany(collectionLabels, params.locale) : Promise.resolve(collectionLabels),
     ]);
     LC = Object.fromEntries(keys.map((k, i) => [k, chromeVals[i]])) as typeof CH;
     descBody = dsc; whyScores = why; cosyHotelsInCity = chic; signalsT = sigs;
+    moreCosyHotelsIn = moreCity; seeCityGuide = seeGuide; exploreByStyle = byStyle; collectionLabels = collLabels;
   }
+  const collectionLinksT: LinkItem[] = collectionLinks.map((l, i) => ({ href: l.href, label: collectionLabels[i] }));
+  const hotelGraphLabels = { moreCosyHotelsIn, seeCityGuide, exploreByStyle };
 
   const crumbItems: LinkItem[] = [
     { href: `/${params.locale}/guides`, label: LC.guides },
@@ -415,6 +431,7 @@ export default async function HotelDetail({ params }: Props) {
   // already-translated strings, never raw English. Labels are built by the shared helper so this
   // page's copy stays identical to every listing card that also renders the button.
   const saveLabels: SaveToTripLabels = await buildSaveLabels(params.locale);
+  const shareLabels = await buildShareLabels(params.locale);
 
   // Booking CTA policy (founder FINAL rule, 2026-07-16): the website only replaces Stay22 for a
   // hotel the real-browser sweep has actually VERIFIED wrong (see src/lib/ctaPolicy.ts). Used both
@@ -434,7 +451,7 @@ export default async function HotelDetail({ params }: Props) {
           <h1 className="font-display text-4xl font-semibold tracking-tight">{hotel.name}</h1>
           <div className="mt-1.5 text-base" style={{ color: 'var(--muted)' }}>{[cityName, displayCountry(String(hotel.country || ''))].filter(Boolean).join(', ')}</div>
         </div>
-        <div className="flex-none pt-1"><ShareButton title={`${hotel.name}, a cosy hotel${cityName ? ` in ${cityName}` : ''}`} /></div>
+        <div className="flex-none pt-1"><ShareButton title={`${hotel.name}, a cosy hotel${cityName ? ` in ${cityName}` : ''}`} label={shareLabels.toggle} labels={shareLabels} /></div>
       </div>
 
       {photo && (
@@ -457,7 +474,7 @@ export default async function HotelDetail({ params }: Props) {
           {cosyDisplay != null && (cosyDescription ?? cosySnippet)
             ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{descBody}</p>
             : cosyDisplay == null && (scoredBelowBar
-              ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>We reviewed {String(hotel.name)} for cosiness (warmth, character, intimacy) and it didn&apos;t clear the bar for our shortlist. That&apos;s a verdict on cosiness, not on cleanliness or service{cityName && cityGuideRenders ? <>; the {cityName} hotels that did clear it are <a href={cityGuideHref}>ranked here</a></> : null}.</p>
+              ? <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>{LC.belowBarPre} {String(hotel.name)} {LC.belowBarMid}{cityName && cityGuideRenders ? <>; {LC.belowBarCityClause.replace('{city}', cityName)} <a href={cityGuideHref}>{LC.belowBarRankedHere}</a></> : null}.</p>
               : <p className="text-[15px] leading-relaxed" style={{ color: 'var(--muted)' }}>{LC.notEnough}</p>)}
           <a href={`/${params.locale}/about`} className="mt-2 inline-block text-xs no-underline" style={{ color: 'var(--muted)', borderBottom: '1px dotted var(--line)' }}>{LC.howScore} →</a>
         </div>
@@ -491,7 +508,7 @@ export default async function HotelDetail({ params }: Props) {
         <p className="mt-2 text-right text-xs" style={{ color: 'var(--muted)' }}>{LC.disclosure}</p>
       )}
 
-      <HotelGraph city={cityName} cityLabel={cityName} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinks} extra={graphExtra} />
+      <HotelGraph city={cityName} locale={params.locale} cityGuideHref={cityGuideHref} sameCity={sameCity} collections={collectionLinksT} extra={graphExtra} labels={hotelGraphLabels} />
 
       <section className="mt-12">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />

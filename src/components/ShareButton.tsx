@@ -8,8 +8,36 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+// Reader-facing labels for the share control and its popover menu. Brand names (WhatsApp,
+// Facebook, Messenger, Instagram) are never translated, so they are not part of this bundle.
+// Built server-side via src/lib/i18n/shareLabels.ts (buildShareLabels) and passed in as props;
+// this component renders no hardcoded English when `labels` is supplied. Every field defaults to
+// its English source so existing callers that don't pass `labels` are unaffected.
+export type ShareLabels = {
+  toggle: string;
+  copyLink: string;
+  copied: string;
+  email: string;
+  pinIt: string;
+  instagramCopied: string;
+  emailIntro: string;
+  emailFooter: string;
+};
+const EN_LABELS: ShareLabels = {
+  toggle: "Share",
+  copyLink: "Copy link",
+  copied: "Copied!",
+  email: "Email",
+  pinIt: "Pin it",
+  instagramCopied: "Copied. Paste in Instagram",
+  emailIntro: "Thought you'd like this cosy hotel:",
+  emailFooter: "Shared from Got Cosy",
+};
+
 type Variant = "pill" | "icon";
-export default function ShareButton({ title, text, url: urlProp, variant = "pill", label = "Share", block = false }: { title?: string; text?: string; url?: string; variant?: Variant; label?: string; block?: boolean }) {
+export default function ShareButton({ title, text, url: urlProp, variant = "pill", label, labels, block = false }: { title?: string; text?: string; url?: string; variant?: Variant; label?: string; labels?: Partial<ShareLabels>; block?: boolean }) {
+  const L: ShareLabels = { ...EN_LABELS, ...labels };
+  const toggleLabel = label ?? L.toggle;
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [igCopied, setIgCopied] = useState(false);
@@ -66,19 +94,21 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
   };
 
   const e = encodeURIComponent;
-  const emailBody = `Thought you'd like this cosy hotel:\n\n${t}\n${url}\n\nShared from Got Cosy`;
+  const emailBody = `${L.emailIntro}\n\n${t}\n${url}\n\n${L.emailFooter}`;
   // Messenger: Facebook's send dialog needs an app id (set NEXT_PUBLIC_FB_APP_ID to enable desktop
   // prefill). Without one, fall back to the Messenger app deep link, which works on mobile.
   const fbAppId = process.env.NEXT_PUBLIC_FB_APP_ID;
   const messengerHref = fbAppId
     ? `https://www.facebook.com/dialog/send?app_id=${fbAppId}&link=${e(url)}&redirect_uri=${e(url)}`
     : `fb-messenger://share/?link=${e(url)}`;
+  // `key` is a stable English identifier used for the target/rel logic below; `label` is the
+  // (possibly translated) display text. WhatsApp/Facebook/Messenger are brand names, never translated.
   const links = [
-    { label: "Email", href: `mailto:?subject=${e(t)}&body=${e(emailBody)}`, icon: ICON.mail },
-    { label: "Pin it", href: `https://pinterest.com/pin/create/button/?url=${e(url)}&description=${e(t)}`, icon: ICON.pin },
-    { label: "WhatsApp", href: `https://wa.me/?text=${e(`${t} ${url}`)}`, icon: ICON.whatsapp },
-    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`, icon: ICON.facebook }, // appless — no FB app needed
-    { label: "Messenger", href: messengerHref, icon: ICON.messenger },
+    { key: "email", label: L.email, href: `mailto:?subject=${e(t)}&body=${e(emailBody)}`, icon: ICON.mail },
+    { key: "pin", label: L.pinIt, href: `https://pinterest.com/pin/create/button/?url=${e(url)}&description=${e(t)}`, icon: ICON.pin },
+    { key: "whatsapp", label: "WhatsApp", href: `https://wa.me/?text=${e(`${t} ${url}`)}`, icon: ICON.whatsapp },
+    { key: "facebook", label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}`, icon: ICON.facebook }, // appless — no FB app needed
+    { key: "messenger", label: "Messenger", href: messengerHref, icon: ICON.messenger },
   ];
   const row: React.CSSProperties = { display: "flex", alignItems: "center", gap: 11, padding: "9px 12px", fontSize: 13.5, color: "var(--foreground)", textDecoration: "none", whiteSpace: "nowrap", background: "transparent", border: "none", textAlign: "left", width: "100%", cursor: "pointer", borderRadius: 9 };
   const ico: React.CSSProperties = { width: 17, height: 17, flex: "none", color: "var(--muted)" };
@@ -86,38 +116,38 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
   return (
     <div ref={ref} className={`relative ${block ? "block w-full sm:inline-block sm:w-auto" : "inline-block"}`}>
       {variant === "pill" ? (
-        <button ref={btnRef} onClick={onShare} aria-label={label} aria-haspopup="menu" aria-expanded={open}
+        <button ref={btnRef} onClick={onShare} aria-label={toggleLabel} aria-haspopup="menu" aria-expanded={open}
           style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 14px 7px 12px", borderRadius: 999, border: "1px solid color-mix(in srgb, var(--ember) 45%, var(--line))", background: "color-mix(in srgb, var(--ember) 7%, var(--card))", color: "var(--ember-ink)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
           <span style={{ width: 15, height: 15 }} aria-hidden>{ICON.share}</span>
-          {label}
+          {toggleLabel}
         </button>
       ) : (
-        <button ref={btnRef} onClick={onShare} aria-label="Share" title="Share" aria-haspopup="menu" aria-expanded={open}
+        <button ref={btnRef} onClick={onShare} aria-label={toggleLabel} title={toggleLabel} aria-haspopup="menu" aria-expanded={open}
           className={`hov ${block ? "flex min-h-[44px] w-full items-center justify-center gap-2 text-sm font-medium sm:h-11 sm:min-h-0 sm:w-11 sm:gap-0" : ""}`}
           style={block
             ? { borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)", color: "var(--muted)", cursor: "pointer" }
             : { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, borderRadius: 12, border: "1px solid var(--line)", background: "var(--card)", color: "var(--muted)", cursor: "pointer", flexShrink: 0 }}>
           <span style={{ width: 15, height: 15 }} aria-hidden>{ICON.share}</span>
-          {block ? <span className="sm:hidden">{label}</span> : null}
+          {block ? <span className="sm:hidden">{toggleLabel}</span> : null}
         </button>
       )}
       {open && pos && typeof document !== "undefined" && createPortal(
         <div id="share-menu-pop" role="menu" style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 1000, minWidth: 192, background: "var(--card)", border: "1px solid var(--line)", borderRadius: 13, boxShadow: "var(--shadow-lg)", overflow: "hidden", padding: 5 }}>
           <button className="hov" style={{ ...row, fontWeight: 600 }} onClick={copy}>
             <span style={{ ...ico, color: "var(--ember)" }} aria-hidden>{ICON.copy}</span>
-            <span style={{ flex: 1 }}>{copied ? "Copied!" : "Copy link"}</span>
+            <span style={{ flex: 1 }}>{copied ? L.copied : L.copyLink}</span>
             {copied && <span style={{ color: "var(--sage)", fontSize: 12 }}>✓</span>}
           </button>
           <div style={{ height: 1, background: "var(--line)", margin: "5px 6px" }} />
           {links.map((l) => (
-            <a key={l.label} className="hov" style={row} href={l.href} target={l.label === "Email" || l.label === "Messenger" ? undefined : "_blank"} rel="noreferrer noopener" onClick={() => setOpen(false)}>
+            <a key={l.key} className="hov" style={row} href={l.href} target={l.key === "email" || l.key === "messenger" ? undefined : "_blank"} rel="noreferrer noopener" onClick={() => setOpen(false)}>
               <span style={ico} aria-hidden>{l.icon}</span>{l.label}
             </a>
           ))}
           {/* Instagram has no web share — copy the link so it can be pasted into a story/DM. */}
           <button className="hov" style={row} onClick={() => { try { navigator.clipboard.writeText(url); } catch { /* ignore */ } setIgCopied(true); setTimeout(() => setIgCopied(false), 2000); }}>
             <span style={ico} aria-hidden>{ICON.instagram}</span>
-            <span style={{ flex: 1 }}>{igCopied ? "Copied. Paste in Instagram" : "Instagram"}</span>
+            <span style={{ flex: 1 }}>{igCopied ? L.instagramCopied : "Instagram"}</span>
             {igCopied && <span style={{ color: "var(--sage)", fontSize: 12 }}>✓</span>}
           </button>
         </div>,

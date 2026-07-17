@@ -85,6 +85,16 @@ export default async function FacetPage({ params }: { params: { locale: string; 
   const intro = isEn ? introEn : await translate(introEn, params.locale);
   const snippets = isEn ? hotels.map((h) => h.snippet) : await translateMany(hotels.map((h) => h.snippet || ""), params.locale);
   const saveLabels = await buildSaveLabels(params.locale);
+  const footerLine = isEn
+    ? { seeAll: "See all", cosyHotelsIn: `cosy hotels in ${cityName}`, or: "or", cosyHotelsFacet: `cosy hotels ${phrase}`, seeFacet: `See cosy hotels ${phrase}`, worldwide: "worldwide" }
+    : {
+        seeAll: await translate("See all", params.locale),
+        cosyHotelsIn: await translate(`cosy hotels in ${cityName}`, params.locale),
+        or: await translate("or", params.locale),
+        cosyHotelsFacet: await translate(`cosy hotels ${phrase}`, params.locale),
+        seeFacet: await translate(`See cosy hotels ${phrase}`, params.locale),
+        worldwide: await translate("worldwide", params.locale),
+      };
   // The city guide's TRUST filter is a stricter exact-match than this facet page's own
   // `loadCityCosyHotels` (substring match), so this page rendering does NOT guarantee the guide
   // renders (2026-07-16 link audit). Verify before linking it.
@@ -125,7 +135,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
           );
         })}
       </ol>
-      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>{cityGuideLive ? <>See all <a href={`/${params.locale}/guides/${cityToSlug(cityName)}`} className="underline">cosy hotels in {cityName}</a>, or cosy hotels {phrase} </> : <>See cosy hotels {phrase} </>}<a href={`/${params.locale}/cosy-hotels/${concept.slug}`} className="underline">worldwide</a>.</p>
+      <p className="mt-8 text-sm" style={{ color: "var(--muted)" }}>{cityGuideLive ? <>{footerLine.seeAll} <a href={`/${params.locale}/guides/${cityToSlug(cityName)}`} className="underline">{footerLine.cosyHotelsIn}</a>, {footerLine.or} {footerLine.cosyHotelsFacet} </> : <>{footerLine.seeFacet} </>}<a href={`/${params.locale}/cosy-hotels/${concept.slug}`} className="underline">{footerLine.worldwide}</a>.</p>
     </div>
   );
 }
