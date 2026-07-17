@@ -124,7 +124,9 @@ export async function translate(text: string, targetLocale: string): Promise<str
   // descriptions as English this way). Only real translations get written.
   const produced = translated !== protectedText;
   translated = unprotect(translated);
-  translated = translated.replace(/\s*[\u2014\u2013]\s*/g, ", "); // hard-strip em/en dashes (site rule)
+  // Hard-strip em dashes always (site rule); en dashes too EXCEPT between digits, where they are
+  // legitimate numeric ranges (0\u201310 scale) and stripping produced nonsense like "0, 10".
+  translated = translated.replace(/\s*\u2014\s*/g, ", ").replace(/(?<!\d)\s*\u2013\s*|\s*\u2013\s*(?!\d)/g, ", ");
   try {
     if (db && produced) await db.from('translations').upsert({ lang: target, src_hash: key, src_text: text, translated_text: translated }, { onConflict: 'lang,src_hash' });
   } catch {}
