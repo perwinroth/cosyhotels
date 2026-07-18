@@ -9,7 +9,69 @@
 // small direct-booking hotels can land on a DIFFERENT hotel entirely. Founder promised 24h takedown.
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export const DELISTED_SLUGS = new Set<string>(["brae-lodge"]);
+// 2026-07-18 Stay22 likely-closed batch: 52 hotels whose Stay22 booking-widget landing page
+// showed a closed/unavailable signal (closed_msg param, or the "0 properties available" /
+// dest_id-search equivalent) on TWO SEPARATE independent visits (die-validation
+// data/stay22-verdicts.json, full notes and slug list in data/likely-closed.json). Two-visit
+// reproduction is the founder-set bar for "likely closed" vs a one-off widget glitch. Reversible
+// filtering, not deletion — truth data (cosy_scores, hotels rows) is untouched; removing a slug
+// from this Set (or clearing hotels.delisted_at) fully relists a hotel.
+const LIKELY_CLOSED_2026_07_18 = [
+  "siri-guesthouse",
+  "sonne-st-moritz",
+  "salute-hotel-villa",
+  "pa-18901-the-doylestown-inn",
+  "bella-noche",
+  "kokkelikoo",
+  "oba-hotel",
+  "jim-s-guesthouse",
+  "eb-vloed",
+  "hotel-aziyade",
+  "alte-dorfaue",
+  "abercorn-guest-house",
+  "kleines-gastehaus-gro",
+  "hotel-villa-am-schlosspark",
+  "la-maison-munich",
+  "the5rooms",
+  "brindleys",
+  "st-paul-s-lodge",
+  "b-b-a-casa-di-virgilio",
+  "adare-house",
+  "agriturismo-fienile-del-canalone",
+  "ratanga-lodge-guest-house",
+  "verona-lodge",
+  "urban-hideaway",
+  "mountain-home-b-b",
+  "nha-sanho-ven-song",
+  "coconut-garden",
+  "villa-acacia",
+  "fort-aan-de-klop",
+  "gastehaus-heidi-wei",
+  "pension-diana",
+  "strathblane-country-house",
+  "redclyffe-house",
+  "gelynis-farm-guest-house",
+  "pension-nadal",
+  "casa-mathilde-sintra",
+  "antica-fattoria-b-b-la-verdina",
+  "guesthouse-castello-di-brusata",
+  "casa-del-1577",
+  "hotel-villa-igiea",
+  "hotel-le-prieure",
+  "sternen-gernsbach",
+  "biodelfico",
+  "pada-lagos",
+  "ny-10027-the-international-cozy-inn",
+  "locanda-al-colle",
+  "b-b-la-quiete",
+  "luxury-suite-in-villa-with-private-pool-near-rome-and-ostia",
+  "residenza-carracci",
+  "bali-yoga",
+  "villa-maria",
+  "residencia-alvaro",
+];
+
+export const DELISTED_SLUGS = new Set<string>(["brae-lodge", ...LIKELY_CLOSED_2026_07_18]);
 
 // Minimal shape we need from the Supabase client — accepts the real client or a test double.
 type DbLike = Pick<SupabaseClient, "from">;
