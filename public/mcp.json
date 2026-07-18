@@ -1,0 +1,27 @@
+{
+  "name": "got-cosy-graph",
+  "description": "Read-only MCP server for Got Cosy's cosiness index: live, cosy-scored hotels with evidence signals, description and verified booking links. No API key required.",
+  "url": "https://gotcosy.com/api/mcp",
+  "transport": "streamable-http",
+  "protocol": "mcp",
+  "protocolVersion": "2025-06-18",
+  "stateless": true,
+  "tools": [
+    {
+      "name": "find_cosy_hotels",
+      "description": "Find live, cosy-scored hotels. Optional filters: city, country, min_score (0-10), limit (max 100).",
+      "arguments": ["city", "country", "min_score", "limit"]
+    },
+    {
+      "name": "get_hotel_feeling",
+      "description": "Get one hotel's cosy score, evidence signals and description by its Got Cosy slug.",
+      "arguments": ["slug"]
+    }
+  ],
+  "restEquivalents": {
+    "find_cosy_hotels": "GET /api/graph/hotels?city=&country=&min_score=&limit=&offset=",
+    "get_hotel_feeling": "GET /api/graph/hotel/{slug}"
+  },
+  "documentation": "https://gotcosy.com/llms-full.txt",
+  "contact": "per@gotcosy.com"
+}
