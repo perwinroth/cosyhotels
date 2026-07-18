@@ -97,7 +97,7 @@ export default function ShareButton({ title, text, url: urlProp, variant = "pill
   const emailBody = `${L.emailIntro}\n\n${t}\n${url}\n\n${L.emailFooter}`;
   // Messenger: Facebook's send dialog needs an app id (set NEXT_PUBLIC_FB_APP_ID to enable desktop
   // prefill). Without one, fall back to the Messenger app deep link, which works on mobile.
-  const fbAppId = process.env.NEXT_PUBLIC_FB_APP_ID;
+  const fbAppId = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_FB_APP_ID : undefined;
   const messengerHref = fbAppId
     ? `https://www.facebook.com/dialog/send?app_id=${fbAppId}&link=${e(url)}&redirect_uri=${e(url)}`
     : `fb-messenger://share/?link=${e(url)}`;

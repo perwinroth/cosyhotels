@@ -1,0 +1,23 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "@/components/HotelActions": [
+        ".design-sync/stubs/HotelActions.tsx"
+      ],
+      "@/*": [
+        "src/*"
+      ],
+      "next/image": [
+        ".design-sync/stubs/NextImage.tsx"
+      ],
+      "next/link": [
+        ".design-sync/stubs/NextLink.tsx"
+      ],
+      "next/navigation": [
+        ".design-sync/stubs/nextNavigation.ts"
+      ]
+    }
+  }
+}

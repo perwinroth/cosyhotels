@@ -26,7 +26,7 @@ const REGION_CODE = new Set(["nsw", "vic", "qld", "wa", "sa", "tas", "act", "nt"
 
 // "Mostly Latin script" — has Latin letters and no CJK/Cyrillic/Thai/Korean/Arabic blocks.
 export function isLatin(s: string): boolean {
-  return /[A-Za-z]/.test(s) && !/[　-鿿가-힯Ѐ-ӿ฀-๿؀-ۿ]/.test(s);
+  return /[A-Za-z]/.test(s) && !/[\u3000-\u9FFF\uAC00-\uD7AF\u0400-\u04FF\u0E00-\u0E7F\u0600-\u06FF]/.test(s);
 }
 
 export function displayCountry(c?: string | null): string {

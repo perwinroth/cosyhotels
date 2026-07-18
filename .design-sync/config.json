@@ -1,0 +1,21 @@
+{
+  "projectId": "0d5e66b8-1670-484a-a13b-f8bfd790dc93",
+  "shape": "package",
+  "pkg": ".",
+  "globalName": "GotCosy",
+  "tsconfig": ".design-sync/tsconfig.json",
+  "componentSrcMap": {
+    "HotelCard": "src/components/HotelCard.tsx",
+    "ShareButton": "src/components/ShareButton.tsx",
+    "SaveToTripButton": "src/components/SaveToTripButton.tsx",
+    "CookieConsent": "src/components/CookieConsent.tsx"
+  },
+  "cssEntry": ".design-sync/ds-styles.css",
+  "overrides": {
+    "CookieConsent": {
+      "cardMode": "single",
+      "primaryStory": "Banner"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
