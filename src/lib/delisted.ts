@@ -56,7 +56,6 @@ const LIKELY_CLOSED_2026_07_18 = [
   "antica-fattoria-b-b-la-verdina",
   "guesthouse-castello-di-brusata",
   "casa-del-1577",
-  "hotel-villa-igiea",
   "hotel-le-prieure",
   "sternen-gernsbach",
   "biodelfico",
