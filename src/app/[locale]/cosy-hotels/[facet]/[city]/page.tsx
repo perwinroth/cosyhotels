@@ -13,7 +13,7 @@ import { localeSeo } from "@/lib/i18n/seoLocale";
 import HotelCard from "@/components/HotelCard";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import {
-  loadCityCosyHotels, resolveCity, loadConceptAssignments,
+  loadCityCosyHotels, resolveCity, cityBaseSlug, loadConceptAssignments,
   conceptMembers, orderConceptMembers, conceptLabelPhrase,
 } from "@/lib/seo/cityHotels";
 import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
@@ -51,7 +51,12 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   const description = params.locale === "en" ? descBase : await translate(descBase, params.locale);
   // Body copy below is genuinely translated for TRANSLATED_LOCALES (isEn ? ... : translate(...)),
   // so canonical/hreflang are locale-aware; every other locale still points at the /en twin.
-  const { canonical: url, languages } = localeSeo(params.locale, `/cosy-hotels/${params.facet}/${params.city}`);
+  // canonicalCitySlug (not the raw params.city) so every dirty/alternate-spelling/substring-matched
+  // city slug that clears the render gate declares the SAME one true canonical — the slug
+  // sitemapData.ts's collectionUrls() would itself emit — instead of self-canonicalizing to
+  // whatever variant was requested (GSC "duplicate without user-selected canonical" class).
+  const canonicalCitySlug = cityBaseSlug(cityName);
+  const { canonical: url, languages } = localeSeo(params.locale, `/cosy-hotels/${params.facet}/${canonicalCitySlug}`);
   return { title, description, alternates: { canonical: url, ...(languages ? { languages } : {}) }, openGraph: { title, description, type: "website", url } };
 }
 
