@@ -6,14 +6,17 @@
 // hotels, why-texts, images); the score column of record is cosy_scores, read at render time.
 import { getServerSupabase } from "@/lib/supabase/server";
 import { getDelistedSlugSet } from "@/lib/delisted";
+import { PUBLIC_GATE } from "@/lib/scoring/cosy";
 
 /** Shape of one stored pick entry in blogPicks.json (the blog page's card model). `website` is NOT
  *  stored in the JSON (blogPicks.json predates the CTA policy, founder 2026-07-16) — read live by
  *  websitesBySlug below, same live-not-baked rule as the score (lesson #44). */
 export type PickEntry = { slug: string; name: string; city: string; country: string; score: number; why: string; img: string | null; cta: string; website?: string | null };
 
-/** The same public gate the sitemap + hotel pages use: below it a hotel is not surfaced. */
-const PUBLIC_GATE = 5;
+/** The same public gate the sitemap + hotel pages use: below it a hotel is not surfaced.
+ *  Imported from the single shared constant (src/lib/scoring/cosy.ts) — see SCORING-TRUST-
+ *  CORRECTIONS.md C1: a gate re-declared per file is the exact mechanism that let gothush's
+ *  BL-2 leak (a gate that exists in some surfaces and not others). */
 
 /** Pure merge: override each pick's score with the live value; drop picks whose hotel is missing
  *  or currently below the public gate (a sub-gate hotel must not be featured as a "cosiest" pick).

@@ -4,9 +4,13 @@
 // @/ alias does not resolve under the tsx test runner).
 import { isFacetMintControlCity } from "./controlMarkets";
 import type { TripBoard, TripStop } from "../data/tripBoards";
+import { PUBLIC_GATE } from "./scoring/cosy";
 
-/** The public gate: a hotel below 5.0 is never surfaced (same gate as blog picks + sitemaps). */
-export const PUBLIC_GATE = 5.0;
+/** The public gate: a hotel below 5.0 is never surfaced (same gate as blog picks + sitemaps).
+ *  Re-exported from the single canonical source (src/lib/scoring/cosy.ts, which has zero imports
+ *  and stays safe to load in this DB-free test-runner module) so every consumer of PUBLIC_GATE
+ *  from "@/lib/trips" keeps working unchanged. */
+export { PUBLIC_GATE };
 /** A stop must resolve at least this many live picks or the whole board noindexes itself. */
 export const MIN_PICKS_PER_STOP = 2;
 /** Show at most this many picks per stop. */

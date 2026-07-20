@@ -10,6 +10,7 @@ import { guideCityHasLivePick } from "@/lib/seo/guidePicks";
 import { COUNTRIES } from "@/lib/country";
 import { loadCountryCounts, loadCountryHotels, HUB_404_BELOW } from "@/lib/countryHub";
 import { REGIONS } from "@/data/regions";
+import { PUBLIC_GATE } from "@/lib/scoring/cosy";
 
 // ONE implementation of the site search, shared by the /api/search autocomplete route and the
 // /[locale]/search results page. Hotels are matched across the FULL live catalogue by name;
@@ -55,13 +56,14 @@ export async function searchHotels(q: string, limit = 6): Promise<HotelHit[]> {
   if (error || !rows?.length) return [];
   const delisted = await getDelistedSlugSet(db);
 
-  // Step 2: keep only hotels with a live score (>=5); attach displayed score + description.
+  // Step 2: keep only hotels with a live score (>= the shared PUBLIC_GATE); attach displayed score
+  // + description.
   const ids = rows.map((r) => r.id);
   const { data: scores } = await db
     .from("cosy_scores")
     .select("hotel_id,score,score_final,description")
     .in("hotel_id", ids)
-    .gte("score", 5);
+    .gte("score", PUBLIC_GATE);
   const byId = new Map<string, { score: number; description: string | null }>();
   for (const s of scores || []) {
     const sf = (s.score_final as number | null) ?? (s.score as number | null);

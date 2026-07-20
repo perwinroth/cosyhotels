@@ -19,9 +19,12 @@ import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import { displayCity, displayCountry } from "@/lib/placeText";
 import { foldCity } from "@/lib/seo/cityHotels";
 import { site } from "@/config/site";
+import { PUBLIC_GATE } from "@/lib/scoring/cosy";
 
-/** The public gate every live-hotel surface shares (gotcosy-architecture-contract §2). */
-export const PUBLIC_GATE = 5;
+/** The public gate every live-hotel surface shares (gotcosy-architecture-contract §2), re-exported
+ *  from the single canonical constant so /api/graph/*, src/lib/mcp/server.ts, and this module's own
+ *  tests keep importing PUBLIC_GATE from here unchanged. */
+export { PUBLIC_GATE };
 export const DEFAULT_LIMIT = 20;
 export const MAX_LIMIT = 100;
 

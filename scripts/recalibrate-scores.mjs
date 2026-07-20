@@ -1,5 +1,8 @@
 // One-time honest re-normalization of the cosy display scores. Re-anchors the percentile
-// curve from the inflating p50→7.0 / p90→9.0 / p99→9.8 to honest p50→5.5 / p90→7.5 / p99→9.0,
+// curve from the inflating p50→7.0 / p90→9.0 / p99→9.8 to honest p50→5.0 / p90→6.5 / p99→8.5
+// (T50/T90/T99 below — this comment previously drifted to 5.5/7.5/9.0; the CODE is the truth,
+// verify against T50/T90/T99 directly if this comment ever goes stale again, per
+// SCORING-TRUST-CORRECTIONS.md F6/A2),
 // backfills raw_score for never-normalized rows, and writes score/score_final/calibrated_score
 // so every surface shows the same honest number. FREE — pure math on stored scores, no API.
 // DRY-RUN by default; --execute writes a reversible backup first.
