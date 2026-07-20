@@ -23,6 +23,7 @@ import { cityExonymVariants } from "@/lib/exonyms";
 import { bboxFor } from "@/data/cityCoords";
 import { aliasCity } from "@/lib/seo/cityHotels";
 import type { getServerSupabase } from "@/lib/supabase/server";
+import { PUBLIC_GATE } from "@/lib/scoring/cosy";
 
 type DB = NonNullable<ReturnType<typeof getServerSupabase>>;
 
@@ -89,8 +90,10 @@ const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').to
 
 // PUBLIC GATE (two-score model): the secret 0-100 Claude score lives in cosy_scores.score_100
 // (never surfaced). Anything below 50/100 (= 5.0/10) is "hidden", kept in the DB for later
-// re-review/upgrade, but never shown.
-export const COSY_FLOOR = 5.0; // = 50/100 public gate
+// re-review/upgrade, but never shown. COSY_FLOOR keeps its own name (this module's public API,
+// imported by the guide page) but its VALUE comes from the single shared PUBLIC_GATE constant
+// (src/lib/scoring/cosy.ts) — never a second hardcoded literal.
+export const COSY_FLOOR = PUBLIC_GATE; // = 50/100 public gate
 
 /**
  * Fetch + rank + gate a city's cosy hotels EXACTLY as the guide page does, so the page and every

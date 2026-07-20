@@ -11,6 +11,14 @@ export type HotelFeatures = {
   country?: string;
 };
 
+// SINGLE SOURCE OF TRUTH for the public score gate. A hotel below this is never surfaced on any
+// public listing, sitemap, search result, curated collection, or API (SCORING-TRUST-CORRECTIONS.md
+// C1). This file has no imports (safe to pull into DB-free/test-runner-only modules like
+// src/lib/trips.ts), so every gate re-declaration across the codebase should import from here
+// instead of hardcoding the literal — a gate that lives in some surfaces and not others is not a
+// gate (the exact mechanism behind gothush's BL-2 leak).
+export const PUBLIC_GATE = 5.0;
+
 const AMENITY_WEIGHTS: Record<string, number> = {
   fireplace: 2.0,
   "fire place": 2.0,
@@ -211,13 +219,14 @@ export function score100to10(score100: number) {
   return Math.max(0, Math.min(10, score100 / 10));
 }
 
-// Helper for UI: map cosy score to brand color classes
-export function cosyBadgeClass(score: number) {
-  if (score >= 7.5) return "bg-emerald-100 text-emerald-800"; // green
-  if (score >= 6.5) return "bg-amber-100 text-amber-900"; // yellow
-  if (score >= 5.0) return "bg-orange-100 text-orange-800"; // orange
-  return "bg-zinc-100 text-zinc-700"; // neutral
-}
+// NOTE (SCORING-TRUST-CORRECTIONS.md violation #4): this file used to also export cosyBadgeClass(),
+// a SECOND badge-color-band function with different cutoffs (>=7.5/6.5/5.0, Tailwind bg-* classes)
+// than the one actually rendered on the live site, src/lib/cosyColor.ts's cosyBadgeColor()
+// (>=9/7.8/6.8/5.6, CSS custom properties). Verified live (2026-07-20): gotcosy.com's homepage
+// badges render `var(--cosy-mid)` etc — cosyColor.ts's bands — and cosyBadgeClass had zero call
+// sites anywhere in src/. Removed rather than kept as a re-export, since it was dead and its
+// different cutoffs were a live drift hazard the moment anyone imported it. Use cosyBadgeColor()
+// from "@/lib/cosyColor" for any score-to-badge-color mapping.
 
 // Helper for UI: map cosy score to rank label
 export function cosyRankLabel(score: number) {

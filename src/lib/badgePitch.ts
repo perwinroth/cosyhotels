@@ -121,9 +121,21 @@ export function roundPctUp(rawPct: number): number {
   return Math.ceil(rawPct);
 }
 
-// The badge-tier ladder. The percent LABELS here are fixed copy, computed from live score_final
-// counts on 2026-07-11 and rounded up; they are NOT recomputed. The per-hotel "{PCT}%" used in DMs
-// is a different number: computed per hotel (stamped by scripts/seed-ig-outreach.mjs).
+// ============================================================================================
+// STAMPED 2026-07-11 — NOT LIVE. Per tier-honest doctrine (SCORING-TRUST-CORRECTIONS.md C5): a
+// frozen customer-facing claim is a different object from the live truth, and this file must never
+// silently "correct" the label values to match live counts — that would be an unreviewed change to
+// copy already sent to hotels. The badge-tier ladder below. The percent LABELS here are fixed copy,
+// computed from live score_final counts on 2026-07-11 and rounded up; they are NOT recomputed. The
+// per-hotel "{PCT}%" used in DMs is a different number: computed per hotel (stamped by
+// scripts/seed-ig-outreach.mjs, which also runs a same-run divergence check against these frozen
+// labels — see the DIVERGENCE CHECK block near the end of that file).
+// TODO(founder, dated 2026-07-20): the corpus has grown/recalibrated since 2026-07-11 (see A2/C1 in
+// SCORING-TRUST-CORRECTIONS.md) — decide whether "Top 16%"/"Top 27%" should be recomputed against
+// current score_final counts, or whether a name/copy change (e.g. dropping the specific percent
+// from the badge key/label and keeping it only in the per-hotel DM line) is safer than reissuing a
+// number some recipients already display. Do NOT change the numbers below without that decision.
+// ============================================================================================
 export type BadgeTier = { key: "index" | "top16" | "top27"; label: string };
 export function tierForScore(score: number): BadgeTier | null {
   if (score >= 7.0) return { key: "index", label: "Cosy Index" };

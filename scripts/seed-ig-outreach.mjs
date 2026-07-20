@@ -151,6 +151,35 @@ async function main() {
     .map((r) => Number(r.score_final))
     .sort((a, b) => a - b);
   const totalScored = allScores.length;
+
+  // DIVERGENCE CHECK (SCORING-TRUST-CORRECTIONS.md C5 / tier-honest doctrine): src/lib/badgePitch.ts
+  // freezes "Rated Cosy · Top 16%" for score>=6.5 and "Rated Cosy · Top 27%" for score>=6.0, STAMPED
+  // 2026-07-11 and explicitly NOT recomputed. The thresholds/labels are duplicated as literals here
+  // (this is a plain .mjs script — it cannot import the .ts module, same convention as
+  // IG_CONTROL_CITIES/DELISTED_SLUGS above) purely so this run can compare the frozen claim against
+  // today's live corpus and warn loudly, every run, when they've drifted apart — never to silently
+  // correct badgePitch.ts's numbers (that stays a founder decision, see the TODO there).
+  const FROZEN_TIERS = [
+    { minScore: 6.5, frozenPct: 16, label: "Top 16%" },
+    { minScore: 6.0, frozenPct: 27, label: "Top 27%" },
+  ];
+  const DIVERGENCE_ALERT_POINTS = 5;
+  if (totalScored > 0) {
+    for (const t of FROZEN_TIERS) {
+      const livePct = pctTopFor(t.minScore, allScores);
+      const drift = Math.abs(livePct - t.frozenPct);
+      if (drift > DIVERGENCE_ALERT_POINTS) {
+        console.warn(
+          `⚠ TIER DRIFT: badgePitch.ts's frozen "${t.label}" (stamped 2026-07-11 at ${t.frozenPct}%) ` +
+          `is now ${livePct}% live for score>=${t.minScore} — drifted ${drift} points (alert bar: ` +
+          `${DIVERGENCE_ALERT_POINTS}). Frozen DM/badge copy still reads ${t.frozenPct}%; this does ` +
+          `NOT auto-correct it. Flag to the founder for a recompute decision (src/lib/badgePitch.ts TODO).`,
+        );
+      } else {
+        console.log(`tier check OK: "${t.label}" frozen ${t.frozenPct}% vs live ${livePct}% (drift ${drift} <= ${DIVERGENCE_ALERT_POINTS})`);
+      }
+    }
+  }
   console.log(`scored universe (score_final not null): ${totalScored}`);
 
   // 3. Candidates: instagram present, NO email (email-reachable hotels stay in the email lane),

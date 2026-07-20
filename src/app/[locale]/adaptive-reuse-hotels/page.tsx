@@ -17,10 +17,10 @@ import HotelCard from "@/components/HotelCard";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { getDelistedSlugSet } from "@/lib/delisted";
 import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
+import { PUBLIC_GATE } from "@/lib/scoring/cosy";
 
 export const revalidate = 3600;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
-const PUBLIC_GATE = 5;
 
 // Editorial curation: which hotels, and what each used to be. Order within a group is by live score.
 const CURATED: Array<{ slug: string; group: string }> = [
