@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { displayCity, isLatin } from "@/lib/placeText";
+import { isOutreachControlCity } from "@/lib/controlMarkets";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -29,6 +30,10 @@ export default async function FollowPage() {
   const hotels: Array<{ name: string; city: string; score: number; handle: string }> = [];
   for (const r of (data || []) as unknown as Row[]) {
     const h = r.hotel; if (!h) continue;
+    // Control-city exclusion (C9; memory/findings/incident-control-city-form-leak-2026-07-21 /
+    // spec-control-city-matcher-2026-07-21): this manual Follow/DM list read cosy_scores directly
+    // with no control filter at all — a growth/promotion surface C9 explicitly covers.
+    if (isOutreachControlCity(h.city)) continue;
     const handle = String(h.instagram || "").replace(/^@/, "").trim();
     const name = String(h.name_en || h.name || "").trim();
     if (!handle || !name || !isLatin(name) || seen.has(handle)) continue;

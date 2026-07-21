@@ -6,6 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { displayCity, isLatin } from "@/lib/placeText";
 import BadgeBoard, { type BadgeBoardRow } from "@/components/growth/BadgeBoard";
 import { buildVariantPitch, variantFor } from "@/lib/badgePitch";
+import { isOutreachControlCity } from "@/lib/controlMarkets";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -31,6 +32,13 @@ export default async function GrowthBadgesPage() {
   const hotels: Array<{ id: string; slug: string; name: string; city: string; score: number; channel: string; instagram: string | null; email: string | null; description: string | null }> = [];
   for (const r of rows) {
     const h = r.hotel; if (!h || !r.hotel_id) continue;
+    // Control-city exclusion (C9 — presentation-layer filter, never a data delete;
+    // memory/findings/incident-control-city-form-leak-2026-07-21 / spec-control-city-matcher-
+    // 2026-07-21): this board queries cosy_scores directly, unfiltered by the seeders' own
+    // exclusion, so a control-city hotel scoring 7.0+ was clickable here even if never seeded.
+    // Filter on the RAW db city (before displayCity's locale transform) with the same
+    // form-robust matcher the seeders use.
+    if (isOutreachControlCity(h.city)) continue;
     const name = String(h.name_en || h.name || "").trim();
     if (!name || !isLatin(name) || seen.has(name)) continue;
     const handle = h.instagram ? String(h.instagram).replace(/^@/, "").trim() : null;
@@ -51,20 +59,24 @@ export default async function GrowthBadgesPage() {
     }
   }
 
-  
-  const built: BadgeBoardRow[] = hotels.map((h) => {
-    const variant = variantFor(h.id);
-    const pct = pctById.get(h.id);
-    // Tier-honest: only a STAMPED hotel gets a real pitch. Unstamped rows show a seed-first note,
-    // never the old false "top 2.3%".
-    const vp = pct != null
-      ? buildVariantPitch(variant, { name: h.name, score: h.score, slug: h.slug, city: h.city, description: h.description }, { base, pct })
-      : { subject: "Seed this hotel to stamp its percentile", body: "No stamped percentile yet. Seed this hotel (which freezes its top-X% claim) before pitching." };
-    const pitch = vp.body; const subject = vp.subject;
-    // Channel priority: email → Gmail; else instagram → DM + copy; else copy pitch (website-only).
-    // `email` is populated by the enrichment scraper (score≥7 hotels); `instagram` is the bare handle.
-    return { hotelId: h.id, name: h.name, city: h.city, score: h.score, channel: h.channel, status: statusById.get(h.id) || "queued", hotelHref: `${base}/en/hotels/${h.slug}`, pitch, subject, variant, email: h.email ?? null, instagram: h.instagram };
-  });
+  // Belt-and-suspenders (C9): a hotel already stop-loss-marked excluded_control in hotel_outreach
+  // (e.g. city text null/blank at query time, or marked by hand) renders nothing actionable here
+  // either, even if the city-form filter above didn't catch it.
+  const built: BadgeBoardRow[] = hotels
+    .filter((h) => statusById.get(h.id) !== "excluded_control")
+    .map((h) => {
+      const variant = variantFor(h.id);
+      const pct = pctById.get(h.id);
+      // Tier-honest: only a STAMPED hotel gets a real pitch. Unstamped rows show a seed-first note,
+      // never the old false "top 2.3%".
+      const vp = pct != null
+        ? buildVariantPitch(variant, { name: h.name, score: h.score, slug: h.slug, city: h.city, description: h.description }, { base, pct })
+        : { subject: "Seed this hotel to stamp its percentile", body: "No stamped percentile yet. Seed this hotel (which freezes its top-X% claim) before pitching." };
+      const pitch = vp.body; const subject = vp.subject;
+      // Channel priority: email → Gmail; else instagram → DM + copy; else copy pitch (website-only).
+      // `email` is populated by the enrichment scraper (score≥7 hotels); `instagram` is the bare handle.
+      return { hotelId: h.id, name: h.name, city: h.city, score: h.score, channel: h.channel, status: statusById.get(h.id) || "queued", hotelHref: `${base}/en/hotels/${h.slug}`, pitch, subject, variant, email: h.email ?? null, instagram: h.instagram };
+    });
   const channelById = Object.fromEntries(built.map((b) => [b.hotelId, b.channel]));
 
   return (

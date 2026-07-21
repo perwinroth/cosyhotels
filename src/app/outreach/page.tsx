@@ -6,6 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { hotelPinImageUrl, type Slide } from "@/lib/social";
 import { displayCity, isLatin } from "@/lib/placeText";
 import { cityToSlug } from "@/lib/citySlug";
+import { isOutreachControlCity } from "@/lib/controlMarkets";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -31,6 +32,10 @@ export default async function OutreachPage() {
   const hotels: Array<{ id: string; name: string; city: string; score: number; instagram: string; website: string | null }> = [];
   for (const r of rows) {
     const h = r.hotel; if (!h || !r.hotel_id) continue;
+    // Control-city exclusion (C9; memory/findings/incident-control-city-form-leak-2026-07-21 /
+    // spec-control-city-matcher-2026-07-21): this manual DM/outreach queue read cosy_scores
+    // directly with no control filter at all — a growth/promotion surface C9 explicitly covers.
+    if (isOutreachControlCity(h.city)) continue;
     const name = String(h.name_en || h.name || "").trim();
     if (!name || !isLatin(name) || seen.has(name)) continue;
     seen.add(name);
