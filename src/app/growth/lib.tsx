@@ -6,7 +6,7 @@ import { getGscSummary, gscConfigured } from "@/lib/gsc";
 import { getScheduleForPanel } from "@/lib/blogSchedule";
 import { buildBadgePitch, buildVariantPitch, buildVariantDm, variantFor, gmailComposeUrl, instagramDmUrl, pitchExcerpt } from "@/lib/badgePitch";
 import { displayCity, isLatin } from "@/lib/placeText";
-import { isControlMarket } from "@/lib/controlMarkets";
+import { isOutreachControlCity } from "@/lib/controlMarkets";
 import { REDDIT_ANSWER_PLAN } from "@/data/redditAnswerPlan";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any;
@@ -119,6 +119,13 @@ export async function getTodayPlan(db: DB): Promise<{
     for (const r of ((data || []) as unknown as CRow[])) {
       const h = r.hotel;
       if (!h) continue;
+      // Control-city exclusion (C9; memory/findings/incident-control-city-form-leak-2026-07-21 /
+      // spec-control-city-matcher-2026-07-21): the Today board's compose/DM links were relying
+      // entirely on the seeders never having queued a control city — a manually-upserted
+      // hotel_outreach row (src/app/api/admin/hotel-outreach/route.ts) would have rendered here
+      // unfiltered (the isControlMarket import above was dead code, never called). Filter at this
+      // query/render boundary too, same matcher as the seeders and the badge board.
+      if (isOutreachControlCity(h.city)) continue;
       const name = String(h.name_en || h.name || "").trim();
       if (!name || !isLatin(name) || seen.has(name)) continue;
       seen.add(name);

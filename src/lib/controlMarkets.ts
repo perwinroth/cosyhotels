@@ -27,3 +27,42 @@ export function isFacetMintControlCity(city: string | null | undefined): boolean
   const norm = String(city).toLowerCase().trim().replace(/\s+/g, "-");
   return FACET_MINT_CONTROL_CITIES.includes(norm);
 }
+
+// Outreach control-city matcher (memory/findings/incident-control-city-form-leak-2026-07-21,
+// spec-control-city-matcher-2026-07-21): the OLD exact-match lists above (IG_CONTROL_CITIES,
+// FACET_MINT_CONTROL_CITIES) were only ever tested against the CANONICAL city spelling, and the
+// live DB carries many other forms of the same real-world place — "Metropolitan City of
+// Venice", "Fès"/"Fes Médina"/"FES medina"/"Fes El Bali - Medina", "York YO1 8BB" postcode
+// suffixes. Exact-match against a short literal list traded the York/New-York substring hazard
+// (correct) for silent FORM underreach (never tested): Venice-historic's exclusion excluded ZERO
+// rows for months. The lesson generalises — an exclusion list is a claim about DATA, not just
+// code, and must be validated against the live distinct-values it filters (see the incident
+// finding + the runtime guard in scripts/seed-ig-outreach.mjs / scripts/seed-email-outreach.mjs,
+// which enforces exactly that at every seed run).
+//
+// This matcher is FAMILY/TOKEN based, not a literal list, and is deliberately conservative
+// (over-exclusion is the safe direction for outreach — controls must stay untouchable):
+//   - savannah: exact full-string match only (no known multiword forms; keep tight).
+//   - york: exact "york", or a postcode-suffixed form ("york-yo1-8bb", "york-yo24-1aa",
+//     "york-yo62-5bj"). Never substring — "new-york"/"north-york"/"yorkshire" all fail because
+//     their first token isn't "york" (or the whole string isn't exactly "york").
+//   - fez: any "-"-separated token equals "fez" or "fes" (covers every Fez/Fès/Fes-medina
+//     census form). "ffestiniog" is ONE token and never equals "fes", so Blaenau Ffestiniog is
+//     never caught.
+//   - venice: any token equals "venice" or "venezia" (covers "Venice", "Metropolitan City of
+//     Venice", "Venezia").
+export function isOutreachControlCity(city: string | null | undefined): boolean {
+  if (!city) return false;
+  const norm = String(city)
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // strip diacritics (Fès -> Fes, Médina -> Medina)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-");
+  if (norm === "savannah") return true;
+  if (norm === "york" || /^york-yo\d/.test(norm)) return true;
+  const tokens = norm.split("-");
+  if (tokens.includes("fez") || tokens.includes("fes")) return true;
+  if (tokens.includes("venice") || tokens.includes("venezia")) return true;
+  return false;
+}

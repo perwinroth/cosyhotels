@@ -21,18 +21,91 @@
 // import; everything that touches the network runs behind the isMain guard at the bottom).
 // ---------------------------------------------------------------------------------------------
 
+// The live matcher both seeders now call at the exclusion call site — direct TS import (tsx
+// compiles this the same way scripts/kfold-eval.mjs:11 imports src/lib/scoring/claudeCosy.ts; no
+// mirror-module hedge, per the Spec Gate). Re-exported so seed-email-outreach.mjs gets it via its
+// existing import of this module, same convention as pctTopFor/isDelistedHotel below.
+import { isOutreachControlCity } from "../src/lib/controlMarkets.ts";
+export { isOutreachControlCity };
+
 // Control markets for the IG wave — the union of every declared, never-treat control across the
 // die-validation experiments: York + Venice-historic (Bruges pilot), Fez (Marrakech 001),
 // Savannah (GSC treated-vs-control). Superset of src/lib/controlMarkets.ts (savannah/york only).
-// EXACT match on the normalised city string, NEVER substring — substring matching is the known
-// hazard that would swallow "New York" via "york" (see isControlMarket's scrub workaround; here we
-// avoid the hazard entirely instead of patching around it).
+//
+// DEPRECATED (memory/findings/incident-control-city-form-leak-2026-07-21): this EXACT-match list
+// only ever matched the canonical spelling and silently under-excluded every other DB form of the
+// same place (Venice's exclusion excluded ZERO rows — no city ever normalised to
+// "venice-historic"). Kept exported, semantics UNCHANGED, because tests/ig-wave.test.ts locks
+// them. Both seeders' CALL SITES now use src/lib/controlMarkets.ts isOutreachControlCity (a
+// family/token matcher validated against the live census of city-name forms) instead of this.
 export const IG_CONTROL_CITIES = ["savannah", "york", "fez", "venice-historic"];
 
 export function isIgControlCity(city) {
   if (!city) return false;
   const norm = String(city).toLowerCase().trim().replace(/\s+/g, "-");
   return IG_CONTROL_CITIES.includes(norm);
+}
+
+// ── Runtime census guard (incident-control-city-form-leak-2026-07-21) ──────────────────────────
+// Given every distinct raw city value in a candidate POOL (BEFORE control-city filtering), returns
+// the OFFENDING forms: city strings whose normalised form contains a control-family token
+// (savannah/york/fez/fes/venice/venezia) that isOutreachControlCity does NOT match, and that
+// aren't a known-safe non-control place name (New York, North York, Yorkshire, any Ffestiniog
+// name). Empty = the census is fully covered. Any entries mean a NEW, unmatched city-form variant
+// has appeared in the DB — the caller halts before inserting anything. This is the check that
+// would have caught the Venice/Fez/York-postcode leak on day one (see the incident finding for the
+// exact forms that were missed); a sixth unseen variant can now never silently slip through again.
+const CONTROL_CENSUS_TOKENS = ["savannah", "york", "fez", "fes", "venice", "venezia"];
+
+function normalizeForCensus(city) {
+  return String(city || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+// Known-safe non-control place names that legitimately contain a control token as a substring:
+// New York/North York contain "york" but aren't York; Yorkshire contains "york" but isn't York;
+// any Ffestiniog name (e.g. Blaenau Ffestiniog) contains "fes" inside the single word "ffestiniog"
+// but is nowhere near Fez.
+function isAllowedNonControlForm(norm) {
+  if (norm === "new-york" || norm === "north-york" || norm === "yorkshire") return true;
+  if (norm.split("-").includes("ffestiniog")) return true;
+  return false;
+}
+
+export function findUncoveredControlForms(cities) {
+  const distinct = [...new Set((cities || []).filter(Boolean).map(String))];
+  const offending = [];
+  for (const raw of distinct) {
+    const norm = normalizeForCensus(raw);
+    const containsControlToken = CONTROL_CENSUS_TOKENS.some((t) => norm.includes(t));
+    if (!containsControlToken) continue;
+    if (isOutreachControlCity(raw)) continue; // already correctly excluded
+    if (isAllowedNonControlForm(norm)) continue; // known-safe non-control place name
+    offending.push(raw);
+  }
+  return offending;
+}
+
+// Prints the offending forms and exits 1 — call BEFORE any insert, on the FULL candidate pool's
+// city values (not the post-filter survivors). No-op (returns) if the census is clean.
+export function assertControlCensusCovered(cities) {
+  const offending = findUncoveredControlForms(cities);
+  if (!offending.length) return;
+  console.error("═".repeat(72));
+  console.error(`✗ CONTROL-CENSUS GUARD: ${offending.length} city form(s) contain a control-market`);
+  console.error(`  token but are NOT matched by isOutreachControlCity and aren't a known-safe`);
+  console.error(`  non-control form:`);
+  for (const f of offending) console.error(`    - ${JSON.stringify(f)}`);
+  console.error(`  Refusing to seed ANYTHING until this is investigated`);
+  console.error(`  (memory/findings/incident-control-city-form-leak-2026-07-21). Add the new form`);
+  console.error(`  to isOutreachControlCity (src/lib/controlMarkets.ts) if it's a control-market`);
+  console.error(`  variant, or to the allowlist there if it's genuinely not.`);
+  console.error("═".repeat(72));
+  process.exit(1);
 }
 
 // Takedown mechanism (trust fix, 2026-07-16): mirrors src/lib/delisted.ts DELISTED_SLUGS — a hotel
@@ -195,6 +268,11 @@ async function main() {
     "&score_final=gte.6&hotel.instagram=not.is.null&hotel.email=is.null",
   );
 
+  // Runtime census guard (incident-control-city-form-leak-2026-07-21): scan the FULL candidate
+  // pool's distinct city forms BEFORE any filtering — halts loudly, before any insert, if a
+  // control-family city form has appeared that isOutreachControlCity doesn't cover.
+  assertControlCensusCovered(candidates.map((c) => c.hotel?.city));
+
   // 4. Anyone already in hotel_outreach — ANY channel, ANY status — is excluded (never re-queue
   //    someone the email lane already touched, and never double-insert).
   const already = new Set((await fetchAll("hotel_outreach?select=hotel_id")).map((r) => String(r.hotel_id)));
@@ -208,7 +286,7 @@ async function main() {
     const h = c.hotel;
     if (!h) continue;
     if (isDelistedHotel(h)) { excludedDelisted++; continue; }
-    if (isIgControlCity(h.city)) { excludedControl++; continue; }
+    if (isOutreachControlCity(h.city)) { excludedControl++; continue; }
     if (already.has(String(c.hotel_id))) { excludedAlready++; continue; }
     // Founder eyeball-verification gate (2026-07-16): never seed a hotel that hasn't been human-
     // confirmed at /growth/verify. verifiedIds is EMPTY (never "everyone") when the gate itself
@@ -227,7 +305,7 @@ async function main() {
 
   console.log(`eligible (instagram, no email, score_final >= 6.0): ${candidates.length}`);
   console.log(`excluded — delisted (takedown Set/delisted_at): ${excludedDelisted}`);
-  console.log(`excluded — control market (${IG_CONTROL_CITIES.join("/")}, exact match): ${excludedControl}`);
+  console.log(`excluded — control market (form-robust isOutreachControlCity): ${excludedControl}`);
   console.log(`excluded — already in hotel_outreach (any channel/status): ${excludedAlready}`);
   console.log(`excluded: not founder-verified yet (/growth/verify): ${excludedUnverified}`);
   console.log(`to insert: ${rows.length}`);

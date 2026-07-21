@@ -14,7 +14,7 @@
 //   no upsert (a conflict means the exclusion missed one — abort loudly). Reviewed by data-migration-guard.
 //
 // The stamped_* columns already exist (added by the IG seed's founder SQL, #66) — no founder SQL needed.
-import { pctTopFor, isIgControlCity, isDelistedHotel, fetchVerifiedHotelIds } from "./seed-ig-outreach.mjs";
+import { pctTopFor, isDelistedHotel, fetchVerifiedHotelIds, isOutreachControlCity, assertControlCensusCovered } from "./seed-ig-outreach.mjs";
 import { writeFileSync, mkdirSync } from "node:fs";
 
 const BATCH = 500;
@@ -98,6 +98,11 @@ const candidatesWithDelisted = await fetchAllOrNull(
 const candidates = candidatesWithDelisted !== null ? candidatesWithDelisted : await fetchAll(
   `cosy_scores?select=hotel_id,score_final,hotel:hotel_id!inner(id,slug,city,email)&score_final=gte.${FLOOR}&hotel.email=not.is.null`,
 );
+// Runtime census guard (incident-control-city-form-leak-2026-07-21): scan the FULL candidate
+// pool's distinct city forms BEFORE any filtering — halts loudly, before any insert, if a
+// control-family city form has appeared that isOutreachControlCity doesn't cover.
+assertControlCensusCovered(candidates.map((c) => c.hotel?.city));
+
 const already = new Set((await fetchAll("hotel_outreach?select=hotel_id")).map((r) => String(r.hotel_id)));
 let exControl = 0, exAlready = 0, exNoEmail = 0, exDelisted = 0, exUnverified = 0;
 const seed = [];
@@ -106,7 +111,7 @@ for (const c of candidates) {
   if (!h) continue;
   if (isDelistedHotel(h)) { exDelisted++; continue; }
   if (!(h.email && String(h.email).includes("@"))) { exNoEmail++; continue; }
-  if (isIgControlCity(h.city)) { exControl++; continue; }
+  if (isOutreachControlCity(h.city)) { exControl++; continue; }
   // Founder eyeball-verification gate (2026-07-16): never seed a hotel that hasn't been human-
   // confirmed at /growth/verify. verifiedIds is EMPTY (never "everyone") when the gate failed above.
   if (!verifiedIds.has(String(c.hotel_id))) { exUnverified++; continue; }
@@ -116,7 +121,7 @@ for (const c of candidates) {
 }
 console.log(`\nPHASE 2 — seed: ${candidates.length} scored+email candidates ≥${FLOOR}`);
 console.log(`  excluded delisted (takedown Set/delisted_at): ${exDelisted}`);
-console.log(`  excluded control market (exact): ${exControl} · already in outreach (any channel): ${exAlready} · malformed email: ${exNoEmail}`);
+console.log(`  excluded control market (form-robust isOutreachControlCity): ${exControl} · already in outreach (any channel): ${exAlready} · malformed email: ${exNoEmail}`);
 console.log(`  excluded not founder-verified yet (/growth/verify): ${exUnverified}`);
 console.log(`  to insert (never-contacted, email, ≥${FLOOR}): ${seed.length}`);
 if (seed[0]) console.log(`  sample: ${JSON.stringify(seed[0])}`);
