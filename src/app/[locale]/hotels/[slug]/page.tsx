@@ -13,6 +13,7 @@ import { type SaveToTripLabels } from "@/components/SaveToTripButton";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
 import { buildShareLabels } from "@/lib/i18n/shareLabels";
 import { translate, translateMany } from "@/lib/i18n/translate";
+import { localeSeo } from "@/lib/i18n/seoLocale";
 import { cosyBadgeColor } from "@/lib/cosyColor";
 import hotelFaqData from "@/data/hotelFaqs.json";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
@@ -43,22 +44,21 @@ export function generateStaticParams() {
 type Props = { params: { slug: string; locale: string } };
 
 export async function generateMetadata({ params }: { params: { slug: string; locale: string } }): Promise<Metadata> {
-  // Hotel content (description/FAQ) is not translated per locale, so the /fr /es /de … pages are
-  // duplicate English. Point every locale's canonical at the /en page (and drop hreflang, which is
-  // only valid for genuinely translated pages) so Google consolidates ranking on /en. Reversible —
-  // restore self-canonical + hreflang if/when the content is actually localized.
-  // EXPLICIT EXCEPTION (2026-07-17 sv locale-aware canonical work): this page deliberately does
-  // NOT use src/lib/i18n/seoLocale.ts's localeSeo(), even though "sv" is in TRANSLATED_LOCALES.
-  // localeSeo() is only correct for pages whose visible BODY branches on locale and renders
-  // translated copy; hotel description/FAQ here stays English for every locale, so a self-canonical
-  // /sv/hotels/... would just be a duplicate-English page competing with /en for the same content.
+  // Locale-aware canonical + hreflang (founder 2026-07-23, Option B). Until 2026-07-23 the hotel
+  // description/FAQ/chrome were English for every locale, so every /sv/hotels/... canonicalled to
+  // /en (a duplicate-English page must not self-canonical). PRs #130/#131 translated the hotel body
+  // in full (description, review signals, Best-for, FAQ, chrome), so the premise no longer holds:
+  // /sv hotel pages are genuinely Swedish and now self-canonical + carry hreflang via localeSeo(),
+  // making them independently indexable. Untranslated locales (fr/de/es/it/pt) still canonical -> /en.
   // Malformed/placeholder slugs (e.g. %7Bsearch_term_string%7D, undefined) must never render an
   // indexable page — the body 404s them, so metadata stays noindex and skips the DB round-trip.
   if (isMalformedSlug(params.slug)) return { robots: { index: false, follow: false } };
   // Delisted hotels (takedown mechanism): never indexable, even before the 404 body renders.
   const delistDb = getServerSupabase();
   if (await isDelisted(params.slug, delistDb)) return { robots: { index: false, follow: false } };
-  const canonical = `/en/hotels/${params.slug}`;
+  const { canonical, languages } = localeSeo(params.locale, `/hotels/${params.slug}`);
+  const alt = { canonical, ...(languages ? { languages } : {}) };
+  const isEn = params.locale === "en";
   const db = getServerSupabase();
   if (db) {
     const { data: h } = await db
@@ -81,10 +81,13 @@ export async function generateMetadata({ params }: { params: { slug: string; loc
       if (s?.description && rated) {
         description = `Cosy score ${Number(cosy).toFixed(1)}/10. ${s.description}`.slice(0, 300);
       }
-      return { title, description, alternates: { canonical }, ...(rated ? {} : { robots: { index: false, follow: true } }) };
+      // For a self-canonical translated locale, the meta description must be in that language too
+      // (the description body already is). en short-circuits; sv is a near-cached translate() call.
+      if (!isEn) description = await translate(description, params.locale);
+      return { title, description, alternates: alt, ...(rated ? {} : { robots: { index: false, follow: true } }) };
     }
   }
-  return { alternates: { canonical } };
+  return { alternates: alt };
 }
 
 // Overwrite any cosy-score mention in a string with the current live score, so a number baked into
