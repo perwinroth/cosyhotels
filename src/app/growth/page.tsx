@@ -4,7 +4,7 @@
 // scroll jumps); the data is force-dynamic so every visit is fresh.
 import Link from "next/link";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { getBoardCounts, getTodayStats, getTodayPlan, Stat, IG_RAMP_NOTE } from "./lib";
+import { getBoardCounts, getTodayStats, getTodayPlan, getGscIndexDrip, Stat, IG_RAMP_NOTE } from "./lib";
 import { LISTING_TARGETS } from "@/data/listingTargets";
 import TodayPlan from "@/components/growth/TodayPlan";
 
@@ -46,7 +46,7 @@ export default async function GrowthTodayPage() {
   const db = getServerSupabase();
   if (!db) return <p style={{ color: "var(--muted)" }}>Supabase not configured.</p>;
 
-  const [counts, stats, plan] = await Promise.all([getBoardCounts(db), getTodayStats(db), getTodayPlan(db)]);
+  const [counts, stats, plan, gscIndex] = await Promise.all([getBoardCounts(db), getTodayStats(db), getTodayPlan(db), getGscIndexDrip(db)]);
   const planTotal = plan.emails.length + plan.instagram.length + plan.reddit.length;
 
   // Listing targets live in code; only their statuses are in the DB (table may not exist yet).
@@ -74,7 +74,7 @@ export default async function GrowthTodayPage() {
       </p>
 
       {/* ───────── Today's plan: the concrete daily to-do, tick each off ───────── */}
-      <TodayPlan emails={plan.emails} instagram={plan.instagram} reddit={plan.reddit} totalEmailQueued={plan.totalEmailQueued} sentToday={plan.sentToday} igNote={IG_RAMP_NOTE} />
+      <TodayPlan emails={plan.emails} instagram={plan.instagram} reddit={plan.reddit} totalEmailQueued={plan.totalEmailQueued} sentToday={plan.sentToday} igNote={IG_RAMP_NOTE} gscIndex={gscIndex} />
 
       {/* ───────── Boards (navigation / full pipeline) ───────── */}
       <h2 className="font-display" style={{ fontSize: 15, fontWeight: 600, marginTop: 30, color: "var(--foreground)" }}>Boards</h2>

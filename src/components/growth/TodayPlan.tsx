@@ -17,6 +17,13 @@ export type PlanReddit = {
 };
 
 const REDDIT_DONE_KEY = "reddit-plan-done";
+const GSC_DONE_KEY = "gsc-index-done";
+const GSC_DAILY = 12; // GSC's per-URL "Request indexing" quota is ~10-15/day; show one day's batch.
+// Deep-link straight to the URL Inspection tool for a given page (domain property). Per lands on the
+// inspection screen and just clicks "Request Indexing" — no pasting. Copy button is the fallback if
+// the property id differs.
+const gscInspectUrl = (url: string) =>
+  `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent("sc-domain:gotcosy.com")}&id=${encodeURIComponent(url)}`;
 
 const CARD: CSSProperties = { display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12 };
 const scoreBadge = (score: number): CSSProperties => ({ flex: "none", width: 34, height: 34, borderRadius: 8, background: cosyBadgeColor(score), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Fraunces, serif", fontSize: 13.5, fontWeight: 700 });
@@ -46,7 +53,7 @@ function Tick({ done, busy, onTick }: { done: boolean; busy: boolean; onTick: ()
   );
 }
 
-export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued, sentToday, igNote }: { emails: PlanEmail[]; instagram: PlanInstagram[]; reddit: PlanReddit[]; totalEmailQueued: number; sentToday: { count: number }; igNote?: string }) {
+export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued, sentToday, igNote, gscIndex = [] }: { emails: PlanEmail[]; instagram: PlanInstagram[]; reddit: PlanReddit[]; totalEmailQueued: number; sentToday: { count: number }; igNote?: string; gscIndex?: string[] }) {
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
@@ -66,6 +73,27 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued,
       return next;
     });
   }
+
+  // GSC indexing drip: "done" (already request-indexed) lives only in localStorage — there's no DB
+  // row per URL, and Per is the sole operator of this panel. Ticked URLs leave the list; next load
+  // surfaces the next un-submitted batch. Deterministic server order keeps the cursor stable.
+  const [gscDone, setGscDone] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(GSC_DONE_KEY);
+      if (raw) setGscDone(JSON.parse(raw));
+    } catch { /* localStorage unavailable — batch just always shows as pending */ }
+  }, []);
+  function markGscDone(url: string) {
+    setGscDone((d) => {
+      const next = { ...d, [url]: true };
+      try { localStorage.setItem(GSC_DONE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }
+  const gscPending = gscIndex.filter((u) => !gscDone[u]);
+  const gscToShow = gscPending.slice(0, GSC_DAILY);
+  const gscSubmittedTotal = gscIndex.length - gscPending.length;
 
   async function move(key: string, url: string, body: unknown) {
     if (done[key] || busy[key]) return;
@@ -227,6 +255,36 @@ export default function TodayPlan({ emails, instagram, reddit, totalEmailQueued,
                   </div>
                   <a href={r.url} target="_blank" rel="noreferrer" className="hov" style={SAGE_BTN}>Open ↗</a>
                   <Tick done={d} busy={!!busy[r.id]} onTick={() => tickReddit(r.id)} />
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {gscToShow.length > 0 && (
+        <>
+          <div style={planHead}>
+            🔎 Request indexing (GSC): these {gscToShow.length}
+            <span style={sub}> · {gscSubmittedTotal} submitted, {gscPending.length} left in the queue</span>
+          </div>
+          <p style={{ ...metaStyle, margin: "0 0 8px" }}>
+            Slow drip to get pages crawled (Google discovered ~6.9K but has crawled almost none: low domain
+            authority = tiny crawl budget). Click “Inspect ↗”, then hit “Request Indexing” in GSC, then tick it.
+            About {GSC_DAILY} a day is the quota. Guides first (they pull their hotels in), then top hotels.
+          </p>
+          <div style={LIST}>
+            {gscToShow.map((url) => {
+              const path = url.replace(/^https?:\/\/[^/]+/, "");
+              const d = !!gscDone[url];
+              return (
+                <div key={url} style={{ ...CARD, opacity: d ? 0.5 : 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ ...nameStyle, textDecoration: d ? "line-through" : "none" }}>{path}</div>
+                  </div>
+                  <CopyButton text={url} label="Copy URL" />
+                  <a href={gscInspectUrl(url)} target="_blank" rel="noreferrer" className="hov" style={EMBER_BTN}>Inspect ↗</a>
+                  <Tick done={d} busy={false} onTick={() => markGscDone(url)} />
                 </div>
               );
             })}
