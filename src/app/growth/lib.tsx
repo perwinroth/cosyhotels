@@ -8,6 +8,7 @@ import { buildBadgePitch, buildVariantPitch, buildVariantDm, variantFor, gmailCo
 import { displayCity, isLatin } from "@/lib/placeText";
 import { isOutreachControlCity } from "@/lib/controlMarkets";
 import { REDDIT_ANSWER_PLAN } from "@/data/redditAnswerPlan";
+import { cityUrls } from "@/lib/seo/sitemapData";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = any;
 
@@ -32,6 +33,46 @@ export type TodayReddit = {
 function subredditFromUrl(url: string): string | null {
   const m = url.match(/reddit\.com\/r\/([^/]+)/i);
   return m ? m[1] : null;
+}
+
+// GSC indexing drip: a stable, priority-ordered list of the site's best /en URLs to request-index
+// in Search Console, worked ~10-15/day (GSC's per-URL quota). Google discovered ~6.9K URLs but has
+// crawled almost none (low domain authority = tiny crawl budget), and 88% of the not-indexed bucket
+// is HOTEL pages (the money content, never crawled). Request-indexing is a seed, not a cure (the cure
+// is backlinks), but it can't hurt and it front-loads the pages that earn. Order = highest leverage
+// first: city-guide hubs (each links many hotels, so getting a hub crawled pulls its hotels in), the
+// two index pages, then the top-scored, photo-verified hotels. TodayPlan tracks "done" in localStorage
+// (like planned-Reddit) so each day surfaces the next un-submitted batch. Deterministic order keeps
+// the localStorage cursor meaningful across days.
+export async function getGscIndexDrip(db: DB): Promise<string[]> {
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
+  const urls: string[] = [`${base}/en/cosy-index`, `${base}/en/cosy-hotels`];
+  try {
+    // Guide hubs first (highest leverage). Reuses the SAME builder the cities sitemap uses, so every
+    // URL is a real, canonical, indexable /en guide — never a hand-built slug that 404s.
+    const guides = await cityUrls();
+    urls.push(...guides.map((u) => u.loc));
+  } catch { /* guides optional — hotels below still drip */ }
+  try {
+    // Top-scored, photo-verified hotels (imagery_warmth > 0 = we actually looked at a photo), best
+    // first. These are ~88% of the not-indexed bucket; a re-submit of an already-indexed one is a
+    // harmless no-op in GSC, so no need to cross-reference the coverage export.
+    const rows: Array<{ score: number | null; score_final: number | null; hotel: { slug: string | null } | null }> = [];
+    const { data } = await db
+      .from("cosy_scores")
+      .select("score, score_final, hotel:hotel_id!inner(slug)")
+      .gt("imagery_warmth", 0)
+      .or("score.gte.6,score_final.gte.6")
+      .order("score_final", { ascending: false, nullsFirst: false })
+      .order("score", { ascending: false })
+      .limit(400);
+    if (Array.isArray(data)) rows.push(...(data as typeof rows));
+    for (const r of rows) {
+      const slug = (r.hotel?.slug || "").trim();
+      if (slug) urls.push(`${base}/en/hotels/${slug}`);
+    }
+  } catch { /* hotels optional — guides above still drip */ }
+  return Array.from(new Set(urls)); // de-dupe, preserve priority order
 }
 
 // The concrete "do exactly this today" queue: the top-scored queued hotels to email + DM, and the best
