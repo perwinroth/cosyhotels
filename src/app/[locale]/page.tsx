@@ -14,12 +14,31 @@ import { SearchBar } from "@/components/HomeSections";
 import { isLatin } from "@/lib/placeText";
 import { getDelistedSlugSet } from "@/lib/delisted";
 import { getStay22WrongSlugs } from "@/lib/ctaPolicy";
+import { TRANSLATED_LOCALES } from "@/lib/i18n/seoLocale";
 
 export const revalidate = 3600;
 
-export function generateMetadata(): Metadata {
-  // Untranslated locales are duplicate English; only the root "/" homepage is indexed. Every
-  // locale homepage canonicalizes to "/" (and drops hreflang, valid only for real translations).
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  // Option B (founder 2026-07-23): the homepage body renders fully translated for TRANSLATED_LOCALES
+  // (#130 wired the hero, cards, search and featured descriptions through translate()), so /sv gets a
+  // self-canonical /sv homepage + hreflang and can rank in Swedish search. Special case vs the other
+  // pages: the canonical English homepage is the ROOT "/" (the /en homepage itself canonicals to "/"),
+  // so the "en" + "x-default" hreflang point at "/", NOT "/en". en + untranslated locales are
+  // unchanged: duplicate English, canonical "/", no hreflang.
+  if (TRANSLATED_LOCALES.has(params.locale)) {
+    const [tagline, description] = await Promise.all([
+      translate(site.tagline, params.locale),
+      translate(site.description, params.locale),
+    ]);
+    return {
+      title: `${site.name} | ${tagline}`,
+      description,
+      alternates: {
+        canonical: `/${params.locale}`,
+        languages: { en: `/`, [params.locale]: `/${params.locale}`, "x-default": `/` },
+      },
+    };
+  }
   return {
     alternates: { canonical: `/` },
     title: `${site.name} | ${site.tagline}`,
