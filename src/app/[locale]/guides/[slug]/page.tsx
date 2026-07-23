@@ -20,6 +20,7 @@ import { stay22AllezUrl } from "@/lib/affiliates";
 import { notFound } from "next/navigation";
 // import { cosyScore } from "@/lib/scoring/cosy";
 import { translate, translateMany, translateHtml } from "@/lib/i18n/translate";
+import { localeSeo } from "@/lib/i18n/seoLocale";
 import { buildShareLabels } from "@/lib/i18n/shareLabels";
 import { displayCity, displayCountry } from "@/lib/placeText";
 import { breadcrumbSchema, jsonLd } from "@/lib/schema";
@@ -74,30 +75,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const descBase = `The cosiest boutique hotels in ${cg.city}, each AI-scored from 0 to 10 for warmth, character and intimacy, ranked best first. Cosy, romantic and independent stays, not corporate chains.`;
       const title = params.locale === 'en' ? titleBase : await translate(titleBase, params.locale);
       const description = params.locale === 'en' ? descBase : await translate(descBase, params.locale);
-      // Only /en is indexed (body is English hotel data; title/excerpt are machine-translated).
-      // Canonicalize every locale to the /en twin — this agrees with the canonical Google already
-      // picks for these near-duplicate pages — and drop hreflang (valid only for real translations).
-      const url = `/en/guides/${cg.slug}`;
+      // Locale-aware canonical + hreflang (founder 2026-07-23, Option B). The city-guide BODY renders
+      // fully translated for TRANSLATED_LOCALES (intro, FAQ, section headings, facet/city chips and the
+      // review snippets all route through translate(); see the isEn block in the render), so /sv guides
+      // are genuinely Swedish and now self-canonical + carry hreflang. Untranslated locales still
+      // canonical -> /en. When thin (below), the page is noindexed regardless, so canonical is moot.
+      const { canonical: url, languages } = localeSeo(params.locale, `/guides/${cg.slug}`);
       // WP4 index gate: a city guide with fewer than 3 live cosy hotels is thin — keep it reachable
       // but noindex it until it has enough (so Google only indexes substantive guides). Uses the
       // SAME count helper the sitemap uses, so sitemap-cities never lists a noindexed guide.
       const thin = (await liveCosyCountForCityName(cg.city)) < 3;
       // og:image is provided by the co-located opengraph-image.tsx (dynamic 1200×630 PNG per city).
-      return { title, description, alternates: { canonical: url }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary_large_image", title, description }, ...(thin ? { robots: { index: false, follow: true } } : {}) };
+      return { title, description, alternates: { canonical: url, ...(languages ? { languages } : {}) }, openGraph: { title, description, type: "article", url }, twitter: { card: "summary_large_image", title, description }, ...(thin ? { robots: { index: false, follow: true } } : {}) };
     }
     // Fabricated (non-curated) guide. If it survives the ≥3-live-hotels body guard it renders 200,
     // so give it a self-referencing /en canonical and noindex it — it's an auto-generated doorway
     // page: useful to visitors, but not something we want Google to index as thin content.
     return { alternates: { canonical: `/en/guides/${params.slug}` }, robots: { index: false, follow: true } };
   }
-  // Only /en is indexed; canonicalize every locale to the /en twin (no hreflang).
-  const url = `/en/guides/${g.slug}`;
+  // Locale-aware canonical + hreflang (founder 2026-07-23, Option B). Editorial guide bodies render
+  // translated for TRANSLATED_LOCALES (title/excerpt via translate(), body via translateHtml() in the
+  // render), so /sv editorial guides self-canonical + carry hreflang; untranslated locales -> /en.
+  const { canonical: url, languages } = localeSeo(params.locale, `/guides/${g.slug}`);
   const title = params.locale === 'en' ? g.title : await translate(g.title, params.locale);
   const description = params.locale === 'en' ? g.excerpt : await translate(g.excerpt, params.locale);
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, ...(languages ? { languages } : {}) },
     openGraph: { title, description, type: "article", url },
     twitter: { card: "summary", title, description },
   };
