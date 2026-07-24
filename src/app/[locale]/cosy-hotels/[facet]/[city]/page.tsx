@@ -43,8 +43,16 @@ export async function generateMetadata({ params }: { params: { locale: string; f
   if (!concept || !concept.collectionEnabled) return {};
   const cityName = resolveCity(params.city);
   const phrase = conceptLabelPhrase(concept);
-  const titleBase = FACET_CITY_COPY[`${params.facet}/${params.city}`]?.title ?? `Cosy hotels ${phrase} in ${cityName}`;
-  const descBase = LEGACY_FACET_SLUGS.has(concept.slug)
+  // Boutique facet dual-targets "independent hotels in {city}" (a winnable query: we already draw GSC
+  // impressions for it and this facet matches independent/owner-run/family-run hotels). Lead the title,
+  // H1, meta description and one body line with the exact phrase, scoped to boutique so no other facet
+  // changes. Translated for TRANSLATED_LOCALES like the rest of the copy.
+  const isBoutique = concept.slug === "boutique";
+  const titleBase = FACET_CITY_COPY[`${params.facet}/${params.city}`]?.title
+    ?? (isBoutique ? `Boutique & independent hotels in ${cityName}, scored for cosiness` : `Cosy hotels ${phrase} in ${cityName}`);
+  const descBase = isBoutique
+    ? `The cosiest independent hotels in ${cityName}: small, boutique and owner-run stays, AI-scored from 0 to 10 for warmth and character, not corporate chains.`
+    : LEGACY_FACET_SLUGS.has(concept.slug)
     ? `AI-ranked cosy hotels ${phrase} in ${cityName}, scored from 0 to 10 for warmth and character, with real photos and the signals behind each score.`
     : `${concept.description} The cosiest hotels ${phrase} in ${cityName}, AI-scored from 0 to 10 for warmth and character.`;
   const title = params.locale === "en" ? titleBase : await translate(titleBase, params.locale);
@@ -66,6 +74,9 @@ export default async function FacetPage({ params }: { params: { locale: string; 
   const { concept, cityName, hotels } = res;
   const phrase = conceptLabelPhrase(concept);
   const isLegacy = LEGACY_FACET_SLUGS.has(concept.slug);
+  // See generateMetadata: boutique dual-targets "independent hotels in {city}".
+  const isBoutique = concept.slug === "boutique";
+  const headingPhrase = isBoutique ? `Boutique & independent hotels in ${cityName}` : `Cosy hotels ${phrase} in ${cityName}`;
 
   // Vetted photos.
   const db = getServerSupabase()!;
@@ -83,10 +94,12 @@ export default async function FacetPage({ params }: { params: { locale: string; 
 
   const top = hotels[0];
   const lead = `We've scored ${hotels.length} cosy ${hotels.length === 1 ? "hotel" : "hotels"} ${phrase} in ${cityName}; ${top.name} leads at ${top.score.toFixed(1)}/10. Ranked by cosy score.`;
-  const introEn = FACET_CITY_COPY[`${params.facet}/${params.city}`]?.intro ?? (isLegacy ? lead : `${concept.description} ${lead}`);
+  // Boutique: one on-thesis body line carrying the exact "independent hotels in {city}" query.
+  const indieLine = isBoutique ? ` The independent hotels in ${cityName} that score highest for cosiness are small, owner-run places, not chains, which is the pattern our data keeps finding.` : "";
+  const introEn = (FACET_CITY_COPY[`${params.facet}/${params.city}`]?.intro ?? (isLegacy ? lead : `${concept.description} ${lead}`)) + indieLine;
   // Visible body copy renders in the target language for non-en; en path is byte-identical (G14).
   const isEn = params.locale === "en";
-  const h1 = isEn ? "" : await translate(`Cosy hotels ${phrase} in ${cityName}`, params.locale);
+  const h1 = isEn ? "" : await translate(headingPhrase, params.locale);
   const intro = isEn ? introEn : await translate(introEn, params.locale);
   const snippets = isEn ? hotels.map((h) => h.snippet) : await translateMany(hotels.map((h) => h.snippet || ""), params.locale);
   const saveLabels = await buildSaveLabels(params.locale);
@@ -113,7 +126,7 @@ export default async function FacetPage({ params }: { params: { locale: string; 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <h1 className="text-2xl font-semibold">{isEn ? <>Cosy hotels {phrase} in {cityName}</> : h1}</h1>
+      <h1 className="text-2xl font-semibold">{isEn ? headingPhrase : h1}</h1>
       <p className="mt-2" style={{ color: "var(--muted)" }}>{intro}</p>
       <ol className="mt-6 space-y-3">
         {hotels.map((h, idx) => {
