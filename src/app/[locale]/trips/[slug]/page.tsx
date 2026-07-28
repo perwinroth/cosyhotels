@@ -5,7 +5,7 @@ import { boardTouchesControl } from "@/lib/trips";
 import { resolveBoardLive } from "@/lib/tripsLive";
 import { translate } from "@/lib/i18n/translate";
 import { cosyBadgeColor } from "@/lib/cosyColor";
-import { locales } from "@/i18n/locales";
+import { localeSeo } from "@/lib/i18n/seoLocale";
 
 type Props = { params: { slug: string; locale: string } };
 
@@ -16,29 +16,25 @@ const tx = (locale: string) => (s: string) => (locale === "en" ? Promise.resolve
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://gotcosy.com";
 
-// hreflang alternates for the enabled locales (trips are genuinely translated content, unlike the
-// near-duplicate city guides, so per-locale alternates are valid here).
-function languageAlternates(slug: string): Record<string, string> {
-  const langs: Record<string, string> = {};
-  for (const l of locales) langs[l] = `/${l}/trips/${slug}`;
-  langs["x-default"] = `/en/trips/${slug}`;
-  return langs;
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const board = getTripBoard(params.slug);
   if (!board || boardTouchesControl(board)) return { robots: { index: false, follow: false } };
   const t = tx(params.locale);
   const title = await t(board.title);
   const description = await t(board.dek);
-  const url = `/${params.locale}/trips/${board.slug}`;
+  // Canonical policy is the site-wide localeSeo() one: only TRANSLATED_LOCALES self-canonical
+  // (with hreflang); every other locale canonicals to the /en twin. The previous per-locale
+  // self-canonical assumed all locales were "genuinely translated", but translate() only
+  // authorizes sv — it/es/pt/fr serve the English source, and GSC rightly failed validation
+  // with "Duplicate, Google chose different canonical than user" (/it/trips/*, 2026-07-25).
+  const seo = localeSeo(params.locale, `/trips/${board.slug}`);
   // A board whose live membership can't fill every stop (any stop < 2 picks) noindexes itself.
   const { indexable } = await resolveBoardLive(board);
   return {
     title,
     description,
-    alternates: { canonical: url, languages: languageAlternates(board.slug) },
-    openGraph: { title, description, type: "article", url },
+    alternates: { canonical: seo.canonical, ...(seo.languages ? { languages: seo.languages } : {}) },
+    openGraph: { title, description, type: "article", url: seo.canonical },
     twitter: { card: "summary_large_image", title, description },
     ...(indexable ? {} : { robots: { index: false, follow: true } }),
   };

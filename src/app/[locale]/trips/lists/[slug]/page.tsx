@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { resolveSavedListPicks } from "@/lib/tripsLive";
 import { translate } from "@/lib/i18n/translate";
+import { localeSeo } from "@/lib/i18n/seoLocale";
 import { stay22AllezUrl } from "@/lib/affiliates";
 import { resolveBookingCta, getStay22WrongSlugs } from "@/lib/ctaPolicy";
 import { buildSaveLabels } from "@/lib/i18n/saveLabels";
@@ -52,12 +53,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const descTemplate = await t("hand-picked cosy hotels, chosen with Got Cosy's live cosy scores.");
   const pageTitle = `${title} · ${suffix}`;
   const description = `${title}: ${picks.length} ${descTemplate}`;
-  const url = `/${params.locale}/trips/lists/${list.slug}`;
+  // Site-wide canonical policy (localeSeo): en + translated locales self-canonical, the rest
+  // canonical to /en — the body only genuinely translates for TRANSLATED_LOCALES.
+  const seo = localeSeo(params.locale, `/trips/lists/${list.slug}`);
   return {
     title: pageTitle,
     description,
-    alternates: { canonical: url },
-    openGraph: { title: pageTitle, description, type: "article", url },
+    alternates: { canonical: seo.canonical, ...(seo.languages ? { languages: seo.languages } : {}) },
+    openGraph: { title: pageTitle, description, type: "article", url: seo.canonical },
     twitter: { card: "summary_large_image", title: pageTitle, description },
   };
 }
